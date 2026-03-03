@@ -15,6 +15,7 @@ Switch personas by reading the relevant file and following its instructions, inc
 | Git Workflow (Ned Flanders) | `docs/personas/git-ned-flanders.md` | Haiku 4.5 |
 | Status Bar (Comic Book Guy) | `docs/personas/status-bar-comic-book-guy.md` | Haiku 4.5 |
 | Model Advisor (Dr. Nick) | `docs/personas/model-advisor-dr-nick.md` | — |
+| Tooling & Code Quality (Principal Skinner) | `docs/personas/tooling-principal-skinner.md` | Haiku 4.5 |
 
 To switch: *"Switch to the Architect persona"* or reference the file directly.
 
