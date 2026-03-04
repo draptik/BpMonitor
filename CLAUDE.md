@@ -19,6 +19,11 @@ Switch personas by reading the relevant file and following its instructions, inc
 
 To switch: *"Switch to the Architect persona"* or reference the file directly.
 
+When switching to a persona, write the character name to `~/.claude/current-persona` so the status bar reflects it. Example:
+```
+echo "Professor Frink" > ~/.claude/current-persona
+```
+
 ## Project Structure
 ```
 BpMonitor.slnx
