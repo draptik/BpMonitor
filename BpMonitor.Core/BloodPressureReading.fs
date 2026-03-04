@@ -43,13 +43,14 @@ module ReadingRanges =
 
 module BloodPressureReading =
     let parse (ranges: ReadingRanges) (input: BloodPressureReadingUnvalidated) : Result<BloodPressureReading, ValidationError> =
-        if input.Systolic < ranges.SystolicMin || input.Systolic > ranges.SystolicMax then
-            Error (SystolicOutOfRange input.Systolic)
-        elif input.Diastolic < ranges.DiastolicMin || input.Diastolic > ranges.DiastolicMax then
-            Error (DiastolicOutOfRange input.Diastolic)
-        elif input.HeartRate < ranges.HeartRateMin || input.HeartRate > ranges.HeartRateMax then
-            Error (HeartRateOutOfRange input.HeartRate)
-        else
+        match input with
+        | { Systolic = s } when s < ranges.SystolicMin || s > ranges.SystolicMax ->
+            Error (SystolicOutOfRange s)
+        | { Diastolic = d } when d < ranges.DiastolicMin || d > ranges.DiastolicMax ->
+            Error (DiastolicOutOfRange d)
+        | { HeartRate = h } when h < ranges.HeartRateMin || h > ranges.HeartRateMax ->
+            Error (HeartRateOutOfRange h)
+        | _ ->
             Ok {
                 Id = 0
                 Systolic = input.Systolic
