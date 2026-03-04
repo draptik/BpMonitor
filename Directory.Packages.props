@@ -3,6 +3,10 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
+  <ItemGroup Label="Tui">
+    <PackageVersion Include="Terminal.Gui" Version="2.0.0-develop.5100" />
+  </ItemGroup>
+
   <ItemGroup Label="FSharp">
     <PackageVersion Include="FSharp.Core" Version="10.0.103" />
   </ItemGroup>
