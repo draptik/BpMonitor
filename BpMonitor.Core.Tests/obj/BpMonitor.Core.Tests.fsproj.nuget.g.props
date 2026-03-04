@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <RestoreSuccess Condition=" '$(RestoreSuccess)' == '' ">True</RestoreSuccess>
+    <RestoreTool Condition=" '$(RestoreTool)' == '' ">NuGet</RestoreTool>
+    <ProjectAssetsFile Condition=" '$(ProjectAssetsFile)' == '' ">$(MSBuildThisFileDirectory)project.assets.json</ProjectAssetsFile>
+    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">/home/patrick/.nuget/packages/</NuGetPackageRoot>
+    <NuGetPackageFolders Condition=" '$(NuGetPackageFolders)' == '' ">/home/patrick/.nuget/packages/</NuGetPackageFolders>
+    <NuGetProjectStyle Condition=" '$(NuGetProjectStyle)' == '' ">PackageReference</NuGetProjectStyle>
+    <NuGetToolVersion Condition=" '$(NuGetToolVersion)' == '' ">7.0.0</NuGetToolVersion>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <SourceRoot Include="/home/patrick/.nuget/packages/" />
+  </ItemGroup>
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)microsoft.testing.platform/1.5.3/buildTransitive/net9.0/Microsoft.Testing.Platform.props" Condition="Exists('$(NuGetPackageRoot)microsoft.testing.platform/1.5.3/buildTransitive/net9.0/Microsoft.Testing.Platform.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.testing.platform.msbuild/1.5.3/buildTransitive/Microsoft.Testing.Platform.MSBuild.props" Condition="Exists('$(NuGetPackageRoot)microsoft.testing.platform.msbuild/1.5.3/buildTransitive/Microsoft.Testing.Platform.MSBuild.props')" />
+    <Import Project="$(NuGetPackageRoot)xunit.v3.core/1.1.0/buildTransitive/xunit.v3.core.props" Condition="Exists('$(NuGetPackageRoot)xunit.v3.core/1.1.0/buildTransitive/xunit.v3.core.props')" />
+    <Import Project="$(NuGetPackageRoot)xunit.runner.visualstudio/3.1.4/build/net8.0/xunit.runner.visualstudio.props" Condition="Exists('$(NuGetPackageRoot)xunit.runner.visualstudio/3.1.4/build/net8.0/xunit.runner.visualstudio.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.testplatform.testhost/17.14.1/build/net8.0/Microsoft.TestPlatform.TestHost.props" Condition="Exists('$(NuGetPackageRoot)microsoft.testplatform.testhost/17.14.1/build/net8.0/Microsoft.TestPlatform.TestHost.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.codecoverage/17.14.1/build/netstandard2.0/Microsoft.CodeCoverage.props" Condition="Exists('$(NuGetPackageRoot)microsoft.codecoverage/17.14.1/build/netstandard2.0/Microsoft.CodeCoverage.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.net.test.sdk/17.14.1/build/net8.0/Microsoft.NET.Test.Sdk.props" Condition="Exists('$(NuGetPackageRoot)microsoft.net.test.sdk/17.14.1/build/net8.0/Microsoft.NET.Test.Sdk.props')" />
+  </ImportGroup>
+  <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Pkgxunit_analyzers Condition=" '$(Pkgxunit_analyzers)' == '' ">/home/patrick/.nuget/packages/xunit.analyzers/1.20.0</Pkgxunit_analyzers>
+    <Pkgxunit_v3 Condition=" '$(Pkgxunit_v3)' == '' ">/home/patrick/.nuget/packages/xunit.v3/1.1.0</Pkgxunit_v3>
+    <Pkgxunit_runner_visualstudio Condition=" '$(Pkgxunit_runner_visualstudio)' == '' ">/home/patrick/.nuget/packages/xunit.runner.visualstudio/3.1.4</Pkgxunit_runner_visualstudio>
+    <PkgFSharp_Core Condition=" '$(PkgFSharp_Core)' == '' ">/home/patrick/.nuget/packages/fsharp.core/10.0.103</PkgFSharp_Core>
+    <PkgUnquote Condition=" '$(PkgUnquote)' == '' ">/home/patrick/.nuget/packages/unquote/7.0.1</PkgUnquote>
+    <PkgMicrosoft_NET_Test_Sdk Condition=" '$(PkgMicrosoft_NET_Test_Sdk)' == '' ">/home/patrick/.nuget/packages/microsoft.net.test.sdk/17.14.1</PkgMicrosoft_NET_Test_Sdk>
+    <PkgMicrosoft_Extensions_TimeProvider_Testing Condition=" '$(PkgMicrosoft_Extensions_TimeProvider_Testing)' == '' ">/home/patrick/.nuget/packages/microsoft.extensions.timeprovider.testing/9.1.0</PkgMicrosoft_Extensions_TimeProvider_Testing>
+    <Pkgcoverlet_collector Condition=" '$(Pkgcoverlet_collector)' == '' ">/home/patrick/.nuget/packages/coverlet.collector/6.0.4</Pkgcoverlet_collector>
+  </PropertyGroup>
+</Project>

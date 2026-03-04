@@ -1,0 +1,11 @@
+/home/patrick/tmp/claude-demo-2026-03-03/BpMonitor.Core/obj/Debug/net10.0/BpMonitor.Core.AssemblyInfoInputs.cache
+/home/patrick/tmp/claude-demo-2026-03-03/BpMonitor.Core/obj/Debug/net10.0/BpMonitor.Core.AssemblyInfo.fs
+/home/patrick/tmp/claude-demo-2026-03-03/BpMonitor.Core/obj/Debug/net10.0/BpMonitor.Core.fsproj.CoreCompileInputs.cache
+/home/patrick/tmp/claude-demo-2026-03-03/BpMonitor.Core/obj/Debug/net10.0/BpMonitor.Core.sourcelink.json
+/home/patrick/tmp/claude-demo-2026-03-03/BpMonitor.Core/bin/Debug/net10.0/BpMonitor.Core.deps.json
+/home/patrick/tmp/claude-demo-2026-03-03/BpMonitor.Core/bin/Debug/net10.0/BpMonitor.Core.dll
+/home/patrick/tmp/claude-demo-2026-03-03/BpMonitor.Core/bin/Debug/net10.0/BpMonitor.Core.pdb
+/home/patrick/tmp/claude-demo-2026-03-03/BpMonitor.Core/obj/Debug/net10.0/BpMonitor.Core.dll
+/home/patrick/tmp/claude-demo-2026-03-03/BpMonitor.Core/obj/Debug/net10.0/refint/BpMonitor.Core.dll
+/home/patrick/tmp/claude-demo-2026-03-03/BpMonitor.Core/obj/Debug/net10.0/BpMonitor.Core.pdb
+/home/patrick/tmp/claude-demo-2026-03-03/BpMonitor.Core/obj/Debug/net10.0/ref/BpMonitor.Core.dll

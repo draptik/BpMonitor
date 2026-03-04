@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linker>
+  <assembly fullname="BpMonitor.Core.Tests">
+    <resource name="FSharpSignatureData.BpMonitor.Core.Tests" action="remove"></resource>
+    <resource name="FSharpSignatureCompressedData.BpMonitor.Core.Tests" action="remove"></resource>
+    <resource name="FSharpSignatureDataB.BpMonitor.Core.Tests" action="remove"></resource>
+    <resource name="FSharpSignatureCompressedDataB.BpMonitor.Core.Tests" action="remove"></resource>
+    <resource name="FSharpOptimizationData.BpMonitor.Core.Tests" action="remove"></resource>
+    <resource name="FSharpOptimizationCompressedData.BpMonitor.Core.Tests" action="remove"></resource>
+    <resource name="FSharpOptimizationDataB.BpMonitor.Core.Tests" action="remove"></resource>
+    <resource name="FSharpOptimizationCompressedDataB.BpMonitor.Core.Tests" action="remove"></resource>
+    <resource name="FSharpOptimizationInfo.BpMonitor.Core.Tests" action="remove"></resource>
+    <resource name="FSharpSignatureInfo.BpMonitor.Core.Tests" action="remove"></resource>
+  </assembly>
+</linker>
