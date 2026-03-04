@@ -8,8 +8,7 @@ open BpMonitor.Core
 
 let private timeProvider = FakeTimeProvider(DateTimeOffset(2026, 3, 3, 0, 0, 0, TimeSpan.Zero))
 
-let private validReading = {
-    Id = 0
+let private validUnvalidated : BloodPressureReadingUnvalidated = {
     Systolic = 120
     Diastolic = 80
     HeartRate = 70
@@ -20,26 +19,26 @@ let private validReading = {
 let private ranges = ReadingRanges.defaults
 
 [<Fact>]
-let ``IsValid returns true when reading has valid values`` () =
-    test <@ BloodPressureReading.isValid ranges validReading @>
+let ``parse returns Ok when input is valid`` () =
+    test <@ BloodPressureReading.parse ranges validUnvalidated |> Result.isOk @>
 
 [<Theory>]
 [<InlineData(0)>]
 [<InlineData(-1)>]
 [<InlineData(301)>]
-let ``IsValid returns false when systolic is out of range`` (invalidSystolic: int) =
-    test <@ not (BloodPressureReading.isValid ranges { validReading with Systolic = invalidSystolic }) @>
+let ``parse returns Error when systolic is out of range`` (invalidSystolic: int) =
+    test <@ BloodPressureReading.parse ranges { validUnvalidated with Systolic = invalidSystolic } |> Result.isError @>
 
 [<Theory>]
 [<InlineData(0)>]
 [<InlineData(-1)>]
 [<InlineData(201)>]
-let ``IsValid returns false when diastolic is out of range`` (invalidDiastolic: int) =
-    test <@ not (BloodPressureReading.isValid ranges { validReading with Diastolic = invalidDiastolic }) @>
+let ``parse returns Error when diastolic is out of range`` (invalidDiastolic: int) =
+    test <@ BloodPressureReading.parse ranges { validUnvalidated with Diastolic = invalidDiastolic } |> Result.isError @>
 
 [<Theory>]
 [<InlineData(0)>]
 [<InlineData(-1)>]
 [<InlineData(301)>]
-let ``IsValid returns false when heart rate is out of range`` (invalidHeartRate: int) =
-    test <@ not (BloodPressureReading.isValid ranges { validReading with HeartRate = invalidHeartRate }) @>
+let ``parse returns Error when heart rate is out of range`` (invalidHeartRate: int) =
+    test <@ BloodPressureReading.parse ranges { validUnvalidated with HeartRate = invalidHeartRate } |> Result.isError @>
