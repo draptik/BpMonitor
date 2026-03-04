@@ -1,5 +1,13 @@
 namespace BpMonitor.Core
 
+type BloodPressureReadingUnvalidated = {
+    Systolic: int
+    Diastolic: int
+    HeartRate: int
+    Timestamp: System.DateTimeOffset
+    Comments: string option
+}
+
 type BloodPressureReading = {
     Id: int
     Systolic: int
@@ -8,6 +16,11 @@ type BloodPressureReading = {
     Timestamp: System.DateTimeOffset
     Comments: string option
 }
+
+type ValidationError =
+    | SystolicOutOfRange of int
+    | DiastolicOutOfRange of int
+    | HeartRateOutOfRange of int
 
 type ReadingRanges = {
     SystolicMin: int
@@ -29,7 +42,19 @@ module ReadingRanges =
     }
 
 module BloodPressureReading =
-    let isValid (ranges: ReadingRanges) (reading: BloodPressureReading) =
-        reading.Systolic >= ranges.SystolicMin && reading.Systolic <= ranges.SystolicMax
-        && reading.Diastolic >= ranges.DiastolicMin && reading.Diastolic <= ranges.DiastolicMax
-        && reading.HeartRate >= ranges.HeartRateMin && reading.HeartRate <= ranges.HeartRateMax
+    let parse (ranges: ReadingRanges) (input: BloodPressureReadingUnvalidated) : Result<BloodPressureReading, ValidationError> =
+        if input.Systolic < ranges.SystolicMin || input.Systolic > ranges.SystolicMax then
+            Error (SystolicOutOfRange input.Systolic)
+        elif input.Diastolic < ranges.DiastolicMin || input.Diastolic > ranges.DiastolicMax then
+            Error (DiastolicOutOfRange input.Diastolic)
+        elif input.HeartRate < ranges.HeartRateMin || input.HeartRate > ranges.HeartRateMax then
+            Error (HeartRateOutOfRange input.HeartRate)
+        else
+            Ok {
+                Id = 0
+                Systolic = input.Systolic
+                Diastolic = input.Diastolic
+                HeartRate = input.HeartRate
+                Timestamp = input.Timestamp
+                Comments = input.Comments
+            }
