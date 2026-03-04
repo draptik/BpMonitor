@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BpMonitor.Core.Tests/BpMonitor.Core.Tests.fsproj" />
+  <Project Path="BpMonitor.Core/BpMonitor.Core.fsproj" />
+</Solution>
