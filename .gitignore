@@ -1,0 +1,17 @@
+# Build output
+bin/
+obj/
+
+# NuGet
+*.user
+*.nuget.props
+*.nuget.targets
+
+# Rider / VS
+.idea/
+.vs/
+*.DotSettings.user
+
+# OS
+.DS_Store
+Thumbs.db

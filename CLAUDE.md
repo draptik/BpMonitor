@@ -19,6 +19,11 @@ Switch personas by reading the relevant file and following its instructions, inc
 
 To switch: *"Switch to the Architect persona"* or reference the file directly.
 
+When switching to a persona, write the character name to `~/.claude/current-persona` so the status bar reflects it. Example:
+```
+echo "Professor Frink" > ~/.claude/current-persona
+```
+
 ## Project Structure
 ```
 BpMonitor.slnx
@@ -34,6 +39,12 @@ Follow `docs/personas/git-ned-flanders.md`. Key rules:
 - Feature branches only, never commit to `main`
 - Squash merge via PR — always requires a review
 - Keep PRs small and focused
+
+**Before making any code changes**, always create a feature branch first:
+```
+git checkout -b feat/<short-description>
+```
+Never start work on `main`. Creating the branch is the first step, not an afterthought.
 
 ## Docs
 - `docs/vision.md` — product vision and requirements

@@ -29,4 +29,4 @@ Claude Sonnet 4.6 | v1.0.71 | ctx: 12% used / 88% left | in:24000 out:850 cache-
 ```
 
 ## Customization
-To adjust the status bar, ask Claude to invoke the `statusline-setup` agent.
+To adjust the status bar, ask Claude to invoke the `statusline-setup` agent
