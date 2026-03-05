@@ -41,7 +41,14 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
             Height = Dim.Absolute(9)
         )
 
-    let readingsLabel = new Label(Text = "Readings:", X = Pos.Absolute(0), Y = Pos.Bottom(formFrame) + Pos.Absolute(1))
+    let listFrame =
+        new FrameView(
+            Title = "Readings",
+            X = Pos.Absolute(0),
+            Y = Pos.Bottom(formFrame),
+            Width = Dim.Fill(),
+            Height = Dim.Fill()
+        )
 
     let makeTableSource () =
         EnumerableTableSource<BloodPressureReading>(
@@ -58,7 +65,7 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
     let tableView =
         new TableView(
             X = Pos.Absolute(0),
-            Y = Pos.Bottom(readingsLabel),
+            Y = Pos.Absolute(0),
             Width = Dim.Fill(),
             Height = Dim.Fill(),
             Table = makeTableSource()
@@ -140,10 +147,11 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
             submitButton
         )
 
+        listFrame.Add(tableView) |> ignore
+
         this.Add(
             formFrame,
-            readingsLabel,
-            tableView
+            listFrame
         )
 
     member _.Readings = repository.GetAll()
