@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="FsToolkit.ErrorHandling" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="BloodPressureReading.fs" />
   </ItemGroup>
 

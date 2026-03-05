@@ -10,6 +10,7 @@
 
   <ItemGroup Label="FSharp">
     <PackageVersion Include="FSharp.Core" Version="10.0.103" />
+    <PackageVersion Include="FsToolkit.ErrorHandling" Version="5.2.0" />
   </ItemGroup>
 
   <ItemGroup Label="Test">
