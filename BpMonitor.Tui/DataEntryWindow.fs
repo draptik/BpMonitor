@@ -1,13 +1,25 @@
 namespace BpMonitor.Tui
 
 open System
+open System.Collections.Generic
 open Terminal.Gui.App
+open Terminal.Gui.Input
 open Terminal.Gui.ViewBase
 open Terminal.Gui.Views
 open BpMonitor.Core
 
-type DataEntryWindow(app: IApplication) as this =
+module private Defaults =
+    let readings = [
+        { Id = 1; Systolic = 122; Diastolic = 78; HeartRate = 65; Timestamp = DateTimeOffset(2026, 2, 28, 7, 30, 0, TimeSpan.Zero); Comments = None }
+        { Id = 2; Systolic = 135; Diastolic = 88; HeartRate = 78; Timestamp = DateTimeOffset(2026, 3,  1, 8,  0, 0, TimeSpan.Zero); Comments = Some "After coffee" }
+        { Id = 3; Systolic = 118; Diastolic = 74; HeartRate = 62; Timestamp = DateTimeOffset(2026, 3,  2, 7, 45, 0, TimeSpan.Zero); Comments = Some "Morning, rested" }
+        { Id = 4; Systolic = 128; Diastolic = 82; HeartRate = 70; Timestamp = DateTimeOffset(2026, 3,  3, 9, 15, 0, TimeSpan.Zero); Comments = None }
+    ]
+
+type DataEntryWindow(app: IApplication, ?onQuit: unit -> unit, ?initialReadings: BloodPressureReading list) as this =
     inherit Window()
+
+    let readings = ResizeArray<BloodPressureReading>(defaultArg initialReadings Defaults.readings)
 
     let makeLabel (text: string) (y: int) =
         new Label(Text = text, X = Pos.Absolute(0), Y = Pos.Absolute(y))
@@ -30,6 +42,29 @@ type DataEntryWindow(app: IApplication) as this =
     let commentsField  = makeField 4
     let submitButton   = new Button(Text = "Submit", X = Pos.Absolute(0), Y = Pos.Absolute(6), IsDefault = true)
 
+    let readingsLabel = new Label(Text = "Readings:", X = Pos.Absolute(0), Y = Pos.Bottom(submitButton) + Pos.Absolute(1))
+
+    let makeTableSource () =
+        EnumerableTableSource<BloodPressureReading>(
+            readings,
+            Dictionary<string, Func<BloodPressureReading, obj>>(dict [
+                "Timestamp", Func<BloodPressureReading, obj>(fun r -> box (r.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm")))
+                "Sys",       Func<BloodPressureReading, obj>(fun r -> box r.Systolic)
+                "Dia",       Func<BloodPressureReading, obj>(fun r -> box r.Diastolic)
+                "HR",        Func<BloodPressureReading, obj>(fun r -> box r.HeartRate)
+                "Comments",  Func<BloodPressureReading, obj>(fun r -> box (r.Comments |> Option.defaultValue ""))
+            ])
+        )
+
+    let tableView =
+        new TableView(
+            X = Pos.Absolute(0),
+            Y = Pos.Bottom(readingsLabel),
+            Width = Dim.Fill(),
+            Height = Dim.Fill(),
+            Table = makeTableSource()
+        )
+
     let clearForm () =
         systolicField.Text  <- ""
         diastolicField.Text <- ""
@@ -49,6 +84,11 @@ type DataEntryWindow(app: IApplication) as this =
 
     do
         this.Title <- "BpMonitor — New Reading"
+
+        this.KeyDown.Add(fun key ->
+            if key = Key.Esc then
+                onQuit |> Option.iter (fun f -> f())
+        )
 
         submitButton.Accepting.Add(fun _ ->
             let parsed =
@@ -75,7 +115,10 @@ type DataEntryWindow(app: IApplication) as this =
                 MessageBox.ErrorQuery(app, "Input Error", msg, "OK") |> ignore
             | Ok unvalidated ->
                 match BloodPressureReading.parse ReadingRanges.defaults unvalidated with
-                | Ok _ ->
+                | Ok reading ->
+                    let nextId = (readings |> Seq.map (fun r -> r.Id) |> Seq.max) + 1
+                    readings.Add({ reading with Id = nextId })
+                    tableView.Table <- makeTableSource()
                     MessageBox.Query(app, "Saved", "Reading recorded successfully.", "OK") |> ignore
                     clearForm()
                 | Error e ->
@@ -93,5 +136,9 @@ type DataEntryWindow(app: IApplication) as this =
             heartRateLabel, heartRateField,
             timestampLabel, timestampField,
             commentsLabel,  commentsField,
-            submitButton
+            submitButton,
+            readingsLabel,
+            tableView
         )
+
+    member _.Readings: IReadOnlyList<BloodPressureReading> = readings
