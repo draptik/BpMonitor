@@ -59,6 +59,17 @@ Examples:
 4. All feedback must be resolved before merge
 5. Merge strategy: **Squash and merge** (one clean commit per PR on `main`)
 
+### PR Description Format
+
+```text
+## Summary
+- <bullet points describing what changed and why>
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+```
+
+- No test plan checklist — they are noise and not enforced by GitHub
+
 ## Why Squash Merge?
 - One PR = one commit on `main`
 - Easy to revert an entire feature: `git revert <commit>`
