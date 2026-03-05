@@ -42,3 +42,10 @@ let ``parse returns Error when diastolic is out of range`` (invalidDiastolic: in
 [<InlineData(301)>]
 let ``parse returns Error when heart rate is out of range`` (invalidHeartRate: int) =
     test <@ BloodPressureReading.parse ranges { validUnvalidated with HeartRate = invalidHeartRate } |> Result.isError @>
+
+[<Fact>]
+let ``parse collects all validation errors`` () =
+    let allInvalid = { validUnvalidated with Systolic = 0; Diastolic = 0; HeartRate = 0 }
+    match BloodPressureReading.parse ranges allInvalid with
+    | Error errors -> test <@ errors.Length = 3 @>
+    | Ok _         -> failwith "Expected Error"

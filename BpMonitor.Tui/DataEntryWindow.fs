@@ -121,12 +121,15 @@ type DataEntryWindow(app: IApplication, ?onQuit: unit -> unit, ?initialReadings:
                     tableView.Table <- makeTableSource()
                     MessageBox.Query(app, "Saved", "Reading recorded successfully.", "OK") |> ignore
                     clearForm()
-                | Error e ->
+                | Error errors ->
                     let msg =
-                        match e with
-                        | SystolicOutOfRange v  -> $"Systolic {v} is out of range (1–300)"
-                        | DiastolicOutOfRange v -> $"Diastolic {v} is out of range (1–200)"
-                        | HeartRateOutOfRange v -> $"Heart rate {v} is out of range (1–300)"
+                        errors
+                        |> List.map (fun e ->
+                            match e with
+                            | SystolicOutOfRange v  -> $"Systolic {v} is out of range (1–300)"
+                            | DiastolicOutOfRange v -> $"Diastolic {v} is out of range (1–200)"
+                            | HeartRateOutOfRange v -> $"Heart rate {v} is out of range (1–300)")
+                        |> String.concat "\n"
                     MessageBox.ErrorQuery(app, "Validation Error", msg, "OK") |> ignore
         )
 
