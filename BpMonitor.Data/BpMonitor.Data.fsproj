@@ -1,11 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BpMonitor.Core\BpMonitor.Core.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="InMemoryReadingRepository.fs" />
+    <Compile Include="ReadingRecord.fs" />
+    <Compile Include="BpMonitorDbContext.fs" />
+    <Compile Include="EfReadingRepository.fs" />
+    <Compile Include="ReadingRepositoryFactory.fs" />
   </ItemGroup>
 
 </Project>

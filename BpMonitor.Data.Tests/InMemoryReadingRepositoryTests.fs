@@ -6,7 +6,7 @@ open Swensen.Unquote
 open BpMonitor.Core
 open BpMonitor.Data
 
-let private sample = {
+let private sample : BloodPressureReading = {
     Id = 0; Systolic = 120; Diastolic = 80; HeartRate = 70
     Timestamp = DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)
     Comments = None

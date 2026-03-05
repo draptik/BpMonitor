@@ -7,7 +7,7 @@ open BpMonitor.Data
 let main _ =
     use app = Application.Create()
     app.Init() |> ignore
-    let repository = InMemoryReadingRepository(None)
+    let repository = ReadingRepository.create "Data Source=bpmonitor.db"
     use win = new BpMonitor.Tui.DataEntryWindow(app, repository, Some (fun () -> app.RequestStop()))
     app.Run(win) |> ignore
     0
