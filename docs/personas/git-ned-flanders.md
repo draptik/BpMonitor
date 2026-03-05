@@ -59,7 +59,15 @@ Examples:
 4. All feedback must be resolved before merge
 5. Merge strategy: **Squash and merge** (one clean commit per PR on `main`)
 
-### PR Description Format
+### PR Title and Description Format
+
+The PR title becomes the squash-merge commit on `main` — it **must** follow the same gitmoji convention as commits:
+
+```text
+<emoji> <short description in imperative mood>
+```
+
+PR body:
 
 ```text
 ## Summary
