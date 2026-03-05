@@ -2,4 +2,5 @@
   <Project Path="BpMonitor.Core.Tests/BpMonitor.Core.Tests.fsproj" />
   <Project Path="BpMonitor.Core/BpMonitor.Core.fsproj" />
   <Project Path="BpMonitor.Tui/BpMonitor.Tui.fsproj" />
+  <Project Path="BpMonitor.Tui.Tests/BpMonitor.Tui.Tests.fsproj" />
 </Solution>
