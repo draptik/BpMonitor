@@ -50,7 +50,7 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
             X = Pos.Absolute(0),
             Y = Pos.Bottom(formFrame),
             Width = Dim.Fill(),
-            Height = Dim.Fill()
+            Height = Dim.Fill(1)
         )
 
     let makeTableSource () =
