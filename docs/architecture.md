@@ -2,7 +2,7 @@
 
 ## Solution Structure
 
-```
+```text
 BpMonitor.slnx
 ├── BpMonitor.Core        # Domain models, interfaces, business logic
 ├── BpMonitor.Data        # EF Core + SQLite, repository implementations
@@ -13,7 +13,7 @@ BpMonitor.slnx
 ## Tech Stack
 
 | Concern | Decision |
-|---|---|
+| --- | --- |
 | Solution format | `.slnx` (new XML-based format, VS 2022 17.10+) |
 | Language / Runtime | .NET (C#) |
 | TUI Framework | Terminal.Gui v2 |

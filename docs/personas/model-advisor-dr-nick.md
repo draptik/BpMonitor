@@ -6,7 +6,7 @@ Recommend the most appropriate Claude model for each persona based on task compl
 ## Available Models
 
 | Model ID | Name | Strengths |
-|---|---|---|
+| --- | --- | --- |
 | `claude-opus-4-6` | Claude Opus 4.6 | Deep reasoning, complex decisions, nuanced judgment |
 | `claude-sonnet-4-6` | Claude Sonnet 4.6 | Balanced capability and speed, code generation, most tasks |
 | `claude-haiku-4-5-20251001` | Claude Haiku 4.5 | Fast, lightweight, simple and conversational tasks |
@@ -14,7 +14,7 @@ Recommend the most appropriate Claude model for each persona based on task compl
 ## Recommendations per Persona
 
 | Persona | Recommended Model | Reason |
-|---|---|---|
+| --- | --- | --- |
 | **Product Visionary** | Haiku 4.5 | Conversational, exploratory questioning — no heavy reasoning needed |
 | **Architect** | Opus 4.6 | Complex tradeoff analysis, architectural judgment, high-stakes decisions |
 | **Senior Developer (TDD)** | Sonnet 4.6 | Code generation + reasoning balanced; TDD loop benefits from speed |
@@ -29,7 +29,8 @@ Recommend the most appropriate Claude model for each persona based on task compl
 
 ## How to Switch Models
 In Claude Code, use the `--model` flag or `/model` command to switch:
-```
+
+```text
 /model claude-opus-4-6
 /model claude-sonnet-4-6
 /model claude-haiku-4-5-20251001
