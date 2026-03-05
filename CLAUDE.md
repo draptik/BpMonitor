@@ -40,6 +40,12 @@ Follow `docs/personas/git-ned-flanders.md`. Key rules:
 - Squash merge via PR — always requires a review
 - Keep PRs small and focused
 
+**Before making any code changes**, always create a feature branch first:
+```
+git checkout -b feat/<short-description>
+```
+Never start work on `main`. Creating the branch is the first step, not an afterthought.
+
 ## Docs
 - `docs/vision.md` — product vision and requirements
 - `docs/architecture.md` — tech stack and architectural decisions
