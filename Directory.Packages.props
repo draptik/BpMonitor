@@ -23,6 +23,7 @@
 
   <ItemGroup Label="Test">
     <PackageVersion Include="Unquote" Version="7.0.1" />
+    <PackageVersion Include="TngTech.ArchUnitNET.xUnit" Version="0.13.3" />
   </ItemGroup>
 
   <ItemGroup Label="Test - xunit">

@@ -68,7 +68,7 @@ Examples:
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-- No test plan checklist — they are noise and not enforced by GitHub
+**NEVER include a "Test plan" section.** Test plans are noise — they are not enforced by GitHub and clutter the PR description. Summary bullets only.
 
 ## Why Squash Merge?
 - One PR = one commit on `main`
