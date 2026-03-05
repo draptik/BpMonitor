@@ -3,6 +3,7 @@ namespace BpMonitor.Tui
 open System
 open System.Collections.Generic
 open Terminal.Gui.App
+open Terminal.Gui.Drivers
 open Terminal.Gui.Input
 open Terminal.Gui.ViewBase
 open Terminal.Gui.Views
@@ -15,7 +16,9 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
         new Label(Text = text, X = Pos.Absolute(0), Y = Pos.Absolute(y))
 
     let makeField (y: int) =
-        new TextField(X = Pos.Absolute(20), Y = Pos.Absolute(y), Width = Dim.Fill())
+        let f = new TextField(X = Pos.Absolute(20), Y = Pos.Absolute(y), Width = Dim.Fill())
+        f.Cursor <- new Cursor(Style = CursorStyle.BlinkingBlock)
+        f
 
     let systolicLabel  = makeLabel "Systolic:"   0
     let systolicField  = makeField 0
