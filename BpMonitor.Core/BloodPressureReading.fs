@@ -42,20 +42,34 @@ module ReadingRanges =
     }
 
 module BloodPressureReading =
-    let parse (ranges: ReadingRanges) (input: BloodPressureReadingUnvalidated) : Result<BloodPressureReading, ValidationError> =
-        match input with
-        | { Systolic = s } when s < ranges.SystolicMin || s > ranges.SystolicMax ->
-            Error (SystolicOutOfRange s)
-        | { Diastolic = d } when d < ranges.DiastolicMin || d > ranges.DiastolicMax ->
-            Error (DiastolicOutOfRange d)
-        | { HeartRate = h } when h < ranges.HeartRateMin || h > ranges.HeartRateMax ->
-            Error (HeartRateOutOfRange h)
-        | _ ->
-            Ok {
+    open FsToolkit.ErrorHandling
+
+    let private validateSystolic ranges (input: BloodPressureReadingUnvalidated) : Validation<int, ValidationError> =
+        if input.Systolic >= ranges.SystolicMin && input.Systolic <= ranges.SystolicMax
+        then Validation.ok input.Systolic
+        else Validation.error (SystolicOutOfRange input.Systolic)
+
+    let private validateDiastolic ranges (input: BloodPressureReadingUnvalidated) : Validation<int, ValidationError> =
+        if input.Diastolic >= ranges.DiastolicMin && input.Diastolic <= ranges.DiastolicMax
+        then Validation.ok input.Diastolic
+        else Validation.error (DiastolicOutOfRange input.Diastolic)
+
+    let private validateHeartRate ranges (input: BloodPressureReadingUnvalidated) : Validation<int, ValidationError> =
+        if input.HeartRate >= ranges.HeartRateMin && input.HeartRate <= ranges.HeartRateMax
+        then Validation.ok input.HeartRate
+        else Validation.error (HeartRateOutOfRange input.HeartRate)
+
+    let parse (ranges: ReadingRanges) (input: BloodPressureReadingUnvalidated) : Validation<BloodPressureReading, ValidationError> =
+        validation {
+            let! sys = validateSystolic  ranges input
+            and! dia = validateDiastolic ranges input
+            and! hr  = validateHeartRate ranges input
+            return {
                 Id = 0
-                Systolic = input.Systolic
-                Diastolic = input.Diastolic
-                HeartRate = input.HeartRate
+                Systolic  = sys
+                Diastolic = dia
+                HeartRate = hr
                 Timestamp = input.Timestamp
-                Comments = input.Comments
+                Comments  = input.Comments
             }
+        }
