@@ -102,7 +102,7 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
         | _       -> Error $"Timestamp: '{s}' is not a valid date/time"
 
     do
-        this.Title <- "BpMonitor — New Reading"
+        this.Title <- "My Blood Pressure"
 
         this.KeyDown.Add(fun key ->
             if key = Key.Esc then
