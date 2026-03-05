@@ -32,7 +32,16 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
     let commentsField  = makeField 4
     let submitButton   = new Button(Text = "Submit", X = Pos.Absolute(0), Y = Pos.Absolute(6), IsDefault = true)
 
-    let readingsLabel = new Label(Text = "Readings:", X = Pos.Absolute(0), Y = Pos.Bottom(submitButton) + Pos.Absolute(1))
+    let formFrame =
+        new FrameView(
+            Title = "New Reading",
+            X = Pos.Absolute(0),
+            Y = Pos.Absolute(0),
+            Width = Dim.Fill(),
+            Height = Dim.Absolute(9)
+        )
+
+    let readingsLabel = new Label(Text = "Readings:", X = Pos.Absolute(0), Y = Pos.Bottom(formFrame) + Pos.Absolute(1))
 
     let makeTableSource () =
         EnumerableTableSource<BloodPressureReading>(
@@ -122,13 +131,17 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
                     MessageBox.ErrorQuery(app, "Validation Error", msg, "OK") |> ignore
         )
 
-        this.Add(
+        formFrame.Add(
             systolicLabel,  systolicField,
             diastolicLabel, diastolicField,
             heartRateLabel, heartRateField,
             timestampLabel, timestampField,
             commentsLabel,  commentsField,
-            submitButton,
+            submitButton
+        )
+
+        this.Add(
+            formFrame,
             readingsLabel,
             tableView
         )
