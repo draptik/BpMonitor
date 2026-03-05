@@ -15,24 +15,24 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
     let makeLabel (text: string) (y: int) =
         new Label(Text = text, X = Pos.Absolute(0), Y = Pos.Absolute(y))
 
-    let makeField (y: int) =
-        let f = new TextField(X = Pos.Absolute(20), Y = Pos.Absolute(y), Width = Dim.Fill())
+    let makeField (y: int) (width: Dim) =
+        let f = new TextField(X = Pos.Absolute(20), Y = Pos.Absolute(y), Width = width)
         f.Cursor <- new Cursor(Style = CursorStyle.BlinkingBlock)
         f
 
     let systolicLabel  = makeLabel "Systolic:"   0
-    let systolicField  = makeField 0
+    let systolicField  = makeField 0 (Dim.Absolute(5))
     let diastolicLabel = makeLabel "Diastolic:"  1
-    let diastolicField = makeField 1
+    let diastolicField = makeField 1 (Dim.Absolute(5))
     let heartRateLabel = makeLabel "Heart Rate:" 2
-    let heartRateField = makeField 2
+    let heartRateField = makeField 2 (Dim.Absolute(5))
     let timestampLabel = makeLabel "Timestamp:"  3
     let timestampField =
-        let f = makeField 3
+        let f = makeField 3 (Dim.Absolute(16))
         f.Text <- DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm")
         f
     let commentsLabel  = makeLabel "Comments:"   4
-    let commentsField  = makeField 4
+    let commentsField  = makeField 4 (Dim.Fill())
     let submitButton   = new Button(Text = "Submit", X = Pos.Absolute(0), Y = Pos.Absolute(6), IsDefault = true)
 
     let formFrame =
