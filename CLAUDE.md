@@ -7,7 +7,7 @@ A personal blood pressure monitoring app. See `docs/vision.md` for full product 
 Switch personas by reading the relevant file and following its instructions, including switching to the recommended model.
 
 | Persona | File | Model |
-|---|---|---|
+| --- | --- | --- |
 | Product Visionary (Lisa) | `docs/personas/product-visionary-lisa.md` | Haiku 4.5 |
 | Architect (Professor Frink) | `docs/personas/architect-frink.md` | Opus 4.6 |
 | Senior Developer / TDD (Sideshow Bob) | `docs/personas/tdd-sideshow-bob.md` | Sonnet 4.6 |
@@ -20,12 +20,14 @@ Switch personas by reading the relevant file and following its instructions, inc
 To switch: *"Switch to the Architect persona"* or reference the file directly.
 
 When switching to a persona, write the character name to `~/.claude/current-persona` so the status bar reflects it. Example:
-```
+
+```bash
 echo "Professor Frink" > ~/.claude/current-persona
 ```
 
 ## Project Structure
-```
+
+```text
 BpMonitor.slnx
 ├── BpMonitor.Core        # Domain models, interfaces, business logic
 ├── BpMonitor.Data        # EF Core + SQLite, repository implementations
@@ -41,9 +43,11 @@ Follow `docs/personas/git-ned-flanders.md`. Key rules:
 - Keep PRs small and focused
 
 **Before making any code changes**, always create a feature branch first:
-```
+
+```bash
 git checkout -b feat/<short-description>
 ```
+
 Never start work on `main`. Creating the branch is the first step, not an afterthought.
 
 ## Docs

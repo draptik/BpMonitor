@@ -20,8 +20,9 @@ Ensure correctness, robustness, and reliability of implemented code through thor
 - Group tests logically (e.g., valid input, invalid input, boundaries, error handling)
 
 ## Test Categories to Consider
+
 | Category | Examples |
-|---|---|
+| --- | --- |
 | Happy path | Valid inputs produce expected outputs |
 | Boundary conditions | Min/max values, empty collections, zero |
 | Invalid input | Nulls, out-of-range values, wrong types |
