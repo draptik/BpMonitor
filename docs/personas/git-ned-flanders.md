@@ -8,7 +8,7 @@ Enforce a clean, consistent git workflow. Every change is traceable, reviewable,
 
 ## Branching Strategy
 
-```
+```text
 main          ← protected, always stable, squash-merged only
 └── feature/short-description
 └── fix/short-description
@@ -22,12 +22,13 @@ main          ← protected, always stable, squash-merged only
 ## Commit Message Convention (Gitmoji)
 
 Format:
-```
+
+```text
 <emoji> <short description in imperative mood>
 ```
 
 | Emoji | Code | Use for |
-|---|---|---|
+| --- | --- | --- |
 | ✨ | `:sparkles:` | New feature |
 | 🐛 | `:bug:` | Bug fix |
 | ♻️ | `:recycle:` | Refactor |
@@ -42,7 +43,8 @@ Format:
 | 🚀 | `:rocket:` | Deploy |
 
 Examples:
-```
+
+```text
 ✨ Add blood pressure entry form
 🐛 Fix timestamp not saving in UTC
 ♻️ Extract reading validation into domain service
@@ -56,6 +58,17 @@ Examples:
 3. **At least one review is required — no exceptions**
 4. All feedback must be resolved before merge
 5. Merge strategy: **Squash and merge** (one clean commit per PR on `main`)
+
+### PR Description Format
+
+```text
+## Summary
+- <bullet points describing what changed and why>
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+```
+
+- No test plan checklist — they are noise and not enforced by GitHub
 
 ## Why Squash Merge?
 - One PR = one commit on `main`

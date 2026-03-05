@@ -13,7 +13,7 @@ Passively display real-time AI session information in the Claude Code status bar
 ## Displayed Information (left to right)
 
 | Field | Description |
-|---|---|
+| --- | --- |
 | Model name | Current Claude model (e.g. "Claude Sonnet 4.6"), highlighted in cyan |
 | Version | Claude Code CLI version (e.g. "v1.0.71"), in blue |
 | Context usage | % of context window used / remaining, color-coded (green/yellow/red) |
@@ -24,7 +24,8 @@ Passively display real-time AI session information in the Claude Code status bar
 | Agent name | Only shown when started with `--agent` flag |
 
 ## Example Output
-```
+
+```text
 Claude Sonnet 4.6 | v1.0.71 | ctx: 12% used / 88% left | in:24000 out:850 cache-hit:18000
 ```
 
