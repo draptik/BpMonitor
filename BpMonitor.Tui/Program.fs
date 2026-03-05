@@ -1,11 +1,13 @@
 module Program
 
 open Terminal.Gui.App
+open BpMonitor.Data
 
 [<EntryPoint>]
 let main _ =
     use app = Application.Create()
     app.Init() |> ignore
-    use win = new BpMonitor.Tui.DataEntryWindow(app, onQuit = fun () -> app.RequestStop())
+    let repository = InMemoryReadingRepository(None)
+    use win = new BpMonitor.Tui.DataEntryWindow(app, repository, Some (fun () -> app.RequestStop()))
     app.Run(win) |> ignore
     0
