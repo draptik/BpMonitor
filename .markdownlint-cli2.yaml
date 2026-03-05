@@ -1,3 +1,5 @@
 config:
-  MD022: false
-  MD032: false
+  MD013: false # line length
+  MD022: false # blank lines around headings
+  MD024: false # duplicate heading content
+  MD032: false # blank lines around lists
