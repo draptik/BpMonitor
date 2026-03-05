@@ -8,18 +8,8 @@ open Terminal.Gui.ViewBase
 open Terminal.Gui.Views
 open BpMonitor.Core
 
-module private Defaults =
-    let readings = [
-        { Id = 1; Systolic = 122; Diastolic = 78; HeartRate = 65; Timestamp = DateTimeOffset(2026, 2, 28, 7, 30, 0, TimeSpan.Zero); Comments = None }
-        { Id = 2; Systolic = 135; Diastolic = 88; HeartRate = 78; Timestamp = DateTimeOffset(2026, 3,  1, 8,  0, 0, TimeSpan.Zero); Comments = Some "After coffee" }
-        { Id = 3; Systolic = 118; Diastolic = 74; HeartRate = 62; Timestamp = DateTimeOffset(2026, 3,  2, 7, 45, 0, TimeSpan.Zero); Comments = Some "Morning, rested" }
-        { Id = 4; Systolic = 128; Diastolic = 82; HeartRate = 70; Timestamp = DateTimeOffset(2026, 3,  3, 9, 15, 0, TimeSpan.Zero); Comments = None }
-    ]
-
-type DataEntryWindow(app: IApplication, ?onQuit: unit -> unit, ?initialReadings: BloodPressureReading list) as this =
+type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: (unit -> unit) option) as this =
     inherit Window()
-
-    let readings = ResizeArray<BloodPressureReading>(defaultArg initialReadings Defaults.readings)
 
     let makeLabel (text: string) (y: int) =
         new Label(Text = text, X = Pos.Absolute(0), Y = Pos.Absolute(y))
@@ -46,7 +36,7 @@ type DataEntryWindow(app: IApplication, ?onQuit: unit -> unit, ?initialReadings:
 
     let makeTableSource () =
         EnumerableTableSource<BloodPressureReading>(
-            readings,
+            repository.GetAll(),
             Dictionary<string, Func<BloodPressureReading, obj>>(dict [
                 "Timestamp", Func<BloodPressureReading, obj>(fun r -> box (r.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm")))
                 "Sys",       Func<BloodPressureReading, obj>(fun r -> box r.Systolic)
@@ -116,8 +106,7 @@ type DataEntryWindow(app: IApplication, ?onQuit: unit -> unit, ?initialReadings:
             | Ok unvalidated ->
                 match BloodPressureReading.parse ReadingRanges.defaults unvalidated with
                 | Ok reading ->
-                    let nextId = (readings |> Seq.map (fun r -> r.Id) |> Seq.max) + 1
-                    readings.Add({ reading with Id = nextId })
+                    repository.Add(reading)
                     tableView.Table <- makeTableSource()
                     MessageBox.Query(app, "Saved", "Reading recorded successfully.", "OK") |> ignore
                     clearForm()
@@ -144,4 +133,4 @@ type DataEntryWindow(app: IApplication, ?onQuit: unit -> unit, ?initialReadings:
             tableView
         )
 
-    member _.Readings: IReadOnlyList<BloodPressureReading> = readings
+    member _.Readings = repository.GetAll()

@@ -10,26 +10,32 @@ open BpMonitor.Tui
 
 let private app = Unchecked.defaultof<IApplication>
 
-let private sample = {
-    Id = 1; Systolic = 120; Diastolic = 80; HeartRate = 70
+let private reading sys dia hr = {
+    Id = 0; Systolic = sys; Diastolic = dia; HeartRate = hr
     Timestamp = DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)
     Comments = None
 }
 
+let private makeRepo (initial: BloodPressureReading list) =
+    let mutable data = initial
+    { new IReadingRepository with
+        member _.GetAll() = data
+        member _.Add(r)   = data <- data @ [r] }
+
 [<Fact>]
 let ``pressing Esc invokes the onQuit callback`` () =
     let mutable quitCalled = false
-    use win = new DataEntryWindow(app, onQuit = fun () -> quitCalled <- true)
+    use win = new DataEntryWindow(app, makeRepo [], Some (fun () -> quitCalled <- true))
     win.NewKeyDownEvent(Key.Esc) |> ignore
     test <@ quitCalled @>
 
 [<Fact>]
-let ``window starts with default sample readings`` () =
-    use win = new DataEntryWindow(app)
-    test <@ win.Readings.Count > 0 @>
+let ``window Readings reflect repository contents`` () =
+    let repo = makeRepo [ reading 120 80 70; reading 130 85 72 ]
+    use win = new DataEntryWindow(app, repo, None)
+    test <@ win.Readings.Length = 2 @>
 
 [<Fact>]
-let ``window uses provided initial readings`` () =
-    use win = new DataEntryWindow(app, initialReadings = [ sample ])
-    test <@ win.Readings.Count = 1 @>
-    test <@ win.Readings.[0].Systolic = 120 @>
+let ``window Readings are empty when repository is empty`` () =
+    use win = new DataEntryWindow(app, makeRepo [], None)
+    test <@ win.Readings.Length = 0 @>
