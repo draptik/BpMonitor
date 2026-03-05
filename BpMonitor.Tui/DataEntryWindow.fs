@@ -39,6 +39,8 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
     let commentsLabel = makeLabel "Comments:" 4
     let commentsField = makeField 4 (Dim.Fill())
 
+    let focusIndicator = new Label(Text = "▶", X = Pos.Absolute(17), Y = Pos.Absolute(0))
+
     let submitButton =
         new Button(Text = "Submit", X = Pos.Absolute(0), Y = Pos.Absolute(6), IsDefault = true)
 
@@ -177,7 +179,20 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
 
                     MessageBox.ErrorQuery(app, "Validation Error", msg, "OK") |> ignore)
 
+        let fieldRows =
+            [ systolicField,  0
+              diastolicField, 1
+              heartRateField, 2
+              timestampField, 3
+              commentsField,  4 ]
+
+        for (field, row) in fieldRows do
+            field.HasFocusChanged.Add(fun _ ->
+                if field.HasFocus then
+                    focusIndicator.Y <- Pos.Absolute(row))
+
         formFrame.Add(
+            focusIndicator,
             systolicLabel,
             systolicField,
             diastolicLabel,
