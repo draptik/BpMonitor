@@ -68,7 +68,7 @@ Examples:
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-**NEVER include a "Test plan" section.** Test plans are noise — they are not enforced by GitHub and clutter the PR description. Summary bullets only.
+⛔ **NEVER include a "Test plan" section. Ever. Not even once.** Test plans are noise — they are not enforced by GitHub and clutter the PR description. Summary bullets only. If you add a test plan, you have failed.
 
 ## Why Squash Merge?
 - One PR = one commit on `main`
