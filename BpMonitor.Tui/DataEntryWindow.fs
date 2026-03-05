@@ -74,6 +74,7 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
                 Height = Dim.Fill(),
                 Table = makeTableSource()
             )
+        tv.Style.ShowHorizontalBottomLine <- true
         let left  (v: obj) = " " + string v
         let right (v: obj) = string v + " "
         tv.Style.ColumnStyles[0] <- ColumnStyle(Alignment = Alignment.Start, MinWidth = 20, RepresentationGetter = Func<obj, string>(left))   // Timestamp
