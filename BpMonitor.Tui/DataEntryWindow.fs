@@ -26,7 +26,7 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
     let timestampLabel = makeLabel "Timestamp:"  3
     let timestampField =
         let f = makeField 3
-        f.Text <- string DateTimeOffset.UtcNow
+        f.Text <- DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm")
         f
     let commentsLabel  = makeLabel "Comments:"   4
     let commentsField  = makeField 4
@@ -59,7 +59,7 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
         systolicField.Text  <- ""
         diastolicField.Text <- ""
         heartRateField.Text <- ""
-        timestampField.Text <- string DateTimeOffset.UtcNow
+        timestampField.Text <- DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm")
         commentsField.Text  <- ""
 
     let tryParseInt (label: string) (s: string) =
