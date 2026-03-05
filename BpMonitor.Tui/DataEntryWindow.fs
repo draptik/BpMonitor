@@ -57,22 +57,31 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
         EnumerableTableSource<BloodPressureReading>(
             repository.GetAll(),
             Dictionary<string, Func<BloodPressureReading, obj>>(dict [
-                "Timestamp", Func<BloodPressureReading, obj>(fun r -> box (r.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm")))
-                "Sys",       Func<BloodPressureReading, obj>(fun r -> box r.Systolic)
-                "Dia",       Func<BloodPressureReading, obj>(fun r -> box r.Diastolic)
-                "HR",        Func<BloodPressureReading, obj>(fun r -> box r.HeartRate)
-                "Comments",  Func<BloodPressureReading, obj>(fun r -> box (r.Comments |> Option.defaultValue ""))
+                " Timestamp", Func<BloodPressureReading, obj>(fun r -> box (r.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm")))
+                "Sys ",       Func<BloodPressureReading, obj>(fun r -> box r.Systolic)
+                "Dia ",       Func<BloodPressureReading, obj>(fun r -> box r.Diastolic)
+                "HR ",        Func<BloodPressureReading, obj>(fun r -> box r.HeartRate)
+                " Comments",  Func<BloodPressureReading, obj>(fun r -> box (r.Comments |> Option.defaultValue ""))
             ])
         )
 
     let tableView =
-        new TableView(
-            X = Pos.Absolute(0),
-            Y = Pos.Absolute(0),
-            Width = Dim.Fill(),
-            Height = Dim.Fill(),
-            Table = makeTableSource()
-        )
+        let tv =
+            new TableView(
+                X = Pos.Absolute(0),
+                Y = Pos.Absolute(0),
+                Width = Dim.Fill(),
+                Height = Dim.Fill(),
+                Table = makeTableSource()
+            )
+        let left  (v: obj) = " " + string v
+        let right (v: obj) = string v + " "
+        tv.Style.ColumnStyles[0] <- ColumnStyle(Alignment = Alignment.Start, MinWidth = 20, RepresentationGetter = Func<obj, string>(left))   // Timestamp
+        tv.Style.ColumnStyles[1] <- ColumnStyle(Alignment = Alignment.End,   MinWidth = 5,  RepresentationGetter = Func<obj, string>(right))  // Sys
+        tv.Style.ColumnStyles[2] <- ColumnStyle(Alignment = Alignment.End,   MinWidth = 5,  RepresentationGetter = Func<obj, string>(right))  // Dia
+        tv.Style.ColumnStyles[3] <- ColumnStyle(Alignment = Alignment.End,   MinWidth = 5,  RepresentationGetter = Func<obj, string>(right))  // HR
+        tv.Style.ColumnStyles[4] <- ColumnStyle(Alignment = Alignment.Start, RepresentationGetter = Func<obj, string>(left))                  // Comments
+        tv
 
     let clearForm () =
         systolicField.Text  <- ""
