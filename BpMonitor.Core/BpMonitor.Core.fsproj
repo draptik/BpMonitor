@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="BloodPressureReading.fs" />
+    <Compile Include="IReadingRepository.fs" />
   </ItemGroup>
 
 </Project>
