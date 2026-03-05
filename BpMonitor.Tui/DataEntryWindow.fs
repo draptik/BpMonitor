@@ -149,9 +149,15 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
 
         listFrame.Add(tableView) |> ignore
 
+        let statusBar =
+            new StatusBar(
+                [| new Shortcut(Key.Esc, "Quit", (fun () -> onQuit |> Option.iter (fun f -> f()))) |]
+            )
+
         this.Add(
             formFrame,
-            listFrame
+            listFrame,
+            statusBar
         )
 
     member _.Readings = repository.GetAll()
