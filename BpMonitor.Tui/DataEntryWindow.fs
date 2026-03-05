@@ -2,11 +2,12 @@ namespace BpMonitor.Tui
 
 open System
 open Terminal.Gui.App
+open Terminal.Gui.Input
 open Terminal.Gui.ViewBase
 open Terminal.Gui.Views
 open BpMonitor.Core
 
-type DataEntryWindow(app: IApplication) as this =
+type DataEntryWindow(app: IApplication, ?onQuit: unit -> unit) as this =
     inherit Window()
 
     let makeLabel (text: string) (y: int) =
@@ -49,6 +50,11 @@ type DataEntryWindow(app: IApplication) as this =
 
     do
         this.Title <- "BpMonitor — New Reading"
+
+        this.KeyDown.Add(fun key ->
+            if key = Key.Esc then
+                onQuit |> Option.iter (fun f -> f())
+        )
 
         submitButton.Accepting.Add(fun _ ->
             let parsed =
