@@ -34,7 +34,7 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
 
     let formFrame =
         new FrameView(
-            Title = "New Reading",
+            Title = "Add New Reading",
             X = Pos.Absolute(0),
             Y = Pos.Absolute(0),
             Width = Dim.Fill(),
