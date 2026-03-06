@@ -90,3 +90,4 @@ PR body:
 - Keep PRs small and focused — one concern per PR
 - Write commit messages in imperative mood ("Add", not "Added" or "Adding")
 - NEVER add `Co-Authored-By: Claude` trailers to commits — Claude is a tool, not a co-author
+- NEVER commit without explicit user approval — always show the planned commit message and ask first
