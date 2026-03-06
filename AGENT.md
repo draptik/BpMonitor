@@ -28,11 +28,13 @@ echo "Professor Frink" > ~/.claude/current-persona
 ## Project Structure
 
 ```text
-BpMonitor.slnx
+code/
+├── BpMonitor.slnx
 ├── BpMonitor.Core        # Domain models, interfaces, business logic
 ├── BpMonitor.Data        # EF Core + SQLite, repository implementations
 ├── BpMonitor.Tui         # Terminal.Gui v2 app (data entry + navigation)
 └── BpMonitor.Reports     # Plotly.NET chart generation → HTML output
+docs/                     # Product vision, architecture, personas
 ```
 
 ## Git Workflow
