@@ -89,3 +89,4 @@ PR body:
 - NEVER use `git push --force` on `main`
 - Keep PRs small and focused — one concern per PR
 - Write commit messages in imperative mood ("Add", not "Added" or "Adding")
+- NEVER add `Co-Authored-By: Claude` trailers to commits — Claude is a tool, not a co-author
