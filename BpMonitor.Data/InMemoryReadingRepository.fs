@@ -23,3 +23,7 @@ type InMemoryReadingRepository(initialReadings: BloodPressureReading list option
                 if readings.Count = 0 then 1
                 else (readings |> Seq.map (fun r -> r.Id) |> Seq.max) + 1
             readings.Add({ reading with Id = nextId })
+
+        member _.Update(reading) =
+            let idx = readings |> Seq.findIndex (fun r -> r.Id = reading.Id)
+            readings[idx] <- reading

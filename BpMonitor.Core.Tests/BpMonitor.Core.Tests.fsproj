@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="BloodPressureReadingTests.fs" />
+    <Compile Include="ReadingRepositoryContractTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

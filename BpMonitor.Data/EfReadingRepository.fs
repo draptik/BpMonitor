@@ -1,5 +1,6 @@
 namespace BpMonitor.Data
 
+open Microsoft.EntityFrameworkCore
 open BpMonitor.Core
 
 module private Mapping =
@@ -24,8 +25,12 @@ module private Mapping =
 type EfReadingRepository(ctx: BpMonitorDbContext) =
     interface IReadingRepository with
         member _.GetAll() =
-            ctx.Readings |> Seq.map Mapping.toDomain |> Seq.toList
+            ctx.Readings.AsNoTracking() |> Seq.map Mapping.toDomain |> Seq.toList
 
         member _.Add(reading) =
             ctx.Readings.Add(Mapping.toEntity reading) |> ignore
+            ctx.SaveChanges() |> ignore
+
+        member _.Update(reading) =
+            ctx.Readings.Update(Mapping.toEntity reading) |> ignore
             ctx.SaveChanges() |> ignore

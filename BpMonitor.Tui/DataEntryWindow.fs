@@ -8,7 +8,7 @@ open Terminal.Gui.ViewBase
 open Terminal.Gui.Views
 open BpMonitor.Core
 
-type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: (unit -> unit) option, onAdd: (unit -> BloodPressureReading option) option) as this =
+type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: (unit -> unit) option, onAdd: (unit -> BloodPressureReading option) option, onEdit: (BloodPressureReading -> BloodPressureReading option) option) as this =
     inherit Window()
 
     let makeTableSource () =
@@ -52,11 +52,13 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
 
         if not (obj.ReferenceEquals(app, null)) then
             app.Keyboard.KeyDown.Add(fun key ->
-                if key = Key.A then this.AddNew())
+                if key = Key.A then this.AddNew()
+                elif key = Key.E then this.EditSelected())
 
         let statusBar =
             new StatusBar(
                 [| new Shortcut(Key.A,   "Add",  (fun () -> ()))
+                   new Shortcut(Key.E,   "Edit", (fun () -> ()))
                    new Shortcut(Key.Esc, "Quit", (fun () -> onQuit |> Option.iter (fun f -> f ()))) |])
 
         this.Add(tableView, statusBar)
@@ -70,3 +72,14 @@ type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: 
                 repository.Add(reading)
                 tableView.Table <- makeTableSource()
             | None -> ())
+
+    member _.EditSelected() =
+        let readings = repository.GetAll()
+        if readings.Length > 0 then
+            let selected = readings |> List.item tableView.SelectedRow
+            onEdit |> Option.iter (fun f ->
+                match f selected with
+                | Some updated ->
+                    repository.Update(updated)
+                    tableView.Table <- makeTableSource()
+                | None -> ())
