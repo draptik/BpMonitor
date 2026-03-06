@@ -3,7 +3,8 @@
 ## Solution Structure
 
 ```text
-BpMonitor.slnx
+code/
+├── BpMonitor.slnx
 ├── BpMonitor.Core           # Domain models, interfaces, business logic
 ├── BpMonitor.Core.Tests     # Unit tests for Core
 ├── BpMonitor.Data           # EF Core + SQLite, repository implementations
