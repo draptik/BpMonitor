@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="DataEntryWindow.fs" />
+    <Compile Include="ReadingsWindow.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
