@@ -28,7 +28,21 @@ let private tryParseTimestamp (s: string) =
     | true, v -> Ok v
     | _ -> Error $"Timestamp: '{s}' is not a valid date/time"
 
-let private showEditDialog (app: IApplication) (reading: BloodPressureReading) : BloodPressureReading option =
+let private readRanges (config: IConfiguration) =
+    let s = config.GetSection("ReadingRanges")
+    let d = ReadingRanges.defaults
+    let getInt key fallback =
+        match s.[key] with
+        | null -> fallback
+        | v    -> match Int32.TryParse(v) with true, n -> n | _ -> fallback
+    { SystolicMin  = getInt "SystolicMin"  d.SystolicMin
+      SystolicMax  = getInt "SystolicMax"  d.SystolicMax
+      DiastolicMin = getInt "DiastolicMin" d.DiastolicMin
+      DiastolicMax = getInt "DiastolicMax" d.DiastolicMax
+      HeartRateMin = getInt "HeartRateMin" d.HeartRateMin
+      HeartRateMax = getInt "HeartRateMax" d.HeartRateMax }
+
+let private showEditDialog (app: IApplication) (ranges: ReadingRanges) (reading: BloodPressureReading) : BloodPressureReading option =
     let result = ref None
 
     let systolicField  = makeField 0 (Dim.Absolute(5))
@@ -74,7 +88,7 @@ let private showEditDialog (app: IApplication) (reading: BloodPressureReading) :
             e.Handled <- true
             MessageBox.ErrorQuery(app, "Input Error", msg, "OK") |> ignore
         | Ok unvalidated ->
-            match BloodPressureReading.parse ReadingRanges.defaults unvalidated with
+            match BloodPressureReading.parse ranges unvalidated with
             | Ok validated ->
                 result.Value <- Some { validated with Id = reading.Id }
             | Error errors ->
@@ -83,9 +97,9 @@ let private showEditDialog (app: IApplication) (reading: BloodPressureReading) :
                     errors
                     |> List.map (fun e ->
                         match e with
-                        | SystolicOutOfRange v  -> $"Systolic {v} is out of range (1–300)"
-                        | DiastolicOutOfRange v  -> $"Diastolic {v} is out of range (1–200)"
-                        | HeartRateOutOfRange v  -> $"Heart rate {v} is out of range (1–300)")
+                        | SystolicOutOfRange v  -> $"Systolic {v} is out of range ({ranges.SystolicMin}–{ranges.SystolicMax})"
+                        | DiastolicOutOfRange v  -> $"Diastolic {v} is out of range ({ranges.DiastolicMin}–{ranges.DiastolicMax})"
+                        | HeartRateOutOfRange v  -> $"Heart rate {v} is out of range ({ranges.HeartRateMin}–{ranges.HeartRateMax})")
                     |> String.concat "\n"
                 MessageBox.ErrorQuery(app, "Validation Error", msg, "OK") |> ignore)
 
@@ -107,7 +121,7 @@ let private showEditDialog (app: IApplication) (reading: BloodPressureReading) :
     app.Run(dialog) |> ignore
     result.Value
 
-let private showAddDialog (app: IApplication) () : BloodPressureReading option =
+let private showAddDialog (app: IApplication) (ranges: ReadingRanges) () : BloodPressureReading option =
     let result = ref None
 
     let systolicField  = makeField 0 (Dim.Absolute(5))
@@ -149,7 +163,7 @@ let private showAddDialog (app: IApplication) () : BloodPressureReading option =
             e.Handled <- true
             MessageBox.ErrorQuery(app, "Input Error", msg, "OK") |> ignore
         | Ok unvalidated ->
-            match BloodPressureReading.parse ReadingRanges.defaults unvalidated with
+            match BloodPressureReading.parse ranges unvalidated with
             | Ok reading ->
                 result.Value <- Some reading
             | Error errors ->
@@ -158,9 +172,9 @@ let private showAddDialog (app: IApplication) () : BloodPressureReading option =
                     errors
                     |> List.map (fun e ->
                         match e with
-                        | SystolicOutOfRange v  -> $"Systolic {v} is out of range (1–300)"
-                        | DiastolicOutOfRange v  -> $"Diastolic {v} is out of range (1–200)"
-                        | HeartRateOutOfRange v  -> $"Heart rate {v} is out of range (1–300)")
+                        | SystolicOutOfRange v  -> $"Systolic {v} is out of range ({ranges.SystolicMin}–{ranges.SystolicMax})"
+                        | DiastolicOutOfRange v  -> $"Diastolic {v} is out of range ({ranges.DiastolicMin}–{ranges.DiastolicMax})"
+                        | HeartRateOutOfRange v  -> $"Heart rate {v} is out of range ({ranges.HeartRateMin}–{ranges.HeartRateMax})")
                     |> String.concat "\n"
                 MessageBox.ErrorQuery(app, "Validation Error", msg, "OK") |> ignore)
 
@@ -191,10 +205,11 @@ let main _ =
             .Build()
 
     let connectionString = config.GetConnectionString("DefaultConnection")
+    let ranges = readRanges config
 
     use app = Application.Create()
     app.Init() |> ignore
     let repository = ReadingRepository.create connectionString
-    use win = new BpMonitor.Tui.ReadingsWindow(app, repository, Some (fun () -> app.RequestStop()), Some (showAddDialog app), Some (showEditDialog app))
+    use win = new BpMonitor.Tui.ReadingsWindow(app, repository, Some (fun () -> app.RequestStop()), Some (showAddDialog app ranges), Some (showEditDialog app ranges))
     app.Run(win) |> ignore
     0
