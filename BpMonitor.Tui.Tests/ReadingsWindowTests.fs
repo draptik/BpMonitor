@@ -1,4 +1,4 @@
-module DataEntryWindowTests
+module ReadingsWindowTests
 
 open System
 open Xunit
@@ -26,25 +26,25 @@ let private makeRepo (initial: BloodPressureReading list) =
 [<Fact>]
 let ``pressing Esc invokes the onQuit callback`` () =
     let quitCalls = ResizeArray<unit>()
-    use win = new DataEntryWindow(app, makeRepo [], Some (fun () -> quitCalls.Add(())), None, None)
+    use win = new ReadingsWindow(app, makeRepo [], Some (fun () -> quitCalls.Add(())), None, None)
     win.NewKeyDownEvent(Key.Esc) |> ignore
     test <@ quitCalls.Count = 1 @>
 
 [<Fact>]
 let ``window Readings reflect repository contents`` () =
     let repo = makeRepo [ reading 120 80 70; reading 130 85 72 ]
-    use win = new DataEntryWindow(app, repo, None, None, None)
+    use win = new ReadingsWindow(app, repo, None, None, None)
     test <@ win.Readings.Length = 2 @>
 
 [<Fact>]
 let ``window Readings are empty when repository is empty`` () =
-    use win = new DataEntryWindow(app, makeRepo [], None, None, None)
+    use win = new ReadingsWindow(app, makeRepo [], None, None, None)
     test <@ win.Readings.Length = 0 @>
 
 [<Fact>]
 let ``AddNew invokes the onAdd callback`` () =
     let addCalls = ResizeArray<unit>()
-    use win = new DataEntryWindow(app, makeRepo [], None, Some (fun () -> addCalls.Add(()); None), None)
+    use win = new ReadingsWindow(app, makeRepo [], None, Some (fun () -> addCalls.Add(()); None), None)
     win.AddNew()
     test <@ addCalls.Count = 1 @>
 
@@ -52,7 +52,7 @@ let ``AddNew invokes the onAdd callback`` () =
 let ``when onAdd returns a reading it is added to the repository`` () =
     let repo = makeRepo []
     let newReading = reading 120 80 70
-    use win = new DataEntryWindow(app, repo, None, Some (fun () -> Some newReading), None)
+    use win = new ReadingsWindow(app, repo, None, Some (fun () -> Some newReading), None)
     win.AddNew()
     test <@ win.Readings = [ newReading ] @>
 
@@ -60,14 +60,14 @@ let ``when onAdd returns a reading it is added to the repository`` () =
 let ``EditSelected invokes the onEdit callback with the selected reading`` () =
     let editedReadings = ResizeArray<BloodPressureReading>()
     let repo = makeRepo [ reading 120 80 70; reading 130 85 72 ]
-    use win = new DataEntryWindow(app, repo, None, None, Some (fun r -> editedReadings.Add(r); None))
+    use win = new ReadingsWindow(app, repo, None, None, Some (fun r -> editedReadings.Add(r); None))
     win.EditSelected()
     test <@ editedReadings.Count = 1 && editedReadings[0] = reading 120 80 70 @>
 
 [<Fact>]
 let ``EditSelected with empty list does not invoke the onEdit callback`` () =
     let editedReadings = ResizeArray<BloodPressureReading>()
-    use win = new DataEntryWindow(app, makeRepo [], None, None, Some (fun r -> editedReadings.Add(r); None))
+    use win = new ReadingsWindow(app, makeRepo [], None, None, Some (fun r -> editedReadings.Add(r); None))
     win.EditSelected()
     test <@ editedReadings.Count = 0 @>
 
@@ -75,6 +75,6 @@ let ``EditSelected with empty list does not invoke the onEdit callback`` () =
 let ``when onEdit returns an updated reading the repository is updated`` () =
     let repo = makeRepo [ reading 120 80 70 ]
     let updated = reading 135 88 75
-    use win = new DataEntryWindow(app, repo, None, None, Some (fun _ -> Some updated))
+    use win = new ReadingsWindow(app, repo, None, None, Some (fun _ -> Some updated))
     win.EditSelected()
     test <@ win.Readings = [ updated ] @>

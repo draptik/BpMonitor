@@ -195,6 +195,6 @@ let main _ =
     use app = Application.Create()
     app.Init() |> ignore
     let repository = ReadingRepository.create connectionString
-    use win = new BpMonitor.Tui.DataEntryWindow(app, repository, Some (fun () -> app.RequestStop()), Some (showAddDialog app), Some (showEditDialog app))
+    use win = new BpMonitor.Tui.ReadingsWindow(app, repository, Some (fun () -> app.RequestStop()), Some (showAddDialog app), Some (showEditDialog app))
     app.Run(win) |> ignore
     0

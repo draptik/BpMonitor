@@ -13,13 +13,13 @@ let private architecture =
         .LoadAssemblies(
             typeof<BloodPressureReading>.Assembly,
             typeof<EfReadingRepository>.Assembly,
-            typeof<DataEntryWindow>.Assembly
+            typeof<ReadingsWindow>.Assembly
         )
         .Build()
 
 let private coreTypes = ArchRuleDefinition.Types().That().ResideInAssembly(typeof<BloodPressureReading>.Assembly)
 let private dataTypes = ArchRuleDefinition.Types().That().ResideInAssembly(typeof<EfReadingRepository>.Assembly)
-let private tuiTypes  = ArchRuleDefinition.Types().That().ResideInAssembly(typeof<DataEntryWindow>.Assembly)
+let private tuiTypes  = ArchRuleDefinition.Types().That().ResideInAssembly(typeof<ReadingsWindow>.Assembly)
 
 [<Fact>]
 let ``Core should not depend on Data`` () =

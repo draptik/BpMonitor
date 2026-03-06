@@ -8,7 +8,7 @@ open Terminal.Gui.ViewBase
 open Terminal.Gui.Views
 open BpMonitor.Core
 
-type DataEntryWindow(app: IApplication, repository: IReadingRepository, onQuit: (unit -> unit) option, onAdd: (unit -> BloodPressureReading option) option, onEdit: (BloodPressureReading -> BloodPressureReading option) option) as this =
+type ReadingsWindow(app: IApplication, repository: IReadingRepository, onQuit: (unit -> unit) option, onAdd: (unit -> BloodPressureReading option) option, onEdit: (BloodPressureReading -> BloodPressureReading option) option) as this =
     inherit Window()
 
     let makeTableSource () =
