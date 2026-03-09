@@ -1,6 +1,7 @@
 module Program
 
 open System
+open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 open Terminal.Gui.App
 open Terminal.Gui.Drivers
@@ -27,6 +28,16 @@ let private tryParseTimestamp (s: string) =
     match DateTimeOffset.TryParse(s) with
     | true, v -> Ok v
     | _ -> Error $"Timestamp: '{s}' is not a valid date/time"
+
+let private parseFields systolic diastolic heartRate timestamp comments =
+    result {
+        let! sys = tryParseInt "Systolic"   systolic
+        let! dia = tryParseInt "Diastolic"  diastolic
+        let! hr  = tryParseInt "Heart Rate" heartRate
+        let! ts  = tryParseTimestamp        timestamp
+        let comments = match comments with "" -> None | s -> Some s
+        return { Systolic = sys; Diastolic = dia; HeartRate = hr; Timestamp = ts; Comments = comments }
+    }
 
 let private readRanges (config: IConfiguration) =
     let s = config.GetSection("ReadingRanges")
@@ -65,23 +76,12 @@ let private showEditDialog (app: IApplication) (ranges: ReadingRanges) (reading:
     let saveButton = new Button(Text = "Save", IsDefault = true)
     saveButton.Accepting.Add(fun e ->
         let parsed =
-            match tryParseInt "Systolic" (string systolicField.Text) with
-            | Error e -> Error e
-            | Ok sys ->
-                match tryParseInt "Diastolic" (string diastolicField.Text) with
-                | Error e -> Error e
-                | Ok dia ->
-                    match tryParseInt "Heart Rate" (string heartRateField.Text) with
-                    | Error e -> Error e
-                    | Ok hr ->
-                        match tryParseTimestamp (string timestampField.Text) with
-                        | Error e -> Error e
-                        | Ok ts ->
-                            let comments =
-                                match string commentsField.Text with
-                                | "" -> None
-                                | s  -> Some s
-                            Ok { Systolic = sys; Diastolic = dia; HeartRate = hr; Timestamp = ts; Comments = comments }
+            parseFields
+                (string systolicField.Text)
+                (string diastolicField.Text)
+                (string heartRateField.Text)
+                (string timestampField.Text)
+                (string commentsField.Text)
 
         match parsed with
         | Error msg ->
@@ -140,23 +140,12 @@ let private showAddDialog (app: IApplication) (ranges: ReadingRanges) () : Blood
     let saveButton = new Button(Text = "Save", IsDefault = true)
     saveButton.Accepting.Add(fun e ->
         let parsed =
-            match tryParseInt "Systolic" (string systolicField.Text) with
-            | Error e -> Error e
-            | Ok sys ->
-                match tryParseInt "Diastolic" (string diastolicField.Text) with
-                | Error e -> Error e
-                | Ok dia ->
-                    match tryParseInt "Heart Rate" (string heartRateField.Text) with
-                    | Error e -> Error e
-                    | Ok hr ->
-                        match tryParseTimestamp (string timestampField.Text) with
-                        | Error e -> Error e
-                        | Ok ts ->
-                            let comments =
-                                match string commentsField.Text with
-                                | "" -> None
-                                | s  -> Some s
-                            Ok { Systolic = sys; Diastolic = dia; HeartRate = hr; Timestamp = ts; Comments = comments }
+            parseFields
+                (string systolicField.Text)
+                (string diastolicField.Text)
+                (string heartRateField.Text)
+                (string timestampField.Text)
+                (string commentsField.Text)
 
         match parsed with
         | Error msg ->
