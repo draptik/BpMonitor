@@ -7,6 +7,14 @@
     <PackageVersion Include="Terminal.Gui" Version="2.0.0-develop.5100" />
   </ItemGroup>
 
+  <ItemGroup Label="Charts">
+    <PackageVersion Include="Plotly.NET" Version="5.1.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Test - Verify">
+    <PackageVersion Include="Verify.Xunit" Version="31.12.5" />
+  </ItemGroup>
+
 
   <ItemGroup Label="FSharp">
     <PackageVersion Include="FSharp.Core" Version="10.0.103" />

@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Compile Include="Charts.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Plotly.NET" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BpMonitor.Core\BpMonitor.Core.fsproj" />
+  </ItemGroup>
+
+</Project>
