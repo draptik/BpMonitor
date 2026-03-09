@@ -5,7 +5,6 @@ open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 open Terminal.Gui.App
 open Terminal.Gui.Drivers
-open Terminal.Gui.Input
 open Terminal.Gui.ViewBase
 open Terminal.Gui.Views
 open BpMonitor.Core
