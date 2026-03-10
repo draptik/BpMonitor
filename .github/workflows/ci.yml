@@ -7,6 +7,38 @@ on:
     branches: ["main"]
 
 jobs:
+  lint-markdown:
+    name: Lint Markdown
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run markdownlint-cli2
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: "**/*.md"
+
+  lint-fsharp:
+    name: Lint F#
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore tools
+        run: dotnet tool restore
+        working-directory: code
+
+      - name: Check formatting
+        run: dotnet fantomas --check .
+        working-directory: code
+
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
@@ -30,36 +62,3 @@ jobs:
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
         working-directory: code
-
-  lint-fsharp:
-    name: Lint F#
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "10.0.x"
-
-      - name: Restore tools
-        run: dotnet tool restore
-        working-directory: code
-
-      - name: Check formatting
-        run: dotnet fantomas --check .
-        working-directory: code
-
-  lint-markdown:
-    name: Lint Markdown
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run markdownlint-cli2
-        uses: DavidAnson/markdownlint-cli2-action@v19
-        with:
-          globs: "**/*.md"
-
