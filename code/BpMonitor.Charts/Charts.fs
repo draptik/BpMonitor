@@ -16,3 +16,4 @@ module BpChart =
         |> Chart.combine
         |> Chart.withTitle "Blood Pressure History"
         |> GenericChart.toEmbeddedHTML
+        |> fun html -> html.Replace("\"width\":600,", "")

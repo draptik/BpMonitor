@@ -7,6 +7,9 @@ open Terminal.Gui.App
 open Terminal.Gui.Drivers
 open Terminal.Gui.ViewBase
 open Terminal.Gui.Views
+open System.Diagnostics
+open System.IO
+open BpMonitor.Charts
 open BpMonitor.Core
 open BpMonitor.Data
 
@@ -198,6 +201,12 @@ let main _ =
     use app = Application.Create()
     app.Init() |> ignore
     let repository = ReadingRepository.create connectionString
-    use win = new BpMonitor.Tui.ReadingsWindow(app, repository, Some (fun () -> app.RequestStop()), Some (showAddDialog app ranges), Some (showEditDialog app ranges))
+    let showChart readings =
+        let path = Path.Combine(Path.GetTempPath(), "bpchart.html")
+        File.WriteAllText(path, BpChart.toHtml readings)
+        Process.Start(ProcessStartInfo("xdg-open", path, UseShellExecute = true)) |> ignore
+        MessageBox.Query(app, "Chart", "Switch to your default browser to view the chart.", "OK") |> ignore
+
+    use win = new BpMonitor.Tui.ReadingsWindow(app, repository, Some (fun () -> app.RequestStop()), Some (showAddDialog app ranges), Some (showEditDialog app ranges), Some showChart)
     app.Run(win) |> ignore
     0
