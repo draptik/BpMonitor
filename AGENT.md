@@ -1,9 +1,11 @@
 # BpMonitor — Claude Project Instructions
 
 ## Project Overview
+
 A personal blood pressure monitoring app. See `docs/vision.md` for full product vision and `docs/architecture.md` for technical decisions.
 
 ## Personas
+
 Switch personas by reading the relevant file and following its instructions, including switching to the recommended model.
 
 | Persona | File | Model |
@@ -38,6 +40,7 @@ docs/                     # Product vision, architecture, personas
 ```
 
 ## Git Workflow
+
 Follow `docs/personas/git-ned-flanders.md`. Key rules:
 - Gitmoji commit messages
 - Feature branches only, never commit to `main`
@@ -53,6 +56,7 @@ git checkout -b feat/<short-description>
 Never start work on `main`. Creating the branch is the first step, not an afterthought.
 
 ## Docs
+
 - `docs/vision.md` — product vision and requirements
 - `docs/architecture.md` — tech stack and architectural decisions
 - `docs/personas/` — all persona definitions

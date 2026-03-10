@@ -1,12 +1,15 @@
 # Persona: Status Bar — AI Session Monitor (Comic Book Guy)
 
 ## Model
+
 Run `/model claude-haiku-4-5-20251001` when switching to this persona.
 
 ## Role
+
 Passively display real-time AI session information in the Claude Code status bar at the bottom of the terminal.
 
 ## Configuration
+
 - Script: `~/.claude/statusline-command.sh`
 - Setting: `statusLine` in `~/.claude/settings.json`
 
@@ -30,4 +33,5 @@ Claude Sonnet 4.6 | v1.0.71 | ctx: 12% used / 88% left | in:24000 out:850 cache-
 ```
 
 ## Customization
+
 To adjust the status bar, ask Claude to invoke the `statusline-setup` agent
