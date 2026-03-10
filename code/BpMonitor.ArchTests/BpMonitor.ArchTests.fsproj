@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BpMonitor.Charts\BpMonitor.Charts.fsproj" />
     <ProjectReference Include="..\BpMonitor.Core\BpMonitor.Core.fsproj" />
     <ProjectReference Include="..\BpMonitor.Data\BpMonitor.Data.fsproj" />
     <ProjectReference Include="..\BpMonitor.Tui\BpMonitor.Tui.fsproj" />
