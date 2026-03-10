@@ -5,10 +5,10 @@ open BpMonitor.Core
 
 module BpChart =
     let toHtml (readings: BloodPressureReading list) : string =
-        let timestamps = readings |> List.map (fun r -> r.Timestamp.ToString("yyyy-MM-dd HH:mm"))
-        let systolic   = readings |> List.map (fun r -> r.Systolic)
-        let diastolic  = readings |> List.map (fun r -> r.Diastolic)
-        let heartRate  = readings |> List.map (fun r -> r.HeartRate)
+        let timestamps = readings |> List.map _.Timestamp.ToString("yyyy-MM-dd HH:mm")
+        let systolic   = readings |> List.map _.Systolic
+        let diastolic  = readings |> List.map _.Diastolic
+        let heartRate  = readings |> List.map _.HeartRate
 
         [ Chart.Line(x = timestamps, y = systolic,  Name = "Systolic")
           Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic")
