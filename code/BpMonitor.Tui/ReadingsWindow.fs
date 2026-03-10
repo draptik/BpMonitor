@@ -8,7 +8,7 @@ open Terminal.Gui.ViewBase
 open Terminal.Gui.Views
 open BpMonitor.Core
 
-type ReadingsWindow(app: IApplication, repository: IReadingRepository, onQuit: (unit -> unit) option, onAdd: (unit -> BloodPressureReading option) option, onEdit: (BloodPressureReading -> BloodPressureReading option) option) as this =
+type ReadingsWindow(app: IApplication, repository: IReadingRepository, onQuit: (unit -> unit) option, onAdd: (unit -> BloodPressureReading option) option, onEdit: (BloodPressureReading -> BloodPressureReading option) option, onChart: (BloodPressureReading list -> unit) option) as this =
     inherit Window()
 
     let makeTableSource () =
@@ -53,13 +53,15 @@ type ReadingsWindow(app: IApplication, repository: IReadingRepository, onQuit: (
         if not (obj.ReferenceEquals(app, null)) then
             app.Keyboard.KeyDown.Add(fun key ->
                 if key = Key.A then this.AddNew()
-                elif key = Key.E then this.EditSelected())
+                elif key = Key.E then this.EditSelected()
+                elif key = Key.C then this.ShowChart())
 
         let statusBar =
             new StatusBar(
-                [| new Shortcut(Key.A,   "Add",  (fun () -> ()))
-                   new Shortcut(Key.E,   "Edit", (fun () -> ()))
-                   new Shortcut(Key.Esc, "Quit", (fun () -> onQuit |> Option.iter (fun f -> f ()))) |])
+                [| new Shortcut(Key.A,   "Add",   (fun () -> ()))
+                   new Shortcut(Key.E,   "Edit",  (fun () -> ()))
+                   new Shortcut(Key.C,   "Chart", (fun () -> ()))
+                   new Shortcut(Key.Esc, "Quit",  (fun () -> onQuit |> Option.iter (fun f -> f ()))) |])
 
         this.Add(tableView, statusBar)
 
@@ -72,6 +74,9 @@ type ReadingsWindow(app: IApplication, repository: IReadingRepository, onQuit: (
                 repository.Add(reading)
                 tableView.Table <- makeTableSource()
             | None -> ())
+
+    member _.ShowChart() =
+        onChart |> Option.iter (fun f -> f (repository.GetAll()))
 
     member _.EditSelected() =
         let readings = repository.GetAll()
