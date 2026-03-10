@@ -72,9 +72,9 @@ PR body:
 ```text
 ## Summary
 - <bullet points describing what changed and why>
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
+
+⛔ **NEVER include a "Generated with Claude Code" footer.** It is noise and clutters the PR description.
 
 ⛔ **NEVER include a "Test plan" section. Ever. Not even once.** Test plans are noise — they are not enforced by GitHub and clutter the PR description. Summary bullets only. If you add a test plan, you have failed.
 
