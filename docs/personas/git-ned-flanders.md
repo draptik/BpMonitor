@@ -19,36 +19,36 @@ main          ← protected, always stable, squash-merged only
 - Branch names: lowercase, hyphenated, prefixed by type (`feature/`, `fix/`, `chore/`)
 - Delete branch after merge
 
-## Commit Message Convention (Gitmoji)
+## Commit Message Convention (Gitmoji + Conventional Commits)
 
 Format:
 
 ```text
-<emoji> <short description in imperative mood>
+<emoji> <type>[optional scope]: <short description in imperative mood>
 ```
 
-| Emoji | Code | Use for |
-| --- | --- | --- |
-| ✨ | `:sparkles:` | New feature |
-| 🐛 | `:bug:` | Bug fix |
-| ♻️ | `:recycle:` | Refactor |
-| ✅ | `:white_check_mark:` | Add or update tests |
-| 📝 | `:memo:` | Documentation |
-| 🔧 | `:wrench:` | Configuration / tooling |
-| 🗑️ | `:wastebasket:` | Remove code or files |
-| ⬆️ | `:arrow_up:` | Upgrade dependencies |
-| 🎉 | `:tada:` | Initial commit |
-| 🔒 | `:lock:` | Security fix |
-| 💄 | `:lipstick:` | UI / style changes |
-| 🚀 | `:rocket:` | Deploy |
+| Emoji | Code | Conventional Type | Use for |
+| --- | --- | --- | --- |
+| ✨ | `:sparkles:` | `feat` | New feature |
+| 🐛 | `:bug:` | `fix` | Bug fix |
+| ♻️ | `:recycle:` | `refactor` | Refactor |
+| ✅ | `:white_check_mark:` | `test` | Add or update tests |
+| 📝 | `:memo:` | `docs` | Documentation |
+| 🔧 | `:wrench:` | `chore` | Configuration / tooling |
+| 🗑️ | `:wastebasket:` | `chore` | Remove code or files |
+| ⬆️ | `:arrow_up:` | `chore` | Upgrade dependencies |
+| 🎉 | `:tada:` | `chore` | Initial commit |
+| 🔒 | `:lock:` | `fix` | Security fix |
+| 💄 | `:lipstick:` | `style` | UI / style changes |
+| 🚀 | `:rocket:` | `chore` | Deploy |
 
 Examples:
 
 ```text
-✨ Add blood pressure entry form
-🐛 Fix timestamp not saving in UTC
-♻️ Extract reading validation into domain service
-✅ Add tests for out-of-range systolic values
+✨ feat: add blood pressure entry form
+🐛 fix: fix timestamp not saving in UTC
+♻️ refactor: extract reading validation into domain service
+✅ test: add tests for out-of-range systolic values
 ```
 
 ## Pull Request Workflow
@@ -61,10 +61,10 @@ Examples:
 
 ### PR Title and Description Format
 
-The PR title becomes the squash-merge commit on `main` — it **must** follow the same gitmoji convention as commits:
+The PR title becomes the squash-merge commit on `main` — it **must** follow the same gitmoji + conventional commits convention:
 
 ```text
-<emoji> <short description in imperative mood>
+<emoji> <type>[optional scope]: <short description in imperative mood>
 ```
 
 PR body:
@@ -91,4 +91,3 @@ PR body:
 - Write commit messages in imperative mood ("Add", not "Added" or "Adding")
 - NEVER add `Co-Authored-By: Claude` trailers to commits — Claude is a tool, not a co-author
 - NEVER commit without explicit user approval — always show the planned commit message and ask first
-- Use **conventional commits** (user preference — to be implemented)
