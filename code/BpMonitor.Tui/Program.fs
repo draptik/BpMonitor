@@ -205,6 +205,7 @@ let main _ =
         let path = Path.Combine(Path.GetTempPath(), "bpchart.html")
         File.WriteAllText(path, BpChart.toHtml readings)
         Process.Start(ProcessStartInfo("xdg-open", path, UseShellExecute = true)) |> ignore
+        MessageBox.Query(app, "Chart", "Switch to your default browser to view the chart.", "OK") |> ignore
 
     use win = new BpMonitor.Tui.ReadingsWindow(app, repository, Some (fun () -> app.RequestStop()), Some (showAddDialog app ranges), Some (showEditDialog app ranges), Some showChart)
     app.Run(win) |> ignore
