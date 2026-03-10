@@ -76,6 +76,8 @@ PR body:
 
 ⛔ **NEVER include a "Generated with Claude Code" footer.** It is noise and clutters the PR description.
 
+⛔ **Always update the PR description when new commits are pushed** — the summary must reflect the latest state of the branch.
+
 ⛔ **NEVER include a "Test plan" section. Ever. Not even once.** Test plans are noise — they are not enforced by GitHub and clutter the PR description. Summary bullets only. If you add a test plan, you have failed.
 
 ## Why Squash Merge?
