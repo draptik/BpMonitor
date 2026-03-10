@@ -56,24 +56,28 @@ type ValidationError =
 ## Project Responsibilities
 
 ### BpMonitor.Core
+
 - Domain models (`BloodPressureReading`, `BloodPressureReadingUnvalidated`)
 - Repository interface (`IReadingRepository`)
 - Business logic: applicative validation via `FsToolkit.ErrorHandling`
 - No dependencies on other projects
 
 ### BpMonitor.Data
+
 - EF Core `DbContext`
 - SQLite configuration (`appsettings.json`)
 - `IReadingRepository` implementation
 - Migrations
 
 ### BpMonitor.Tui
+
 - Terminal.Gui v2 application
 - Data entry form with validation feedback
 - Readings list view
 - References Core + Data
 
 ### BpMonitor.ArchTests
+
 - ArchUnit rules enforcing Clean Architecture layer boundaries
 
 ## Future Extensions
@@ -82,6 +86,7 @@ type ValidationError =
 - `BpMonitor.Api` — REST API for mobile data entry; plugs into Core + Data with no changes to existing projects
 
 ## Design Principles
+
 - Core is dependency-free to allow easy testing and future frontend swaps
 - Each project has a single clear responsibility
 - Best practices and longevity over shortcuts
