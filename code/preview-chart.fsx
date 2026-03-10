@@ -1,3 +1,7 @@
+// Generates a Plotly.NET HTML chart from sample blood pressure readings.
+// Invoked by preview-chart.sh, which passes the output path as the first argument.
+// Can also be run directly: dotnet fsi preview-chart.fsx [output-path]
+
 open System
 
 let scriptDir = __SOURCE_DIRECTORY__
