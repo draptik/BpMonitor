@@ -10,25 +10,33 @@ module private Defaults =
         Diastolic = 78
         HeartRate = 65
         Timestamp = DateTimeOffset(2026, 2, 28, 7, 30, 0, TimeSpan.Zero)
-        Comments = None }
+        Comments = None
+        CreatedAt = DateTimeOffset.MinValue
+        ModifiedAt = DateTimeOffset.MinValue }
       { Id = 2
         Systolic = 135
         Diastolic = 88
         HeartRate = 78
         Timestamp = DateTimeOffset(2026, 3, 1, 8, 0, 0, TimeSpan.Zero)
-        Comments = Some "After coffee" }
+        Comments = Some "After coffee"
+        CreatedAt = DateTimeOffset.MinValue
+        ModifiedAt = DateTimeOffset.MinValue }
       { Id = 3
         Systolic = 118
         Diastolic = 74
         HeartRate = 62
         Timestamp = DateTimeOffset(2026, 3, 2, 7, 45, 0, TimeSpan.Zero)
-        Comments = Some "Morning, rested" }
+        Comments = Some "Morning, rested"
+        CreatedAt = DateTimeOffset.MinValue
+        ModifiedAt = DateTimeOffset.MinValue }
       { Id = 4
         Systolic = 128
         Diastolic = 82
         HeartRate = 70
         Timestamp = DateTimeOffset(2026, 3, 3, 9, 15, 0, TimeSpan.Zero)
-        Comments = None } ]
+        Comments = None
+        CreatedAt = DateTimeOffset.MinValue
+        ModifiedAt = DateTimeOffset.MinValue } ]
 
 type InMemoryReadingRepository(initialReadings: BloodPressureReading list option) =
   let readings =
@@ -37,7 +45,7 @@ type InMemoryReadingRepository(initialReadings: BloodPressureReading list option
   interface IReadingRepository with
     member _.GetAll() = readings |> Seq.toList
 
-    member _.Add(reading) =
+    member self.Add(reading) =
       let nextId =
         if readings.Count = 0 then
           1
@@ -45,6 +53,9 @@ type InMemoryReadingRepository(initialReadings: BloodPressureReading list option
           (readings |> Seq.map (fun r -> r.Id) |> Seq.max) + 1
 
       readings.Add({ reading with Id = nextId })
+
+    member self.AddMany(newReadings) =
+      newReadings |> List.iter (self :> IReadingRepository).Add
 
     member _.Update(reading) =
       let idx = readings |> Seq.findIndex (fun r -> r.Id = reading.Id)

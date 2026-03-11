@@ -2,6 +2,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -12,6 +15,8 @@
     <Compile Include="InMemoryReadingRepository.fs" />
     <Compile Include="ReadingRecord.fs" />
     <Compile Include="BpMonitorDbContext.fs" />
+    <Compile Include="BpMonitorDbContextFactory.fs" />
+    <Compile Include="SchemaMigrations.fs" />
     <Compile Include="EfReadingRepository.fs" />
     <Compile Include="ReadingRepositoryFactory.fs" />
   </ItemGroup>

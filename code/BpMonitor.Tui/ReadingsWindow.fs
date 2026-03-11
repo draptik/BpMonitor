@@ -7,6 +7,7 @@ open Terminal.Gui.Input
 open Terminal.Gui.ViewBase
 open Terminal.Gui.Views
 open BpMonitor.Core
+open BpMonitor.Import.MarkdownImport
 
 type ReadingsWindow
   (
@@ -15,7 +16,8 @@ type ReadingsWindow
     onQuit: (unit -> unit) option,
     onAdd: (unit -> BloodPressureReading option) option,
     onEdit: (BloodPressureReading -> BloodPressureReading option) option,
-    onChart: (BloodPressureReading list -> unit) option
+    onChart: (BloodPressureReading list -> unit) option,
+    onImport: (unit -> ImportSummary option) option
   ) as this =
   inherit Window()
 
@@ -72,13 +74,16 @@ type ReadingsWindow
         elif key = Key.E then
           this.EditSelected()
         elif key = Key.C then
-          this.ShowChart())
+          this.ShowChart()
+        elif key = Key.I then
+          this.ImportFile())
 
     let statusBar =
       new StatusBar(
         [| new Shortcut(Key.A, "Add", (fun () -> ()))
            new Shortcut(Key.E, "Edit", (fun () -> ()))
            new Shortcut(Key.C, "Chart", (fun () -> ()))
+           new Shortcut(Key.I, "Import", (fun () -> ()))
            new Shortcut(Key.Esc, "Quit", (fun () -> onQuit |> Option.iter (fun f -> f ()))) |]
       )
 
@@ -97,6 +102,19 @@ type ReadingsWindow
 
   member _.ShowChart() =
     onChart |> Option.iter (fun f -> f (repository.GetAll()))
+
+  member _.ImportFile() =
+    onImport
+    |> Option.iter (fun f ->
+      match f () with
+      | None -> ()
+      | Some summary ->
+        tableView.Table <- makeTableSource ()
+
+        let msg =
+          $"Added: {summary.Added}\nUpdated: {summary.Updated}\nFailed: {summary.Failed.Length}"
+
+        MessageBox.Query(app, "Import Complete", msg, "OK") |> ignore)
 
   member _.EditSelected() =
     let readings = repository.GetAll()

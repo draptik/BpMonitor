@@ -9,4 +9,6 @@ type ReadingRecord =
     Diastolic: int
     HeartRate: int
     Timestamp: DateTimeOffset
-    Comments: string } // null represents absent comment
+    Comments: string // null represents absent comment
+    CreatedAt: DateTimeOffset
+    ModifiedAt: DateTimeOffset }

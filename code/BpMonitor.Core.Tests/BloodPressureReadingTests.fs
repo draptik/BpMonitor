@@ -75,3 +75,11 @@ let ``parse collects all validation errors`` () =
   match BloodPressureReading.parse ranges allInvalid with
   | Error errors -> test <@ errors.Length = 3 @>
   | Ok _ -> failwith "Expected Error"
+
+[<Fact>]
+let ``parse sets CreatedAt and ModifiedAt to MinValue`` () =
+  match BloodPressureReading.parse ranges validUnvalidated with
+  | Ok reading ->
+    test <@ reading.CreatedAt = DateTimeOffset.MinValue @>
+    test <@ reading.ModifiedAt = DateTimeOffset.MinValue @>
+  | Error _ -> failwith "Expected Ok"

@@ -12,6 +12,7 @@ open System.IO
 open BpMonitor.Charts
 open BpMonitor.Core
 open BpMonitor.Data
+open BpMonitor.Import.MarkdownImport
 
 let private makeField (y: int) (width: Dim) =
   let f = new TextField(X = Pos.Absolute(20), Y = Pos.Absolute(y), Width = width)
@@ -247,6 +248,24 @@ let main _ =
     MessageBox.Query(app, "Chart", "Switch to your default browser to view the chart.", "OK")
     |> ignore
 
+  let showImportDialog () =
+    let dialog =
+      new OpenDialog(Title = "Import from Markdown", AllowsMultipleSelection = false)
+
+    app.Run(dialog) |> ignore
+
+    if dialog.Canceled then
+      None
+    else
+      let path = string dialog.Path
+
+      if String.IsNullOrEmpty(path) then
+        None
+      else
+        let content = File.ReadAllText(path)
+        let unvalidated = parseMarkdown content
+        Some(import repository ranges unvalidated)
+
   use win =
     new BpMonitor.Tui.ReadingsWindow(
       app,
@@ -254,7 +273,8 @@ let main _ =
       Some(fun () -> app.RequestStop()),
       Some(showAddDialog app ranges),
       Some(showEditDialog app ranges),
-      Some showChart
+      Some showChart,
+      Some showImportDialog
     )
 
   app.Run(win) |> ignore

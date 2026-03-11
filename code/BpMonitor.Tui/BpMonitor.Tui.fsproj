@@ -13,6 +13,9 @@
     <PackageReference Include="FSharp.Core" />
     <PackageReference Include="FsToolkit.ErrorHandling" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Terminal.Gui" />
   </ItemGroup>
 
@@ -26,6 +29,7 @@
     <ProjectReference Include="..\BpMonitor.Charts\BpMonitor.Charts.fsproj" />
     <ProjectReference Include="..\BpMonitor.Core\BpMonitor.Core.fsproj" />
     <ProjectReference Include="..\BpMonitor.Data\BpMonitor.Data.fsproj" />
+    <ProjectReference Include="..\BpMonitor.Import\BpMonitor.Import.fsproj" />
   </ItemGroup>
 
 </Project>

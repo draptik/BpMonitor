@@ -13,7 +13,9 @@ type BloodPressureReading =
     Diastolic: int
     HeartRate: int
     Timestamp: System.DateTimeOffset
-    Comments: string option }
+    Comments: string option
+    CreatedAt: System.DateTimeOffset
+    ModifiedAt: System.DateTimeOffset }
 
 type ValidationError =
   | SystolicOutOfRange of int
@@ -73,5 +75,7 @@ module BloodPressureReading =
           Diastolic = dia
           HeartRate = hr
           Timestamp = input.Timestamp
-          Comments = input.Comments }
+          Comments = input.Comments
+          CreatedAt = System.DateTimeOffset.MinValue
+          ModifiedAt = System.DateTimeOffset.MinValue }
     }
