@@ -2,6 +2,14 @@
    "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
    "tasks": [
       {
+         "name": "markdownlint",
+         "group": "pre-commit",
+         "command": "markdownlint-cli2",
+         "args": ["${staged}"],
+         "include": ["**/*.md"],
+         "staged": true
+      },
+      {
          "name": "fantomas-check",
          "group": "pre-commit",
          "command": "dotnet",

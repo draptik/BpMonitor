@@ -16,7 +16,7 @@ Recommend the most appropriate Claude model for each task based on complexity, r
 
 Apply these rules at the start of each task, regardless of active persona:
 
-```
+```text
 Is the task conversational, templated, or config-only?
   → Haiku
 
