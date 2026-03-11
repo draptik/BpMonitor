@@ -6,7 +6,7 @@ A personal blood pressure monitoring app. See `docs/vision.md` for full product 
 
 ## Personas
 
-Switch personas by reading the relevant file and following its instructions, including switching to the recommended model.
+Persona rules are **always in effect** — read the relevant persona file before any related action and follow every rule in it without exception. Ignorance of a rule is not an excuse.
 
 | Persona | File | Model |
 | --- | --- | --- |
