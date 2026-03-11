@@ -1,0 +1,14 @@
+{
+   "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
+   "tasks": [
+      {
+         "name": "fantomas-check",
+         "group": "pre-commit",
+         "command": "dotnet",
+         "args": ["fantomas", "--check", "${staged}"],
+         "include": ["code/**/*.fs"],
+         "pathMode": "absolute",
+         "cwd": "code"
+      }
+   ]
+}
