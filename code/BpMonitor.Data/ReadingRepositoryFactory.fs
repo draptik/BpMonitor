@@ -9,5 +9,5 @@ module ReadingRepository =
       DbContextOptionsBuilder<BpMonitorDbContext>().UseSqlite(connectionString).Options
 
     let ctx = new BpMonitorDbContext(options)
-    ctx.Database.EnsureCreated() |> ignore
+    SchemaMigrations.apply ctx
     EfReadingRepository(ctx, System.TimeProvider.System)

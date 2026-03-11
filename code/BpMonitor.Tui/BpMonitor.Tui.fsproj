@@ -13,6 +13,9 @@
     <PackageReference Include="FSharp.Core" />
     <PackageReference Include="FsToolkit.ErrorHandling" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Terminal.Gui" />
   </ItemGroup>
 
