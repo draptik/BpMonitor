@@ -9,7 +9,11 @@ code/
 ├── BpMonitor.Core.Tests     # Unit tests for Core
 ├── BpMonitor.Data           # EF Core + SQLite, repository implementations
 ├── BpMonitor.Data.Tests     # Integration tests for Data
-├── BpMonitor.Tui            # Terminal.Gui v2 app (data entry + list view)
+├── BpMonitor.Import         # Markdown parser and import logic
+├── BpMonitor.Import.Tests   # Unit tests for Import
+├── BpMonitor.Charts         # Plotly.NET chart generation
+├── BpMonitor.Charts.Tests   # Snapshot tests for Charts
+├── BpMonitor.Tui            # Terminal.Gui v2 app (data entry + list view + import)
 ├── BpMonitor.Tui.Tests      # Tests for TUI layer
 └── BpMonitor.ArchTests      # ArchUnit tests enforcing Clean Architecture rules
 ```
@@ -22,6 +26,7 @@ code/
 | Language / Runtime | F# on .NET |
 | TUI Framework | Terminal.Gui v2 |
 | Database | SQLite + EF Core |
+| Charting | Plotly.NET — generates interactive HTML, opens in default browser |
 | Validation | `FsToolkit.ErrorHandling` — applicative validation with `Validation<'ok, 'err>` |
 | Architecture | Clean Architecture (Core has zero dependencies on other projects) |
 | Architecture tests | ArchUnit (via `BpMonitor.ArchTests`) |
@@ -39,12 +44,14 @@ type BloodPressureReadingUnvalidated = {
 }
 
 type BloodPressureReading = {
-    Id:        int
-    Systolic:  int
-    Diastolic: int
-    HeartRate: int
-    Timestamp: DateTimeOffset
-    Comments:  string option
+    Id:         int
+    Systolic:   int
+    Diastolic:  int
+    HeartRate:  int
+    Timestamp:  DateTimeOffset
+    Comments:   string option
+    CreatedAt:  DateTimeOffset
+    ModifiedAt: DateTimeOffset
 }
 
 type ValidationError =
@@ -64,26 +71,38 @@ type ValidationError =
 
 ### BpMonitor.Data
 
-- EF Core `DbContext`
+- EF Core `DbContext` and `ReadingRecord` entity
 - SQLite configuration (`appsettings.json`)
-- `IReadingRepository` implementation
-- Migrations
+- `IReadingRepository` implementations: `EfReadingRepository`, `InMemoryReadingRepository`
+- Manual schema migrations via `SchemaMigrations` module (EF Core migrations do not support F#)
+- `ReadingRepositoryFactory` wiring
+
+### BpMonitor.Import
+
+- Parses blood pressure readings from Markdown files (`parseMarkdown`, `parseLine`)
+- Upsert import logic with summary (`ImportSummary`: added, updated, failed counts)
+- Depends on Core only
+
+### BpMonitor.Charts
+
+- Plotly.NET chart generation (`BpChart.toHtml`)
+- Produces a self-contained interactive HTML file opened in the default browser
+- Depends on Core only
 
 ### BpMonitor.Tui
 
 - Terminal.Gui v2 application
-- Data entry form with validation feedback
-- Readings list view
-- References Core + Data
+- Readings list view with Add (`N`), Edit (`Enter`), Chart (`C`), Import (`I`) keybindings
+- Delegates to Core for validation, Data for persistence, Import for file import, Charts for visualisation
+- References Core + Data + Import + Charts
 
 ### BpMonitor.ArchTests
 
 - ArchUnit rules enforcing Clean Architecture layer boundaries
-
-## Future Extensions
-
-- `BpMonitor.Reports` — Plotly.NET chart generation → interactive HTML, opens in default browser
-- `BpMonitor.Api` — REST API for mobile data entry; plugs into Core + Data with no changes to existing projects
+- Core must not depend on Data, Tui
+- Data must not depend on Tui
+- Import must not depend on Data, Tui, Charts
+- Charts must not depend on Data, Tui
 
 ## Design Principles
 
