@@ -35,3 +35,27 @@ let ``Add assigns sequential Ids starting at 1`` () =
   let readings = repo.GetAll()
   test <@ readings.[0].Id = 1 @>
   test <@ readings.[1].Id = 2 @>
+
+[<Fact>]
+let ``AddMany persists all readings`` () =
+  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
+
+  let second =
+    { sample with
+        Timestamp = DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero) }
+
+  repo.AddMany([ sample; second ])
+  test <@ repo.GetAll().Length = 2 @>
+
+[<Fact>]
+let ``AddMany assigns sequential Ids`` () =
+  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
+
+  let second =
+    { sample with
+        Timestamp = DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero) }
+
+  repo.AddMany([ sample; second ])
+  let readings = repo.GetAll()
+  test <@ readings.[0].Id = 1 @>
+  test <@ readings.[1].Id = 2 @>

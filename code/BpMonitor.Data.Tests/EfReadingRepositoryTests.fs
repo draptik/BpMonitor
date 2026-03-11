@@ -95,6 +95,38 @@ let ``Add sets CreatedAt and ModifiedAt to current time`` () =
   test <@ result.ModifiedAt = now @>
 
 [<Fact>]
+let ``AddMany persists all readings`` () =
+  use ctx = createContext ()
+
+  let repo =
+    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+
+  let second =
+    { sample with
+        Timestamp = DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero) }
+
+  repo.AddMany([ sample; second ])
+  test <@ repo.GetAll().Length = 2 @>
+
+[<Fact>]
+let ``AddMany sets CreatedAt and ModifiedAt to current time`` () =
+  let now = DateTimeOffset(2026, 3, 11, 10, 0, 0, TimeSpan.Zero)
+  let timeProvider = FakeTimeProvider(now)
+  use ctx = createContext ()
+  let repo = EfReadingRepository(ctx, timeProvider) :> IReadingRepository
+
+  let second =
+    { sample with
+        Timestamp = DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero) }
+
+  repo.AddMany([ sample; second ])
+  let readings = repo.GetAll()
+  test <@ readings.[0].CreatedAt = now @>
+  test <@ readings.[0].ModifiedAt = now @>
+  test <@ readings.[1].CreatedAt = now @>
+  test <@ readings.[1].ModifiedAt = now @>
+
+[<Fact>]
 let ``Update preserves CreatedAt and sets ModifiedAt to current time`` () =
   let createdAt = DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)
   let updatedAt = DateTimeOffset(2026, 3, 11, 10, 0, 0, TimeSpan.Zero)

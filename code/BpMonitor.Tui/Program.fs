@@ -71,10 +71,20 @@ let private readRanges (config: IConfiguration) =
     HeartRateMin = getInt "HeartRateMin" d.HeartRateMin
     HeartRateMax = getInt "HeartRateMax" d.HeartRateMax }
 
-let private showEditDialog
+let private formatValidationErrors (ranges: ReadingRanges) (errors: ValidationError list) =
+  errors
+  |> List.map (fun e ->
+    match e with
+    | SystolicOutOfRange v -> $"Systolic {v} is out of range ({ranges.SystolicMin}–{ranges.SystolicMax})"
+    | DiastolicOutOfRange v -> $"Diastolic {v} is out of range ({ranges.DiastolicMin}–{ranges.DiastolicMax})"
+    | HeartRateOutOfRange v -> $"Heart rate {v} is out of range ({ranges.HeartRateMin}–{ranges.HeartRateMax})")
+  |> String.concat "\n"
+
+let private showReadingDialog
   (app: IApplication)
   (ranges: ReadingRanges)
-  (reading: BloodPressureReading)
+  (title: string)
+  (existing: BloodPressureReading option)
   : BloodPressureReading option =
   let result = ref None
 
@@ -84,17 +94,20 @@ let private showEditDialog
   let timestampField = makeField 3 (Dim.Absolute(16))
   let commentsField = makeField 4 (Dim.Fill(2))
 
-  systolicField.Text <- string reading.Systolic
-  diastolicField.Text <- string reading.Diastolic
-  heartRateField.Text <- string reading.HeartRate
-  timestampField.Text <- reading.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
-  commentsField.Text <- reading.Comments |> Option.defaultValue ""
+  match existing with
+  | Some reading ->
+    systolicField.Text <- string reading.Systolic
+    diastolicField.Text <- string reading.Diastolic
+    heartRateField.Text <- string reading.HeartRate
+    timestampField.Text <- reading.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+    commentsField.Text <- reading.Comments |> Option.defaultValue ""
+  | None -> timestampField.Text <- DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm")
 
   let timestampHint =
     new Label(Text = "  (yyyy-MM-dd HH:mm)", X = Pos.Right(timestampField), Y = Pos.Absolute(3))
 
   let dialog =
-    new Dialog(Title = "Edit Reading", Width = Dim.Percent(60), Height = Dim.Absolute(12))
+    new Dialog(Title = title, Width = Dim.Percent(60), Height = Dim.Absolute(12))
 
   let saveButton = new Button(Text = "Save", IsDefault = true)
 
@@ -113,20 +126,16 @@ let private showEditDialog
       MessageBox.ErrorQuery(app, "Input Error", msg, "OK") |> ignore
     | Ok unvalidated ->
       match BloodPressureReading.parse ranges unvalidated with
-      | Ok validated -> result.Value <- Some { validated with Id = reading.Id }
+      | Ok validated ->
+        result.Value <-
+          match existing with
+          | Some r -> Some { validated with Id = r.Id }
+          | None -> Some validated
       | Error errors ->
         e.Handled <- true
 
-        let msg =
-          errors
-          |> List.map (fun e ->
-            match e with
-            | SystolicOutOfRange v -> $"Systolic {v} is out of range ({ranges.SystolicMin}–{ranges.SystolicMax})"
-            | DiastolicOutOfRange v -> $"Diastolic {v} is out of range ({ranges.DiastolicMin}–{ranges.DiastolicMax})"
-            | HeartRateOutOfRange v -> $"Heart rate {v} is out of range ({ranges.HeartRateMin}–{ranges.HeartRateMax})")
-          |> String.concat "\n"
-
-        MessageBox.ErrorQuery(app, "Validation Error", msg, "OK") |> ignore)
+        MessageBox.ErrorQuery(app, "Validation Error", formatValidationErrors ranges errors, "OK")
+        |> ignore)
 
   let cancelButton = new Button(Text = "Cancel")
   cancelButton.Accepting.Add(fun _ -> ())
@@ -151,77 +160,11 @@ let private showEditDialog
   app.Run(dialog) |> ignore
   result.Value
 
-let private showAddDialog (app: IApplication) (ranges: ReadingRanges) () : BloodPressureReading option =
-  let result = ref None
+let private showEditDialog (app: IApplication) (ranges: ReadingRanges) (reading: BloodPressureReading) =
+  showReadingDialog app ranges "Edit Reading" (Some reading)
 
-  let systolicField = makeField 0 (Dim.Absolute(5))
-  let diastolicField = makeField 1 (Dim.Absolute(5))
-  let heartRateField = makeField 2 (Dim.Absolute(5))
-  let timestampField = makeField 3 (Dim.Absolute(16))
-  let commentsField = makeField 4 (Dim.Fill(2))
-
-  timestampField.Text <- DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm")
-
-  let timestampHint =
-    new Label(Text = "  (yyyy-MM-dd HH:mm)", X = Pos.Right(timestampField), Y = Pos.Absolute(3))
-
-  let dialog =
-    new Dialog(Title = "Add New Reading", Width = Dim.Percent(60), Height = Dim.Absolute(12))
-
-  let saveButton = new Button(Text = "Save", IsDefault = true)
-
-  saveButton.Accepting.Add(fun e ->
-    let parsed =
-      parseFields
-        (string systolicField.Text)
-        (string diastolicField.Text)
-        (string heartRateField.Text)
-        (string timestampField.Text)
-        (string commentsField.Text)
-
-    match parsed with
-    | Error msg ->
-      e.Handled <- true
-      MessageBox.ErrorQuery(app, "Input Error", msg, "OK") |> ignore
-    | Ok unvalidated ->
-      match BloodPressureReading.parse ranges unvalidated with
-      | Ok reading -> result.Value <- Some reading
-      | Error errors ->
-        e.Handled <- true
-
-        let msg =
-          errors
-          |> List.map (fun e ->
-            match e with
-            | SystolicOutOfRange v -> $"Systolic {v} is out of range ({ranges.SystolicMin}–{ranges.SystolicMax})"
-            | DiastolicOutOfRange v -> $"Diastolic {v} is out of range ({ranges.DiastolicMin}–{ranges.DiastolicMax})"
-            | HeartRateOutOfRange v -> $"Heart rate {v} is out of range ({ranges.HeartRateMin}–{ranges.HeartRateMax})")
-          |> String.concat "\n"
-
-        MessageBox.ErrorQuery(app, "Validation Error", msg, "OK") |> ignore)
-
-  let cancelButton = new Button(Text = "Cancel")
-  cancelButton.Accepting.Add(fun _ -> ())
-
-  dialog.Add(
-    makeLabel "Systolic:" 0,
-    systolicField,
-    makeLabel "Diastolic:" 1,
-    diastolicField,
-    makeLabel "Heart Rate:" 2,
-    heartRateField,
-    makeLabel "Timestamp:" 3,
-    timestampField,
-    timestampHint,
-    makeLabel "Comments:" 4,
-    commentsField
-  )
-
-  dialog.AddButton(saveButton)
-  dialog.AddButton(cancelButton)
-
-  app.Run(dialog) |> ignore
-  result.Value
+let private showAddDialog (app: IApplication) (ranges: ReadingRanges) () =
+  showReadingDialog app ranges "Add New Reading" None
 
 [<EntryPoint>]
 let main _ =
