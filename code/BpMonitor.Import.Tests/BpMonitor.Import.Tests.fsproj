@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BpMonitor.Import\BpMonitor.Import.fsproj" />
+    <ProjectReference Include="..\BpMonitor.Data\BpMonitor.Data.fsproj" />
   </ItemGroup>
 
 </Project>

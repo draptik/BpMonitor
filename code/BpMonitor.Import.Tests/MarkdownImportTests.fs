@@ -2,34 +2,10 @@ module BpMonitor.Import.Tests.MarkdownImportTests
 
 open System
 open BpMonitor.Core
+open BpMonitor.Data
 open BpMonitor.Import.MarkdownImport
 open Swensen.Unquote
 open Xunit
-
-type private StubRepository(initial: BloodPressureReading list) =
-  let readings = ResizeArray<BloodPressureReading>(initial)
-
-  let mutable nextId =
-    (initial |> List.map (fun r -> r.Id) |> List.append [ 0 ] |> List.max) + 1
-
-  member _.Readings = readings |> Seq.toList
-
-  interface IReadingRepository with
-    member _.GetAll() = readings |> Seq.toList
-
-    member _.Add(r) =
-      readings.Add({ r with Id = nextId })
-      nextId <- nextId + 1
-
-    member _.AddMany(rs) =
-      rs
-      |> List.iter (fun r ->
-        readings.Add({ r with Id = nextId })
-        nextId <- nextId + 1)
-
-    member _.Update(r) =
-      let idx = readings |> Seq.findIndex (fun x -> x.Id = r.Id)
-      readings[idx] <- r
 
 [<Fact>]
 let ``parse reading line - no comment`` () =
@@ -230,7 +206,7 @@ let ``parse markdown - only ignored lines returns empty list`` () =
 
 [<Fact>]
 let ``import - new valid reading is added to repository`` () =
-  let repo = StubRepository([])
+  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
 
   let reading =
     { Systolic = 120
@@ -239,7 +215,7 @@ let ``import - new valid reading is added to repository`` () =
       Timestamp = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)
       Comments = None }
 
-  let result = import (repo :> IReadingRepository) ReadingRanges.defaults [ reading ]
+  let result = import repo ReadingRanges.defaults [ reading ]
 
   test <@ result.Added = 1 @>
   test <@ result.Updated = 0 @>
@@ -247,7 +223,7 @@ let ``import - new valid reading is added to repository`` () =
 
 [<Fact>]
 let ``import - existing reading with same timestamp is updated`` () =
-  let existing =
+  let existing: BloodPressureReading =
     { Id = 1
       Systolic = 110
       Diastolic = 70
@@ -257,7 +233,7 @@ let ``import - existing reading with same timestamp is updated`` () =
       CreatedAt = DateTimeOffset.MinValue
       ModifiedAt = DateTimeOffset.MinValue }
 
-  let repo = StubRepository([ existing ])
+  let repo = InMemoryReadingRepository(Some [ existing ]) :> IReadingRepository
 
   let updated =
     { Systolic = 120
@@ -266,16 +242,16 @@ let ``import - existing reading with same timestamp is updated`` () =
       Timestamp = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)
       Comments = None }
 
-  let result = import (repo :> IReadingRepository) ReadingRanges.defaults [ updated ]
+  let result = import repo ReadingRanges.defaults [ updated ]
 
   test <@ result.Added = 0 @>
   test <@ result.Updated = 1 @>
   test <@ result.Failed = [] @>
-  test <@ repo.Readings.[0].Systolic = 120 @>
+  test <@ repo.GetAll().[0].Systolic = 120 @>
 
 [<Fact>]
 let ``import - invalid reading is captured in Failed, valid ones still imported`` () =
-  let repo = StubRepository([])
+  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
 
   let invalid =
     { Systolic = 0
@@ -291,8 +267,7 @@ let ``import - invalid reading is captured in Failed, valid ones still imported`
       Timestamp = DateTimeOffset(2024, 10, 15, 10, 0, 0, TimeSpan.Zero)
       Comments = None }
 
-  let result =
-    import (repo :> IReadingRepository) ReadingRanges.defaults [ invalid; valid ]
+  let result = import repo ReadingRanges.defaults [ invalid; valid ]
 
   test <@ result.Added = 1 @>
   test <@ result.Updated = 0 @>

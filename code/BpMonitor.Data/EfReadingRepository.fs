@@ -10,11 +10,7 @@ module private Mapping =
       Diastolic = r.Diastolic
       HeartRate = r.HeartRate
       Timestamp = r.Timestamp
-      Comments =
-        if obj.ReferenceEquals(r.Comments, null) then
-          None
-        else
-          Some r.Comments
+      Comments = if isNull r.Comments then None else Some r.Comments
       CreatedAt = r.CreatedAt
       ModifiedAt = r.ModifiedAt }
 
