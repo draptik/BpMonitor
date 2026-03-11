@@ -6,6 +6,7 @@ open Swensen.Unquote
 open Terminal.Gui.App
 open Terminal.Gui.Input
 open BpMonitor.Core
+open BpMonitor.Import.MarkdownImport
 open BpMonitor.Tui
 
 let private app = Unchecked.defaultof<IApplication>
@@ -36,7 +37,7 @@ let ``pressing Esc invokes the onQuit callback`` () =
   let quitCalls = ResizeArray<unit>()
 
   use win =
-    new ReadingsWindow(app, makeRepo [], Some(fun () -> quitCalls.Add(())), None, None, None)
+    new ReadingsWindow(app, makeRepo [], Some(fun () -> quitCalls.Add(())), None, None, None, None)
 
   win.NewKeyDownEvent(Key.Esc) |> ignore
   test <@ quitCalls.Count = 1 @>
@@ -44,12 +45,12 @@ let ``pressing Esc invokes the onQuit callback`` () =
 [<Fact>]
 let ``window Readings reflect repository contents`` () =
   let repo = makeRepo [ reading 120 80 70; reading 130 85 72 ]
-  use win = new ReadingsWindow(app, repo, None, None, None, None)
+  use win = new ReadingsWindow(app, repo, None, None, None, None, None)
   test <@ win.Readings.Length = 2 @>
 
 [<Fact>]
 let ``window Readings are empty when repository is empty`` () =
-  use win = new ReadingsWindow(app, makeRepo [], None, None, None, None)
+  use win = new ReadingsWindow(app, makeRepo [], None, None, None, None, None)
   test <@ win.Readings.Length = 0 @>
 
 [<Fact>]
@@ -65,6 +66,7 @@ let ``AddNew invokes the onAdd callback`` () =
         addCalls.Add(())
         None),
       None,
+      None,
       None
     )
 
@@ -77,7 +79,7 @@ let ``when onAdd returns a reading it is added to the repository`` () =
   let newReading = reading 120 80 70
 
   use win =
-    new ReadingsWindow(app, repo, None, Some(fun () -> Some newReading), None, None)
+    new ReadingsWindow(app, repo, None, Some(fun () -> Some newReading), None, None, None)
 
   win.AddNew()
   test <@ win.Readings = [ newReading ] @>
@@ -96,6 +98,7 @@ let ``EditSelected invokes the onEdit callback with the selected reading`` () =
       Some(fun r ->
         editedReadings.Add(r)
         None),
+      None,
       None
     )
 
@@ -115,6 +118,7 @@ let ``EditSelected with empty list does not invoke the onEdit callback`` () =
       Some(fun r ->
         editedReadings.Add(r)
         None),
+      None,
       None
     )
 
@@ -127,7 +131,7 @@ let ``when onEdit returns an updated reading the repository is updated`` () =
   let updated = reading 135 88 75
 
   use win =
-    new ReadingsWindow(app, repo, None, None, Some(fun _ -> Some updated), None)
+    new ReadingsWindow(app, repo, None, None, Some(fun _ -> Some updated), None, None)
 
   win.EditSelected()
   test <@ win.Readings = [ updated ] @>
@@ -137,7 +141,7 @@ let ``ShowChart invokes the onChart callback`` () =
   let chartCalls = ResizeArray<unit>()
 
   use win =
-    new ReadingsWindow(app, makeRepo [], None, None, None, Some(fun _ -> chartCalls.Add(())))
+    new ReadingsWindow(app, makeRepo [], None, None, None, Some(fun _ -> chartCalls.Add(())), None)
 
   win.ShowChart()
   test <@ chartCalls.Count = 1 @>
@@ -148,7 +152,27 @@ let ``onChart callback receives all readings from the repository`` () =
   let repo = makeRepo [ reading 120 80 70; reading 130 85 72 ]
 
   use win =
-    new ReadingsWindow(app, repo, None, None, None, Some(fun rs -> capturedReadings.Add(rs)))
+    new ReadingsWindow(app, repo, None, None, None, Some(fun rs -> capturedReadings.Add(rs)), None)
 
   win.ShowChart()
   test <@ capturedReadings.Count = 1 && capturedReadings[0] = repo.GetAll() @>
+
+[<Fact>]
+let ``ImportFile invokes the onImport callback`` () =
+  let importCalls = ResizeArray<unit>()
+
+  use win =
+    new ReadingsWindow(
+      app,
+      makeRepo [],
+      None,
+      None,
+      None,
+      None,
+      Some(fun () ->
+        importCalls.Add(())
+        None)
+    )
+
+  win.ImportFile()
+  test <@ importCalls.Count = 1 @>
