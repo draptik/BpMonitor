@@ -29,13 +29,25 @@ A personal health tracking tool to log and visualize blood pressure data over ti
 
 ## Usage
 
-- Primary user: personal use only
+- Primary user: personal use only, single user
 - Logging frequency: sporadic (multiple times/day or gaps of several days)
-- Primary device: desktop (first iteration)
-- Future: mobile-friendly data entry
+- Devices: phone (input) and desktop TUI (input + viewing) — both talk to the API
+
+## Hosting
+
+- Self-hosted on a Proxmox VM — always-on, home network only
+- No external access, no authentication required
+- Database: PostgreSQL (replacing SQLite)
+- The API is the single source of truth
+
+## Architecture (high-level)
+
+- **API** — hosted on Proxmox VM; accepts readings, serves data to all clients
+- **Mobile web UI** — mobile-optimised web page for quick input (systolic, diastolic, heart rate, optional comment); shows success/failure after submit; first iteration only, no charts
+- **TUI** — connects to the API as a client; no longer hosts the database directly
 
 ## Success Criteria
 
-- Easy to log a reading quickly
+- Easy to log a reading quickly from phone or desktop
 - Charts make trends and anomalies visible at a glance
 - Comments allow context to be attached to unusual readings
