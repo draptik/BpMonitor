@@ -1,0 +1,51 @@
+module BpMonitor.Import.MarkdownImport
+
+open System
+open BpMonitor.Core
+
+let parseLine (date: DateOnly) (line: string) : BloodPressureReadingUnvalidated option =
+  let readingPattern =
+    System.Text.RegularExpressions.Regex(@"^- (\d{1,2})[.:](\d{2}): (\d+)/(\d+) (\d+)(.*)$")
+
+  let m = readingPattern.Match(line)
+
+  if m.Success then
+    let hour = int m.Groups[1].Value
+    let minute = int m.Groups[2].Value
+    let systolic = int m.Groups[3].Value
+    let diastolic = int m.Groups[4].Value
+    let heartRate = int m.Groups[5].Value
+    let comment = m.Groups[6].Value.Trim()
+
+    let timestamp =
+      DateTimeOffset(date.Year, date.Month, date.Day, hour, minute, 0, TimeSpan.Zero)
+
+    Some
+      { Systolic = systolic
+        Diastolic = diastolic
+        HeartRate = heartRate
+        Timestamp = timestamp
+        Comments = if comment = "" then None else Some comment }
+  else
+    None
+
+let parseMarkdown (markdown: string) : BloodPressureReadingUnvalidated list =
+  let datePattern = System.Text.RegularExpressions.Regex(@"^(\d{4}-\d{2}-\d{2})")
+
+  let lines = markdown.Split([| '\n'; '\r' |], StringSplitOptions.None)
+
+  let folder (currentDate, readings) (line: string) =
+    let dm = datePattern.Match(line)
+
+    if dm.Success then
+      let date = DateOnly.Parse(dm.Groups[1].Value)
+      (Some date, readings)
+    else
+      match currentDate with
+      | None -> (None, readings)
+      | Some date ->
+        match parseLine date line with
+        | None -> (currentDate, readings)
+        | Some reading -> (currentDate, readings @ [ reading ])
+
+  lines |> Array.fold folder (None, []) |> snd

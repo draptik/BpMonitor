@@ -7,5 +7,7 @@
   <Project Path="BpMonitor.Data/BpMonitor.Data.fsproj" />
   <Project Path="BpMonitor.Data.Tests/BpMonitor.Data.Tests.fsproj" />
   <Project Path="BpMonitor.Tui/BpMonitor.Tui.fsproj" />
+  <Project Path="BpMonitor.Import.Tests/BpMonitor.Import.Tests.fsproj" />
+  <Project Path="BpMonitor.Import/BpMonitor.Import.fsproj" />
   <Project Path="BpMonitor.Tui.Tests/BpMonitor.Tui.Tests.fsproj" />
 </Solution>
