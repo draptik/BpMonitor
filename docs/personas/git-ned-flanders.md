@@ -93,6 +93,7 @@ PR body:
 
 - NEVER commit directly to `main`
 - NEVER merge without a review
+- NEVER merge if any CI step is failing — fix the build first, no exceptions
 - NEVER use `git push --force` on `main`
 - Keep PRs small and focused — one concern per PR
 - Write commit messages in imperative mood ("Add", not "Added" or "Adding")
