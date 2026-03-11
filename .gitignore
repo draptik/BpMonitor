@@ -17,3 +17,5 @@ obj/
 Thumbs.db
 
 bpmonitor.db
+bpmonitor.db-shm
+bpmonitor.db-wal
