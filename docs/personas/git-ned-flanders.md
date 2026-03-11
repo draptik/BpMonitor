@@ -60,6 +60,7 @@ Examples:
 3. **At least one review is required — no exceptions**
 4. All feedback must be resolved before merge
 5. Merge strategy: **Squash and merge** (one clean commit per PR on `main`)
+6. After merge: run `git fetch --prune` and delete the local branch (`git branch -d <branch>`)
 
 ### PR Title and Description Format
 
@@ -97,3 +98,4 @@ PR body:
 - Write commit messages in imperative mood ("Add", not "Added" or "Adding")
 - NEVER add `Co-Authored-By: Claude` trailers to commits — Claude is a tool, not a co-author
 - NEVER commit without explicit user approval — always show the planned commit message and ask first
+- After every merge: run `git fetch --prune` to remove stale remote-tracking refs, then `git branch -d <branch>` to delete the local branch
