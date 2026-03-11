@@ -42,20 +42,20 @@ type InMemoryReadingRepository(initialReadings: BloodPressureReading list option
   let readings =
     ResizeArray<BloodPressureReading>(defaultArg initialReadings Defaults.readings)
 
+  let nextId () =
+    if readings.Count = 0 then
+      1
+    else
+      (readings |> Seq.map (fun r -> r.Id) |> Seq.max) + 1
+
   interface IReadingRepository with
     member _.GetAll() = readings |> Seq.toList
 
-    member self.Add(reading) =
-      let nextId =
-        if readings.Count = 0 then
-          1
-        else
-          (readings |> Seq.map (fun r -> r.Id) |> Seq.max) + 1
+    member _.Add(reading) =
+      readings.Add({ reading with Id = nextId () })
 
-      readings.Add({ reading with Id = nextId })
-
-    member self.AddMany(newReadings) =
-      newReadings |> List.iter (self :> IReadingRepository).Add
+    member _.AddMany(newReadings) =
+      newReadings |> List.iter (fun r -> readings.Add({ r with Id = nextId () }))
 
     member _.Update(reading) =
       let idx = readings |> Seq.findIndex (fun r -> r.Id = reading.Id)

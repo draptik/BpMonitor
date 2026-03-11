@@ -53,9 +53,9 @@ let parseMarkdown (markdown: string) : BloodPressureReadingUnvalidated list =
       | Some date ->
         match parseLine date line with
         | None -> (currentDate, readings)
-        | Some reading -> (currentDate, readings @ [ reading ])
+        | Some reading -> (currentDate, reading :: readings)
 
-  lines |> Array.fold folder (None, []) |> snd
+  lines |> Array.fold folder (None, []) |> snd |> List.rev
 
 let import
   (repository: IReadingRepository)
@@ -64,22 +64,22 @@ let import
   : ImportSummary =
   let existing = repository.GetAll()
 
-  let mutable added = 0
-  let mutable updated = 0
-  let mutable failed = []
+  let folder acc reading =
+    let (added, updated, failed) = acc
 
-  for reading in unvalidated do
     match BloodPressureReading.parse ranges reading with
-    | Error errors -> failed <- failed @ [ (reading, errors) ]
+    | Error errors -> (added, updated, (reading, errors) :: failed)
     | Ok validated ->
       match existing |> List.tryFind (fun r -> r.Timestamp = validated.Timestamp) with
       | None ->
         repository.Add(validated)
-        added <- added + 1
+        (added + 1, updated, failed)
       | Some existing ->
         repository.Update({ validated with Id = existing.Id })
-        updated <- updated + 1
+        (added, updated + 1, failed)
+
+  let (added, updated, failed) = unvalidated |> List.fold folder (0, 0, [])
 
   { Added = added
     Updated = updated
-    Failed = failed }
+    Failed = List.rev failed }
