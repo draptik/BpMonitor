@@ -12,7 +12,9 @@ let private sample: BloodPressureReading =
     Diastolic = 80
     HeartRate = 70
     Timestamp = DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)
-    Comments = None }
+    Comments = None
+    CreatedAt = DateTimeOffset.MinValue
+    ModifiedAt = DateTimeOffset.MinValue }
 
 [<Fact>]
 let ``GetAll returns default sample readings on startup`` () =

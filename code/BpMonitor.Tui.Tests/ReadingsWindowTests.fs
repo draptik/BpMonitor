@@ -16,7 +16,9 @@ let private reading sys dia hr =
     Diastolic = dia
     HeartRate = hr
     Timestamp = DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)
-    Comments = None }
+    Comments = None
+    CreatedAt = DateTimeOffset.MinValue
+    ModifiedAt = DateTimeOffset.MinValue }
 
 let private makeRepo (initial: BloodPressureReading list) =
   let mutable data = initial
@@ -24,6 +26,7 @@ let private makeRepo (initial: BloodPressureReading list) =
   { new IReadingRepository with
       member _.GetAll() = data
       member _.Add(r) = data <- data @ [ r ]
+      member _.AddMany(rs) = data <- data @ rs
 
       member _.Update(r) =
         data <- data |> List.map (fun x -> if x.Id = r.Id then r else x) }

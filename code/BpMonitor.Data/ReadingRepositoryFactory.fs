@@ -10,4 +10,4 @@ module ReadingRepository =
 
     let ctx = new BpMonitorDbContext(options)
     ctx.Database.EnsureCreated() |> ignore
-    EfReadingRepository(ctx)
+    EfReadingRepository(ctx, System.TimeProvider.System)

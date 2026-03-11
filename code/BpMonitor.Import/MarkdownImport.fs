@@ -1,5 +1,12 @@
 module BpMonitor.Import.MarkdownImport
 
+open BpMonitor.Core
+
+type ImportSummary =
+  { Added: int
+    Updated: int
+    Failed: (BloodPressureReadingUnvalidated * ValidationError list) list }
+
 open System
 open BpMonitor.Core
 
@@ -49,3 +56,30 @@ let parseMarkdown (markdown: string) : BloodPressureReadingUnvalidated list =
         | Some reading -> (currentDate, readings @ [ reading ])
 
   lines |> Array.fold folder (None, []) |> snd
+
+let import
+  (repository: IReadingRepository)
+  (ranges: ReadingRanges)
+  (unvalidated: BloodPressureReadingUnvalidated list)
+  : ImportSummary =
+  let existing = repository.GetAll()
+
+  let mutable added = 0
+  let mutable updated = 0
+  let mutable failed = []
+
+  for reading in unvalidated do
+    match BloodPressureReading.parse ranges reading with
+    | Error errors -> failed <- failed @ [ (reading, errors) ]
+    | Ok validated ->
+      match existing |> List.tryFind (fun r -> r.Timestamp = validated.Timestamp) with
+      | None ->
+        repository.Add(validated)
+        added <- added + 1
+      | Some existing ->
+        repository.Update({ validated with Id = existing.Id })
+        updated <- updated + 1
+
+  { Added = added
+    Updated = updated
+    Failed = failed }

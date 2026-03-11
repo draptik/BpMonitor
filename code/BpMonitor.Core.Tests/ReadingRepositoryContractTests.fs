@@ -11,6 +11,7 @@ type private StubRepository(initial: BloodPressureReading list) =
   interface IReadingRepository with
     member _.GetAll() = readings |> Seq.toList
     member _.Add(r) = readings.Add(r)
+    member _.AddMany(rs) = rs |> List.iter readings.Add
 
     member _.Update(r) =
       let idx = readings |> Seq.findIndex (fun x -> x.Id = r.Id)
@@ -22,7 +23,9 @@ let private reading id sys dia hr =
     Diastolic = dia
     HeartRate = hr
     Timestamp = DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)
-    Comments = None }
+    Comments = None
+    CreatedAt = DateTimeOffset.MinValue
+    ModifiedAt = DateTimeOffset.MinValue }
 
 [<Fact>]
 let ``Update replaces the reading with the matching Id`` () =
