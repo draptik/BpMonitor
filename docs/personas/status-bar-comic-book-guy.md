@@ -25,6 +25,8 @@ Passively display real-time AI session information in the Claude Code status bar
 | Output style | Only shown if not default |
 | Vim mode | Only shown when vim mode is active |
 | Agent name | Only shown when started with `--agent` flag |
+| Git branch | Current branch, prefixed with `*` if dirty — derived from `workspace.current_dir` |
+| Active persona | Read from `~/.claude/current-persona` (written by Claude when switching personas); always shown when the file exists |
 
 ## Example Output
 
