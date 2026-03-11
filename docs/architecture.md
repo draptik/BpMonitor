@@ -60,6 +60,25 @@ type ValidationError =
     | HeartRateOutOfRange of int
 ```
 
+## Dependency Diagram
+
+```mermaid
+graph TD
+    Core[BpMonitor.Core]
+    Data[BpMonitor.Data]
+    Import[BpMonitor.Import]
+    Charts[BpMonitor.Charts]
+    Tui[BpMonitor.Tui]
+
+    Data --> Core
+    Import --> Core
+    Charts --> Core
+    Tui --> Core
+    Tui --> Data
+    Tui --> Import
+    Tui --> Charts
+```
+
 ## Project Responsibilities
 
 ### BpMonitor.Core
