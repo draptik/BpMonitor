@@ -35,16 +35,16 @@ A personal health tracking tool to log and visualize blood pressure data over ti
 
 ## Hosting
 
-- Self-hosted on a Proxmox VM — always-on, home network only
-- No external access, no authentication required
-- Database: PostgreSQL (replacing SQLite)
-- The API is the single source of truth
+- No central server — each client is self-sufficient with its own local database
+- Data stays on personal infrastructure; no cloud dependency
+- Nextcloud is the transport layer for syncing between clients (via desktop sync client on TUI side, WebDAV API on PWA side)
 
-## Architecture (high-level)
+## Architecture (high-level, idea stage)
 
-- **API** — hosted on Proxmox VM; accepts readings, serves data to all clients
-- **Mobile web UI** — mobile-optimised web page for quick input (systolic, diastolic, heart rate, optional comment); shows success/failure after submit; first iteration only, no charts
-- **TUI** — connects to the API as a client; no longer hosts the database directly
+- **TUI** — local SQLite; exports readings to a JSON file in a Nextcloud-watched folder on open/close or manual trigger
+- **PWA (phone)** — local IndexedDB; reads/writes JSON via Nextcloud WebDAV API; installable, works offline
+- **Sync** — append-only merge: each client imports readings it hasn't seen before from other clients' JSON files; no conflict resolution needed
+- **Nextcloud** — file transport only; no custom API required
 
 ## Success Criteria
 
