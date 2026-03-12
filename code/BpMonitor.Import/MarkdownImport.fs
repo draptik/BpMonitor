@@ -10,6 +10,8 @@ type ImportSummary =
 open System
 open BpMonitor.Core
 
+/// Parses a single markdown list item (e.g. "- 08:30: 120/80 65 comment") into an unvalidated reading.
+/// Returns None if the line does not match the expected format.
 let parseLine (date: DateOnly) (line: string) : BloodPressureReadingUnvalidated option =
   let readingPattern =
     System.Text.RegularExpressions.Regex(@"^- (\d{1,2})[.:](\d{2}): (\d+)/(\d+) (\d+)(.*)$")
@@ -36,6 +38,8 @@ let parseLine (date: DateOnly) (line: string) : BloodPressureReadingUnvalidated 
   else
     None
 
+/// Parses a full markdown document into a list of unvalidated readings.
+/// Scans lines sequentially, using ISO date headers (e.g. "2024-03-01") to establish date context for subsequent reading lines.
 let parseMarkdown (markdown: string) : BloodPressureReadingUnvalidated list =
   let datePattern = System.Text.RegularExpressions.Regex(@"^(\d{4}-\d{2}-\d{2})")
 
