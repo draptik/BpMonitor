@@ -19,3 +19,7 @@ Thumbs.db
 bpmonitor.db
 bpmonitor.db-shm
 bpmonitor.db-wal
+bpmonitor.json
+
+# Verify
+*.received.*

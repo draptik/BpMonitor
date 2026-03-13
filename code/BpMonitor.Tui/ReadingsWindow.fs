@@ -17,7 +17,8 @@ type ReadingsWindow
     onAdd: (unit -> BloodPressureReading option) option,
     onEdit: (BloodPressureReading -> BloodPressureReading option) option,
     onChart: (BloodPressureReading list -> unit) option,
-    onImport: (unit -> ImportSummary option) option
+    onImport: (unit -> ImportSummary option) option,
+    onSave: (unit -> Result<unit, string>) option
   ) as this =
   inherit Window()
 
@@ -67,16 +68,19 @@ type ReadingsWindow
   do
     this.Title <- "My Blood Pressure"
 
-    if not (obj.ReferenceEquals(app, null)) then
+    if not (isNull app) then
       app.Keyboard.KeyDown.Add(fun key ->
-        if key = Key.A then
-          this.AddNew()
-        elif key = Key.E then
-          this.EditSelected()
-        elif key = Key.C then
-          this.ShowChart()
-        elif key = Key.I then
-          this.ImportFile())
+        if app.SessionStack.Count <= 1 then
+          if key = Key.A then
+            this.AddNew()
+          elif key = Key.E then
+            this.EditSelected()
+          elif key = Key.C then
+            this.ShowChart()
+          elif key = Key.I then
+            this.ImportFile()
+          elif key = Key.S then
+            this.SaveFile())
 
     let statusBar =
       new StatusBar(
@@ -84,6 +88,7 @@ type ReadingsWindow
            new Shortcut(Key.E, "Edit", (fun () -> ()))
            new Shortcut(Key.C, "Chart", (fun () -> ()))
            new Shortcut(Key.I, "Import", (fun () -> ()))
+           new Shortcut(Key.S, "Save", (fun () -> ()))
            new Shortcut(Key.Esc, "Quit", (fun () -> onQuit |> Option.iter (fun f -> f ()))) |]
       )
 
@@ -123,6 +128,16 @@ type ReadingsWindow
             $"Added: {summary.Added}\nUpdated: {summary.Updated}\nFailed: {summary.Failed.Length}\n\n{failureLines}"
 
         MessageBox.Query(app, "Import Complete", msg, "OK") |> ignore)
+
+  member _.SaveFile() =
+    onSave
+    |> Option.iter (fun f ->
+      let result = f ()
+
+      if not (isNull app) then
+        match result with
+        | Ok() -> MessageBox.Query(app, "Save", "Exported to JSON successfully.", "OK") |> ignore
+        | Error msg -> MessageBox.ErrorQuery(app, "Save Failed", msg, "OK") |> ignore)
 
   member _.EditSelected() =
     let readings = repository.GetAll()
