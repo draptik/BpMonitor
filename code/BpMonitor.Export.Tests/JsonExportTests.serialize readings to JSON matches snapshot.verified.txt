@@ -1,0 +1,12 @@
+﻿[
+  {
+    id: 1,
+    systolic: 120,
+    diastolic: 80,
+    heartRate: 70,
+    timestamp: DateTimeOffset_1,
+    comments: morning,
+    createdAt: DateTimeOffset_1,
+    modifiedAt: DateTimeOffset_1
+  }
+]
