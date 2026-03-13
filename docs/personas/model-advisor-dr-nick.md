@@ -46,6 +46,16 @@ Starting points only — override using the decision rules above.
 | **Status Bar** | Haiku 4.5 | Simple config tasks, low complexity |
 | **Tooling & Code Quality** | Haiku 4.5 | Repetitive, rule-based tasks |
 
+## Persona Switch Protocol
+
+When the user switches to any persona, ask in plain text:
+
+> Switch to \<model-name\>? [y/n]
+
+Use the persona's default model from the table above. If the user answers `y`:
+1. Write the model display name to `~/.claude/current-model` (e.g. `echo "Claude Haiku 4.5" > ~/.claude/current-model`) so the status bar updates immediately.
+2. Output the `/model <model-id>` command for them to run.
+
 ## Rules
 
 - Prefer the cheapest/fastest model that can do the job well
