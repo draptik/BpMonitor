@@ -59,7 +59,7 @@ let ``parse markdown - multiple dates and readings`` () =
 2024-10-16
 - 09.30: 118/74 70"""
 
-  let result = parseMarkdown markdown
+  let result = parseMarkdown markdown |> List.map (fun (_, _, r) -> r)
 
   let expected =
     [ { Systolic = 131
@@ -94,7 +94,7 @@ let ``parse markdown - full sample from issue`` () =
 - 9:45: 123/89 98 morning
 - 19:15: 123/89 98 evening"""
 
-  let result = parseMarkdown markdown
+  let result = parseMarkdown markdown |> List.map (fun (_, _, r) -> r)
 
   let expected =
     [ { Systolic = 108
@@ -127,7 +127,7 @@ let ``parse markdown - trailing date line without readings is ignored`` () =
 - 11.00: 131/80 80
 2024-10-16"""
 
-  let result = parseMarkdown markdown
+  let result = parseMarkdown markdown |> List.map (fun (_, _, r) -> r)
 
   let expected =
     [ { Systolic = 131
@@ -145,7 +145,7 @@ let ``parse markdown - reading without preceding date is ignored`` () =
 2024-10-15
 - 12.00: 125/76 75"""
 
-  let result = parseMarkdown markdown
+  let result = parseMarkdown markdown |> List.map (fun (_, _, r) -> r)
 
   let expected =
     [ { Systolic = 125
@@ -189,6 +189,16 @@ let ``parse reading line - single-digit hour with dot separator`` () =
   test <@ result = expected @>
 
 [<Fact>]
+let ``parseMarkdown includes line number and original line for each reading`` () =
+  let markdown = "2024-10-15\n- 11.00: 131/80 80"
+  let result = parseMarkdown markdown
+
+  let (lineNumber, originalLine, _) = List.head result
+
+  test <@ lineNumber = 2 @>
+  test <@ originalLine = "- 11.00: 131/80 80" @>
+
+[<Fact>]
 let ``parse markdown - empty input returns empty list`` () =
   let result = parseMarkdown ""
   test <@ result = [] @>
@@ -215,7 +225,8 @@ let ``import - new valid reading is added to repository`` () =
       Timestamp = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)
       Comments = None }
 
-  let result = import repo ReadingRanges.defaults [ reading ]
+  let result =
+    import repo ReadingRanges.defaults [ (1, "- 09:00: 120/80 70", reading) ]
 
   test <@ result.Added = 1 @>
   test <@ result.Updated = 0 @>
@@ -242,7 +253,8 @@ let ``import - existing reading with same timestamp is updated`` () =
       Timestamp = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)
       Comments = None }
 
-  let result = import repo ReadingRanges.defaults [ updated ]
+  let result =
+    import repo ReadingRanges.defaults [ (1, "- 09:00: 120/80 70", updated) ]
 
   test <@ result.Added = 0 @>
   test <@ result.Updated = 1 @>
@@ -267,9 +279,10 @@ let ``import - invalid reading is captured in Failed, valid ones still imported`
       Timestamp = DateTimeOffset(2024, 10, 15, 10, 0, 0, TimeSpan.Zero)
       Comments = None }
 
-  let result = import repo ReadingRanges.defaults [ invalid; valid ]
+  let result =
+    import repo ReadingRanges.defaults [ (1, "- 09:00: 0/80 70", invalid); (2, "- 10:00: 120/80 70", valid) ]
 
   test <@ result.Added = 1 @>
   test <@ result.Updated = 0 @>
   test <@ result.Failed.Length = 1 @>
-  test <@ result.Failed.[0] |> fst = invalid @>
+  test <@ result.Failed.[0] |> (fun (_, _, r, _) -> r) = invalid @>

@@ -5,7 +5,7 @@ open BpMonitor.Core
 type ImportSummary =
   { Added: int
     Updated: int
-    Failed: (BloodPressureReadingUnvalidated * ValidationError list) list }
+    Failed: (int * string * BloodPressureReadingUnvalidated * ValidationError list) list }
 
 open System
 open BpMonitor.Core
@@ -38,16 +38,16 @@ let parseLine (date: DateOnly) (line: string) : BloodPressureReadingUnvalidated 
   else
     None
 
-/// Parses a full markdown document into a list of unvalidated readings.
+/// Parses a full markdown document into a list of (1-based line number, original line, unvalidated reading) triples.
 /// Scans lines sequentially: a line matching an ISO date header (e.g. "2024-03-01") sets the current date context;
 /// every subsequent non-date line is attempted as a reading using that date, and silently skipped if it does not match.
 /// The date context carries forward until the next date header.
-let parseMarkdown (markdown: string) : BloodPressureReadingUnvalidated list =
+let parseMarkdown (markdown: string) : (int * string * BloodPressureReadingUnvalidated) list =
   let datePattern = System.Text.RegularExpressions.Regex(@"^(\d{4}-\d{2}-\d{2})")
 
   let lines = markdown.Split([| '\n'; '\r' |], StringSplitOptions.None)
 
-  let folder (currentDate, readings) (line: string) =
+  let folder (currentDate, readings) (lineIndex: int, line: string) =
     let dm = datePattern.Match(line)
 
     if dm.Success then
@@ -59,22 +59,22 @@ let parseMarkdown (markdown: string) : BloodPressureReadingUnvalidated list =
       | Some date ->
         match parseLine date line with
         | None -> (currentDate, readings)
-        | Some reading -> (currentDate, reading :: readings)
+        | Some reading -> (currentDate, (lineIndex + 1, line, reading) :: readings)
 
-  lines |> Array.fold folder (None, []) |> snd |> List.rev
+  lines |> Array.indexed |> Array.fold folder (None, []) |> snd |> List.rev
 
 let import
   (repository: IReadingRepository)
   (ranges: ReadingRanges)
-  (unvalidated: BloodPressureReadingUnvalidated list)
+  (unvalidated: (int * string * BloodPressureReadingUnvalidated) list)
   : ImportSummary =
   let existing = repository.GetAll()
 
-  let folder acc reading =
+  let folder acc (lineNumber, line, reading) =
     let (added, updated, failed) = acc
 
     match BloodPressureReading.parse ranges reading with
-    | Error errors -> (added, updated, (reading, errors) :: failed)
+    | Error errors -> (added, updated, (lineNumber, line, reading, errors) :: failed)
     | Ok validated ->
       match existing |> List.tryFind (fun r -> r.Timestamp = validated.Timestamp) with
       | None ->
