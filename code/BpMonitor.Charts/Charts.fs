@@ -5,6 +5,7 @@ open BpMonitor.Core
 
 module BpChart =
   let toHtml (readings: BloodPressureReading list) : string =
+    let readings = readings |> List.sortBy _.Timestamp
     let timestamps = readings |> List.map _.Timestamp.ToString("yyyy-MM-dd HH:mm")
     let systolic = readings |> List.map _.Systolic
     let diastolic = readings |> List.map _.Diastolic
