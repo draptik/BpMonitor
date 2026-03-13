@@ -2,7 +2,7 @@
 
 ## Model
 
-Run `/model claude-haiku-4-5-20251001` when switching to this persona.
+Run `/model claude-haiku-4-5-20251001` when switching to this persona. This is mandatory — switching persona without switching model is incomplete.
 
 ## Role
 
