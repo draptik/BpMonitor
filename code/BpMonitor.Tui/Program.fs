@@ -183,6 +183,23 @@ let main _ =
   app.Init() |> ignore
   let repository = ReadingRepository.create connectionString
 
+  let jsonImportWarning =
+    if String.IsNullOrEmpty(exportJsonPath) then
+      None
+    else
+      match tryReadFromFile exportJsonPath with
+      | Error msg -> Some msg
+      | Ok jsonReadings ->
+        let existingIds = repository.GetAll() |> List.map (fun r -> r.Id) |> Set.ofList
+
+        let newReadings =
+          jsonReadings |> List.filter (fun r -> not (existingIds.Contains(r.Id)))
+
+        if not newReadings.IsEmpty then
+          repository.AddMany(newReadings)
+
+        None
+
   let showChart readings =
     let path = Path.Combine(Path.GetTempPath(), "bpchart.html")
     File.WriteAllText(path, BpChart.toHtml readings)
@@ -228,6 +245,10 @@ let main _ =
       Some showImportDialog,
       Some onSave
     )
+
+  jsonImportWarning
+  |> Option.iter (fun msg ->
+    app.Invoke(fun () -> MessageBox.ErrorQuery(app, "JSON Import Warning", msg, "OK") |> ignore))
 
   app.Run(win) |> ignore
 
