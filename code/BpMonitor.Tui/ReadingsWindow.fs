@@ -111,8 +111,16 @@ type ReadingsWindow
       | Some summary ->
         tableView.Table <- makeTableSource ()
 
+        let failureLines =
+          summary.Failed
+          |> List.map (fun (lineNumber, line, _, _) -> $"  Line {lineNumber}: {line}")
+          |> String.concat "\n"
+
         let msg =
-          $"Added: {summary.Added}\nUpdated: {summary.Updated}\nFailed: {summary.Failed.Length}"
+          if summary.Failed.IsEmpty then
+            $"Added: {summary.Added}\nUpdated: {summary.Updated}\nFailed: 0"
+          else
+            $"Added: {summary.Added}\nUpdated: {summary.Updated}\nFailed: {summary.Failed.Length}\n\n{failureLines}"
 
         MessageBox.Query(app, "Import Complete", msg, "OK") |> ignore)
 
