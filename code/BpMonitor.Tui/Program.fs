@@ -183,6 +183,18 @@ let main _ =
   app.Init() |> ignore
   let repository = ReadingRepository.create connectionString
 
+  if not (String.IsNullOrEmpty(exportJsonPath)) then
+    match tryReadFromFile exportJsonPath with
+    | Error _ -> ()
+    | Ok jsonReadings ->
+      let existingIds = repository.GetAll() |> List.map (fun r -> r.Id) |> Set.ofList
+
+      let newReadings =
+        jsonReadings |> List.filter (fun r -> not (existingIds.Contains(r.Id)))
+
+      if not newReadings.IsEmpty then
+        repository.AddMany(newReadings)
+
   let showChart readings =
     let path = Path.Combine(Path.GetTempPath(), "bpchart.html")
     File.WriteAllText(path, BpChart.toHtml readings)
