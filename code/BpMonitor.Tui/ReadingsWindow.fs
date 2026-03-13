@@ -70,16 +70,17 @@ type ReadingsWindow
 
     if not (isNull app) then
       app.Keyboard.KeyDown.Add(fun key ->
-        if key = Key.A then
-          this.AddNew()
-        elif key = Key.E then
-          this.EditSelected()
-        elif key = Key.C then
-          this.ShowChart()
-        elif key = Key.I then
-          this.ImportFile()
-        elif key = Key.S then
-          this.SaveFile())
+        if app.SessionStack.Count <= 1 then
+          if key = Key.A then
+            this.AddNew()
+          elif key = Key.E then
+            this.EditSelected()
+          elif key = Key.C then
+            this.ShowChart()
+          elif key = Key.I then
+            this.ImportFile()
+          elif key = Key.S then
+            this.SaveFile())
 
     let statusBar =
       new StatusBar(
