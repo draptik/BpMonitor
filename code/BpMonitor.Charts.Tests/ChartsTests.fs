@@ -53,6 +53,14 @@ let private readings =
 
 type ChartTests() =
   [<Fact>]
+  member _.``toHtml renders timestamps in ascending order regardless of input order``() =
+    let reversed = List.rev readings
+    let html = BpChart.toHtml reversed
+    let pos1 = html.IndexOf("2026-01-01")
+    let pos30 = html.IndexOf("2026-01-30")
+    Assert.True(pos1 < pos30, "First timestamp should appear before last in chart data")
+
+  [<Fact>]
   member _.``toHtml matches snapshot``() : Task =
     let html = BpChart.toHtml readings
     let settings = VerifyTests.VerifySettings()
