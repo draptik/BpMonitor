@@ -12,6 +12,7 @@ open System.IO
 open BpMonitor.Charts
 open BpMonitor.Core
 open BpMonitor.Data
+open BpMonitor.Export.JsonExport
 open BpMonitor.Import.MarkdownImport
 
 let private makeField (y: int) (width: Dim) =
@@ -176,6 +177,7 @@ let main _ =
 
   let connectionString = config.GetConnectionString("DefaultConnection")
   let ranges = readRanges config
+  let exportJsonPath = config["Export:JsonPath"]
 
   use app = Application.Create()
   app.Init() |> ignore
@@ -221,4 +223,10 @@ let main _ =
     )
 
   app.Run(win) |> ignore
+
+  if not (String.IsNullOrEmpty(exportJsonPath)) then
+    match tryWriteToFile exportJsonPath (repository.GetAll()) with
+    | Ok() -> ()
+    | Error msg -> eprintfn $"JSON export failed: {msg}"
+
   0
