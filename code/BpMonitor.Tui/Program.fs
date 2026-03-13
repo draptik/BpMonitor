@@ -211,6 +211,12 @@ let main _ =
         let unvalidated = parseMarkdown content
         Some(import repository ranges unvalidated)
 
+  let onSave () =
+    if String.IsNullOrEmpty(exportJsonPath) then
+      Error "No export path configured."
+    else
+      tryWriteToFile exportJsonPath (repository.GetAll())
+
   use win =
     new BpMonitor.Tui.ReadingsWindow(
       app,
@@ -219,7 +225,8 @@ let main _ =
       Some(showAddDialog app ranges),
       Some(showEditDialog app ranges),
       Some showChart,
-      Some showImportDialog
+      Some showImportDialog,
+      Some onSave
     )
 
   app.Run(win) |> ignore
