@@ -14,6 +14,13 @@ module private Mapping =
       CreatedAt = r.CreatedAt
       ModifiedAt = r.ModifiedAt }
 
+  let withTimestamps (now: System.DateTimeOffset) (r: BloodPressureReading) =
+    { r with
+        CreatedAt = now
+        ModifiedAt = now }
+
+  let withModifiedAt (now: System.DateTimeOffset) (r: BloodPressureReading) = { r with ModifiedAt = now }
+
   let toEntity (r: BloodPressureReading) : ReadingRecord =
     { Id = r.Id
       Systolic = r.Systolic
@@ -32,12 +39,7 @@ type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvi
     member _.Add(reading) =
       let now = timeProvider.GetUtcNow()
 
-      ctx.Readings.Add(
-        Mapping.toEntity
-          { reading with
-              CreatedAt = now
-              ModifiedAt = now }
-      )
+      ctx.Readings.Add(reading |> Mapping.withTimestamps now |> Mapping.toEntity)
       |> ignore
 
       ctx.SaveChanges() |> ignore
@@ -46,14 +48,7 @@ type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvi
       let now = timeProvider.GetUtcNow()
 
       readings
-      |> List.iter (fun r ->
-        ctx.Readings.Add(
-          Mapping.toEntity
-            { r with
-                CreatedAt = now
-                ModifiedAt = now }
-        )
-        |> ignore)
+      |> List.iter (fun r -> ctx.Readings.Add(r |> Mapping.withTimestamps now |> Mapping.toEntity) |> ignore)
 
       ctx.SaveChanges() |> ignore
 
@@ -64,7 +59,7 @@ type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvi
       |> Seq.tryFind (fun e -> e.Entity.Id = reading.Id)
       |> Option.iter (fun e -> e.State <- Microsoft.EntityFrameworkCore.EntityState.Detached)
 
-      ctx.Readings.Update(Mapping.toEntity { reading with ModifiedAt = now })
+      ctx.Readings.Update(reading |> Mapping.withModifiedAt now |> Mapping.toEntity)
       |> ignore
 
       ctx.SaveChanges() |> ignore

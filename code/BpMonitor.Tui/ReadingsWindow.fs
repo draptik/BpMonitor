@@ -28,7 +28,7 @@ type ReadingsWindow
       Dictionary<string, Func<BloodPressureReading, obj>>(
         dict
           [ " Timestamp",
-            Func<BloodPressureReading, obj>(fun r -> box (r.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm")))
+            Func<BloodPressureReading, obj>(fun r -> box (r.Timestamp.ToLocalTime().ToString(Formats.timestamp)))
             "Sys ", Func<BloodPressureReading, obj>(fun r -> box r.Systolic)
             "Dia ", Func<BloodPressureReading, obj>(fun r -> box r.Diastolic)
             "HR ", Func<BloodPressureReading, obj>(fun r -> box r.HeartRate)
@@ -142,8 +142,10 @@ type ReadingsWindow
   member _.EditSelected() =
     let readings = repository.GetAll()
 
-    if readings.Length > 0 then
-      let selected = readings |> List.item tableView.SelectedRow
+    let row = tableView.SelectedRow
+
+    if readings.Length > 0 && row >= 0 && row < readings.Length then
+      let selected = readings |> List.item row
 
       onEdit
       |> Option.iter (fun f ->
