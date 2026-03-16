@@ -80,8 +80,6 @@
         writeReadings: async function (json) {
             const handle = await getDirectoryHandle();
             if (!handle) throw new Error('No directory selected');
-            const perm = await handle.requestPermission({ mode: 'readwrite' });
-            if (perm !== 'granted') throw new Error('Permission denied');
             const fileHandle = await handle.getFileHandle('readings.json', { create: true });
             const writable = await fileHandle.createWritable();
             await writable.write(json);
@@ -90,8 +88,6 @@
         readFileReadings: async function () {
             const handle = await getDirectoryHandle();
             if (!handle) return null;
-            const perm = await handle.requestPermission({ mode: 'read' });
-            if (perm !== 'granted') return null;
             try {
                 const fileHandle = await handle.getFileHandle('readings.json');
                 const file = await fileHandle.getFile();
