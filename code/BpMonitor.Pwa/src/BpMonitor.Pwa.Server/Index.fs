@@ -32,6 +32,7 @@ let page =
         comp<Client.Main.MyApp> { attr.renderMode RenderMode.InteractiveWebAssembly }
       }
 
+      script { attr.src "indexeddb.js" }
       script { attr.src "_framework/blazor.webassembly.js" }
     }
   }
