@@ -58,8 +58,18 @@ jobs:
         working-directory: code
 
       - name: Test
-        run: dotnet test --no-build --configuration Release --verbosity normal
+        run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./TestResults
         working-directory: code
+
+      - name: Generate coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: "code/TestResults/**/coverage.cobertura.xml"
+          targetdir: "code/CoverageReport"
+          reporttypes: "MarkdownSummaryGithub"
+
+      - name: Write coverage to job summary
+        run: cat code/CoverageReport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
 
   publish-single-executable:
     name: Publish Single Executable
