@@ -142,8 +142,10 @@ type ReadingsWindow
   member _.EditSelected() =
     let readings = repository.GetAll()
 
-    if readings.Length > 0 then
-      let selected = readings |> List.item tableView.SelectedRow
+    let row = tableView.SelectedRow
+
+    if readings.Length > 0 && row >= 0 && row < readings.Length then
+      let selected = readings |> List.item row
 
       onEdit
       |> Option.iter (fun f ->
