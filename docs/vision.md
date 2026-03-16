@@ -23,8 +23,11 @@ A personal health tracking tool to log and visualize blood pressure data over ti
 - Default overview charts (trends over time)
 - Interactive charts for exploratory analysis (spot anomalies, correlate with comments/events)
 
-### Export
+### Import / Export
 
+- JSON export on close / manual trigger (implemented)
+- JSON import on open — merges readings not yet in the local database (implemented)
+- Markdown import — bulk import from legacy log files (implemented)
 - CSV export (nice-to-have)
 
 ## Usage
@@ -43,6 +46,7 @@ A personal health tracking tool to log and visualize blood pressure data over ti
 
 - **TUI** — local SQLite; exports readings to a JSON file in a Nextcloud-watched folder on open/close or manual trigger
 - **PWA (phone)** — local IndexedDB; reads/writes JSON via Nextcloud WebDAV API; installable, works offline
+  — _spike abandoned: see [ADR-0001](adr/0001-pwa-phone-client-spike.md)_
 - **Sync** — append-only merge: each client imports readings it hasn't seen before from other clients' JSON files; no conflict resolution needed
 - **Nextcloud** — file transport only; no custom API required
 
