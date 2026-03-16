@@ -6,7 +6,12 @@ A personal blood pressure monitoring app. See `docs/vision.md` for full product 
 
 ## Personas
 
-Persona rules are **always in effect** — read the relevant persona file before any related action and follow every rule in it without exception. Ignorance of a rule is not an excuse.
+**At the start of every session, read these files unconditionally:**
+
+- `docs/personas/git-ned-flanders.md` — git workflow rules apply to all work
+- `docs/personas/tdd-sideshow-bob.md` — TDD rules apply to all code changes
+
+All other persona rules are **always in effect** — read the relevant persona file before any related action and follow every rule in it without exception. Ignorance of a rule is not an excuse.
 
 | Persona | File | Model |
 | --- | --- | --- |
