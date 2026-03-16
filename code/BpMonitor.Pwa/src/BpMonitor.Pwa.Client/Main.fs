@@ -83,25 +83,27 @@ let view (js: IJSRuntime) model dispatch =
               let json =
                 JsonSerializer.Serialize(model.Readings |> List.map toDto |> List.toArray)
 
-              do! js.InvokeVoidAsync("bpMonitor.writeReadings", json).AsTask()
+              do! js.InvokeVoidAsync("bpMonitor.exportReadings", json).AsTask()
               dispatch PushDone
             with ex ->
               dispatch (SyncFailed ex.Message)
           })
 
-        "Push to Nextcloud"
+        "Export readings.json"
       }
 
-      button {
-        attr.``type`` "button"
+      input {
+        attr.id "readingsImport"
+        attr.``type`` "file"
+        attr.accept ".json"
 
-        on.task.click (fun _ ->
+        on.task.change (fun _ ->
           task {
             try
-              let! json = js.InvokeAsync<string>("bpMonitor.readFileReadings").AsTask()
+              let! json = js.InvokeAsync<string>("bpMonitor.readFileById", "readingsImport").AsTask()
 
               if isNull json then
-                dispatch (SyncFailed "readings.json not found in selected folder")
+                dispatch (SyncFailed "No file selected")
               else
                 let dtos = JsonSerializer.Deserialize<ReadingDto[]>(json)
 
@@ -120,8 +122,6 @@ let view (js: IJSRuntime) model dispatch =
             with ex ->
               dispatch (SyncFailed ex.Message)
           })
-
-        "Pull from Nextcloud"
       }
 
       match model.SyncStatus with

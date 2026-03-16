@@ -50,23 +50,26 @@
                 req.onerror = e => reject(e.target.error);
             });
         },
-        writeReadings: async function (json) {
-            const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-            const fileHandle = await dirHandle.getFileHandle('readings.json', { create: true });
-            const writable = await fileHandle.createWritable();
-            await writable.write(json);
-            await writable.close();
-        },
-        readFileReadings: async function () {
-            const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-            try {
-                const fileHandle = await dirHandle.getFileHandle('readings.json');
-                const file = await fileHandle.getFile();
-                return await file.text();
-            } catch (e) {
-                if (e.name === 'NotFoundError') return null;
-                throw e;
+        exportReadings: async function (json) {
+            const blob = new Blob([json], { type: 'application/json' });
+            const file = new File([blob], 'readings.json', { type: 'application/json' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({ files: [file], title: 'BpMonitor readings' });
+            } else {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'readings.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
             }
+        },
+        readFileById: async function (id) {
+            const input = document.getElementById(id);
+            if (!input || !input.files || !input.files[0]) return null;
+            return await input.files[0].text();
         },
         saveSettings: function (settings) {
             localStorage.setItem('bpMonitor.webdav', JSON.stringify(settings));
