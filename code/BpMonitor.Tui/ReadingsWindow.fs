@@ -107,7 +107,7 @@ type ReadingsWindow
   member _.SelectedRow = tableView.SelectedRow
 
   member _.MoveDown() =
-    let maxRow = sortedReadings().Length - 1
+    let maxRow = tableView.Table.Rows - 1
 
     if tableView.SelectedRow < maxRow then
       tableView.SelectedRow <- tableView.SelectedRow + 1

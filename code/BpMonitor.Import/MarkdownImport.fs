@@ -8,12 +8,15 @@ type ImportSummary =
     Updated: int
     Failed: (int * string * BloodPressureReadingUnvalidated * ValidationError list) list }
 
+let private readingPattern =
+  System.Text.RegularExpressions.Regex(@"^- (\d{1,2})[.:](\d{2}): (\d+)/(\d+) (\d+)(.*)$")
+
+let private datePattern =
+  System.Text.RegularExpressions.Regex(@"^(\d{4}-\d{2}-\d{2})")
+
 /// Parses a single markdown list item (e.g. "- 08:30: 120/80 65 comment") into an unvalidated reading.
 /// Returns None if the line does not match the expected format.
 let parseLine (date: DateOnly) (line: string) : BloodPressureReadingUnvalidated option =
-  let readingPattern =
-    System.Text.RegularExpressions.Regex(@"^- (\d{1,2})[.:](\d{2}): (\d+)/(\d+) (\d+)(.*)$")
-
   let m = readingPattern.Match(line)
 
   if m.Success then
@@ -41,8 +44,6 @@ let parseLine (date: DateOnly) (line: string) : BloodPressureReadingUnvalidated 
 /// every subsequent non-date line is attempted as a reading using that date, and silently skipped if it does not match.
 /// The date context carries forward until the next date header.
 let parseMarkdown (markdown: string) : (int * string * BloodPressureReadingUnvalidated) list =
-  let datePattern = System.Text.RegularExpressions.Regex(@"^(\d{4}-\d{2}-\d{2})")
-
   let lines = markdown.Split([| '\n'; '\r' |], StringSplitOptions.None)
 
   let folder (currentDate, readings) (lineIndex: int, line: string) =
@@ -78,8 +79,12 @@ let import
       | None ->
         repository.Add(validated)
         (added + 1, updated, failed)
-      | Some existing ->
-        repository.Update({ validated with Id = existing.Id })
+      | Some existingReading ->
+        repository.Update(
+          { validated with
+              Id = existingReading.Id }
+        )
+
         (added, updated + 1, failed)
 
   let (added, updated, failed) = unvalidated |> List.fold folder (0, 0, [])

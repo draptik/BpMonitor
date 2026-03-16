@@ -87,7 +87,7 @@ let private showReadingDialog
   (title: string)
   (existing: BloodPressureReading option)
   : BloodPressureReading option =
-  let result = ref None
+  let mutable result = None
 
   let systolicField = makeField 0 (Dim.Absolute(5))
   let diastolicField = makeField 1 (Dim.Absolute(5))
@@ -128,7 +128,7 @@ let private showReadingDialog
     | Ok unvalidated ->
       match BloodPressureReading.parse ranges unvalidated with
       | Ok validated ->
-        result.Value <-
+        result <-
           match existing with
           | Some r -> Some { validated with Id = r.Id }
           | None -> Some validated
@@ -159,7 +159,7 @@ let private showReadingDialog
   dialog.AddButton(cancelButton)
 
   app.Run(dialog) |> ignore
-  result.Value
+  result
 
 let private showEditDialog (app: IApplication) (ranges: ReadingRanges) (reading: BloodPressureReading) =
   showReadingDialog app ranges "Edit Reading" (Some reading)

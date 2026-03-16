@@ -1,5 +1,6 @@
 module BpMonitor.Export.JsonExport
 
+open System
 open System.IO
 open System.Text.Json
 open System.Text.Json.Serialization
@@ -20,12 +21,15 @@ let tryWriteToFile (path: string) (readings: BloodPressureReading list) : Result
   try
     File.WriteAllText(path, serialize readings)
     Ok()
-  with ex ->
-    Error ex.Message
+  with
+  | :? IOException as ex -> Error ex.Message
+  | :? UnauthorizedAccessException as ex -> Error ex.Message
 
 let tryReadFromFile (path: string) : Result<BloodPressureReading list, string> =
   try
     let json = File.ReadAllText(path)
     Ok(deserialize json)
-  with ex ->
-    Error ex.Message
+  with
+  | :? IOException as ex -> Error ex.Message
+  | :? UnauthorizedAccessException as ex -> Error ex.Message
+  | :? Text.Json.JsonException as ex -> Error ex.Message

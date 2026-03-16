@@ -10,11 +10,13 @@ module SchemaMigrations =
     let conn = ctx.Database.GetDbConnection()
     conn.Open()
 
-    use cmd = conn.CreateCommand()
-    cmd.CommandText <- sql
-    let count = cmd.ExecuteScalar() :?> int64
-    conn.Close()
-    count > 0L
+    try
+      use cmd = conn.CreateCommand()
+      cmd.CommandText <- sql
+      let count = cmd.ExecuteScalar() :?> int64
+      count > 0L
+    finally
+      conn.Close()
 
   let private addColumnIfMissing
     (ctx: BpMonitorDbContext)
