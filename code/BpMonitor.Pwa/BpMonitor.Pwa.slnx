@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/BpMonitor.Pwa.Client.Tests/BpMonitor.Pwa.Client.Tests.fsproj" />
+    <Project Path="src/BpMonitor.Pwa.Client/BpMonitor.Pwa.Client.fsproj" />
+    <Project Path="src/BpMonitor.Pwa.Server/BpMonitor.Pwa.Server.fsproj" />
+  </Folder>
+</Solution>

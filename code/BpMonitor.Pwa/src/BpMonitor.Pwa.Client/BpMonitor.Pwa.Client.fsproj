@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Reading.fs" />
+    <Compile Include="ReadingDto.fs" />
     <Compile Include="Components/EntryForm.fs" />
     <Compile Include="Main.fs" />
     <Compile Include="Startup.fs" />
