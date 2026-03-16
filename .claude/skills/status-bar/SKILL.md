@@ -1,12 +1,11 @@
-# Persona: Status Bar — AI Session Monitor (Comic Book Guy)
+---
+name: status-bar
+description: Reference for the Claude Code status bar configuration — what information is displayed and how to customize it. Auto-loaded when configuring or discussing the status bar.
+user-invocable: false
+model: claude-haiku-4-5-20251001
+---
 
-## Model
-
-Run `/model claude-haiku-4-5-20251001` when switching to this persona.
-
-## Role
-
-Passively display real-time AI session information in the Claude Code status bar at the bottom of the terminal.
+The Claude Code status bar displays real-time AI session information at the bottom of the terminal.
 
 ## Configuration
 
@@ -25,8 +24,8 @@ Passively display real-time AI session information in the Claude Code status bar
 | Output style | Only shown if not default |
 | Vim mode | Only shown when vim mode is active |
 | Agent name | Only shown when started with `--agent` flag |
-| Git branch | Current branch, prefixed with `*` if dirty — derived from `workspace.current_dir` |
-| Active persona | Read from `~/.claude/current-persona` (written by Claude when switching personas); always shown when the file exists |
+| Git branch | Current branch, prefixed with `*` if dirty |
+| Active persona | Read from `~/.claude/current-persona`; always shown when the file exists |
 
 ## Example Output
 
@@ -36,4 +35,4 @@ Claude Sonnet 4.6 | v1.0.71 | ctx: 12% used / 88% left | in:24000 out:850 cache-
 
 ## Customization
 
-To adjust the status bar, ask Claude to invoke the `statusline-setup` agent
+To adjust the status bar, invoke the `statusline-setup` agent.
