@@ -30,6 +30,9 @@ type ReadingRanges =
     HeartRateMin: int
     HeartRateMax: int }
 
+module Formats =
+  let timestamp = "yyyy-MM-dd HH:mm"
+
 module ReadingRanges =
   let defaults =
     { SystolicMin = 1
