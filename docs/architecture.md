@@ -9,7 +9,7 @@ code/
 ├── BpMonitor.Core.Tests     # Unit tests for Core
 ├── BpMonitor.Data           # EF Core + SQLite, repository implementations
 ├── BpMonitor.Data.Tests     # Integration tests for Data
-├── BpMonitor.Import         # Markdown parser and import logic
+├── BpMonitor.Import         # Markdown and JSON importers
 ├── BpMonitor.Import.Tests   # Unit tests for Import
 ├── BpMonitor.Charts         # Plotly.NET chart generation
 ├── BpMonitor.Charts.Tests   # Snapshot tests for Charts
