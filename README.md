@@ -1,5 +1,7 @@
 # BpMonitor
 
+[![Coverage](https://raw.githubusercontent.com/draptik/BpMonitor/badges/coverage.svg)](https://github.com/draptik/BpMonitor/actions)
+
 A personal blood pressure monitoring application.
 
 ## About This Project
