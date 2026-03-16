@@ -2,10 +2,12 @@
 
   <ItemGroup>
     <Compile Include="MarkdownImport.fs" />
+    <Compile Include="JsonImport.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="FSharp.SystemTextJson" />
   </ItemGroup>
 
   <ItemGroup>

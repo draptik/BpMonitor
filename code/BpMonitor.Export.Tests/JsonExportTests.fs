@@ -6,6 +6,7 @@ open System.Text.Json
 open System.Threading.Tasks
 open BpMonitor.Core
 open BpMonitor.Export.JsonExport
+
 open Swensen.Unquote
 open VerifyXunit
 open Xunit
@@ -58,42 +59,3 @@ let ``tryWriteToFile returns Error when path is invalid`` () =
   let result = tryWriteToFile "/invalid/path/that/does/not/exist/file.json" []
 
   test <@ result <> Ok() @>
-
-[<Fact>]
-let ``tryReadFromFile returns Ok with readings when file contains valid JSON`` () =
-  let reading =
-    { Id = 1
-      Systolic = 120
-      Diastolic = 80
-      HeartRate = 70
-      Timestamp = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)
-      Comments = Some "morning"
-      CreatedAt = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)
-      ModifiedAt = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero) }
-
-  let path = Path.GetTempFileName()
-  tryWriteToFile path [ reading ] |> ignore
-
-  let result = tryReadFromFile path
-  test <@ result = Ok [ reading ] @>
-
-[<Fact>]
-let ``tryReadFromFile returns Ok with empty list when file contains empty array`` () =
-  let path = Path.GetTempFileName()
-  File.WriteAllText(path, "[]")
-
-  let result = tryReadFromFile path
-  test <@ result = Ok [] @>
-
-[<Fact>]
-let ``tryReadFromFile returns Error when file does not exist`` () =
-  let result = tryReadFromFile "/nonexistent/path/file.json"
-  test <@ result <> Ok [] @>
-
-[<Fact>]
-let ``tryReadFromFile returns Error when file contains invalid JSON`` () =
-  let path = Path.GetTempFileName()
-  File.WriteAllText(path, "not valid json")
-
-  let result = tryReadFromFile path
-  test <@ result <> Ok [] @>

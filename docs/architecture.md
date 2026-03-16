@@ -9,11 +9,11 @@ code/
 ├── BpMonitor.Core.Tests     # Unit tests for Core
 ├── BpMonitor.Data           # EF Core + SQLite, repository implementations
 ├── BpMonitor.Data.Tests     # Integration tests for Data
-├── BpMonitor.Import         # Markdown parser and import logic
+├── BpMonitor.Import         # Markdown and JSON importers
 ├── BpMonitor.Import.Tests   # Unit tests for Import
 ├── BpMonitor.Charts         # Plotly.NET chart generation
 ├── BpMonitor.Charts.Tests   # Snapshot tests for Charts
-├── BpMonitor.Export         # JSON serialisation and file export/import
+├── BpMonitor.Export         # JSON serialisation and file write
 ├── BpMonitor.Export.Tests   # Tests for Export
 ├── BpMonitor.Tui            # Terminal.Gui v2 app (data entry + list view + import)
 ├── BpMonitor.Tui.Tests      # Tests for TUI layer
@@ -69,6 +69,7 @@ graph TD
     Core[BpMonitor.Core]
     Data[BpMonitor.Data]
     Import[BpMonitor.Import]
+    Export[BpMonitor.Export]
     Charts[BpMonitor.Charts]
     Tui[BpMonitor.Tui]
 
@@ -104,6 +105,7 @@ graph TD
 
 - Parses blood pressure readings from Markdown files (`parseMarkdown`, `parseLine`)
 - Upsert import logic with summary (`ImportSummary`: added, updated, failed counts)
+- Imports `BloodPressureReading` lists from JSON (`JsonImport.parse`, `JsonImport.tryReadFromFile`, `JsonImport.import`)
 - Depends on Core only
 
 ### BpMonitor.Charts
@@ -114,8 +116,7 @@ graph TD
 
 ### BpMonitor.Export
 
-- JSON serialisation of `BloodPressureReading` lists (`serialize`, `deserialize`)
-- File-level helpers `tryWriteToFile` / `tryReadFromFile` returning `Result<_, string>`
+- JSON serialisation of `BloodPressureReading` lists (`serialize`, `tryWriteToFile`)
 - Depends on Core only
 
 ### BpMonitor.Tui
@@ -130,7 +131,7 @@ graph TD
 - ArchUnit rules enforcing Clean Architecture layer boundaries
 - Core must not depend on Data, Tui
 - Data must not depend on Tui
-- Import must not depend on Data, Tui, Charts
+- Import must not depend on Data, Tui, Charts, Export
 - Charts must not depend on Data, Tui
 - Export must not depend on Data, Tui, Charts, Import
 

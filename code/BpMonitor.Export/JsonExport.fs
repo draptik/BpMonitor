@@ -14,9 +14,6 @@ let private options =
 let serialize (readings: BloodPressureReading list) : string =
   JsonSerializer.Serialize(readings, options)
 
-let deserialize (json: string) : BloodPressureReading list =
-  JsonSerializer.Deserialize<BloodPressureReading list>(json, options)
-
 let tryWriteToFile (path: string) (readings: BloodPressureReading list) : Result<unit, string> =
   try
     File.WriteAllText(path, serialize readings)
@@ -24,12 +21,3 @@ let tryWriteToFile (path: string) (readings: BloodPressureReading list) : Result
   with
   | :? IOException as ex -> Error ex.Message
   | :? UnauthorizedAccessException as ex -> Error ex.Message
-
-let tryReadFromFile (path: string) : Result<BloodPressureReading list, string> =
-  try
-    let json = File.ReadAllText(path)
-    Ok(deserialize json)
-  with
-  | :? IOException as ex -> Error ex.Message
-  | :? UnauthorizedAccessException as ex -> Error ex.Message
-  | :? Text.Json.JsonException as ex -> Error ex.Message

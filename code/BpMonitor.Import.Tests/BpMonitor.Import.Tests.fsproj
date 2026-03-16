@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="MarkdownImportTests.fs" />
+    <Compile Include="JsonImportTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

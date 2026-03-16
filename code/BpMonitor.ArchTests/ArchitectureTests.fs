@@ -74,6 +74,11 @@ let ``Import should not depend on Charts`` () =
   ArchRuleAssert.CheckRule(architecture, rule)
 
 [<Fact>]
+let ``Import should not depend on Export`` () =
+  let rule = importTypes.Should().NotDependOnAny(exportTypes)
+  ArchRuleAssert.CheckRule(architecture, rule)
+
+[<Fact>]
 let ``Charts should not depend on Data`` () =
   let rule = chartsTypes.Should().NotDependOnAny(dataTypes)
   ArchRuleAssert.CheckRule(architecture, rule)
