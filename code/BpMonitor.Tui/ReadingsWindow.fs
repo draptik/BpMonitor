@@ -50,6 +50,7 @@ type ReadingsWindow
       )
 
     tv.Style.ShowHorizontalBottomLine <- true
+    tv.FullRowSelect <- true
     let left (v: obj) = " " + string v
     let right (v: obj) = string v + " "
 
@@ -83,7 +84,11 @@ type ReadingsWindow
           elif key = Key.I then
             this.ImportFile()
           elif key = Key.S then
-            this.SaveFile())
+            this.SaveFile()
+          elif key = Key.J then
+            this.MoveDown()
+          elif key = Key.K then
+            this.MoveUp())
 
     let statusBar =
       new StatusBar(
@@ -98,6 +103,18 @@ type ReadingsWindow
     this.Add(tableView, statusBar)
 
   member _.Readings = repository.GetAll()
+
+  member _.SelectedRow = tableView.SelectedRow
+
+  member _.MoveDown() =
+    let maxRow = sortedReadings().Length - 1
+
+    if tableView.SelectedRow < maxRow then
+      tableView.SelectedRow <- tableView.SelectedRow + 1
+
+  member _.MoveUp() =
+    if tableView.SelectedRow > 0 then
+      tableView.SelectedRow <- tableView.SelectedRow - 1
 
   member _.AddNew() =
     onAdd

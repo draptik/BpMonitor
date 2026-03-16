@@ -211,6 +211,45 @@ let ``EditSelected picks newest reading first when entries have different timest
   test <@ editedReadings.Count = 1 && editedReadings[0] = newer @>
 
 [<Fact>]
+let ``MoveDown moves selection to the next row`` () =
+  let repo =
+    makeRepo
+      [ readingAt 120 80 70 (DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero))
+        readingAt 130 85 72 (DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)) ]
+
+  use win = new ReadingsWindow(app, repo, None, None, None, None, None, None)
+  test <@ win.SelectedRow = 0 @>
+  win.MoveDown()
+  test <@ win.SelectedRow = 1 @>
+
+[<Fact>]
+let ``MoveUp moves selection to the previous row`` () =
+  let repo =
+    makeRepo
+      [ readingAt 120 80 70 (DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero))
+        readingAt 130 85 72 (DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)) ]
+
+  use win = new ReadingsWindow(app, repo, None, None, None, None, None, None)
+  win.MoveDown()
+  test <@ win.SelectedRow = 1 @>
+  win.MoveUp()
+  test <@ win.SelectedRow = 0 @>
+
+[<Fact>]
+let ``MoveDown at the last row stays at the last row`` () =
+  let repo = makeRepo [ reading 120 80 70 ]
+  use win = new ReadingsWindow(app, repo, None, None, None, None, None, None)
+  win.MoveDown()
+  test <@ win.SelectedRow = 0 @>
+
+[<Fact>]
+let ``MoveUp at the first row stays at the first row`` () =
+  let repo = makeRepo [ reading 120 80 70 ]
+  use win = new ReadingsWindow(app, repo, None, None, None, None, None, None)
+  win.MoveUp()
+  test <@ win.SelectedRow = 0 @>
+
+[<Fact>]
 let ``ImportFile invokes the onImport callback`` () =
   let importCalls = ResizeArray<unit>()
 
