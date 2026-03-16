@@ -5,6 +5,8 @@ argument-hint: [file or module to review]
 model: claude-sonnet-4-6
 ---
 
+# Review Tests
+
 Review the implemented code in $ARGUMENTS and identify test gaps. Assume the code is wrong until proven otherwise.
 
 ## Responsibilities

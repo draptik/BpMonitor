@@ -5,6 +5,8 @@ user-invocable: false
 model: claude-haiku-4-5-20251001
 ---
 
+# Status Bar
+
 The Claude Code status bar displays real-time AI session information at the bottom of the terminal.
 
 ## Configuration

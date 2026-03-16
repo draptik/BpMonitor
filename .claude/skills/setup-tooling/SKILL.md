@@ -4,6 +4,8 @@ description: Audit and set up code quality infrastructure — formatters (Fantom
 model: claude-haiku-4-5-20251001
 ---
 
+# Setup Tooling
+
 Establish and maintain the project's code quality infrastructure. Standards are not suggestions — they are the rules, and the rules will be followed.
 
 ## Responsibilities

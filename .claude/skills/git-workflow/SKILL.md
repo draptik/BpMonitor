@@ -5,6 +5,8 @@ user-invocable: false
 model: claude-haiku-4-5-20251001
 ---
 
+# Git Workflow
+
 Enforce a clean, consistent git workflow. Every change is traceable, reviewable, and revertable. No shortcuts, no exceptions.
 
 ## Branching Strategy
