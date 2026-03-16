@@ -1,14 +1,12 @@
 module BpMonitor.Import.MarkdownImport
 
+open System
 open BpMonitor.Core
 
 type ImportSummary =
   { Added: int
     Updated: int
     Failed: (int * string * BloodPressureReadingUnvalidated * ValidationError list) list }
-
-open System
-open BpMonitor.Core
 
 /// Parses a single markdown list item (e.g. "- 08:30: 120/80 65 comment") into an unvalidated reading.
 /// Returns None if the line does not match the expected format.
