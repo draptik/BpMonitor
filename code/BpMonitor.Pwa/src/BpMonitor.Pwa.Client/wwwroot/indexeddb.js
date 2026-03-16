@@ -1,32 +1,20 @@
 (function () {
     const DB_NAME = 'BpMonitor';
     const READINGS_STORE = 'readings';
-    const HANDLES_STORE = 'handles';
 
     function openDb() {
         return new Promise((resolve, reject) => {
-            const req = indexedDB.open(DB_NAME, 2);
+            const req = indexedDB.open(DB_NAME, 3);
             req.onupgradeneeded = e => {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains(READINGS_STORE)) {
                     db.createObjectStore(READINGS_STORE, { autoIncrement: true });
                 }
-                if (!db.objectStoreNames.contains(HANDLES_STORE)) {
-                    db.createObjectStore(HANDLES_STORE);
+                if (db.objectStoreNames.contains('handles')) {
+                    db.deleteObjectStore('handles');
                 }
             };
             req.onsuccess = e => resolve(e.target.result);
-            req.onerror = e => reject(e.target.error);
-        });
-    }
-
-    async function getDirectoryHandle() {
-        const db = await openDb();
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(HANDLES_STORE, 'readonly');
-            const store = tx.objectStore(HANDLES_STORE);
-            const req = store.get('directory');
-            req.onsuccess = e => resolve(e.target.result || null);
             req.onerror = e => reject(e.target.error);
         });
     }
@@ -62,34 +50,17 @@
                 req.onerror = e => reject(e.target.error);
             });
         },
-        pickDirectory: async function () {
-            const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
-            const db = await openDb();
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction(HANDLES_STORE, 'readwrite');
-                const store = tx.objectStore(HANDLES_STORE);
-                const req = store.put(handle, 'directory');
-                req.onsuccess = () => resolve();
-                req.onerror = e => reject(e.target.error);
-            });
-        },
-        hasDirectory: async function () {
-            const handle = await getDirectoryHandle();
-            return handle !== null;
-        },
         writeReadings: async function (json) {
-            const handle = await getDirectoryHandle();
-            if (!handle) throw new Error('No directory selected');
-            const fileHandle = await handle.getFileHandle('readings.json', { create: true });
+            const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            const fileHandle = await dirHandle.getFileHandle('readings.json', { create: true });
             const writable = await fileHandle.createWritable();
             await writable.write(json);
             await writable.close();
         },
         readFileReadings: async function () {
-            const handle = await getDirectoryHandle();
-            if (!handle) return null;
+            const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
             try {
-                const fileHandle = await handle.getFileHandle('readings.json');
+                const fileHandle = await dirHandle.getFileHandle('readings.json');
                 const file = await fileHandle.getFile();
                 return await file.text();
             } catch (e) {

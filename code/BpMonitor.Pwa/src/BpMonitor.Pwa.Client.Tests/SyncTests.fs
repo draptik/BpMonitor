@@ -17,21 +17,6 @@ let private reading: Reading =
     Comment = None }
 
 [<Fact>]
-let ``DirectoryLoaded true sets HasDirectory`` () =
-  let model, _ = update noJs (DirectoryLoaded true) defaultModel
-  test <@ model.HasDirectory = true @>
-
-[<Fact>]
-let ``DirectoryLoaded false leaves HasDirectory false`` () =
-  let model, _ = update noJs (DirectoryLoaded false) defaultModel
-  test <@ model.HasDirectory = false @>
-
-[<Fact>]
-let ``DirectoryPicked sets HasDirectory`` () =
-  let model, _ = update noJs DirectoryPicked defaultModel
-  test <@ model.HasDirectory = true @>
-
-[<Fact>]
 let ``PushDone sets SyncStatus to SyncDone`` () =
   let model, _ = update noJs PushDone defaultModel
   test <@ model.SyncStatus = SyncDone @>

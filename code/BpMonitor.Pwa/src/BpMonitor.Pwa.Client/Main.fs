@@ -17,21 +17,15 @@ type SyncStatus =
 
 type Model =
   { Readings: Reading list
-    HasDirectory: bool
     SyncStatus: SyncStatus }
 
-let initModel =
-  { Readings = []
-    HasDirectory = false
-    SyncStatus = Idle }
+let initModel = { Readings = []; SyncStatus = Idle }
 
 type Message =
   | SaveReading of Reading
   | ReadingsLoaded of Reading list
   | Persisted
   | DbError of exn
-  | DirectoryLoaded of bool
-  | DirectoryPicked
   | PushDone
   | PullDone of Reading list
   | SyncFailed of string
@@ -52,8 +46,6 @@ let update (js: IJSRuntime) message model =
   | ReadingsLoaded readings -> { model with Readings = readings }, Cmd.none
   | Persisted
   | DbError _ -> model, Cmd.none
-  | DirectoryLoaded has -> { model with HasDirectory = has }, Cmd.none
-  | DirectoryPicked -> { model with HasDirectory = true }, Cmd.none
   | PushDone -> { model with SyncStatus = SyncDone }, Cmd.none
   | PullDone readings ->
     { model with
@@ -82,71 +74,55 @@ let view (js: IJSRuntime) model dispatch =
     div {
       h3 { "Nextcloud sync" }
 
-      if not model.HasDirectory then
-        button {
-          attr.``type`` "button"
+      button {
+        attr.``type`` "button"
 
-          on.task.click (fun _ ->
-            task {
-              try
-                do! js.InvokeVoidAsync("bpMonitor.pickDirectory").AsTask()
-                dispatch DirectoryPicked
-              with ex ->
-                dispatch (SyncFailed ex.Message)
-            })
+        on.task.click (fun _ ->
+          task {
+            try
+              let json =
+                JsonSerializer.Serialize(model.Readings |> List.map toDto |> List.toArray)
 
-          "Select Nextcloud folder"
-        }
-      else
-        button {
-          attr.``type`` "button"
+              do! js.InvokeVoidAsync("bpMonitor.writeReadings", json).AsTask()
+              dispatch PushDone
+            with ex ->
+              dispatch (SyncFailed ex.Message)
+          })
 
-          on.task.click (fun _ ->
-            task {
-              try
-                let json =
-                  JsonSerializer.Serialize(model.Readings |> List.map toDto |> List.toArray)
+        "Push to Nextcloud"
+      }
 
-                do! js.InvokeVoidAsync("bpMonitor.writeReadings", json).AsTask()
-                dispatch PushDone
-              with ex ->
-                dispatch (SyncFailed ex.Message)
-            })
+      button {
+        attr.``type`` "button"
 
-          "Push to Nextcloud"
-        }
+        on.task.click (fun _ ->
+          task {
+            try
+              let! json = js.InvokeAsync<string>("bpMonitor.readFileReadings").AsTask()
 
-        button {
-          attr.``type`` "button"
+              if isNull json then
+                dispatch (SyncFailed "readings.json not found in selected folder")
+              else
+                let dtos = JsonSerializer.Deserialize<ReadingDto[]>(json)
 
-          on.task.click (fun _ ->
-            task {
-              try
-                let! json = js.InvokeAsync<string>("bpMonitor.readFileReadings").AsTask()
+                let readings =
+                  if isNull dtos then
+                    []
+                  else
+                    dtos |> Array.map fromDto |> Array.toList
 
-                if isNull json then
-                  dispatch (SyncFailed "readings.json not found in selected folder")
-                else
-                  let dtos = JsonSerializer.Deserialize<ReadingDto[]>(json)
+                do! js.InvokeVoidAsync("bpMonitor.clearReadings").AsTask()
 
-                  let readings =
-                    if isNull dtos then
-                      []
-                    else
-                      dtos |> Array.map fromDto |> Array.toList
+                for r in readings do
+                  do! js.InvokeVoidAsync("bpMonitor.saveReading", toDto r).AsTask()
 
-                  do! js.InvokeVoidAsync("bpMonitor.clearReadings").AsTask()
+                dispatch (PullDone readings)
+            with ex ->
+              dispatch (SyncFailed ex.Message)
+          })
 
-                  for r in readings do
-                    do! js.InvokeVoidAsync("bpMonitor.saveReading", toDto r).AsTask()
-
-                  dispatch (PullDone readings)
-              with ex ->
-                dispatch (SyncFailed ex.Message)
-            })
-
-          "Pull from Nextcloud"
-        }
+        "Pull from Nextcloud"
+      }
 
       match model.SyncStatus with
       | Idle -> ()
@@ -163,21 +139,15 @@ type MyApp() =
 
     let init _ =
       initModel,
-      Cmd.batch
-        [ Cmd.OfTask.either
-            (fun () ->
-              task {
-                let! dtos = js.InvokeAsync<ReadingDto[]>("bpMonitor.loadReadings").AsTask()
-                return dtos |> Array.map fromDto |> Array.toList
-              })
-            ()
-            ReadingsLoaded
-            DbError
-          Cmd.OfTask.either
-            (fun () -> js.InvokeAsync<bool>("bpMonitor.hasDirectory").AsTask())
-            ()
-            DirectoryLoaded
-            DbError ]
+      Cmd.OfTask.either
+        (fun () ->
+          task {
+            let! dtos = js.InvokeAsync<ReadingDto[]>("bpMonitor.loadReadings").AsTask()
+            return dtos |> Array.map fromDto |> Array.toList
+          })
+        ()
+        ReadingsLoaded
+        DbError
 
     Program.mkProgram init (update js) (view js)
 #if DEBUG
