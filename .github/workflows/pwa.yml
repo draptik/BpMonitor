@@ -1,0 +1,65 @@
+name: Deploy PWA to GitHub Pages
+
+on:
+  push:
+    branches: ["main", "chore/pwa-spike"]
+    paths:
+      - "code/BpMonitor.Pwa/**"
+      - ".github/workflows/pwa.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Publish PWA
+        run: >
+          dotnet publish code/BpMonitor.Pwa/src/BpMonitor.Pwa.Server/BpMonitor.Pwa.Server.fsproj
+          --configuration Release
+          --output dist
+
+      - name: Set base href for GitHub Pages
+        run: >
+          sed -i
+          's|<base href="/" />|<base href="/BpMonitor/" />|'
+          dist/wwwroot/index.html
+
+      - name: Copy index.html to 404.html for SPA routing
+        run: cp dist/wwwroot/index.html dist/wwwroot/404.html
+
+      - name: Add .nojekyll
+        run: touch dist/wwwroot/.nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/wwwroot
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
