@@ -21,12 +21,11 @@ let parse (json: string) : Result<BloodPressureReading list, string> =
 
 let tryReadFromFile (path: string) : Result<BloodPressureReading list, string> =
   try
-    let json = File.ReadAllText(path)
-    Ok(JsonSerializer.Deserialize<BloodPressureReading list>(json, options))
+    Ok(File.ReadAllText(path))
   with
   | :? IOException as ex -> Error ex.Message
   | :? UnauthorizedAccessException as ex -> Error ex.Message
-  | :? JsonException as ex -> Error ex.Message
+  |> Result.bind parse
 
 let import (repository: IReadingRepository) (readings: BloodPressureReading list) : JsonImportSummary =
   let existing = repository.GetAll()
