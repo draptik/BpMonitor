@@ -13,7 +13,7 @@ code/
 ├── BpMonitor.Import.Tests   # Unit tests for Import
 ├── BpMonitor.Charts         # Plotly.NET chart generation
 ├── BpMonitor.Charts.Tests   # Snapshot tests for Charts
-├── BpMonitor.Export         # JSON serialisation and file export/import
+├── BpMonitor.Export         # JSON serialisation and file write
 ├── BpMonitor.Export.Tests   # Tests for Export
 ├── BpMonitor.Tui            # Terminal.Gui v2 app (data entry + list view + import)
 ├── BpMonitor.Tui.Tests      # Tests for TUI layer
@@ -69,6 +69,7 @@ graph TD
     Core[BpMonitor.Core]
     Data[BpMonitor.Data]
     Import[BpMonitor.Import]
+    Export[BpMonitor.Export]
     Charts[BpMonitor.Charts]
     Tui[BpMonitor.Tui]
 
