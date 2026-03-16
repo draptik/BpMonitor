@@ -13,6 +13,8 @@ code/
 ├── BpMonitor.Import.Tests   # Unit tests for Import
 ├── BpMonitor.Charts         # Plotly.NET chart generation
 ├── BpMonitor.Charts.Tests   # Snapshot tests for Charts
+├── BpMonitor.Export         # JSON serialisation and file export/import
+├── BpMonitor.Export.Tests   # Tests for Export
 ├── BpMonitor.Tui            # Terminal.Gui v2 app (data entry + list view + import)
 ├── BpMonitor.Tui.Tests      # Tests for TUI layer
 └── BpMonitor.ArchTests      # ArchUnit tests enforcing Clean Architecture rules
@@ -73,10 +75,12 @@ graph TD
     Data --> Core
     Import --> Core
     Charts --> Core
+    Export --> Core
     Tui --> Core
     Tui --> Data
     Tui --> Import
     Tui --> Charts
+    Tui --> Export
 ```
 
 ## Project Responsibilities
@@ -108,12 +112,18 @@ graph TD
 - Produces a self-contained interactive HTML file opened in the default browser
 - Depends on Core only
 
+### BpMonitor.Export
+
+- JSON serialisation of `BloodPressureReading` lists (`serialize`, `deserialize`)
+- File-level helpers `tryWriteToFile` / `tryReadFromFile` returning `Result<_, string>`
+- Depends on Core only
+
 ### BpMonitor.Tui
 
 - Terminal.Gui v2 application
 - Readings list view with Add (`N`), Edit (`Enter`), Chart (`C`), Import (`I`) keybindings
-- Delegates to Core for validation, Data for persistence, Import for file import, Charts for visualisation
-- References Core + Data + Import + Charts
+- Delegates to Core for validation, Data for persistence, Import for file import, Charts for visualisation, Export for JSON backup
+- References Core + Data + Import + Charts + Export
 
 ### BpMonitor.ArchTests
 
@@ -122,6 +132,7 @@ graph TD
 - Data must not depend on Tui
 - Import must not depend on Data, Tui, Charts
 - Charts must not depend on Data, Tui
+- Export must not depend on Data, Tui, Charts, Import
 
 ## Design Principles
 

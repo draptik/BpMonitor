@@ -11,6 +11,7 @@ open BpMonitor.Tui
 open Xunit
 
 let private chartsAssembly = Assembly.Load("BpMonitor.Charts")
+let private exportAssembly = Assembly.Load("BpMonitor.Export")
 
 let private architecture =
   ArchLoader()
@@ -19,7 +20,8 @@ let private architecture =
       typeof<EfReadingRepository>.Assembly,
       typeof<ImportSummary>.Assembly,
       typeof<ReadingsWindow>.Assembly,
-      chartsAssembly
+      chartsAssembly,
+      exportAssembly
     )
     .Build()
 
@@ -37,6 +39,9 @@ let private tuiTypes =
 
 let private chartsTypes =
   ArchRuleDefinition.Types().That().ResideInAssembly(chartsAssembly)
+
+let private exportTypes =
+  ArchRuleDefinition.Types().That().ResideInAssembly(exportAssembly)
 
 [<Fact>]
 let ``Core should not depend on Data`` () =
@@ -76,4 +81,24 @@ let ``Charts should not depend on Data`` () =
 [<Fact>]
 let ``Charts should not depend on Tui`` () =
   let rule = chartsTypes.Should().NotDependOnAny(tuiTypes)
+  ArchRuleAssert.CheckRule(architecture, rule)
+
+[<Fact>]
+let ``Export should not depend on Data`` () =
+  let rule = exportTypes.Should().NotDependOnAny(dataTypes)
+  ArchRuleAssert.CheckRule(architecture, rule)
+
+[<Fact>]
+let ``Export should not depend on Tui`` () =
+  let rule = exportTypes.Should().NotDependOnAny(tuiTypes)
+  ArchRuleAssert.CheckRule(architecture, rule)
+
+[<Fact>]
+let ``Export should not depend on Charts`` () =
+  let rule = exportTypes.Should().NotDependOnAny(chartsTypes)
+  ArchRuleAssert.CheckRule(architecture, rule)
+
+[<Fact>]
+let ``Export should not depend on Import`` () =
+  let rule = exportTypes.Should().NotDependOnAny(importTypes)
   ArchRuleAssert.CheckRule(architecture, rule)
