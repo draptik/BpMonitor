@@ -7,8 +7,7 @@ module BpChart =
   let toHtml (readings: BloodPressureReading list) : string =
     let readings = readings |> List.sortBy _.Timestamp
 
-    let timestamps =
-      readings |> List.map _.Timestamp.ToLocalTime().ToString(Formats.timestamp)
+    let timestamps = readings |> List.map _.Timestamp.ToString(Formats.timestamp)
 
     let systolic = readings |> List.map _.Systolic
     let diastolic = readings |> List.map _.Diastolic
