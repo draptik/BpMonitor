@@ -6,9 +6,16 @@
     <title>BpMonitor</title>
     <base href="/" />
     <link rel="stylesheet" href="BpMonitor.Pwa.Client.styles.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#b91c1c" />
 </head>
 <body>
     <div id="main"></div>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js');
+        }
+    </script>
 </body>
 </html>

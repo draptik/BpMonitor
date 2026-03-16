@@ -43,6 +43,12 @@ jobs:
           --configuration Release
           --output dist
 
+      - name: Generate PWA icons
+        run: |
+          mkdir -p dist/wwwroot/icons
+          convert -size 192x192 xc:#b91c1c dist/wwwroot/icons/icon-192.png
+          convert -size 512x512 xc:#b91c1c dist/wwwroot/icons/icon-512.png
+
       - name: Set base href for GitHub Pages
         run: >
           sed -i
