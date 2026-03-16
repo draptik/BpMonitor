@@ -21,6 +21,10 @@ let private reading sys dia hr =
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
 
+let private readingAt sys dia hr (ts: DateTimeOffset) =
+  { reading sys dia hr with
+      Timestamp = ts }
+
 let private makeRepo (initial: BloodPressureReading list) =
   let mutable data = initial
 
@@ -180,6 +184,31 @@ let ``SaveFile invokes the onSave callback`` () =
 
   win.SaveFile()
   test <@ saveCalls.Count = 1 @>
+
+[<Fact>]
+let ``EditSelected picks newest reading first when entries have different timestamps`` () =
+  let older = readingAt 120 80 70 (DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero))
+  let newer = readingAt 130 85 72 (DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero))
+  let editedReadings = ResizeArray<BloodPressureReading>()
+  let repo = makeRepo [ older; newer ] // older is first in repo
+
+  use win =
+    new ReadingsWindow(
+      app,
+      repo,
+      None,
+      None,
+      Some(fun r ->
+        editedReadings.Add(r)
+        None),
+      None,
+      None,
+      None
+    )
+
+  // row 0 should map to newest reading (sorted descending)
+  win.EditSelected()
+  test <@ editedReadings.Count = 1 && editedReadings[0] = newer @>
 
 [<Fact>]
 let ``ImportFile invokes the onImport callback`` () =
