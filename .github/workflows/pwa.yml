@@ -46,8 +46,8 @@ jobs:
       - name: Generate PWA icons
         run: |
           mkdir -p dist/wwwroot/icons
-          convert -size 192x192 xc:#b91c1c dist/wwwroot/icons/icon-192.png
-          convert -size 512x512 xc:#b91c1c dist/wwwroot/icons/icon-512.png
+          ffmpeg -f lavfi -i "color=c=#b91c1c:size=192x192:rate=1" -frames:v 1 -y dist/wwwroot/icons/icon-192.png
+          ffmpeg -f lavfi -i "color=c=#b91c1c:size=512x512:rate=1" -frames:v 1 -y dist/wwwroot/icons/icon-512.png
 
       - name: Set base href for GitHub Pages
         run: >
