@@ -68,7 +68,7 @@ jobs:
         with:
           reports: "code/TestResults/**/coverage.cobertura.xml"
           targetdir: "code/CoverageReport"
-          reporttypes: "MarkdownSummaryGithub"
+          reporttypes: "MarkdownSummaryGithub;Badges"
 
       - name: Write coverage to job summary
         run: cat code/CoverageReport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
@@ -78,6 +78,17 @@ jobs:
         if: github.event_name == 'pull_request'
         with:
           path: code/CoverageReport/SummaryGithub.md
+
+      - name: Push coverage badge to badges branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin badges:badges 2>/dev/null || git checkout --orphan badges
+          git checkout badges
+          cp code/CoverageReport/badge_linecoverage.svg coverage.svg
+          git add coverage.svg
+          git diff --cached --quiet || git commit -m "chore: update coverage badge"
+          git push origin badges --force
 
   publish-single-executable:
     name: Publish Single Executable
