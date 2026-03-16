@@ -22,9 +22,12 @@ type ReadingsWindow
   ) as this =
   inherit Window()
 
+  let sortedReadings () =
+    repository.GetAll() |> List.sortByDescending (fun r -> r.Timestamp)
+
   let makeTableSource () =
     EnumerableTableSource<BloodPressureReading>(
-      repository.GetAll(),
+      sortedReadings (),
       Dictionary<string, Func<BloodPressureReading, obj>>(
         dict
           [ " Timestamp",
@@ -140,7 +143,7 @@ type ReadingsWindow
         | Error msg -> MessageBox.ErrorQuery(app, "Save Failed", msg, "OK") |> ignore)
 
   member _.EditSelected() =
-    let readings = repository.GetAll()
+    let readings = sortedReadings ()
 
     let row = tableView.SelectedRow
 
