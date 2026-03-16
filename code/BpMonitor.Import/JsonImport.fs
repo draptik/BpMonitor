@@ -1,16 +1,32 @@
 module BpMonitor.Import.JsonImport
 
+open System
+open System.IO
 open System.Text.Json
+open System.Text.Json.Serialization
 open BpMonitor.Core
-open BpMonitor.Export
+
+let private options =
+  let o = JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
+  o.Converters.Add(JsonFSharpConverter())
+  o
 
 type JsonImportSummary = { Added: int; Updated: int }
 
 let parse (json: string) : Result<BloodPressureReading list, string> =
   try
-    Ok(JsonExport.deserialize json)
+    Ok(JsonSerializer.Deserialize<BloodPressureReading list>(json, options))
   with :? JsonException as ex ->
     Error ex.Message
+
+let tryReadFromFile (path: string) : Result<BloodPressureReading list, string> =
+  try
+    let json = File.ReadAllText(path)
+    Ok(JsonSerializer.Deserialize<BloodPressureReading list>(json, options))
+  with
+  | :? IOException as ex -> Error ex.Message
+  | :? UnauthorizedAccessException as ex -> Error ex.Message
+  | :? JsonException as ex -> Error ex.Message
 
 let import (repository: IReadingRepository) (readings: BloodPressureReading list) : JsonImportSummary =
   let existing = repository.GetAll()

@@ -13,6 +13,7 @@ open BpMonitor.Charts
 open BpMonitor.Core
 open BpMonitor.Data
 open BpMonitor.Export.JsonExport
+open BpMonitor.Import.JsonImport
 open BpMonitor.Import.MarkdownImport
 
 let private makeField (y: int) (width: Dim) =

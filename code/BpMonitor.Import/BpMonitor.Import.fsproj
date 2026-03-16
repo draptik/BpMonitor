@@ -7,11 +7,11 @@
 
   <ItemGroup>
     <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="FSharp.SystemTextJson" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BpMonitor.Core\BpMonitor.Core.fsproj" />
-    <ProjectReference Include="..\BpMonitor.Export\BpMonitor.Export.fsproj" />
   </ItemGroup>
 
 </Project>

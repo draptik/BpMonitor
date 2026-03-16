@@ -1,8 +1,8 @@
 module BpMonitor.Import.Tests.JsonImportTests
 
 open System
+open System.IO
 open BpMonitor.Data
-open BpMonitor.Export
 open BpMonitor.Core
 open BpMonitor.Import.JsonImport
 open Swensen.Unquote
@@ -20,12 +20,15 @@ let private makeReading id systolic diastolic heartRate (ts: DateTimeOffset) com
 
 [<Fact>]
 let ``parse - valid JSON returns reading list`` () =
-  let reading =
+  let json =
+    """[{"id":1,"systolic":120,"diastolic":80,"heartRate":70,"timestamp":"2024-10-15T09:00:00+00:00","comments":null,"createdAt":"0001-01-01T00:00:00+00:00","modifiedAt":"0001-01-01T00:00:00+00:00"}]"""
+
+  let result = parse json
+
+  let expected =
     makeReading 1 120 80 70 (DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)) None
 
-  let json = JsonExport.serialize [ reading ]
-  let result = parse json
-  test <@ result = Ok [ reading ] @>
+  test <@ result = Ok [ expected ] @>
 
 [<Fact>]
 let ``parse - empty array returns empty list`` () =
@@ -42,6 +45,41 @@ let ``parse - invalid JSON returns Error`` () =
       | Error _ -> true
       | _ -> false
     @>
+
+[<Fact>]
+let ``tryReadFromFile returns Ok with readings when file contains valid JSON`` () =
+  let path = Path.GetTempFileName()
+
+  File.WriteAllText(
+    path,
+    """[{"id":1,"systolic":120,"diastolic":80,"heartRate":70,"timestamp":"2024-10-15T09:00:00+00:00","comments":"morning","createdAt":"0001-01-01T00:00:00+00:00","modifiedAt":"0001-01-01T00:00:00+00:00"}]"""
+  )
+
+  let result = tryReadFromFile path
+
+  let expected =
+    makeReading 1 120 80 70 (DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)) (Some "morning")
+
+  test <@ result = Ok [ expected ] @>
+
+[<Fact>]
+let ``tryReadFromFile returns Ok with empty list when file contains empty array`` () =
+  let path = Path.GetTempFileName()
+  File.WriteAllText(path, "[]")
+  let result = tryReadFromFile path
+  test <@ result = Ok [] @>
+
+[<Fact>]
+let ``tryReadFromFile returns Error when file does not exist`` () =
+  let result = tryReadFromFile "/nonexistent/path/file.json"
+  test <@ result <> Ok [] @>
+
+[<Fact>]
+let ``tryReadFromFile returns Error when file contains invalid JSON`` () =
+  let path = Path.GetTempFileName()
+  File.WriteAllText(path, "not valid json")
+  let result = tryReadFromFile path
+  test <@ result <> Ok [] @>
 
 [<Fact>]
 let ``import - new reading is added to repository`` () =

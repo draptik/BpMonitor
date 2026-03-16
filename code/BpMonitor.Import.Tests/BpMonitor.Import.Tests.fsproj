@@ -21,7 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\BpMonitor.Import\BpMonitor.Import.fsproj" />
     <ProjectReference Include="..\BpMonitor.Data\BpMonitor.Data.fsproj" />
-    <ProjectReference Include="..\BpMonitor.Export\BpMonitor.Export.fsproj" />
   </ItemGroup>
 
 </Project>

@@ -74,7 +74,6 @@ graph TD
 
     Data --> Core
     Import --> Core
-    Import --> Export
     Charts --> Core
     Export --> Core
     Tui --> Core
@@ -105,8 +104,8 @@ graph TD
 
 - Parses blood pressure readings from Markdown files (`parseMarkdown`, `parseLine`)
 - Upsert import logic with summary (`ImportSummary`: added, updated, failed counts)
-- Imports `BloodPressureReading` lists from JSON (`JsonImport.parse`, `JsonImport.import`)
-- Depends on Core and Export (delegates JSON deserialisation to `JsonExport.deserialize`)
+- Imports `BloodPressureReading` lists from JSON (`JsonImport.parse`, `JsonImport.tryReadFromFile`, `JsonImport.import`)
+- Depends on Core only
 
 ### BpMonitor.Charts
 
@@ -116,8 +115,7 @@ graph TD
 
 ### BpMonitor.Export
 
-- JSON serialisation of `BloodPressureReading` lists (`serialize`, `deserialize`)
-- File-level helpers `tryWriteToFile` / `tryReadFromFile` returning `Result<_, string>`
+- JSON serialisation of `BloodPressureReading` lists (`serialize`, `tryWriteToFile`)
 - Depends on Core only
 
 ### BpMonitor.Tui
@@ -132,7 +130,7 @@ graph TD
 - ArchUnit rules enforcing Clean Architecture layer boundaries
 - Core must not depend on Data, Tui
 - Data must not depend on Tui
-- Import must not depend on Data, Tui, Charts (may depend on Export)
+- Import must not depend on Data, Tui, Charts, Export
 - Charts must not depend on Data, Tui
 - Export must not depend on Data, Tui, Charts, Import
 
