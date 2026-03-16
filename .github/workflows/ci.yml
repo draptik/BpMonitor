@@ -83,8 +83,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin badges:badges 2>/dev/null || git checkout --orphan badges
-          git checkout badges
+          if git fetch origin badges:badges 2>/dev/null; then
+            git checkout badges
+          else
+            git checkout --orphan badges
+            git rm -rf . 2>/dev/null || true
+          fi
           cp code/CoverageReport/badge_linecoverage.svg coverage.svg
           git add coverage.svg
           git diff --cached --quiet || git commit -m "chore: update coverage badge"
