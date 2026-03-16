@@ -1,6 +1,8 @@
 # BpMonitor
 
+[![CI](https://github.com/draptik/BpMonitor/actions/workflows/ci.yml/badge.svg)](https://github.com/draptik/BpMonitor/actions/workflows/ci.yml)
 [![Coverage](https://raw.githubusercontent.com/draptik/BpMonitor/badges/coverage.svg)](https://github.com/draptik/BpMonitor/actions)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 
 A personal blood pressure monitoring application.
 
