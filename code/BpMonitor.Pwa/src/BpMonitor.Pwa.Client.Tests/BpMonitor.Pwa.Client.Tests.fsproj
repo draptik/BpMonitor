@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="EntryFormTests.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="bunit" />
+    <PackageReference Include="Unquote" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BpMonitor.Pwa.Client\BpMonitor.Pwa.Client.fsproj" />
+  </ItemGroup>
+
+</Project>

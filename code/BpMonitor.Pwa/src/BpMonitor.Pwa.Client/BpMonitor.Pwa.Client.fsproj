@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Reading.fs" />
+    <Compile Include="Components/EntryForm.fs" />
+    <Compile Include="Main.fs" />
+    <Compile Include="Startup.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Bolero" />
+    <PackageReference Include="Bolero.Build" />
+    <PackageReference Include="Bolero.HotReload" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" />
+  </ItemGroup>
+</Project>

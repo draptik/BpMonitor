@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
+    <RequiresAspNetWebAssets>true</RequiresAspNetWebAssets>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Index.fs" />
+    <Compile Include="Startup.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BpMonitor.Pwa.Client\BpMonitor.Pwa.Client.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Bolero.Server" />
+    <PackageReference Include="Bolero.HotReload.Server" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
+  </ItemGroup>
+</Project>

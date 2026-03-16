@@ -3,6 +3,17 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
+  <ItemGroup Label="Pwa">
+    <PackageVersion Include="Bolero" Version="0.24.39" />
+    <PackageVersion Include="Bolero.Build" Version="0.24.39" />
+    <PackageVersion Include="Bolero.HotReload" Version="0.24.5" />
+    <PackageVersion Include="Bolero.Server" Version="0.24.39" />
+    <PackageVersion Include="Bolero.HotReload.Server" Version="0.24.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
+    <PackageVersion Include="bunit" Version="2.6.2" />
+  </ItemGroup>
+
   <ItemGroup Label="Tui">
     <PackageVersion Include="Terminal.Gui" Version="2.0.0-develop.5100" />
   </ItemGroup>
