@@ -4,6 +4,7 @@ open System
 open System.Text.RegularExpressions
 open System.Threading.Tasks
 open Xunit
+open Swensen.Unquote
 open VerifyXunit
 open BpMonitor.Core
 open BpMonitor.Charts
@@ -58,7 +59,21 @@ type ChartTests() =
     let html = BpChart.toHtml reversed
     let pos1 = html.IndexOf("2026-01-01")
     let pos30 = html.IndexOf("2026-01-30")
-    Assert.True(pos1 < pos30, "First timestamp should appear before last in chart data")
+    test <@ pos1 < pos30 @>
+
+  [<Fact>]
+  member _.``toHtml includes comment text as hover info for commented readings``() =
+    let html = BpChart.toHtml readings
+    test <@ html.Contains("After coffee") @>
+    test <@ html.Contains("Stressful day") @>
+    test <@ html.Contains("After walk") @>
+    test <@ html.Contains("Work deadline") @>
+
+  [<Fact>]
+  member _.``toHtml does not include None comment readings in comments trace``() =
+    let noCommentOnly = [ reading 1 120 80 70 1 9 None ]
+    let html = BpChart.toHtml noCommentOnly
+    test <@ not (html.Contains("Comments")) @>
 
   [<Fact>]
   member _.``toHtml matches snapshot``() : Task =
