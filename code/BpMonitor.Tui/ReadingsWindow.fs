@@ -23,7 +23,7 @@ type ReadingsWindow
   inherit Window()
 
   let sortedReadings () =
-    repository.GetAll() |> List.sortByDescending (fun r -> r.Timestamp)
+    repository.GetAll() |> List.sortByDescending _.Timestamp
 
   let makeTableSource () =
     EnumerableTableSource<BloodPressureReading>(

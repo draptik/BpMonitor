@@ -13,7 +13,7 @@ module BpChart =
     let diastolic = readings |> List.map _.Diastolic
     let heartRate = readings |> List.map _.HeartRate
 
-    let commented = readings |> List.filter (fun r -> r.Comments.IsSome)
+    let commented = readings |> List.filter _.Comments.IsSome
 
     let commentTraces =
       if commented.IsEmpty then
@@ -32,4 +32,4 @@ module BpChart =
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
     |> GenericChart.toEmbeddedHTML
-    |> fun html -> html.Replace("\"width\":600,", "")
+    |> _.Replace("\"width\":600,", "")

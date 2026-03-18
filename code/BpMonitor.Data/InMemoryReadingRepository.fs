@@ -48,7 +48,7 @@ type InMemoryReadingRepository(initialReadings: BloodPressureReading list option
     if initial.IsEmpty then
       1
     else
-      (initial |> List.map (fun r -> r.Id) |> List.max) + 1
+      (initial |> List.map _.Id |> List.max) + 1
 
   interface IReadingRepository with
     member _.GetAll() = readings |> Seq.toList

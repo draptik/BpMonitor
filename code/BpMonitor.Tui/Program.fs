@@ -59,7 +59,7 @@ let private readRanges (config: IConfiguration) =
   let d = ReadingRanges.defaults
 
   let getInt key fallback =
-    match s.[key] with
+    match s[key] with
     | null -> fallback
     | v ->
       match Int32.TryParse(v) with
@@ -191,7 +191,7 @@ let main _ =
       match tryReadFromFile exportJsonPath with
       | Error msg -> Some msg
       | Ok jsonReadings ->
-        let existingIds = repository.GetAll() |> List.map (fun r -> r.Id) |> Set.ofList
+        let existingIds = repository.GetAll() |> List.map _.Id |> Set.ofList
 
         let newReadings =
           jsonReadings |> List.filter (fun r -> not (existingIds.Contains(r.Id)))

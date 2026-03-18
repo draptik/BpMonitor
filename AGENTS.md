@@ -66,6 +66,13 @@ git checkout -b feat/<short-description>
 
 Never start work on `main`. Creating the branch is the first step, not an afterthought.
 
+## F# Style Conventions
+
+- Use shorthand lambda syntax where the argument is only used for a single member access chain: `_.Property` instead of `fun x -> x.Property`
+- Do not use `.[n]` indexer syntax outside of Unquote quotation expressions (`<@ ... @>`); use `[n]` instead
+- Inside Unquote quotation expressions, `[n]` only works on simple local variables — use `.[n]` when indexing the result of a method call (e.g. `repo.GetAll().[0]`)
+- `new` is required for any type implementing `IDisposable` — the compiler enforces this via FS0760
+
 ## Docs
 
 - `docs/vision.md` — product vision and requirements
