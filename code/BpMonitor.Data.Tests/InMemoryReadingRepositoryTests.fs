@@ -11,7 +11,7 @@ let private sample: BloodPressureReading =
     Systolic = 120
     Diastolic = 80
     HeartRate = 70
-    Timestamp = DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)
+    Timestamp = Timestamp.utc 2026 1 1 9 0 0
     Comments = None
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
@@ -42,7 +42,7 @@ let ``AddMany persists all readings`` () =
 
   let second =
     { sample with
-        Timestamp = DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero) }
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
 
   repo.AddMany([ sample; second ])
   test <@ repo.GetAll().Length = 2 @>
@@ -53,7 +53,7 @@ let ``AddMany assigns sequential Ids`` () =
 
   let second =
     { sample with
-        Timestamp = DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero) }
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
 
   repo.AddMany([ sample; second ])
   let readings = repo.GetAll()

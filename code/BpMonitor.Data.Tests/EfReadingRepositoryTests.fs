@@ -14,7 +14,7 @@ let private sample: BloodPressureReading =
     Systolic = 120
     Diastolic = 80
     HeartRate = 70
-    Timestamp = DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)
+    Timestamp = Timestamp.utc 2026 1 1 9 0 0
     Comments = None
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
@@ -85,7 +85,7 @@ let ``Add preserves Comments as None when absent`` () =
 
 [<Fact>]
 let ``Add sets CreatedAt and ModifiedAt to current time`` () =
-  let now = DateTimeOffset(2026, 3, 11, 10, 0, 0, TimeSpan.Zero)
+  let now = Timestamp.utc 2026 3 11 10 0 0
   let timeProvider = FakeTimeProvider(now)
   use ctx = createContext ()
   let repo = EfReadingRepository(ctx, timeProvider) :> IReadingRepository
@@ -103,21 +103,21 @@ let ``AddMany persists all readings`` () =
 
   let second =
     { sample with
-        Timestamp = DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero) }
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
 
   repo.AddMany([ sample; second ])
   test <@ repo.GetAll().Length = 2 @>
 
 [<Fact>]
 let ``AddMany sets CreatedAt and ModifiedAt to current time`` () =
-  let now = DateTimeOffset(2026, 3, 11, 10, 0, 0, TimeSpan.Zero)
+  let now = Timestamp.utc 2026 3 11 10 0 0
   let timeProvider = FakeTimeProvider(now)
   use ctx = createContext ()
   let repo = EfReadingRepository(ctx, timeProvider) :> IReadingRepository
 
   let second =
     { sample with
-        Timestamp = DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero) }
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
 
   repo.AddMany([ sample; second ])
   let readings = repo.GetAll()
@@ -128,8 +128,8 @@ let ``AddMany sets CreatedAt and ModifiedAt to current time`` () =
 
 [<Fact>]
 let ``Update preserves CreatedAt and sets ModifiedAt to current time`` () =
-  let createdAt = DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)
-  let updatedAt = DateTimeOffset(2026, 3, 11, 10, 0, 0, TimeSpan.Zero)
+  let createdAt = Timestamp.utc 2026 1 1 9 0 0
+  let updatedAt = Timestamp.utc 2026 3 11 10 0 0
   let timeProvider = FakeTimeProvider(createdAt)
   use ctx = createContext ()
   let repo = EfReadingRepository(ctx, timeProvider) :> IReadingRepository

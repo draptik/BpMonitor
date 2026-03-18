@@ -6,8 +6,7 @@ open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
 
-let private timeProvider =
-  FakeTimeProvider(DateTimeOffset(2026, 3, 3, 0, 0, 0, TimeSpan.Zero))
+let private timeProvider = FakeTimeProvider(Timestamp.utc 2026 3 3 0 0 0)
 
 let private validUnvalidated: BloodPressureReadingUnvalidated =
   { Systolic = 120

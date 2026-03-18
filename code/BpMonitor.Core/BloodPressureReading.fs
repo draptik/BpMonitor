@@ -30,6 +30,10 @@ type ReadingRanges =
     HeartRateMin: int
     HeartRateMax: int }
 
+module Timestamp =
+  let utc year month day hour minute second =
+    System.DateTimeOffset(year, month, day, hour, minute, second, System.TimeSpan.Zero)
+
 module Formats =
   let timestamp = "yyyy-MM-dd HH:mm"
 
