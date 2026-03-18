@@ -18,10 +18,10 @@ let ``serialize readings to JSON matches snapshot`` () : Task =
       Systolic = 120
       Diastolic = 80
       HeartRate = 70
-      Timestamp = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)
+      Timestamp = Timestamp.utc 2024 10 15 9 0 0
       Comments = Some "morning"
-      CreatedAt = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)
-      ModifiedAt = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero) }
+      CreatedAt = Timestamp.utc 2024 10 15 9 0 0
+      ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
 
   let json = serialize [ reading ]
   Verifier.VerifyJson(json).ToTask()
@@ -33,10 +33,10 @@ let ``tryWriteToFile writes serialized readings to the given path`` () =
       Systolic = 120
       Diastolic = 80
       HeartRate = 70
-      Timestamp = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)
+      Timestamp = Timestamp.utc 2024 10 15 9 0 0
       Comments = None
-      CreatedAt = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)
-      ModifiedAt = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero) }
+      CreatedAt = Timestamp.utc 2024 10 15 9 0 0
+      ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
 
   let path = Path.GetTempFileName()
   tryWriteToFile path [ reading ] |> ignore

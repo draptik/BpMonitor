@@ -25,8 +25,7 @@ let ``parse - valid JSON returns reading list`` () =
 
   let result = parse json
 
-  let expected =
-    makeReading 1 120 80 70 (DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)) None
+  let expected = makeReading 1 120 80 70 (Timestamp.utc 2024 10 15 9 0 0) None
 
   test <@ result = Ok [ expected ] @>
 
@@ -58,7 +57,7 @@ let ``tryReadFromFile returns Ok with readings when file contains valid JSON`` (
   let result = tryReadFromFile path
 
   let expected =
-    makeReading 1 120 80 70 (DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)) (Some "morning")
+    makeReading 1 120 80 70 (Timestamp.utc 2024 10 15 9 0 0) (Some "morning")
 
   test <@ result = Ok [ expected ] @>
 
@@ -85,8 +84,7 @@ let ``tryReadFromFile returns Error when file contains invalid JSON`` () =
 let ``import - new reading is added to repository`` () =
   let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
 
-  let reading =
-    makeReading 99 120 80 70 (DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)) None
+  let reading = makeReading 99 120 80 70 (Timestamp.utc 2024 10 15 9 0 0) None
 
   let result = import repo [ reading ]
   test <@ result.Added = 1 @>
@@ -94,7 +92,7 @@ let ``import - new reading is added to repository`` () =
 
 [<Fact>]
 let ``import - existing reading with same timestamp is updated`` () =
-  let ts = DateTimeOffset(2024, 10, 15, 9, 0, 0, TimeSpan.Zero)
+  let ts = Timestamp.utc 2024 10 15 9 0 0
   let existing = makeReading 1 110 70 60 ts None
   let repo = InMemoryReadingRepository(Some [ existing ]) :> IReadingRepository
   let updated = makeReading 99 120 80 70 ts None

@@ -16,7 +16,7 @@ let private reading sys dia hr =
     Systolic = sys
     Diastolic = dia
     HeartRate = hr
-    Timestamp = DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)
+    Timestamp = Timestamp.utc 2026 1 1 9 0 0
     Comments = None
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
@@ -187,8 +187,8 @@ let ``SaveFile invokes the onSave callback`` () =
 
 [<Fact>]
 let ``EditSelected picks newest reading first when entries have different timestamps`` () =
-  let older = readingAt 120 80 70 (DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero))
-  let newer = readingAt 130 85 72 (DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero))
+  let older = readingAt 120 80 70 (Timestamp.utc 2026 1 1 9 0 0)
+  let newer = readingAt 130 85 72 (Timestamp.utc 2026 1 2 9 0 0)
   let editedReadings = ResizeArray<BloodPressureReading>()
   let repo = makeRepo [ older; newer ] // older is first in repo
 
@@ -214,8 +214,8 @@ let ``EditSelected picks newest reading first when entries have different timest
 let ``MoveDown moves selection to the next row`` () =
   let repo =
     makeRepo
-      [ readingAt 120 80 70 (DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero))
-        readingAt 130 85 72 (DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)) ]
+      [ readingAt 120 80 70 (Timestamp.utc 2026 1 2 9 0 0)
+        readingAt 130 85 72 (Timestamp.utc 2026 1 1 9 0 0) ]
 
   use win = new ReadingsWindow(app, repo, None, None, None, None, None, None)
   test <@ win.SelectedRow = 0 @>
@@ -226,8 +226,8 @@ let ``MoveDown moves selection to the next row`` () =
 let ``MoveUp moves selection to the previous row`` () =
   let repo =
     makeRepo
-      [ readingAt 120 80 70 (DateTimeOffset(2026, 1, 2, 9, 0, 0, TimeSpan.Zero))
-        readingAt 130 85 72 (DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero)) ]
+      [ readingAt 120 80 70 (Timestamp.utc 2026 1 2 9 0 0)
+        readingAt 130 85 72 (Timestamp.utc 2026 1 1 9 0 0) ]
 
   use win = new ReadingsWindow(app, repo, None, None, None, None, None, None)
   win.MoveDown()
