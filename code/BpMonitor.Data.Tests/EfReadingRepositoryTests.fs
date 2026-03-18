@@ -90,7 +90,7 @@ let ``Add sets CreatedAt and ModifiedAt to current time`` () =
   use ctx = createContext ()
   let repo = EfReadingRepository(ctx, timeProvider) :> IReadingRepository
   repo.Add(sample)
-  let result = repo.GetAll().[0]
+  let result = repo.GetAll()[0]
   test <@ result.CreatedAt = now @>
   test <@ result.ModifiedAt = now @>
 
@@ -121,10 +121,10 @@ let ``AddMany sets CreatedAt and ModifiedAt to current time`` () =
 
   repo.AddMany([ sample; second ])
   let readings = repo.GetAll()
-  test <@ readings.[0].CreatedAt = now @>
-  test <@ readings.[0].ModifiedAt = now @>
-  test <@ readings.[1].CreatedAt = now @>
-  test <@ readings.[1].ModifiedAt = now @>
+  test <@ readings[0].CreatedAt = now @>
+  test <@ readings[0].ModifiedAt = now @>
+  test <@ readings[1].CreatedAt = now @>
+  test <@ readings[1].ModifiedAt = now @>
 
 [<Fact>]
 let ``Update preserves CreatedAt and sets ModifiedAt to current time`` () =
@@ -134,9 +134,9 @@ let ``Update preserves CreatedAt and sets ModifiedAt to current time`` () =
   use ctx = createContext ()
   let repo = EfReadingRepository(ctx, timeProvider) :> IReadingRepository
   repo.Add(sample)
-  let added = repo.GetAll().[0]
+  let added = repo.GetAll()[0]
   timeProvider.SetUtcNow(updatedAt)
   repo.Update({ added with Systolic = 130 })
-  let result = repo.GetAll().[0]
+  let result = repo.GetAll()[0]
   test <@ result.CreatedAt = createdAt @>
   test <@ result.ModifiedAt = updatedAt @>

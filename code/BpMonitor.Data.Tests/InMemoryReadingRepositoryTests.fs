@@ -33,8 +33,8 @@ let ``Add assigns sequential Ids starting at 1`` () =
   repo.Add(sample)
   repo.Add(sample)
   let readings = repo.GetAll()
-  test <@ readings.[0].Id = 1 @>
-  test <@ readings.[1].Id = 2 @>
+  test <@ readings[0].Id = 1 @>
+  test <@ readings[1].Id = 2 @>
 
 [<Fact>]
 let ``AddMany persists all readings`` () =
@@ -57,5 +57,5 @@ let ``AddMany assigns sequential Ids`` () =
 
   repo.AddMany([ sample; second ])
   let readings = repo.GetAll()
-  test <@ readings.[0].Id = 1 @>
-  test <@ readings.[1].Id = 2 @>
+  test <@ readings[0].Id = 1 @>
+  test <@ readings[1].Id = 2 @>
