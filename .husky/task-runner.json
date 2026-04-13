@@ -2,6 +2,15 @@
    "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
    "tasks": [
       {
+         "name": "shellcheck",
+         "group": "pre-commit",
+         "command": "shellcheck",
+         "args": ["${staged}"],
+         "include": ["**/*.sh"],
+         "exclude": [".husky/_/*.sh"],
+         "staged": true
+      },
+      {
          "name": "markdownlint",
          "group": "pre-commit",
          "command": "markdownlint-cli2",
