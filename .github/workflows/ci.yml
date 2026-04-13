@@ -17,6 +17,16 @@ jobs:
       - name: Run markdownlint-cli2
         run: npx markdownlint-cli2 "**/*.md"
 
+  lint-shell:
+    name: Lint Shell
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run shellcheck
+        run: find . -name "*.sh" -not -path "./.husky/_/*" | xargs shellcheck
+
   lint-fsharp:
     name: Lint F#
     runs-on: ubuntu-latest
