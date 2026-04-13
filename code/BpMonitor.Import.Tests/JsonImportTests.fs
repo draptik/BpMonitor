@@ -81,6 +81,30 @@ let ``tryReadFromFile returns Error when file contains invalid JSON`` () =
   test <@ result <> Ok [] @>
 
 [<Fact>]
+let ``ensureFileExists - creates file with empty array when file does not exist`` () =
+  let path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName())
+
+  try
+    ensureFileExists path
+
+    test <@ File.Exists(path) @>
+    test <@ File.ReadAllText(path) = "[]" @>
+  finally
+    File.Delete(path)
+
+[<Fact>]
+let ``ensureFileExists - does not overwrite existing file`` () =
+  let path = Path.GetTempFileName()
+
+  try
+    File.WriteAllText(path, "existing content")
+    ensureFileExists path
+
+    test <@ File.ReadAllText(path) = "existing content" @>
+  finally
+    File.Delete(path)
+
+[<Fact>]
 let ``import - new reading is added to repository`` () =
   let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
 

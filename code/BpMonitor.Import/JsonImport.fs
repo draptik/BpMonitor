@@ -19,6 +19,10 @@ let parse (json: string) : Result<BloodPressureReading list, string> =
   with :? JsonException as ex ->
     Error ex.Message
 
+let ensureFileExists (path: string) : unit =
+  if not (File.Exists(path)) then
+    File.WriteAllText(path, "[]")
+
 let tryReadFromFile (path: string) : Result<BloodPressureReading list, string> =
   try
     Ok(File.ReadAllText(path))

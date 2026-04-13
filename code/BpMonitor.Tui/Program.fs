@@ -184,6 +184,9 @@ let main _ =
   app.Init() |> ignore
   let repository = ReadingRepository.create connectionString
 
+  if not (String.IsNullOrEmpty(exportJsonPath)) then
+    ensureFileExists exportJsonPath
+
   let jsonImportWarning =
     if String.IsNullOrEmpty(exportJsonPath) then
       None
