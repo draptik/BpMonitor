@@ -34,8 +34,16 @@ module Timestamp =
   let utc year month day hour minute second =
     System.DateTimeOffset(year, month, day, hour, minute, second, System.TimeSpan.Zero)
 
+  let local year month day hour minute second =
+    let offset =
+      System.TimeZoneInfo.Local.GetUtcOffset(System.DateTime(year, month, day, hour, minute, second))
+
+    System.DateTimeOffset(year, month, day, hour, minute, second, offset)
+
 module Formats =
   let timestamp = "yyyy-MM-dd HH:mm"
+
+  let formatLocal (ts: System.DateTimeOffset) = ts.ToLocalTime().ToString(timestamp)
 
 module ReadingRanges =
   let defaults =

@@ -102,7 +102,7 @@ let private showReadingDialog
     systolicField.Text <- string reading.Systolic
     diastolicField.Text <- string reading.Diastolic
     heartRateField.Text <- string reading.HeartRate
-    timestampField.Text <- reading.Timestamp.ToLocalTime().ToString(Formats.timestamp)
+    timestampField.Text <- Formats.formatLocal reading.Timestamp
     commentsField.Text <- reading.Comments |> Option.defaultValue ""
   | None -> timestampField.Text <- DateTimeOffset.Now.ToString(Formats.timestamp)
 

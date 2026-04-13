@@ -30,8 +30,7 @@ type ReadingsWindow
       sortedReadings (),
       Dictionary<string, Func<BloodPressureReading, obj>>(
         dict
-          [ " Timestamp",
-            Func<BloodPressureReading, obj>(fun r -> box (r.Timestamp.ToLocalTime().ToString(Formats.timestamp)))
+          [ " Timestamp", Func<BloodPressureReading, obj>(fun r -> box (Formats.formatLocal r.Timestamp))
             "Sys ", Func<BloodPressureReading, obj>(fun r -> box r.Systolic)
             "Dia ", Func<BloodPressureReading, obj>(fun r -> box r.Diastolic)
             "HR ", Func<BloodPressureReading, obj>(fun r -> box r.HeartRate)
