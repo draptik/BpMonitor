@@ -27,8 +27,7 @@ let parseLine (date: DateOnly) (line: string) : BloodPressureReadingUnvalidated 
     let heartRate = int m.Groups[5].Value
     let comment = m.Groups[6].Value.Trim()
 
-    let timestamp =
-      DateTimeOffset(date.Year, date.Month, date.Day, hour, minute, 0, TimeSpan.Zero)
+    let timestamp = Timestamp.local date.Year date.Month date.Day hour minute 0
 
     Some
       { Systolic = systolic

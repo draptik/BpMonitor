@@ -7,6 +7,9 @@ open BpMonitor.Import.MarkdownImport
 open Swensen.Unquote
 open Xunit
 
+let private localTs year month day hour minute =
+  Timestamp.local year month day hour minute 0
+
 [<Fact>]
 let ``parse reading line - no comment`` () =
   let date = DateOnly(2024, 10, 15)
@@ -18,7 +21,7 @@ let ``parse reading line - no comment`` () =
       { Systolic = 131
         Diastolic = 80
         HeartRate = 80
-        Timestamp = Timestamp.utc 2024 10 15 11 0 0
+        Timestamp = localTs 2024 10 15 11 0
         Comments = None }
 
   test <@ result = expected @>
@@ -34,7 +37,7 @@ let ``parse reading line - with comment`` () =
       { Systolic = 123
         Diastolic = 89
         HeartRate = 98
-        Timestamp = Timestamp.utc 2024 10 19 19 15 0
+        Timestamp = localTs 2024 10 19 19 15
         Comments = Some "evening" }
 
   test <@ result = expected @>
@@ -65,17 +68,17 @@ let ``parse markdown - multiple dates and readings`` () =
     [ { Systolic = 131
         Diastolic = 80
         HeartRate = 80
-        Timestamp = Timestamp.utc 2024 10 15 11 0 0
+        Timestamp = localTs 2024 10 15 11 0
         Comments = None }
       { Systolic = 125
         Diastolic = 76
         HeartRate = 75
-        Timestamp = Timestamp.utc 2024 10 15 12 0 0
+        Timestamp = localTs 2024 10 15 12 0
         Comments = None }
       { Systolic = 118
         Diastolic = 74
         HeartRate = 70
-        Timestamp = Timestamp.utc 2024 10 16 9 30 0
+        Timestamp = localTs 2024 10 16 9 30
         Comments = None } ]
 
   test <@ result = expected @>
@@ -100,22 +103,22 @@ let ``parse markdown - full sample from issue`` () =
     [ { Systolic = 108
         Diastolic = 72
         HeartRate = 65
-        Timestamp = Timestamp.utc 2024 10 17 6 15 0
+        Timestamp = localTs 2024 10 17 6 15
         Comments = None }
       { Systolic = 123
         Diastolic = 89
         HeartRate = 98
-        Timestamp = Timestamp.utc 2024 10 18 9 45 0
+        Timestamp = localTs 2024 10 18 9 45
         Comments = None }
       { Systolic = 123
         Diastolic = 89
         HeartRate = 98
-        Timestamp = Timestamp.utc 2024 10 19 9 45 0
+        Timestamp = localTs 2024 10 19 9 45
         Comments = Some "morning" }
       { Systolic = 123
         Diastolic = 89
         HeartRate = 98
-        Timestamp = Timestamp.utc 2024 10 19 19 15 0
+        Timestamp = localTs 2024 10 19 19 15
         Comments = Some "evening" } ]
 
   test <@ result = expected @>
@@ -133,7 +136,7 @@ let ``parse markdown - trailing date line without readings is ignored`` () =
     [ { Systolic = 131
         Diastolic = 80
         HeartRate = 80
-        Timestamp = Timestamp.utc 2024 10 15 11 0 0
+        Timestamp = localTs 2024 10 15 11 0
         Comments = None } ]
 
   test <@ result = expected @>
@@ -151,7 +154,7 @@ let ``parse markdown - reading without preceding date is ignored`` () =
     [ { Systolic = 125
         Diastolic = 76
         HeartRate = 75
-        Timestamp = Timestamp.utc 2024 10 15 12 0 0
+        Timestamp = localTs 2024 10 15 12 0
         Comments = None } ]
 
   test <@ result = expected @>
@@ -167,7 +170,7 @@ let ``parse reading line - multi-word comment`` () =
       { Systolic = 123
         Diastolic = 89
         HeartRate = 98
-        Timestamp = Timestamp.utc 2024 10 15 9 45 0
+        Timestamp = localTs 2024 10 15 9 45
         Comments = Some "after morning coffee" }
 
   test <@ result = expected @>
@@ -183,7 +186,7 @@ let ``parse reading line - single-digit hour with dot separator`` () =
       { Systolic = 108
         Diastolic = 72
         HeartRate = 65
-        Timestamp = Timestamp.utc 2024 10 17 6 15 0
+        Timestamp = localTs 2024 10 17 6 15
         Comments = None }
 
   test <@ result = expected @>
@@ -222,7 +225,7 @@ let ``import - new valid reading is added to repository`` () =
     { Systolic = 120
       Diastolic = 80
       HeartRate = 70
-      Timestamp = Timestamp.utc 2024 10 15 9 0 0
+      Timestamp = localTs 2024 10 15 9 0
       Comments = None }
 
   let result =
@@ -239,7 +242,7 @@ let ``import - existing reading with same timestamp is updated`` () =
       Systolic = 110
       Diastolic = 70
       HeartRate = 60
-      Timestamp = Timestamp.utc 2024 10 15 9 0 0
+      Timestamp = localTs 2024 10 15 9 0
       Comments = None
       CreatedAt = DateTimeOffset.MinValue
       ModifiedAt = DateTimeOffset.MinValue }
@@ -250,7 +253,7 @@ let ``import - existing reading with same timestamp is updated`` () =
     { Systolic = 120
       Diastolic = 80
       HeartRate = 70
-      Timestamp = Timestamp.utc 2024 10 15 9 0 0
+      Timestamp = localTs 2024 10 15 9 0
       Comments = None }
 
   let result =
@@ -269,14 +272,14 @@ let ``import - invalid reading is captured in Failed, valid ones still imported`
     { Systolic = 0
       Diastolic = 80
       HeartRate = 70
-      Timestamp = Timestamp.utc 2024 10 15 9 0 0
+      Timestamp = localTs 2024 10 15 9 0
       Comments = None }
 
   let valid =
     { Systolic = 120
       Diastolic = 80
       HeartRate = 70
-      Timestamp = Timestamp.utc 2024 10 15 10 0 0
+      Timestamp = localTs 2024 10 15 10 0
       Comments = None }
 
   let result =

@@ -7,7 +7,7 @@ module BpChart =
   let toHtml (readings: BloodPressureReading list) : string =
     let readings = readings |> List.sortBy _.Timestamp
 
-    let timestamps = readings |> List.map _.Timestamp.ToString(Formats.timestamp)
+    let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
 
     let systolic = readings |> List.map _.Systolic
     let diastolic = readings |> List.map _.Diastolic
@@ -19,7 +19,7 @@ module BpChart =
       if commented.IsEmpty then
         []
       else
-        let cTimestamps = commented |> List.map _.Timestamp.ToString(Formats.timestamp)
+        let cTimestamps = commented |> List.map (_.Timestamp >> Formats.formatLocal)
         let cSystolic = commented |> List.map _.Systolic
         let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
 
