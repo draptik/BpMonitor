@@ -17,7 +17,7 @@ code/
 ├── BpMonitor.Export.Tests   # Tests for Export
 ├── BpMonitor.Tui            # Terminal.Gui v2 app (data entry + list view + import)
 ├── BpMonitor.Tui.Tests      # Tests for TUI layer
-└── BpMonitor.ArchTests      # ArchUnit tests enforcing Clean Architecture rules
+└── BpMonitor.Arch.Tests      # ArchUnit tests enforcing Clean Architecture rules
 ```
 
 ## Tech Stack
@@ -31,7 +31,7 @@ code/
 | Charting | Plotly.NET — generates interactive HTML, opens in default browser |
 | Validation | `FsToolkit.ErrorHandling` — applicative validation with `Validation<'ok, 'err>` |
 | Architecture | Clean Architecture (Core has zero dependencies on other projects) |
-| Architecture tests | ArchUnit (via `BpMonitor.ArchTests`) |
+| Architecture tests | ArchUnit (via `BpMonitor.Arch.Tests`) |
 
 ## Data Model
 
@@ -126,7 +126,7 @@ graph TD
 - Delegates to Core for validation, Data for persistence, Import for file import, Charts for visualisation, Export for JSON backup
 - References Core + Data + Import + Charts + Export
 
-### BpMonitor.ArchTests
+### BpMonitor.Arch.Tests
 
 - ArchUnit rules enforcing Clean Architecture layer boundaries
 - Core must not depend on Data, Tui
