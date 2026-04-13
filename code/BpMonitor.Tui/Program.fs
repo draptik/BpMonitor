@@ -9,6 +9,7 @@ open Terminal.Gui.ViewBase
 open Terminal.Gui.Views
 open System.Diagnostics
 open System.IO
+open Serilog
 open BpMonitor.Charts
 open BpMonitor.Core
 open BpMonitor.Data
@@ -176,93 +177,124 @@ let main _ =
       .AddJsonFile("appsettings.json", optional = false, reloadOnChange = false)
       .Build()
 
-  let connectionString = config.GetConnectionString("DefaultConnection")
-  let ranges = readRanges config
-  let exportJsonPath = config["Export:JsonPath"]
-  let importMarkdownDirectory = config["Import:MarkdownDirectory"]
-
-  use app = Application.Create()
-  app.Init() |> ignore
-  let repository = ReadingRepository.create connectionString
-
-  if not (String.IsNullOrEmpty(exportJsonPath)) then
-    ensureFileExists exportJsonPath
-
-  let jsonImportWarning =
-    if String.IsNullOrEmpty(exportJsonPath) then
-      None
-    else
-      match tryReadFromFile exportJsonPath with
-      | Error msg -> Some msg
-      | Ok jsonReadings ->
-        let existingIds = repository.GetAll() |> List.map _.Id |> Set.ofList
-
-        let newReadings =
-          jsonReadings |> List.filter (fun r -> not (existingIds.Contains(r.Id)))
-
-        if not newReadings.IsEmpty then
-          repository.AddMany(newReadings)
-
-        None
-
-  let showChart readings =
-    let path = Path.Combine(Path.GetTempPath(), "bpchart.html")
-    File.WriteAllText(path, BpChart.toHtml readings)
-
-    Process.Start(ProcessStartInfo("xdg-open", path, UseShellExecute = true))
-    |> ignore
-
-    MessageBox.Query(app, "Chart", "Switch to your default browser to view the chart.", "OK")
-    |> ignore
-
-  let showImportDialog () =
-    let dialog =
-      new OpenDialog(Title = "Import from Markdown", AllowsMultipleSelection = false)
-
-    if not (String.IsNullOrEmpty(importMarkdownDirectory)) then
-      dialog.Path <- importMarkdownDirectory
-
-    app.Run(dialog) |> ignore
-
-    if dialog.Canceled then
-      None
-    else
-      let path = string dialog.Path
-
-      if String.IsNullOrEmpty(path) then
-        None
-      else
-        let content = File.ReadAllText(path)
-        let unvalidated = parseMarkdown content
-        Some(import repository ranges unvalidated)
-
-  let onSave () =
-    if String.IsNullOrEmpty(exportJsonPath) then
-      Error "No export path configured."
-    else
-      tryWriteToFile exportJsonPath (repository.GetAll())
-
-  use win =
-    new BpMonitor.Tui.ReadingsWindow(
-      app,
-      repository,
-      Some(fun () -> app.RequestStop()),
-      Some(showAddDialog app ranges),
-      Some(showEditDialog app ranges),
-      Some showChart,
-      Some showImportDialog,
-      Some onSave
+  let defaultLogPath =
+    Path.Combine(
+      Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+      "bpmonitor",
+      "bpmonitor.log"
     )
 
-  jsonImportWarning
-  |> Option.iter (fun msg ->
-    app.Invoke(fun () -> MessageBox.ErrorQuery(app, "JSON Import Warning", msg, "OK") |> ignore))
+  let logPath =
+    match config["Logging:FilePath"] with
+    | null
+    | "" -> defaultLogPath
+    | configured -> configured
 
-  app.Run(win) |> ignore
+  Log.Logger <-
+    LoggerConfiguration()
+      .WriteTo.File(logPath, rollingInterval = RollingInterval.Month, retainedFileCountLimit = 3)
+      .CreateLogger()
 
-  if not (String.IsNullOrEmpty(exportJsonPath)) then
-    match tryWriteToFile exportJsonPath (repository.GetAll()) with
-    | Ok() -> ()
-    | Error msg -> eprintfn $"JSON export failed: {msg}"
+  try
+    Log.Information("Starting BpMonitor")
 
-  0
+    let connectionString = config.GetConnectionString("DefaultConnection")
+    let ranges = readRanges config
+    let exportJsonPath = config["Export:JsonPath"]
+    let importMarkdownDirectory = config["Import:MarkdownDirectory"]
+
+    use app = Application.Create()
+    app.Init() |> ignore
+    let repository = ReadingRepository.create connectionString
+
+    if not (String.IsNullOrEmpty(exportJsonPath)) then
+      ensureFileExists exportJsonPath
+
+    let jsonImportWarning =
+      if String.IsNullOrEmpty(exportJsonPath) then
+        None
+      else
+        match tryReadFromFile exportJsonPath with
+        | Error msg -> Some msg
+        | Ok jsonReadings ->
+          let existingIds = repository.GetAll() |> List.map _.Id |> Set.ofList
+
+          let newReadings =
+            jsonReadings |> List.filter (fun r -> not (existingIds.Contains(r.Id)))
+
+          if not newReadings.IsEmpty then
+            repository.AddMany(newReadings)
+
+          None
+
+    let showChart readings =
+      let path = Path.Combine(Path.GetTempPath(), "bpchart.html")
+      File.WriteAllText(path, BpChart.toHtml readings)
+
+      Process.Start(ProcessStartInfo("xdg-open", path, UseShellExecute = true))
+      |> ignore
+
+      MessageBox.Query(app, "Chart", "Switch to your default browser to view the chart.", "OK")
+      |> ignore
+
+    let showImportDialog () =
+      let dialog =
+        new OpenDialog(Title = "Import from Markdown", AllowsMultipleSelection = false)
+
+      if not (String.IsNullOrEmpty(importMarkdownDirectory)) then
+        dialog.Path <- importMarkdownDirectory
+
+      app.Run(dialog) |> ignore
+
+      if dialog.Canceled then
+        None
+      else
+        let path = string dialog.Path
+
+        if String.IsNullOrEmpty(path) then
+          None
+        else
+          let content = File.ReadAllText(path)
+          let unvalidated = parseMarkdown content
+          Some(import repository ranges unvalidated)
+
+    let onSave () =
+      if String.IsNullOrEmpty(exportJsonPath) then
+        Error "No export path configured."
+      else
+        tryWriteToFile exportJsonPath (repository.GetAll())
+
+    use win =
+      new BpMonitor.Tui.ReadingsWindow(
+        app,
+        repository,
+        Some(fun () -> app.RequestStop()),
+        Some(showAddDialog app ranges),
+        Some(showEditDialog app ranges),
+        Some showChart,
+        Some showImportDialog,
+        Some onSave
+      )
+
+    jsonImportWarning
+    |> Option.iter (fun msg ->
+      app.Invoke(fun () -> MessageBox.ErrorQuery(app, "JSON Import Warning", msg, "OK") |> ignore))
+
+    app.Run(win) |> ignore
+
+    if not (String.IsNullOrEmpty(exportJsonPath)) then
+      match tryWriteToFile exportJsonPath (repository.GetAll()) with
+      | Ok() -> ()
+      | Error msg ->
+        Log.Error("JSON export failed: {Message}", msg)
+        eprintfn $"JSON export failed: {msg}"
+
+    Log.Information("BpMonitor exiting normally")
+    0
+  with ex ->
+    Log.Fatal(ex, "Unhandled exception")
+
+    reraise ()
+    |> fun exitCode ->
+      Log.CloseAndFlush()
+      exitCode
