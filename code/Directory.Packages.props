@@ -3,7 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup Label="Tui">
-    <PackageVersion Include="Terminal.Gui" Version="2.0.0-develop.5100" />
+    <PackageVersion Include="Terminal.Gui" Version="2.0.0-develop.5260" />
   </ItemGroup>
   <ItemGroup Label="Charts">
     <PackageVersion Include="Plotly.NET" Version="5.1.0" />
