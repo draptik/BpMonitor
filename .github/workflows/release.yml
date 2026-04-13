@@ -38,5 +38,7 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: code/publish/bpmonitor
+          files: |
+            code/publish/bpmonitor
+            code/publish/appsettings.json
           generate_release_notes: true
