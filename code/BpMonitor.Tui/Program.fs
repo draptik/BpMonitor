@@ -242,7 +242,8 @@ let main _ =
         new OpenDialog(Title = "Import from Markdown", AllowsMultipleSelection = false)
 
       if not (String.IsNullOrEmpty(importMarkdownDirectory)) then
-        dialog.Path <- importMarkdownDirectory
+        let home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+        dialog.Path <- importMarkdownDirectory.Replace("~", home)
 
       app.Run(dialog) |> ignore
 
