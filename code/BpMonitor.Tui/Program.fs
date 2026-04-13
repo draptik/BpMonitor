@@ -179,6 +179,7 @@ let main _ =
   let connectionString = config.GetConnectionString("DefaultConnection")
   let ranges = readRanges config
   let exportJsonPath = config["Export:JsonPath"]
+  let importMarkdownDirectory = config["Import:MarkdownDirectory"]
 
   use app = Application.Create()
   app.Init() |> ignore
@@ -217,6 +218,9 @@ let main _ =
   let showImportDialog () =
     let dialog =
       new OpenDialog(Title = "Import from Markdown", AllowsMultipleSelection = false)
+
+    if not (String.IsNullOrEmpty(importMarkdownDirectory)) then
+      dialog.Path <- importMarkdownDirectory
 
     app.Run(dialog) |> ignore
 
