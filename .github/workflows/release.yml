@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Publish single executable
+        run: >
+          dotnet publish BpMonitor.Tui/BpMonitor.Tui.fsproj
+          --configuration Release
+          --runtime linux-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=none
+          --output ./publish
+        working-directory: code
+
+      - name: Rename binary
+        run: mv code/publish/BpMonitor.Tui code/publish/bpmonitor
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: code/publish/bpmonitor
+          generate_release_notes: true
