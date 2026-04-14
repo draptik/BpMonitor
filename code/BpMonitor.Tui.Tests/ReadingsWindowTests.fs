@@ -36,12 +36,34 @@ let private makeRepo (initial: BloodPressureReading list) =
       member _.Update(r) =
         data <- data |> List.map (fun x -> if x.Id = r.Id then r else x) }
 
+type private Callbacks =
+  { OnQuit: (unit -> unit) option
+    OnAdd: (unit -> BloodPressureReading option) option
+    OnEdit: (BloodPressureReading -> BloodPressureReading option) option
+    OnChart: (BloodPressureReading list -> unit) option
+    OnImport: (unit -> ImportSummary option) option
+    OnSave: (unit -> Result<unit, string>) option }
+
+let private noCallbacks =
+  { OnQuit = None
+    OnAdd = None
+    OnEdit = None
+    OnChart = None
+    OnImport = None
+    OnSave = None }
+
+let private makeWin repo (cb: Callbacks) =
+  new ReadingsWindow(app, repo, cb.OnQuit, cb.OnAdd, cb.OnEdit, cb.OnChart, cb.OnImport, cb.OnSave)
+
 [<Fact>]
 let ``pressing Esc invokes the onQuit callback`` () =
   let quitCalls = ResizeArray<unit>()
 
   use win =
-    new ReadingsWindow(app, makeRepo [], Some(fun () -> quitCalls.Add(())), None, None, None, None, None)
+    makeWin
+      (makeRepo [])
+      { noCallbacks with
+          OnQuit = Some(fun () -> quitCalls.Add(())) }
 
   win.NewKeyDownEvent(Key.Esc) |> ignore
   test <@ quitCalls.Count = 1 @>
@@ -49,12 +71,12 @@ let ``pressing Esc invokes the onQuit callback`` () =
 [<Fact>]
 let ``window Readings reflect repository contents`` () =
   let repo = makeRepo [ reading 120 80 70; reading 130 85 72 ]
-  use win = new ReadingsWindow(app, repo, None, None, None, None, None, None)
+  use win = makeWin repo noCallbacks
   test <@ win.Readings.Length = 2 @>
 
 [<Fact>]
 let ``window Readings are empty when repository is empty`` () =
-  use win = new ReadingsWindow(app, makeRepo [], None, None, None, None, None, None)
+  use win = makeWin (makeRepo []) noCallbacks
   test <@ win.Readings.Length = 0 @>
 
 [<Fact>]
@@ -62,18 +84,13 @@ let ``AddNew invokes the onAdd callback`` () =
   let addCalls = ResizeArray<unit>()
 
   use win =
-    new ReadingsWindow(
-      app,
-      makeRepo [],
-      None,
-      Some(fun () ->
-        addCalls.Add(())
-        None),
-      None,
-      None,
-      None,
-      None
-    )
+    makeWin
+      (makeRepo [])
+      { noCallbacks with
+          OnAdd =
+            Some(fun () ->
+              addCalls.Add(())
+              None) }
 
   win.AddNew()
   test <@ addCalls.Count = 1 @>
@@ -84,7 +101,10 @@ let ``when onAdd returns a reading it is added to the repository`` () =
   let newReading = reading 120 80 70
 
   use win =
-    new ReadingsWindow(app, repo, None, Some(fun () -> Some newReading), None, None, None, None)
+    makeWin
+      repo
+      { noCallbacks with
+          OnAdd = Some(fun () -> Some newReading) }
 
   win.AddNew()
   test <@ win.Readings = [ newReading ] @>
@@ -95,18 +115,13 @@ let ``EditSelected invokes the onEdit callback with the selected reading`` () =
   let repo = makeRepo [ reading 120 80 70; reading 130 85 72 ]
 
   use win =
-    new ReadingsWindow(
-      app,
-      repo,
-      None,
-      None,
-      Some(fun r ->
-        editedReadings.Add(r)
-        None),
-      None,
-      None,
-      None
-    )
+    makeWin
+      repo
+      { noCallbacks with
+          OnEdit =
+            Some(fun r ->
+              editedReadings.Add(r)
+              None) }
 
   win.EditSelected()
   test <@ editedReadings.Count = 1 && editedReadings[0] = reading 120 80 70 @>
@@ -116,18 +131,13 @@ let ``EditSelected with empty list does not invoke the onEdit callback`` () =
   let editedReadings = ResizeArray<BloodPressureReading>()
 
   use win =
-    new ReadingsWindow(
-      app,
-      makeRepo [],
-      None,
-      None,
-      Some(fun r ->
-        editedReadings.Add(r)
-        None),
-      None,
-      None,
-      None
-    )
+    makeWin
+      (makeRepo [])
+      { noCallbacks with
+          OnEdit =
+            Some(fun r ->
+              editedReadings.Add(r)
+              None) }
 
   win.EditSelected()
   test <@ editedReadings.Count = 0 @>
@@ -138,7 +148,10 @@ let ``when onEdit returns an updated reading the repository is updated`` () =
   let updated = reading 135 88 75
 
   use win =
-    new ReadingsWindow(app, repo, None, None, Some(fun _ -> Some updated), None, None, None)
+    makeWin
+      repo
+      { noCallbacks with
+          OnEdit = Some(fun _ -> Some updated) }
 
   win.EditSelected()
   test <@ win.Readings = [ updated ] @>
@@ -148,7 +161,10 @@ let ``ShowChart invokes the onChart callback`` () =
   let chartCalls = ResizeArray<unit>()
 
   use win =
-    new ReadingsWindow(app, makeRepo [], None, None, None, Some(fun _ -> chartCalls.Add(())), None, None)
+    makeWin
+      (makeRepo [])
+      { noCallbacks with
+          OnChart = Some(fun _ -> chartCalls.Add(())) }
 
   win.ShowChart()
   test <@ chartCalls.Count = 1 @>
@@ -159,7 +175,10 @@ let ``onChart callback receives all readings from the repository`` () =
   let repo = makeRepo [ reading 120 80 70; reading 130 85 72 ]
 
   use win =
-    new ReadingsWindow(app, repo, None, None, None, Some(fun rs -> capturedReadings.Add(rs)), None, None)
+    makeWin
+      repo
+      { noCallbacks with
+          OnChart = Some(fun rs -> capturedReadings.Add(rs)) }
 
   win.ShowChart()
   test <@ capturedReadings.Count = 1 && capturedReadings[0] = repo.GetAll() @>
@@ -169,18 +188,13 @@ let ``SaveFile invokes the onSave callback`` () =
   let saveCalls = ResizeArray<unit>()
 
   use win =
-    new ReadingsWindow(
-      app,
-      makeRepo [],
-      None,
-      None,
-      None,
-      None,
-      None,
-      Some(fun () ->
-        saveCalls.Add(())
-        Ok())
-    )
+    makeWin
+      (makeRepo [])
+      { noCallbacks with
+          OnSave =
+            Some(fun () ->
+              saveCalls.Add(())
+              Ok()) }
 
   win.SaveFile()
   test <@ saveCalls.Count = 1 @>
@@ -193,18 +207,13 @@ let ``EditSelected picks newest reading first when entries have different timest
   let repo = makeRepo [ older; newer ] // older is first in repo
 
   use win =
-    new ReadingsWindow(
-      app,
-      repo,
-      None,
-      None,
-      Some(fun r ->
-        editedReadings.Add(r)
-        None),
-      None,
-      None,
-      None
-    )
+    makeWin
+      repo
+      { noCallbacks with
+          OnEdit =
+            Some(fun r ->
+              editedReadings.Add(r)
+              None) }
 
   // row 0 should map to newest reading (sorted descending)
   win.EditSelected()
@@ -217,7 +226,7 @@ let ``MoveDown moves selection to the next row`` () =
       [ readingAt 120 80 70 (Timestamp.utc 2026 1 2 9 0 0)
         readingAt 130 85 72 (Timestamp.utc 2026 1 1 9 0 0) ]
 
-  use win = new ReadingsWindow(app, repo, None, None, None, None, None, None)
+  use win = makeWin repo noCallbacks
   test <@ win.SelectedRow = 0 @>
   win.MoveDown()
   test <@ win.SelectedRow = 1 @>
@@ -229,7 +238,7 @@ let ``MoveUp moves selection to the previous row`` () =
       [ readingAt 120 80 70 (Timestamp.utc 2026 1 2 9 0 0)
         readingAt 130 85 72 (Timestamp.utc 2026 1 1 9 0 0) ]
 
-  use win = new ReadingsWindow(app, repo, None, None, None, None, None, None)
+  use win = makeWin repo noCallbacks
   win.MoveDown()
   test <@ win.SelectedRow = 1 @>
   win.MoveUp()
@@ -238,14 +247,14 @@ let ``MoveUp moves selection to the previous row`` () =
 [<Fact>]
 let ``MoveDown at the last row stays at the last row`` () =
   let repo = makeRepo [ reading 120 80 70 ]
-  use win = new ReadingsWindow(app, repo, None, None, None, None, None, None)
+  use win = makeWin repo noCallbacks
   win.MoveDown()
   test <@ win.SelectedRow = 0 @>
 
 [<Fact>]
 let ``MoveUp at the first row stays at the first row`` () =
   let repo = makeRepo [ reading 120 80 70 ]
-  use win = new ReadingsWindow(app, repo, None, None, None, None, None, None)
+  use win = makeWin repo noCallbacks
   win.MoveUp()
   test <@ win.SelectedRow = 0 @>
 
@@ -254,18 +263,13 @@ let ``ImportFile invokes the onImport callback`` () =
   let importCalls = ResizeArray<unit>()
 
   use win =
-    new ReadingsWindow(
-      app,
-      makeRepo [],
-      None,
-      None,
-      None,
-      None,
-      Some(fun () ->
-        importCalls.Add(())
-        None),
-      None
-    )
+    makeWin
+      (makeRepo [])
+      { noCallbacks with
+          OnImport =
+            Some(fun () ->
+              importCalls.Add(())
+              None) }
 
   win.ImportFile()
   test <@ importCalls.Count = 1 @>
