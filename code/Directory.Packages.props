@@ -14,16 +14,16 @@
     <PackageVersion Include="Verify.XunitV3" Version="31.15.0" />
   </ItemGroup>
   <ItemGroup Label="FSharp">
-    <PackageVersion Include="FSharp.Core" Version="10.1.201" />
+    <PackageVersion Include="FSharp.Core" Version="10.1.202" />
     <PackageVersion Include="FsToolkit.ErrorHandling" Version="5.2.0" />
     <PackageVersion Include="FSharp.SystemTextJson" Version="1.4.36" />
   </ItemGroup>
   <ItemGroup Label="Data">
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.6" />
   </ItemGroup>
   <ItemGroup Label="Configuration">
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.6" />
   </ItemGroup>
   <ItemGroup Label="Test">
     <PackageVersion Include="Unquote" Version="7.0.1" />
@@ -31,7 +31,7 @@
   </ItemGroup>
   <ItemGroup Label="Test - xunit">
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
-    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.4.0" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.5.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="coverlet.collector" Version="8.0.1" />
