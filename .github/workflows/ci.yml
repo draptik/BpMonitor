@@ -85,7 +85,7 @@ jobs:
         run: cat code/CoverageReport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
 
       - name: Post coverage comment on PR
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         if: github.event_name == 'pull_request'
         with:
           path: code/CoverageReport/SummaryGithub.md
