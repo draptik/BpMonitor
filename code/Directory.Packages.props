@@ -5,7 +5,7 @@
   <ItemGroup Label="Tui">
     <PackageVersion Include="Serilog" Version="4.3.1" />
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
-    <PackageVersion Include="Terminal.Gui" Version="2.0.0-develop.5264" />
+    <PackageVersion Include="Terminal.Gui" Version="2.0.0-develop.5281" />
   </ItemGroup>
   <ItemGroup Label="Charts">
     <PackageVersion Include="Plotly.NET" Version="5.1.0" />
