@@ -103,17 +103,45 @@ type ReadingsWindow
 
   member _.Readings = repository.GetAll()
 
-  member _.SelectedRow = tableView.SelectedRow
+  member _.SelectedRow =
+    if isNull tableView.Value then
+      0
+    else
+      tableView.Value.Cursor.Y
 
   member _.MoveDown() =
     let maxRow = tableView.Table.Rows - 1
 
-    if tableView.SelectedRow < maxRow then
-      tableView.SelectedRow <- tableView.SelectedRow + 1
+    let currentRow =
+      if isNull tableView.Value then
+        0
+      else
+        tableView.Value.Cursor.Y
+
+    if currentRow < maxRow then
+      let currentX =
+        if isNull tableView.Value then
+          0
+        else
+          tableView.Value.Cursor.X
+
+      tableView.Value <- TableSelection(Drawing.Point(currentX, currentRow + 1))
 
   member _.MoveUp() =
-    if tableView.SelectedRow > 0 then
-      tableView.SelectedRow <- tableView.SelectedRow - 1
+    let currentRow =
+      if isNull tableView.Value then
+        0
+      else
+        tableView.Value.Cursor.Y
+
+    if currentRow > 0 then
+      let currentX =
+        if isNull tableView.Value then
+          0
+        else
+          tableView.Value.Cursor.X
+
+      tableView.Value <- TableSelection(Drawing.Point(currentX, currentRow - 1))
 
   member _.AddNew() =
     onAdd
@@ -161,7 +189,11 @@ type ReadingsWindow
   member _.EditSelected() =
     let readings = sortedReadings ()
 
-    let row = tableView.SelectedRow
+    let row =
+      if isNull tableView.Value then
+        -1
+      else
+        tableView.Value.Cursor.Y
 
     if readings.Length > 0 && row >= 0 && row < readings.Length then
       let selected = readings |> List.item row
