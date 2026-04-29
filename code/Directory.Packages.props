@@ -11,7 +11,7 @@
     <PackageVersion Include="Plotly.NET" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup Label="Test - Verify">
-    <PackageVersion Include="Verify.XunitV3" Version="31.16.1" />
+    <PackageVersion Include="Verify.XunitV3" Version="31.16.2" />
   </ItemGroup>
   <ItemGroup Label="FSharp">
     <PackageVersion Include="FSharp.Core" Version="10.1.203" />
