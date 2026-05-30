@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/SolutionFolder/">
+    <File Path="BpMonitor.slnx" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="dotnet-tools.json" />
+  </Folder>
   <Project Path="BpMonitor.Arch.Tests/BpMonitor.Arch.Tests.fsproj" />
   <Project Path="BpMonitor.Charts/BpMonitor.Charts.fsproj" />
   <Project Path="BpMonitor.Charts.Tests/BpMonitor.Charts.Tests.fsproj" />
