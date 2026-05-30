@@ -107,7 +107,7 @@ type ReadingsWindow
     if isNull tableView.Value then
       0
     else
-      tableView.Value.Cursor.Y
+      tableView.Value.SelectedCell.Y
 
   member _.MoveDown() =
     let maxRow = tableView.Table.Rows - 1
@@ -116,14 +116,14 @@ type ReadingsWindow
       if isNull tableView.Value then
         0
       else
-        tableView.Value.Cursor.Y
+        tableView.Value.SelectedCell.Y
 
     if currentRow < maxRow then
       let currentX =
         if isNull tableView.Value then
           0
         else
-          tableView.Value.Cursor.X
+          tableView.Value.SelectedCell.X
 
       tableView.Value <- TableSelection(Drawing.Point(currentX, currentRow + 1))
 
@@ -132,14 +132,14 @@ type ReadingsWindow
       if isNull tableView.Value then
         0
       else
-        tableView.Value.Cursor.Y
+        tableView.Value.SelectedCell.Y
 
     if currentRow > 0 then
       let currentX =
         if isNull tableView.Value then
           0
         else
-          tableView.Value.Cursor.X
+          tableView.Value.SelectedCell.X
 
       tableView.Value <- TableSelection(Drawing.Point(currentX, currentRow - 1))
 
@@ -193,7 +193,7 @@ type ReadingsWindow
       if isNull tableView.Value then
         -1
       else
-        tableView.Value.Cursor.Y
+        tableView.Value.SelectedCell.Y
 
     if readings.Length > 0 && row >= 0 && row < readings.Length then
       let selected = readings |> List.item row
