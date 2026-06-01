@@ -37,6 +37,31 @@ Run with `-h` for full usage:
 curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -h
 ```
 
+## Web UI
+
+The web frontend ships as a self-contained bundle on the same release. It needs
+no .NET runtime; the single-file executable carries its own `wwwroot/` static
+assets and `appsettings.json`.
+
+```bash
+LATEST=$(curl -fsSL https://api.github.com/repos/draptik/BpMonitor/releases/latest | grep tag_name | cut -d'"' -f4)
+curl -fsSL "https://github.com/draptik/BpMonitor/releases/download/$LATEST/bpmonitor-web-linux-x64.tar.gz" -o bpmonitor-web.tar.gz
+mkdir -p ~/.local/bin/bpweb && tar -xzf bpmonitor-web.tar.gz -C ~/.local/bin/bpweb
+~/.local/bin/bpweb/bpmonitor-web
+```
+
+The server binds `http://0.0.0.0:5000` (configured via the bundled
+`appsettings.json`). Override the database location with the
+`ConnectionStrings__DefaultConnection` environment variable:
+
+```bash
+ConnectionStrings__DefaultConnection="Data Source=$HOME/.local/share/bpmonitor/bpmonitor.db" \
+  ~/.local/bin/bpweb/bpmonitor-web
+```
+
+For a containerized deployment instead, see the Podman `Containerfile` and the
+systemd Quadlet units under `deploy/`.
+
 ## Helper scripts
 
 `docs/scripts/` contains convenience scripts for managing a local installation.
