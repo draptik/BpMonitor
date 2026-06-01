@@ -41,7 +41,7 @@
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
   </ItemGroup>
   <ItemGroup Label="Test - PBT">
-    <PackageVersion Include="FsCheck" Version="3.3.2" />
+    <PackageVersion Include="FsCheck" Version="3.3.3" />
     <PackageVersion Include="FsCheck.Xunit.v3" Version="3.3.2" />
   </ItemGroup>
 </Project>
