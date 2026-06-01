@@ -7,6 +7,10 @@
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageVersion Include="Terminal.Gui" Version="2.4.3" />
   </ItemGroup>
+  <ItemGroup Label="Web">
+    <PackageVersion Include="Falco" Version="5.2.0" />
+    <PackageVersion Include="Falco.Markup" Version="1.4.0" />
+  </ItemGroup>
   <ItemGroup Label="Charts">
     <PackageVersion Include="Plotly.NET" Version="5.1.0" />
   </ItemGroup>
