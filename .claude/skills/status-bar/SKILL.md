@@ -27,7 +27,6 @@ The Claude Code status bar displays real-time AI session information at the bott
 | Vim mode | Only shown when vim mode is active |
 | Agent name | Only shown when started with `--agent` flag |
 | Git branch | Current branch, prefixed with `*` if dirty |
-| Active persona | Read from `~/.claude/current-persona`; always shown when the file exists |
 
 ## Example Output
 

@@ -4,27 +4,35 @@
 
 A personal blood pressure monitoring app. See `docs/vision.md` for full product vision and `docs/architecture.md` for technical decisions.
 
-## Personas
+## Working Rules
 
-**At the start of every session, read this file unconditionally:**
+These rules are always in effect — follow them for any related action.
 
-- `docs/personas/tdd-sideshow-bob.md` — TDD rules apply to all code changes
+### Test-Driven Development
 
-All persona rules are **always in effect** — read the relevant persona file before any related action and follow every rule in it without exception. Ignorance of a rule is not an excuse.
+All code changes follow strict TDD (Red → Green → Refactor):
 
-| Persona | File | Model |
-| --- | --- | --- |
-| Product Visionary (Lisa) | `docs/personas/product-visionary-lisa.md` | Haiku 4.5 |
-| Architect (Professor Frink) | `docs/personas/architect-frink.md` | Opus 4.8 |
-| Senior Developer / TDD (Sideshow Bob) | `docs/personas/tdd-sideshow-bob.md` | Sonnet 4.6 |
+1. **Red:** Write the smallest failing test that describes the desired behavior
+2. **Green:** Write the minimum code to make the test pass — no more
+3. **Refactor:** Clean up without changing behavior; tests still pass
 
-To switch: *"Switch to the Architect persona"* or reference the file directly.
+- NEVER write implementation code before a failing test exists
+- Tests drive design — if something is hard to test, the design is wrong
+- Each test must have a single, clear reason to fail
+- After writing a test, **pause and ask whether it captures the right behavior** before implementing
+- Keep the loop tight: one test → one implementation step at a time
+- Do not gold-plate: implement only what the test requires
+- Edge cases emerge as the suite grows — don't enumerate them all upfront
 
-When switching to a persona, write the character name to `~/.claude/current-persona` so the status bar reflects it. Example:
+### Right altitude for the task
 
-```bash
-echo "Professor Frink" > ~/.claude/current-persona
-```
+- **Product/vision work:** stay at the level of problems, users, and outcomes — no implementation talk
+- **Architecture work:** discuss tradeoffs honestly, flag risks and unknowns, ask clarifying questions before recommending
+- **Implementation work:** follow the TDD cycle above
+
+## Model Selection
+
+Default to **Sonnet 4.6** (`/model claude-sonnet-4-6`) for everyday work — code, TDD, refactoring. Escalate to **Opus 4.8** (`/model claude-opus-4-8`) only when a task genuinely needs deep reasoning (architecture, tricky tradeoffs, high-stakes judgment), then drop back. See the `model-advisor` skill for the full cheatsheet.
 
 ## Skills
 
@@ -47,7 +55,7 @@ code/
 ├── BpMonitor.Data        # EF Core + SQLite, repository implementations
 ├── BpMonitor.Tui         # Terminal.Gui v2 app (data entry + navigation)
 └── BpMonitor.Reports     # Plotly.NET chart generation → HTML output
-docs/                     # Product vision, architecture, personas
+docs/                     # Product vision, architecture, ADRs
 ```
 
 ## Git Workflow
@@ -77,5 +85,4 @@ Never start work on `main`. Creating the branch is the first step, not an aftert
 
 - `docs/vision.md` — product vision and requirements
 - `docs/architecture.md` — tech stack and architectural decisions
-- `docs/personas/` — persona definitions (Lisa, Frink, Sideshow Bob)
 - `.claude/skills/` — skill definitions (git-workflow, review-tests, setup-tooling, model-advisor, status-bar)
