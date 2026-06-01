@@ -1,32 +1,16 @@
-# Example Docker Compose for running BpMonitor.Web in a container.
-#
-# Pulls the prebuilt image published to GitHub Container Registry on each
-# release (see .github/workflows/release.yml). Run it from anywhere:
+# Example Docker Compose for running BpMonitor.Web.
 #
 #   docker compose -f deploy/docker-compose.yml up -d
 #
-# The web UI is then reachable on http://localhost:5000 (and on the LAN, since
-# the app binds 0.0.0.0). The SQLite database lives on a named volume so it
-# survives container recreation. Pin a specific version by replacing :latest
-# with a release tag, e.g. ghcr.io/draptik/bpmonitor-web:0.1.11.
-#
-# Podman users: `podman compose -f deploy/docker-compose.yml up -d` works too,
-# or use the systemd Quadlet units in this directory instead.
+# Pulls the prebuilt image from GitHub Container Registry and serves the UI on
+# http://localhost:5000. The SQLite database is kept in ./data so it survives
+# container recreation. Pin a version by replacing :latest with a release tag.
 
 services:
   bpmonitor-web:
     image: ghcr.io/draptik/bpmonitor-web:latest
-    container_name: bpmonitor-web
     ports:
       - "5000:5000"
     volumes:
-      - bpmonitor-data:/data
-    # The image already sets these defaults; listed here so they are easy to
-    # override (e.g. point at a different database path).
-    environment:
-      - ASPNETCORE_URLS=http://0.0.0.0:5000
-      - ConnectionStrings__DefaultConnection=Data Source=/data/bpmonitor.db
+      - ./data:/data
     restart: unless-stopped
-
-volumes:
-  bpmonitor-data:

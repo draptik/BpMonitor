@@ -74,8 +74,8 @@ cd ~/.local/bin/bpweb && \
 
 To run the web app in a container instead, use the example Compose file at
 `deploy/docker-compose.yml`. It pulls the prebuilt image published to GitHub
-Container Registry (`ghcr.io/draptik/bpmonitor-web`) on each release and
-persists the database on a named volume:
+Container Registry (`ghcr.io/draptik/bpmonitor-web`) on each release and keeps
+the database in `./data`:
 
 ```bash
 docker compose -f deploy/docker-compose.yml up -d
