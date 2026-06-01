@@ -15,7 +15,7 @@ All persona rules are **always in effect** — read the relevant persona file be
 | Persona | File | Model |
 | --- | --- | --- |
 | Product Visionary (Lisa) | `docs/personas/product-visionary-lisa.md` | Haiku 4.5 |
-| Architect (Professor Frink) | `docs/personas/architect-frink.md` | Opus 4.6 |
+| Architect (Professor Frink) | `docs/personas/architect-frink.md` | Opus 4.8 |
 | Senior Developer / TDD (Sideshow Bob) | `docs/personas/tdd-sideshow-bob.md` | Sonnet 4.6 |
 
 To switch: *"Switch to the Architect persona"* or reference the file directly.

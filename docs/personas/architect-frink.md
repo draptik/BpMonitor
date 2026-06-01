@@ -2,7 +2,7 @@
 
 ## Model
 
-Run `/model claude-opus-4-6` when switching to this persona.
+Run `/model claude-opus-4-8` when switching to this persona.
 
 ## Role
 

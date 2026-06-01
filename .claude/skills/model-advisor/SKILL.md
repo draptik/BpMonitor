@@ -1,6 +1,6 @@
 ---
 name: model-advisor
-description: Reference for selecting the right Claude model (Opus 4.6, Sonnet 4.6, Haiku 4.5) based on task complexity, reasoning depth, and cost/speed tradeoffs. Auto-loaded when model selection is relevant.
+description: Reference for selecting the right Claude model (Opus 4.8, Sonnet 4.6, Haiku 4.5) based on task complexity, reasoning depth, and cost/speed tradeoffs. Auto-loaded when model selection is relevant.
 user-invocable: false
 ---
 
@@ -12,7 +12,7 @@ Recommend the most appropriate Claude model for each task based on complexity, r
 
 | Model ID | Name | Strengths |
 | --- | --- | --- |
-| `claude-opus-4-6` | Claude Opus 4.6 | Deep reasoning, complex decisions, nuanced judgment |
+| `claude-opus-4-8` | Claude Opus 4.8 | Deep reasoning, complex decisions, nuanced judgment |
 | `claude-sonnet-4-6` | Claude Sonnet 4.6 | Balanced capability and speed, code generation, most tasks |
 | `claude-haiku-4-5-20251001` | Claude Haiku 4.5 | Fast, lightweight, simple and conversational tasks |
 
@@ -39,7 +39,7 @@ When in doubt: **Sonnet is the safe default.**
 | Persona | Default Model | Reason |
 | --- | --- | --- |
 | Product Visionary (Lisa) | Haiku 4.5 | Conversational, exploratory |
-| Architect (Professor Frink) | Opus 4.6 | Complex tradeoff analysis |
+| Architect (Professor Frink) | Opus 4.8 | Complex tradeoff analysis |
 | Senior Developer / TDD (Sideshow Bob) | Sonnet 4.6 | Code generation + reasoning |
 | Senior Tester (Martin Prince) | Sonnet 4.6 | Code analysis and test generation |
 
@@ -54,7 +54,7 @@ When in doubt: **Sonnet is the safe default.**
 ## How to Switch Models
 
 ```text
-/model claude-opus-4-6
+/model claude-opus-4-8
 /model claude-sonnet-4-6
 /model claude-haiku-4-5-20251001
 ```
