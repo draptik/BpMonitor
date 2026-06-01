@@ -41,7 +41,6 @@ When in doubt: **Sonnet is the safe default.**
 | Product Visionary (Lisa) | Haiku 4.5 | Conversational, exploratory |
 | Architect (Professor Frink) | Opus 4.8 | Complex tradeoff analysis |
 | Senior Developer / TDD (Sideshow Bob) | Sonnet 4.6 | Code generation + reasoning |
-| Senior Tester (Martin Prince) | Sonnet 4.6 | Code analysis and test generation |
 
 ## Rules
 
