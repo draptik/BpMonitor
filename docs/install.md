@@ -43,11 +43,17 @@ The web frontend ships as a self-contained bundle on the same release. It needs
 no .NET runtime; the single-file executable carries its own `wwwroot/` static
 assets and `appsettings.json`.
 
+Install it with the same script, passing `-t web`:
+
 ```bash
-LATEST=$(curl -fsSL https://api.github.com/repos/draptik/BpMonitor/releases/latest | grep tag_name | cut -d'"' -f4)
-curl -fsSL "https://github.com/draptik/BpMonitor/releases/download/$LATEST/bpmonitor-web-linux-x64.tar.gz" -o bpmonitor-web.tar.gz
-mkdir -p ~/.local/bin/bpweb && tar -xzf bpmonitor-web.tar.gz -C ~/.local/bin/bpweb
-~/.local/bin/bpweb/bpmonitor-web
+curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -t web
+```
+
+This installs to `~/.local/bin/bpweb/bpmonitor-web`. Run it **from its install
+directory** so the bundled `wwwroot/` static assets resolve:
+
+```bash
+cd ~/.local/bin/bpweb && ./bpmonitor-web
 ```
 
 The server binds `http://0.0.0.0:5000` (configured via the bundled
@@ -55,12 +61,27 @@ The server binds `http://0.0.0.0:5000` (configured via the bundled
 `ConnectionStrings__DefaultConnection` environment variable:
 
 ```bash
-ConnectionStrings__DefaultConnection="Data Source=$HOME/.local/share/bpmonitor/bpmonitor.db" \
-  ~/.local/bin/bpweb/bpmonitor-web
+cd ~/.local/bin/bpweb && \
+  ConnectionStrings__DefaultConnection="Data Source=$HOME/.local/share/bpmonitor/bpmonitor.db" \
+  ./bpmonitor-web
 ```
 
-For a containerized deployment instead, see the Podman `Containerfile` and the
-systemd Quadlet units under `deploy/`.
+### Docker Compose
+
+To run the web app in a container instead, use the example Compose file at
+`deploy/docker-compose.yml`. It pulls the prebuilt image published to GitHub
+Container Registry (`ghcr.io/draptik/bpmonitor-web`) on each release and
+persists the database on a named volume:
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d
+```
+
+The UI is then served on `http://localhost:5000`. Pin a specific version by
+replacing `:latest` with a release tag (e.g.
+`ghcr.io/draptik/bpmonitor-web:0.1.11`). Podman users can substitute
+`podman compose`, or use the systemd Quadlet units (`deploy/*.container`,
+`deploy/*.volume`).
 
 ## Helper scripts
 
