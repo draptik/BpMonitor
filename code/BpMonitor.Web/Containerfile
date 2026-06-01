@@ -11,6 +11,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 
+# Links the published GHCR package to its source repository.
+LABEL org.opencontainers.image.source="https://github.com/draptik/BpMonitor"
+
 # Bind on all interfaces (reachable on the homelab LAN, incl. phones) and keep
 # the SQLite database on a mounted volume so it survives redeploys.
 ENV ASPNETCORE_URLS=http://0.0.0.0:5000
