@@ -10,6 +10,7 @@
     <Compile Include="MarkdownParseLinePropertyTests.fs" />
     <Compile Include="JsonImportTests.fs" />
     <Compile Include="JsonRoundTripPropertyTests.fs" />
+    <Compile Include="ImportPropertyTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

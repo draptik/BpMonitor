@@ -90,3 +90,44 @@ let markdownLineGen: Gen<MarkdownLineCase> =
         HeartRate = hr
         Comment = comment }
   }
+
+let private toUnvalidated (r: BloodPressureReading) : BloodPressureReadingUnvalidated =
+  { Systolic = r.Systolic
+    Diastolic = r.Diastolic
+    HeartRate = r.HeartRate
+    Timestamp = r.Timestamp
+    Comments = r.Comments }
+
+/// A reading whose measurements may fall outside ReadingRanges.defaults.
+let private mixedReadingGen: Gen<BloodPressureReading> =
+  gen {
+    let! r = readingGen
+    let! sys = Gen.choose (-50, 350)
+    let! dia = Gen.choose (-50, 250)
+    let! hr = Gen.choose (-50, 350)
+
+    return
+      { r with
+          Systolic = sys
+          Diastolic = dia
+          HeartRate = hr }
+  }
+
+/// Assigns distinct, increasing timestamps so dedup-by-timestamp is deterministic.
+let private withDistinctTimestamps (rs: BloodPressureReading list) =
+  rs
+  |> List.mapi (fun i r ->
+    { r with
+        Timestamp = DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero).AddMinutes(float i) })
+
+/// A list of fully-valid (in-range) readings, each with a distinct timestamp.
+let distinctValidReadingsGen: Gen<BloodPressureReading list> =
+  Gen.listOf readingGen |> Gen.map withDistinctTimestamps
+
+/// A list of valid in-range unvalidated readings, each with a distinct timestamp.
+let distinctValidUnvalidatedGen: Gen<BloodPressureReadingUnvalidated list> =
+  distinctValidReadingsGen |> Gen.map (List.map toUnvalidated)
+
+/// A list of unvalidated readings mixing in-range and out-of-range measurements.
+let mixedUnvalidatedListGen: Gen<BloodPressureReadingUnvalidated list> =
+  Gen.listOf mixedReadingGen |> Gen.map (List.map toUnvalidated)
