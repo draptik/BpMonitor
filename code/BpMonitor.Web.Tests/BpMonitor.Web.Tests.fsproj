@@ -5,24 +5,28 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="ArchitectureTests.fs" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="TestHost.fs" />
+    <Compile Include="BindingTests.fs" />
+    <Compile Include="ViewTests.fs" />
+    <Compile Include="HandlerTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FSharp.Core" />
-    <PackageReference Include="TngTech.ArchUnitNET.xUnit" />
+    <PackageReference Include="Unquote" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FsCheck.Xunit.v3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BpMonitor.Charts\BpMonitor.Charts.fsproj" />
     <ProjectReference Include="..\BpMonitor.Core\BpMonitor.Core.fsproj" />
     <ProjectReference Include="..\BpMonitor.Data\BpMonitor.Data.fsproj" />
-    <ProjectReference Include="..\BpMonitor.Import\BpMonitor.Import.fsproj" />
-    <ProjectReference Include="..\BpMonitor.Tui\BpMonitor.Tui.fsproj" />
-    <ProjectReference Include="..\BpMonitor.Export\BpMonitor.Export.fsproj" />
     <ProjectReference Include="..\BpMonitor.Web\BpMonitor.Web.fsproj" />
   </ItemGroup>
 

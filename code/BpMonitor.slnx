@@ -18,4 +18,6 @@
   <Project Path="BpMonitor.Export/BpMonitor.Export.fsproj" />
   <Project Path="BpMonitor.Export.Tests/BpMonitor.Export.Tests.fsproj" />
   <Project Path="BpMonitor.Tui.Tests/BpMonitor.Tui.Tests.fsproj" />
+  <Project Path="BpMonitor.Web/BpMonitor.Web.fsproj" />
+  <Project Path="BpMonitor.Web.Tests/BpMonitor.Web.Tests.fsproj" />
 </Solution>

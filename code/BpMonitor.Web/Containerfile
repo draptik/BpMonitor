@@ -1,0 +1,21 @@
+# Multi-stage build for BpMonitor.Web.
+# Build context must be the `code/` directory so the referenced projects
+# (Core, Data, Charts) are available:
+#   podman build -t bpmonitor-web -f BpMonitor.Web/Containerfile .
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet publish BpMonitor.Web/BpMonitor.Web.fsproj -c Release -o /app
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+WORKDIR /app
+COPY --from=build /app .
+
+# Bind on all interfaces (reachable on the homelab LAN, incl. phones) and keep
+# the SQLite database on a mounted volume so it survives redeploys.
+ENV ASPNETCORE_URLS=http://0.0.0.0:5000
+ENV ConnectionStrings__DefaultConnection="Data Source=/data/bpmonitor.db"
+VOLUME /data
+EXPOSE 5000
+
+ENTRYPOINT ["dotnet", "BpMonitor.Web.dll"]

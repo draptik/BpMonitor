@@ -1,0 +1,24 @@
+# Podman Quadlet unit for BpMonitor.Web.
+#
+# Install (rootful):  copy to /etc/containers/systemd/
+# Install (rootless): copy to ~/.config/containers/systemd/
+# Then:               systemctl [--user] daemon-reload && systemctl [--user] start bpmonitor-web
+#
+# Build/load the image on the host first, e.g. from the repo `code/` directory:
+#   podman build -t localhost/bpmonitor-web:latest -f BpMonitor.Web/Containerfile .
+[Unit]
+Description=BpMonitor Web UI
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=localhost/bpmonitor-web:latest
+PublishPort=5000:5000
+Volume=bpmonitor-data.volume:/data
+Environment=ConnectionStrings__DefaultConnection=Data Source=/data/bpmonitor.db
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target

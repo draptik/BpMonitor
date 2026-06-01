@@ -1,0 +1,3 @@
+# Named volume holding the SQLite database, referenced by bpmonitor-web.container.
+# Install alongside the .container file in the same systemd/ directory.
+[Volume]
