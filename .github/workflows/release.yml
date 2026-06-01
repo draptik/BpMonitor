@@ -67,3 +67,39 @@ jobs:
           # prereleases so the /releases/latest API keeps pointing at the last
           # stable release that install.sh and the docs depend on.
           prerelease: ${{ contains(github.ref_name, '-') }}
+
+  publish-image:
+    name: Publish container image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/draptik/bpmonitor-web
+          # {{version}} strips the leading "v"; latest=auto adds :latest only
+          # for stable (non-pre-release) semver tags.
+          tags: |
+            type=semver,pattern={{version}}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: code
+          file: code/BpMonitor.Web/Containerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
