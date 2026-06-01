@@ -35,10 +35,31 @@ jobs:
       - name: Rename binary
         run: mv code/publish/BpMonitor.Tui code/publish/bpmonitor
 
+      - name: Publish web single executable
+        run: >
+          dotnet publish BpMonitor.Web/BpMonitor.Web.fsproj
+          --configuration Release
+          --runtime linux-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=none
+          --output ./publish-web
+        working-directory: code
+
+      - name: Rename web binary
+        run: mv code/publish-web/BpMonitor.Web code/publish-web/bpmonitor-web
+
+      - name: Package web bundle
+        run: >
+          tar -czf code/bpmonitor-web-linux-x64.tar.gz
+          -C code/publish-web bpmonitor-web appsettings.json wwwroot
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v3
         with:
           files: |
             code/publish/bpmonitor
             code/publish/appsettings.json
+            code/bpmonitor-web-linux-x64.tar.gz
           generate_release_notes: true
