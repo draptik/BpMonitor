@@ -1,0 +1,11 @@
+# Keep host build artifacts out of the image build context. Without this,
+# `COPY . .` drags in each project's bin/obj — which may have been restored by a
+# different SDK on the host — and breaks the in-container `dotnet publish`.
+**/bin/
+**/obj/
+**/publish/
+**/publish-web/
+**/*.tar.gz
+**/TestResults/
+**/.vs/
+**/.idea/
