@@ -131,3 +131,82 @@ let distinctValidUnvalidatedGen: Gen<BloodPressureReadingUnvalidated list> =
 /// A list of unvalidated readings mixing in-range and out-of-range measurements.
 let mixedUnvalidatedListGen: Gen<BloodPressureReadingUnvalidated list> =
   Gen.listOf mixedReadingGen |> Gen.map (List.map toUnvalidated)
+
+/// A single source line in a generated markdown document. Each item renders to
+/// exactly one line (no embedded newlines), so 1-based line numbers map to indices.
+type DocItem =
+  /// An ISO date header line, e.g. "2024-10-15".
+  | DateHeader of DateOnly
+  /// A date header followed by trailing text, e.g. "2024-10-18 day comment".
+  | DateHeaderWithText of DateOnly * string
+  /// A reading line, e.g. "- 08:30: 120/80 65 after coffee".
+  | ReadingRow of hour: int * minute: int * systolic: int * diastolic: int * heartRate: int * comment: string option
+  /// A line that is neither a date header nor a reading (headings, comments, blanks).
+  | NoiseRow of string
+
+let private renderDate (d: DateOnly) =
+  $"%04d{d.Year}-%02d{d.Month}-%02d{d.Day}"
+
+let renderDocLine (item: DocItem) : string =
+  match item with
+  | DateHeader d -> renderDate d
+  | DateHeaderWithText(d, t) -> renderDate d + " " + t
+  | ReadingRow(h, m, sys, dia, hr, comment) ->
+    let suffix =
+      match comment with
+      | Some s -> " " + s
+      | None -> ""
+
+    $"- %02d{h}:%02d{m}: %d{sys}/%d{dia} %d{hr}%s{suffix}"
+  | NoiseRow s -> s
+
+let private wordsGen: Gen<string> =
+  let wordGen =
+    Gen.elements [ 'a' .. 'z' ]
+    |> Gen.nonEmptyListOf
+    |> Gen.map (List.toArray >> String)
+
+  Gen.choose (1, 3)
+  |> Gen.bind (fun n -> Gen.listOfLength n wordGen)
+  |> Gen.map (String.concat " ")
+
+let private dateOnlyGen: Gen<DateOnly> =
+  gen {
+    let! y = Gen.choose (2000, 2030)
+    let! mo = Gen.choose (1, 12)
+    let! d = Gen.choose (1, 28)
+    return DateOnly(y, mo, d)
+  }
+
+let private dateHeaderItemGen: Gen<DocItem> =
+  gen {
+    let! d = dateOnlyGen
+    let! trailing = Gen.oneof [ Gen.constant None; wordsGen |> Gen.map Some ]
+
+    return
+      match trailing with
+      | Some t -> DateHeaderWithText(d, t)
+      | None -> DateHeader d
+  }
+
+let private readingItemGen: Gen<DocItem> =
+  gen {
+    let! h = Gen.choose (0, 23)
+    let! m = Gen.choose (0, 59)
+    let! sys = Gen.choose (1, 999)
+    let! dia = Gen.choose (1, 999)
+    let! hr = Gen.choose (1, 999)
+    let! comment = commentGen
+    return ReadingRow(h, m, sys, dia, hr, comment)
+  }
+
+/// Lines that match neither the date nor the reading pattern.
+let private noiseItemGen: Gen<DocItem> =
+  Gen.elements [ "# heading"; "<!-- ignore -->"; ""; "## section"; "notes here" ]
+  |> Gen.map NoiseRow
+
+/// A document as an ordered mix of date headers, reading lines, and noise,
+/// weighted towards reading lines.
+let docItemsGen: Gen<DocItem list> =
+  Gen.frequency [ 2, dateHeaderItemGen; 4, readingItemGen; 2, noiseItemGen ]
+  |> Gen.listOf
