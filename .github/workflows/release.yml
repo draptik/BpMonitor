@@ -63,3 +63,7 @@ jobs:
             code/publish/appsettings.json
             code/bpmonitor-web-linux-x64.tar.gz
           generate_release_notes: true
+          # Treat tags carrying a pre-release suffix (e.g. v0.1.11-rc1) as
+          # prereleases so the /releases/latest API keeps pointing at the last
+          # stable release that install.sh and the docs depend on.
+          prerelease: ${{ contains(github.ref_name, '-') }}
