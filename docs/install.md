@@ -1,14 +1,17 @@
 # Installing BpMonitor on Arch Linux
 
-BpMonitor is distributed as a self-contained single executable — no .NET runtime required.
+BpMonitor ships two apps — a terminal UI (TUI) and a web UI — each published as a
+self-contained tarball (`bpmonitor-tui-linux-x64.tar.gz` and
+`bpmonitor-web-linux-x64.tar.gz`). No .NET runtime required.
 
-## Install
+## TUI
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash
 ```
 
-This downloads the latest release and installs it to `~/.local/bin/bp/bpmonitor`.
+This downloads the latest release and installs the TUI (the default target) to
+`~/.local/bin/bp/bpmonitor-tui`.
 
 ## Custom install location
 
@@ -16,18 +19,19 @@ Use flags to override defaults:
 
 | Flag | Default | Description |
 | ---- | ------- | ----------- |
+| `-t TARGET` | `tui` | Which app to install (`tui` or `web`) |
 | `-b PATH` | `~/.local/bin` | Base directory |
-| `-d NAME` | `bp` | Subdirectory under base path |
-| `-n NAME` | `bpmonitor` | Executable name |
+| `-d NAME` | `bp` (tui), `bpweb` (web) | Subdirectory under base path |
+| `-n NAME` | `bpmonitor-tui` / `bpmonitor-web` | Executable name |
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -b /usr/local/bin -d bp -n bpmonitor
+curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -b /usr/local/bin -d bp -n bpmonitor-tui
 ```
 
 Or via environment variables:
 
 ```bash
-BASE_PATH=/usr/local/bin INSTALL_DIR_NAME=bp BINARY_NAME=bpmonitor \
+BASE_PATH=/usr/local/bin INSTALL_DIR_NAME=bp BINARY_NAME=bpmonitor-tui \
   curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash
 ```
 
