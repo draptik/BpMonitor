@@ -1,100 +1,36 @@
-:root {
-  --fg: #1a1a1a;
-  --muted: #666;
-  --border: #ddd;
-  --accent: #2563eb;
-  --error-bg: #fef2f2;
-  --error-fg: #991b1b;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  color: var(--fg);
-  line-height: 1.5;
-}
-
-.container {
+main,
+nav.container {
   max-width: 900px;
-  margin: 0 auto;
-  padding: 1.5rem;
 }
 
-h1 {
-  font-size: 1.5rem;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-
-th,
-td {
-  text-align: left;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
-
-th {
-  font-weight: 600;
-  color: var(--muted);
+#theme-toggle {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  margin: 0;
 }
 
 .chart {
   width: 100%;
   height: 620px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
 }
 
-.button,
-button {
-  display: inline-block;
+.errors {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #991b1b;
+  border-radius: var(--pico-border-radius);
   padding: 0.5rem 1rem;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 1rem;
-  cursor: pointer;
+  margin-bottom: 1rem;
 }
 
 .field {
   margin-bottom: 1rem;
 }
 
-.field label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.field input {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 1rem;
-}
-
 .actions {
   display: flex;
   gap: 1rem;
   align-items: center;
-}
-
-.errors {
-  background: var(--error-bg);
-  color: var(--error-fg);
-  border: 1px solid var(--error-fg);
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
-  margin-bottom: 1rem;
 }

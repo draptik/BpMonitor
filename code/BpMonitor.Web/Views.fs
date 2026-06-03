@@ -8,6 +8,23 @@ open BpMonitor.Core
 module Views =
   /// Page shell: shared <head>, vendored htmx, stylesheet and hx-boosted body.
   let private layout (title: string) (content: XmlNode list) : XmlNode =
+    // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
+    let themeScript =
+      """(function(){
+  var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  document.documentElement.setAttribute('data-theme',t);
+})();
+window.toggleTheme=function(){
+  var h=document.documentElement,n=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',n);
+  localStorage.setItem('theme',n);
+  var b=document.getElementById('theme-toggle');
+  if(b)b.textContent=n==='dark'?'Light':'Dark';
+};"""
+    // Re-runs on every body render (initial + hx-boost swaps) to sync the button label.
+    let labelScript =
+      "(function(){var b=document.getElementById('theme-toggle');if(b)b.textContent=document.documentElement.getAttribute('data-theme')==='dark'?'Light':'Dark';})();"
+
     Elem.html
       [ Attr.lang "en" ]
       [ Elem.head
@@ -15,9 +32,28 @@ module Views =
           [ Elem.meta [ Attr.charset "utf-8" ]
             Elem.meta [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]
             Elem.title [] [ Text.raw title ]
+            Elem.script [] [ Text.raw themeScript ]
+            Elem.link
+              [ Attr.rel "stylesheet"
+                Attr.href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" ]
             Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ]
             Elem.script [ Attr.src "/htmx.min.js" ] [] ]
-        Elem.body [ Attr.create "hx-boost" "true" ] [ Elem.main [ Attr.class' "container" ] content ] ]
+        Elem.body
+          [ Attr.create "hx-boost" "true" ]
+          [ Elem.nav
+              [ Attr.class' "container" ]
+              [ Elem.ul [] [ Elem.li [] [ Elem.strong [] [ Text.raw "BpMonitor" ] ] ]
+                Elem.ul
+                  []
+                  [ Elem.li
+                      []
+                      [ Elem.button
+                          [ Attr.id "theme-toggle"
+                            Attr.class' "outline secondary"
+                            Attr.create "onclick" "toggleTheme()" ]
+                          [] ] ] ]
+            Elem.main [ Attr.class' "container" ] content
+            Elem.script [] [ Text.raw labelScript ] ] ]
 
   let private errorBox (errors: string list) : XmlNode =
     match errors with
@@ -59,7 +95,7 @@ module Views =
     layout
       "BpMonitor"
       [ Elem.h1 [] [ Text.raw "Blood Pressure" ]
-        Elem.p [] [ Elem.a [ Attr.href "/readings/new"; Attr.class' "button" ] [ Text.raw "Add reading" ] ]
+        Elem.p [] [ Elem.a [ Attr.href "/readings/new"; Attr.role "button" ] [ Text.raw "Add reading" ] ]
         Elem.iframe [ Attr.src "/chart"; Attr.class' "chart"; Attr.title "Blood Pressure History" ] []
         readingsTable readings ]
 
