@@ -56,6 +56,15 @@ module Views =
                             Attr.create "onclick" "toggleTheme()" ]
                           [] ] ] ]
             Elem.main [ Attr.class' "container" ] content
+            Elem.footer
+              [ Attr.class' "container" ]
+              [ Elem.small
+                  []
+                  (let v = Version.current
+
+                   match Version.releaseUrl v with
+                   | Some url -> [ Text.raw "BpMonitor "; Elem.a [ Attr.href url ] [ Text.raw $"v{v}" ] ]
+                   | None -> [ Text.raw $"BpMonitor {v}" ]) ]
             // Re-runs on every body render (initial + hx-boost swaps) to sync the button label.
             Elem.script [ Attr.src "/theme-label.js" ] [] ] ]
 

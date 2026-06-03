@@ -11,6 +11,8 @@
   <ItemGroup>
     <Compile Include="TestHost.fs" />
     <Compile Include="BindingTests.fs" />
+    <Compile Include="VersionTests.fs" />
+    <Compile Include="VersionPropertyTests.fs" />
     <Compile Include="ViewTests.fs" />
     <Compile Include="HandlerTests.fs" />
   </ItemGroup>
