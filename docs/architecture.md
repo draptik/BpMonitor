@@ -17,7 +17,9 @@ code/
 ├── BpMonitor.Export.Tests   # Tests for Export
 ├── BpMonitor.Tui            # Terminal.Gui v2 app (data entry + list view + import)
 ├── BpMonitor.Tui.Tests      # Tests for TUI layer
-└── BpMonitor.Arch.Tests      # ArchUnit tests enforcing Clean Architecture rules
+├── BpMonitor.Web            # Falco web app (dashboard, add, history pages)
+├── BpMonitor.Web.Tests      # Tests for Web layer
+└── BpMonitor.Arch.Tests     # ArchUnit tests enforcing Clean Architecture rules
 ```
 
 ## Tech Stack
@@ -27,6 +29,8 @@ code/
 | Solution format | `.slnx` (new XML-based format, VS 2022 17.10+) |
 | Language / Runtime | F# on .NET |
 | TUI Framework | Terminal.Gui v2 |
+| Web Framework | Falco 5 + Falco.Markup (server-rendered F# HTML) |
+| Web interactivity | htmx (vendored, no build step) |
 | Database | SQLite + EF Core |
 | Charting | Plotly.NET — generates interactive HTML, opens in default browser |
 | Validation | `FsToolkit.ErrorHandling` — applicative validation with `Validation<'ok, 'err>` |
@@ -72,6 +76,7 @@ graph TD
     Export[BpMonitor.Export]
     Charts[BpMonitor.Charts]
     Tui[BpMonitor.Tui]
+    Web[BpMonitor.Web]
 
     Data --> Core
     Import --> Core
@@ -82,6 +87,9 @@ graph TD
     Tui --> Import
     Tui --> Charts
     Tui --> Export
+    Web --> Core
+    Web --> Data
+    Web --> Charts
 ```
 
 ## Project Responsibilities
@@ -126,14 +134,22 @@ graph TD
 - Delegates to Core for validation, Data for persistence, Import for file import, Charts for visualisation, Export for JSON backup
 - References Core + Data + Import + Charts + Export
 
+### BpMonitor.Web
+
+- Falco web application serving on `0.0.0.0:5000`
+- Three pages: `/` landing hub, `/add` entry form, `/history` table + chart iframe
+- Server-rendered HTML via `Falco.Markup`; htmx for partial updates
+- Scoped `DbContext` per request (concurrency-safe)
+- References Core + Data + Charts
+
 ### BpMonitor.Arch.Tests
 
 - ArchUnit rules enforcing Clean Architecture layer boundaries
-- Core must not depend on Data, Tui
-- Data must not depend on Tui
-- Import must not depend on Data, Tui, Charts, Export
-- Charts must not depend on Data, Tui
-- Export must not depend on Data, Tui, Charts, Import
+- Core must not depend on Data, Tui, Web
+- Data must not depend on Tui, Web
+- Import must not depend on Data, Tui, Charts, Export, Web
+- Charts must not depend on Data, Tui, Web
+- Export must not depend on Data, Tui, Charts, Import, Web
 
 ## Design Principles
 

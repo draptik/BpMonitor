@@ -53,10 +53,18 @@ code/
 ├── BpMonitor.slnx
 ├── BpMonitor.Core        # Domain models, interfaces, business logic
 ├── BpMonitor.Data        # EF Core + SQLite, repository implementations
+├── BpMonitor.Import      # Markdown and JSON importers
+├── BpMonitor.Export      # JSON serialisation and file write
+├── BpMonitor.Charts      # Plotly.NET chart generation → HTML output
 ├── BpMonitor.Tui         # Terminal.Gui v2 app (data entry + navigation)
-└── BpMonitor.Reports     # Plotly.NET chart generation → HTML output
+├── BpMonitor.Web         # Falco web app (landing, add, history pages)
+└── BpMonitor.Arch.Tests  # ArchUnit Clean Architecture rules
 docs/                     # Product vision, architecture, ADRs
 ```
+
+## Documentation
+
+Keep `docs/architecture.md` and `AGENTS.md` in sync with every structural change. When a PR adds a project, library, tool, or architectural decision, update both files in the same branch before merging.
 
 ## Git Workflow
 
