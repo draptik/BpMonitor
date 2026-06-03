@@ -110,3 +110,7 @@ td.col-center {
   gap: 1rem;
   align-items: center;
 }
+
+.actions > * {
+  margin-bottom: 0;
+}

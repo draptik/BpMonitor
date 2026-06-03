@@ -133,4 +133,4 @@ window.toggleTheme=function(){
             Elem.div
               [ Attr.class' "actions" ]
               [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
-                Elem.a [ Attr.href "/" ] [ Text.raw "Cancel" ] ] ] ]
+                Elem.a [ Attr.href "/"; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
