@@ -97,7 +97,10 @@ window.toggleTheme=function(){
       "BpMonitor"
       [ Elem.h1 [] [ Text.raw "Blood Pressure" ]
         Elem.p [] [ Elem.a [ Attr.href "/readings/new"; Attr.role "button" ] [ Text.raw "Add reading" ] ]
-        Elem.iframe [ Attr.src "/chart"; Attr.class' "chart"; Attr.title "Blood Pressure History" ] []
+        Elem.details
+          []
+          [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw "Blood Pressure Graph" ]
+            Elem.iframe [ Attr.src "/chart"; Attr.class' "chart"; Attr.title "Blood Pressure History" ] [] ]
         readingsTable readings ]
 
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered

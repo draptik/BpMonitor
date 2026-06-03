@@ -9,6 +9,14 @@ nav.container {
   margin: 0;
 }
 
+.chart-toggle {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
 .chart {
   width: 100%;
   height: 620px;
