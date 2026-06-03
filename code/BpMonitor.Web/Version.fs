@@ -7,21 +7,16 @@ module Version =
   open System.Reflection
 
   /// Normalise a raw InformationalVersion string to a display version.
-  /// Strips build metadata after '+'; the .NET default "1.0.0" and
-  /// empty/None values mean the build was not stamped → returns "dev".
+  /// The .NET default "1.0.0" and empty/None mean the build was not stamped
+  /// → returns "dev". Build metadata after '+' is preserved as-is.
   let parse (raw: string option) : string =
     match raw with
     | None -> "dev"
     | Some s ->
-      let v =
-        match s.IndexOf('+') with
-        | -1 -> s
-        | i -> s.Substring(0, i)
-
-      if String.IsNullOrWhiteSpace v || v = "1.0.0" then
+      if String.IsNullOrWhiteSpace s || s = "1.0.0" then
         "dev"
       else
-        v
+        s
 
   /// The running app's display version, derived from AssemblyInformationalVersion.
   let current: string =
