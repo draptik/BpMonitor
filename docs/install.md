@@ -68,5 +68,3 @@ See [deploy/README.md](../deploy/README.md) for container configuration, Podman,
   ```bash
   bash docs/scripts/clean.sh
   ```
-
-> The TUI is deprecated. If you still need it, the install script accepts `-t tui`.

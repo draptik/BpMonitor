@@ -4,8 +4,7 @@ open System
 open Microsoft.Extensions.Configuration
 open BpMonitor.Core
 
-/// Configuration helpers shared by the web host. Mirrors the range-reading
-/// logic in the TUI so both UIs validate against the same bounds.
+/// Configuration helpers for the web host.
 module Config =
   let readRanges (config: IConfiguration) =
     let s = config.GetSection("ReadingRanges")
@@ -26,8 +25,7 @@ module Config =
       HeartRateMin = getInt "HeartRateMin" d.HeartRateMin
       HeartRateMax = getInt "HeartRateMax" d.HeartRateMax }
 
-  /// Human-readable validation messages, matching the wording the TUI uses
-  /// so both UIs surface range errors consistently.
+  /// Human-readable validation messages for range errors.
   let formatValidationErrors (ranges: ReadingRanges) (errors: ValidationError list) =
     errors
     |> List.map (fun e ->

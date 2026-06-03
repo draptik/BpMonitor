@@ -5,7 +5,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A personal blood pressure monitoring application built with F# on .NET. Ships a TUI (Terminal.Gui) and a web frontend (Falco), sharing the same SQLite database.
+A personal blood pressure monitoring application built with F# on .NET. Ships a web frontend (Falco) backed by a shared SQLite database.
 
 ## Docs
 
