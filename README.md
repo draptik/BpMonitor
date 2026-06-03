@@ -11,6 +11,7 @@ A personal blood pressure monitoring application built with F# on .NET. Ships a 
 - [Vision](docs/vision.md) — what the app does and why
 - [Architecture](docs/architecture.md) — tech stack and structural decisions
 - [Install](docs/install.md) — install, configure, and deploy
+- [Contributing](CONTRIBUTING.md) — build, test, and release the project
 - [Badges branch](docs/badges-branch.md) — how the coverage badge is generated and stored
 
 ## About This Project

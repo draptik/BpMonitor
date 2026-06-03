@@ -1,17 +1,21 @@
-# Installing BpMonitor on Arch Linux
+# Installing BpMonitor
 
-BpMonitor ships two apps — a terminal UI (TUI) and a web UI — each published as a
-self-contained tarball (`bpmonitor-tui-linux-x64.tar.gz` and
-`bpmonitor-web-linux-x64.tar.gz`). No .NET runtime required.
+BpMonitor Web ships as a self-contained Linux binary — no .NET runtime required.
 
-## TUI
+## Quick install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -t web
 ```
 
-This downloads the latest release and installs the TUI (the default target) to
-`~/.local/bin/bp/bpmonitor-tui`.
+This installs the latest release to `~/.local/bin/bpweb/bpmonitor-web`. Run it
+**from its install directory** so the bundled `wwwroot/` static assets resolve:
+
+```bash
+cd ~/.local/bin/bpweb && ./bpmonitor-web
+```
+
+The server binds `http://0.0.0.0:5000`.
 
 ## Custom install location
 
@@ -19,101 +23,50 @@ Use flags to override defaults:
 
 | Flag | Default | Description |
 | ---- | ------- | ----------- |
-| `-t TARGET` | `tui` | Which app to install (`tui` or `web`) |
 | `-b PATH` | `~/.local/bin` | Base directory |
-| `-d NAME` | `bp` (tui), `bpweb` (web) | Subdirectory under base path |
-| `-n NAME` | `bpmonitor-tui` / `bpmonitor-web` | Executable name |
+| `-d NAME` | `bpweb` | Subdirectory under base path |
+| `-n NAME` | `bpmonitor-web` | Executable name |
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -b /usr/local/bin -d bp -n bpmonitor-tui
+curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -t web -b /usr/local/bin -d bpweb
 ```
 
 Or via environment variables:
 
 ```bash
-BASE_PATH=/usr/local/bin INSTALL_DIR_NAME=bp BINARY_NAME=bpmonitor-tui \
-  curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash
+BASE_PATH=/usr/local/bin INSTALL_DIR_NAME=bpweb \
+  curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -t web
 ```
 
-Run with `-h` for full usage:
+## Configuration
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -h
-```
+- **Database** — defaults to `Data Source=<install-dir>/bpmonitor.db`; override with `ConnectionStrings__DefaultConnection`.
+- **Bind address / port** — defaults to `http://0.0.0.0:5000`; configured via `appsettings.json` (takes precedence over `ASPNETCORE_URLS`).
 
-## Web UI
+## Docker Compose
 
-The web frontend ships as a self-contained bundle on the same release. It needs
-no .NET runtime; the single-file executable carries its own `wwwroot/` static
-assets and `appsettings.json`.
-
-Install it with the same script, passing `-t web`:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -t web
-```
-
-This installs to `~/.local/bin/bpweb/bpmonitor-web`. Run it **from its install
-directory** so the bundled `wwwroot/` static assets resolve:
-
-```bash
-cd ~/.local/bin/bpweb && ./bpmonitor-web
-```
-
-The server binds `http://0.0.0.0:5000` (configured via the bundled
-`appsettings.json`). Override the database location with the
-`ConnectionStrings__DefaultConnection` environment variable:
-
-```bash
-cd ~/.local/bin/bpweb && \
-  ConnectionStrings__DefaultConnection="Data Source=$HOME/.local/share/bpmonitor/bpmonitor.db" \
-  ./bpmonitor-web
-```
-
-### Docker Compose
-
-To run the web app in a container instead, use the example Compose file at
-`deploy/docker-compose.yml`. It pulls the prebuilt image published to GitHub
-Container Registry (`ghcr.io/draptik/bpmonitor-web`) on each release and keeps
-the database in `./data`:
+To run as a container instead (pulls the prebuilt image from GitHub Container Registry):
 
 ```bash
 docker compose -f deploy/docker-compose.yml up -d
 ```
 
-The UI is then served on `http://localhost:5000`. Pin a specific version by
-replacing `:latest` with a release tag (e.g.
-`ghcr.io/draptik/bpmonitor-web:0.1.11`). Podman users can substitute
-`podman compose`, or use the systemd Quadlet units (`deploy/*.container`,
-`deploy/*.volume`).
+See [deploy/README.md](../deploy/README.md) for container configuration, Podman, and systemd Quadlet instructions.
 
 ## Helper scripts
 
-`docs/scripts/` contains convenience scripts for managing a local installation.
+`docs/scripts/` contains convenience scripts for managing a local installation:
 
-### Install and configure
+- **Install and configure:** patches `appsettings.json` with a custom `MarkdownDirectory`:
 
-```bash
-IMPORT_FILE_LOCATION=~/documents/health bash docs/scripts/install.sh
-```
+  ```bash
+  IMPORT_FILE_LOCATION=~/documents/health bash docs/scripts/install.sh
+  ```
 
-Runs `install.sh` and patches `appsettings.json` to set `MarkdownDirectory` to the given path. Defaults to `.` if `IMPORT_FILE_LOCATION` is not set.
+- **Remove local installation:**
 
-### Remove local installation
+  ```bash
+  bash docs/scripts/clean.sh
+  ```
 
-```bash
-bash docs/scripts/clean.sh
-```
-
-Removes the `~/.local/bin/bp/` directory.
-
-## Creating a new release
-
-Push a version tag on `main` to trigger the release workflow:
-
-```bash
-git tag v1.2.3
-git push origin v1.2.3
-```
-
-The workflow builds the executable and publishes a GitHub Release with auto-generated release notes.
+> The TUI is deprecated. If you still need it, the install script accepts `-t tui`.
