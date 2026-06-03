@@ -1,9 +1,9 @@
 // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
-(function(){
+(()=> {
   var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
   document.documentElement.setAttribute('data-theme',t);
 })();
-window.toggleTheme=function(){
+window.toggleTheme=()=> {
   var h=document.documentElement,n=h.getAttribute('data-theme')==='dark'?'light':'dark';
   h.setAttribute('data-theme',n);
   localStorage.setItem('theme',n);

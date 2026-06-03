@@ -1,0 +1,18 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+  "files": {
+    "includes": [
+      "code/BpMonitor.Web/wwwroot/theme.js",
+      "code/BpMonitor.Web/wwwroot/theme-label.js"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  },
+  "formatter": {
+    "enabled": false
+  }
+}
