@@ -7,13 +7,18 @@ module Version =
   open System.Reflection
 
   /// Normalise a raw InformationalVersion string to a display version.
-  /// The .NET default "1.0.0" and empty/None mean the build was not stamped
-  /// → returns "dev". Build metadata after '+' is preserved as-is.
+  /// The .NET SDK appends +<sha> to the default "1.0.0" in git repos, so strip
+  /// the suffix before checking the sentinel — but keep it for real versions.
   let parse (raw: string option) : string =
     match raw with
     | None -> "dev"
     | Some s ->
-      if String.IsNullOrWhiteSpace s || s = "1.0.0" then
+      let base' =
+        match s.IndexOf('+') with
+        | -1 -> s
+        | i -> s.Substring(0, i)
+
+      if String.IsNullOrWhiteSpace base' || base' = "1.0.0" then
         "dev"
       else
         s

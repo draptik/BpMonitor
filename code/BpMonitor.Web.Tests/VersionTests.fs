@@ -28,8 +28,8 @@ let ``parse preserves build metadata after plus`` () =
   test <@ Version.parse (Some "0.1.14+abc123") = "0.1.14+abc123" @>
 
 [<Fact>]
-let ``parse 1.0.0 with sha is not treated as dev`` () =
-  test <@ Version.parse (Some "1.0.0+abc123") = "1.0.0+abc123" @>
+let ``parse 1.0.0 with sha returns dev`` () =
+  test <@ Version.parse (Some "1.0.0+abc123") = "dev" @>
 
 [<Fact>]
 let ``releaseUrl returns None for dev`` () =
