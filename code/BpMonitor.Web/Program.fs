@@ -12,9 +12,10 @@ open BpMonitor.Data
 open BpMonitor.Web
 
 let private endpoints =
-  [ get "/" Handlers.dashboard
+  [ get "/" Handlers.landing
+    get "/add" Handlers.newReading
+    get "/history" Handlers.history
     get "/chart" Handlers.chart
-    get "/readings/new" Handlers.newReading
     post "/readings" Handlers.createReading
     get "/readings/{id:int}/edit" Handlers.editReading
     post "/readings/{id:int}" Handlers.updateReading ]

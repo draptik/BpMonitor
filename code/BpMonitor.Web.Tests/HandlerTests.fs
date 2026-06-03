@@ -21,10 +21,20 @@ let private repoWith readings : IReadingRepository =
   InMemoryReadingRepository(Some readings)
 
 [<Fact>]
-let ``dashboard renders a row per reading`` () =
+let ``landing renders links to add and history`` () =
+  let repo = repoWith []
+  let ctx = TestHost.context repo
+  TestHost.run Handlers.landing ctx
+
+  test <@ ctx.Response.StatusCode = 200 @>
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "href=\"/add\"" && body.Contains "href=\"/history\"" @>
+
+[<Fact>]
+let ``history renders a row per reading`` () =
   let repo = repoWith [ sample ]
   let ctx = TestHost.context repo
-  TestHost.run Handlers.dashboard ctx
+  TestHost.run Handlers.history ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   test <@ (TestHost.readBody ctx).Contains "/readings/1/edit" @>
@@ -45,7 +55,7 @@ let ``createReading persists a valid reading and redirects`` () =
   TestHost.run Handlers.createReading ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
-  test <@ ctx.Response.Headers.Location.ToString() = "/" @>
+  test <@ ctx.Response.Headers.Location.ToString() = "/history" @>
   test <@ repo.GetAll() |> List.length = 1 @>
 
 [<Fact>]
@@ -122,5 +132,6 @@ let ``updateReading saves changes and redirects`` () =
   TestHost.run Handlers.updateReading ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
+  test <@ ctx.Response.Headers.Location.ToString() = "/history" @>
   let updated = repo.GetAll() |> List.exactlyOne
   test <@ updated.Systolic = 111 && updated.Comments = Some "updated" @>
