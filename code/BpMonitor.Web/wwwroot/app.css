@@ -37,6 +37,11 @@ nav.container {
   margin-bottom: 1rem;
 }
 
+#readings,
+form {
+  font-size: 0.875rem;
+}
+
 .col-timestamp {
   white-space: nowrap;
   width: 10.5rem;
