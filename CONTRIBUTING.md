@@ -98,3 +98,8 @@ git push origin v1.2.3
 `ghcr.io/draptik/bpmonitor-web`. Tags containing `-` (e.g. `v1.2.3-rc1`) are
 automatically flagged as GitHub pre-releases, keeping `/releases/latest` on the
 stable release.
+
+## License
+
+By contributing you agree that your contributions will be licensed under the
+[MIT License](LICENSE) that covers this project.
