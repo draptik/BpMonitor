@@ -76,7 +76,7 @@ window.toggleTheme=function(){
               Elem.th [ Attr.class' "col-center" ] [ Text.raw "Systolic" ]
               Elem.th [ Attr.class' "col-center" ] [ Text.raw "Diastolic" ]
               Elem.th [ Attr.class' "col-center" ] [ Text.raw "Heart Rate" ]
-              Elem.th [] [ Text.raw "Comments" ]
+              Elem.th [] [ Text.raw "Comment" ]
               Elem.th [] [ Text.raw "" ] ] ]
 
     let row (r: BloodPressureReading) =
@@ -112,17 +112,24 @@ window.toggleTheme=function(){
         [ Elem.label [ Attr.for' name ] [ Text.raw labelText ]
           Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ] ]
 
+    let fieldWithHint (labelText: string) (hint: string) (name: string) (value: string) (inputType: string) =
+      Elem.div
+        [ Attr.class' "field" ]
+        [ Elem.label [ Attr.for' name ] [ Text.raw labelText ]
+          Elem.small [ Attr.class' "field-hint" ] [ Text.raw hint ]
+          Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ] ]
+
     layout
       title
       [ Elem.h1 [] [ Text.raw title ]
         errorBox errors
         Elem.form
           [ Attr.method "post"; Attr.action action ]
-          [ field "Timestamp (yyyy-MM-dd HH:mm)" "Timestamp" m.Timestamp "text"
-            field "Systolic" "Systolic" m.Systolic "number"
-            field "Diastolic" "Diastolic" m.Diastolic "number"
-            field "Heart Rate" "HeartRate" m.HeartRate "number"
-            field "Comments" "Comments" m.Comments "text"
+          [ fieldWithHint "Timestamp" "yyyy-MM-dd HH:mm" "Timestamp" m.Timestamp "text"
+            fieldWithHint "Systolic" "mmHg" "Systolic" m.Systolic "number"
+            fieldWithHint "Diastolic" "mmHg" "Diastolic" m.Diastolic "number"
+            fieldWithHint "Heart Rate" "bpm" "HeartRate" m.HeartRate "number"
+            field "Comment" "Comments" m.Comments "text"
             Elem.div
               [ Attr.class' "actions" ]
               [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]

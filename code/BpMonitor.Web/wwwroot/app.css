@@ -34,7 +34,53 @@ nav.container {
 }
 
 .field {
-  margin-bottom: 1rem;
+  flex: 0 0 auto;
+}
+
+.field-hint {
+  display: block;
+  color: var(--pico-muted-color);
+  font-size: 0.85em;
+  margin-bottom: 0.35rem;
+}
+
+.field:has(#Comments),
+.actions {
+  flex: 1 1 100%;
+}
+
+@media (max-width: 600px) {
+  .field {
+    flex: 1 1 100%;
+  }
+}
+
+form input {
+  font-size: inherit;
+}
+
+input#Timestamp {
+  width: 10.5rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.field:has(#Timestamp) {
+  text-align: center;
+}
+
+input#Systolic,
+input#Diastolic,
+input#HeartRate {
+  width: 5rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.field:has(#Systolic),
+.field:has(#Diastolic),
+.field:has(#HeartRate) {
+  text-align: center;
 }
 
 #readings,
@@ -42,12 +88,20 @@ form {
   font-size: 0.875rem;
 }
 
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
 .col-timestamp {
   white-space: nowrap;
   width: 10.5rem;
 }
 
-.col-center {
+th.col-center,
+td.col-center {
   text-align: center;
 }
 
