@@ -3,6 +3,7 @@
 [![CI](https://github.com/draptik/BpMonitor/actions/workflows/ci.yml/badge.svg)](https://github.com/draptik/BpMonitor/actions/workflows/ci.yml)
 [![Coverage](https://raw.githubusercontent.com/draptik/BpMonitor/badges/coverage.svg)](https://github.com/draptik/BpMonitor/actions)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A personal blood pressure monitoring application built with F# on .NET. Ships a TUI (Terminal.Gui) and a web frontend (Falco), sharing the same SQLite database.
 
