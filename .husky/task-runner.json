@@ -27,6 +27,15 @@
          "pathMode": "absolute",
          "cwd": "code",
          "staged": true
+      },
+      {
+         "name": "biome",
+         "group": "pre-commit",
+         "command": "mise",
+         "args": ["exec", "--", "biome", "lint", "${staged}"],
+         "include": ["code/BpMonitor.Web/wwwroot/*.js"],
+         "exclude": ["**/htmx.min.js"],
+         "staged": true
       }
    ]
 }
