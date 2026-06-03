@@ -5,7 +5,7 @@
   <ItemGroup Label="Tui">
     <PackageVersion Include="Serilog" Version="4.3.1" />
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
-    <PackageVersion Include="Terminal.Gui" Version="2.4.3" />
+    <PackageVersion Include="Terminal.Gui" Version="2.4.4" />
   </ItemGroup>
   <ItemGroup Label="Web">
     <PackageVersion Include="Falco" Version="5.2.0" />
