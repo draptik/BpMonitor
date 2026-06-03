@@ -20,23 +20,6 @@ module Views =
   /// Page shell: shared <head>, vendored htmx, stylesheet and hx-boosted body.
   /// `active` is the route of the current page so the nav can highlight it.
   let private layout (active: string) (title: string) (content: XmlNode list) : XmlNode =
-    // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
-    let themeScript =
-      """(function(){
-  var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-  document.documentElement.setAttribute('data-theme',t);
-})();
-window.toggleTheme=function(){
-  var h=document.documentElement,n=h.getAttribute('data-theme')==='dark'?'light':'dark';
-  h.setAttribute('data-theme',n);
-  localStorage.setItem('theme',n);
-  var b=document.getElementById('theme-toggle');
-  if(b)b.textContent=n==='dark'?'Light':'Dark';
-};"""
-    // Re-runs on every body render (initial + hx-boost swaps) to sync the button label.
-    let labelScript =
-      "(function(){var b=document.getElementById('theme-toggle');if(b)b.textContent=document.documentElement.getAttribute('data-theme')==='dark'?'Light':'Dark';})();"
-
     Elem.html
       [ Attr.lang "en" ]
       [ Elem.head
@@ -45,7 +28,9 @@ window.toggleTheme=function(){
             Elem.meta [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]
             Elem.title [] [ Text.raw title ]
             Elem.link [ Attr.rel "icon"; Attr.href "/favicon.svg"; Attr.type' "image/svg+xml" ]
-            Elem.script [] [ Text.raw themeScript ]
+            // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
+            // No defer/async — render-blocking prevents flash of wrong theme (FOUC).
+            Elem.script [ Attr.src "/theme.js" ] []
             Elem.link
               [ Attr.rel "stylesheet"
                 Attr.href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" ]
@@ -71,7 +56,8 @@ window.toggleTheme=function(){
                             Attr.create "onclick" "toggleTheme()" ]
                           [] ] ] ]
             Elem.main [ Attr.class' "container" ] content
-            Elem.script [] [ Text.raw labelScript ] ] ]
+            // Re-runs on every body render (initial + hx-boost swaps) to sync the button label.
+            Elem.script [ Attr.src "/theme-label.js" ] [] ] ]
 
   let private errorBox (errors: string list) : XmlNode =
     match errors with
