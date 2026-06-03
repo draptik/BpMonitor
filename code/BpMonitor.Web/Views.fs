@@ -32,6 +32,7 @@ window.toggleTheme=function(){
           [ Elem.meta [ Attr.charset "utf-8" ]
             Elem.meta [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]
             Elem.title [] [ Text.raw title ]
+            Elem.link [ Attr.rel "icon"; Attr.href "/favicon.svg"; Attr.type' "image/svg+xml" ]
             Elem.script [] [ Text.raw themeScript ]
             Elem.link
               [ Attr.rel "stylesheet"
