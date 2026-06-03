@@ -72,9 +72,9 @@ window.toggleTheme=function(){
         [ Elem.tr
             []
             [ Elem.th [] [ Text.raw "Timestamp" ]
-              Elem.th [] [ Text.raw "Systolic" ]
-              Elem.th [] [ Text.raw "Diastolic" ]
-              Elem.th [] [ Text.raw "Heart Rate" ]
+              Elem.th [ Attr.class' "col-center" ] [ Text.raw "Systolic" ]
+              Elem.th [ Attr.class' "col-center" ] [ Text.raw "Diastolic" ]
+              Elem.th [ Attr.class' "col-center" ] [ Text.raw "Heart Rate" ]
               Elem.th [] [ Text.raw "Comments" ]
               Elem.th [] [ Text.raw "" ] ] ]
 
@@ -82,9 +82,9 @@ window.toggleTheme=function(){
       Elem.tr
         []
         [ Elem.td [] [ Text.enc (Formats.formatLocal r.Timestamp) ]
-          Elem.td [] [ Text.enc (string r.Systolic) ]
-          Elem.td [] [ Text.enc (string r.Diastolic) ]
-          Elem.td [] [ Text.enc (string r.HeartRate) ]
+          Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.Systolic) ]
+          Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.Diastolic) ]
+          Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.HeartRate) ]
           Elem.td [] [ Text.enc (r.Comments |> Option.defaultValue "") ]
           Elem.td [] [ Elem.a [ Attr.href $"/readings/{r.Id}/edit" ] [ Text.raw "Edit" ] ] ]
 

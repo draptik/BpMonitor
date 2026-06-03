@@ -29,6 +29,10 @@ nav.container {
   margin-bottom: 1rem;
 }
 
+.col-center {
+  text-align: center;
+}
+
 .actions {
   display: flex;
   gap: 1rem;
