@@ -29,6 +29,11 @@ nav.container {
   margin-bottom: 1rem;
 }
 
+.col-timestamp {
+  white-space: nowrap;
+  width: 10.5rem;
+}
+
 .col-center {
   text-align: center;
 }

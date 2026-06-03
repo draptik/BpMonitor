@@ -71,7 +71,7 @@ window.toggleTheme=function(){
         []
         [ Elem.tr
             []
-            [ Elem.th [] [ Text.raw "Timestamp" ]
+            [ Elem.th [ Attr.class' "col-timestamp" ] [ Text.raw "Timestamp" ]
               Elem.th [ Attr.class' "col-center" ] [ Text.raw "Systolic" ]
               Elem.th [ Attr.class' "col-center" ] [ Text.raw "Diastolic" ]
               Elem.th [ Attr.class' "col-center" ] [ Text.raw "Heart Rate" ]
@@ -81,7 +81,7 @@ window.toggleTheme=function(){
     let row (r: BloodPressureReading) =
       Elem.tr
         []
-        [ Elem.td [] [ Text.enc (Formats.formatLocal r.Timestamp) ]
+        [ Elem.td [ Attr.class' "col-timestamp" ] [ Text.enc (Formats.formatLocal r.Timestamp) ]
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.Systolic) ]
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.Diastolic) ]
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.HeartRate) ]
