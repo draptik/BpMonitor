@@ -3,6 +3,15 @@ nav.container {
   max-width: 900px;
 }
 
+nav a[aria-current="page"] {
+  background: var(--pico-primary);
+  color: var(--pico-primary-inverse);
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--pico-border-radius);
+  text-decoration: none;
+}
+
 #theme-toggle {
   padding: 0.25rem 0.75rem;
   font-size: 0.875rem;

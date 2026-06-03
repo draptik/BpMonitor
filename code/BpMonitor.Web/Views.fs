@@ -6,8 +6,20 @@ open BpMonitor.Core
 /// Server-rendered HTML views (Falco.Markup). Pure functions of their inputs so
 /// they can be unit-/snapshot-tested without a running host.
 module Views =
+  /// A single nav link, marked `aria-current="page"` (which Pico styles as active)
+  /// when its href matches the page's `active` route.
+  let private navLink (active: string) (href: string) (label: string) : XmlNode =
+    let attrs =
+      if href = active then
+        [ Attr.href href; Attr.create "aria-current" "page" ]
+      else
+        [ Attr.href href ]
+
+    Elem.li [] [ Elem.a attrs [ Text.raw label ] ]
+
   /// Page shell: shared <head>, vendored htmx, stylesheet and hx-boosted body.
-  let private layout (title: string) (content: XmlNode list) : XmlNode =
+  /// `active` is the route of the current page so the nav can highlight it.
+  let private layout (active: string) (title: string) (content: XmlNode list) : XmlNode =
     // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
     let themeScript =
       """(function(){
@@ -43,7 +55,12 @@ window.toggleTheme=function(){
           [ Attr.create "hx-boost" "true" ]
           [ Elem.nav
               [ Attr.class' "container" ]
-              [ Elem.ul [] [ Elem.li [] [ Elem.strong [] [ Text.raw "BpMonitor" ] ] ]
+              [ Elem.ul
+                  []
+                  [ Elem.li [] [ Elem.strong [] [ Text.raw "BpMonitor" ] ]
+                    navLink active "/" "Home"
+                    navLink active "/add" "Add"
+                    navLink active "/history" "History" ]
                 Elem.ul
                   []
                   [ Elem.li
@@ -91,12 +108,24 @@ window.toggleTheme=function(){
 
     Elem.div [ Attr.id "readings" ] [ Elem.table [] [ header; Elem.tbody [] (readings |> List.map row) ] ]
 
-  /// Dashboard: chart (isolated in an iframe) above the readings table.
-  let dashboard (readings: BloodPressureReading list) : XmlNode =
+  /// Landing page: a simple hub linking to the app's main destinations.
+  let landing: XmlNode =
     layout
+      "/"
       "BpMonitor"
-      [ Elem.h1 [] [ Text.raw "Blood Pressure" ]
-        Elem.p [] [ Elem.a [ Attr.href "/readings/new"; Attr.role "button" ] [ Text.raw "Add reading" ] ]
+      [ Elem.h1 [] [ Text.raw "BpMonitor" ]
+        Elem.p [] [ Text.raw "Track and review your blood pressure readings." ]
+        Elem.div
+          [ Attr.class' "actions" ]
+          [ Elem.a [ Attr.href "/add"; Attr.role "button" ] [ Text.raw "Add reading" ]
+            Elem.a [ Attr.href "/history"; Attr.role "button" ] [ Text.raw "History" ] ] ]
+
+  /// History: chart (isolated in an iframe) above the readings table.
+  let history (readings: BloodPressureReading list) : XmlNode =
+    layout
+      "/history"
+      "History"
+      [ Elem.h1 [] [ Text.raw "History" ]
         Elem.details
           []
           [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw "Blood Pressure Graph" ]
@@ -105,7 +134,13 @@ window.toggleTheme=function(){
 
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
   /// above the fields when re-displaying after a failed submit.
-  let readingForm (title: string) (action: string) (errors: string list) (m: Binding.FormModel) : XmlNode =
+  let readingForm
+    (active: string)
+    (title: string)
+    (action: string)
+    (errors: string list)
+    (m: Binding.FormModel)
+    : XmlNode =
     let field (labelText: string) (name: string) (value: string) (inputType: string) =
       Elem.div
         [ Attr.class' "field" ]
@@ -120,6 +155,7 @@ window.toggleTheme=function(){
           Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ] ]
 
     layout
+      active
       title
       [ Elem.h1 [] [ Text.raw title ]
         errorBox errors
@@ -133,4 +169,4 @@ window.toggleTheme=function(){
             Elem.div
               [ Attr.class' "actions" ]
               [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
-                Elem.a [ Attr.href "/"; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
+                Elem.a [ Attr.href "/history"; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
