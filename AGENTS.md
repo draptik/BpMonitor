@@ -56,7 +56,6 @@ code/
 ├── BpMonitor.Import      # Markdown and JSON importers
 ├── BpMonitor.Export      # JSON serialisation and file write
 ├── BpMonitor.Charts      # Plotly.NET chart generation → HTML output
-├── BpMonitor.Tui         # Terminal.Gui v2 app (data entry + navigation)
 ├── BpMonitor.Web         # Falco web app (landing, add, history pages)
 └── BpMonitor.Arch.Tests  # ArchUnit Clean Architecture rules
 docs/                     # Product vision, architecture, ADRs

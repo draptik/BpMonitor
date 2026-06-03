@@ -24,17 +24,14 @@ dotnet test
 ## Running locally
 
 ```bash
-# Web app (recommended) — served at http://localhost:5000
+# Web app — served at http://localhost:5000
 dotnet run --project code/BpMonitor.Web
-
-# TUI (deprecated)
-dotnet run --project code/BpMonitor.Tui
 ```
 
 ## Project structure
 
 The solution is split into focused projects under `code/` — Core domain, Data
-(EF Core + SQLite), Import, Export, Charts, Tui, and Web — following Clean
+(EF Core + SQLite), Import, Export, Charts, and Web — following Clean
 Architecture. See [docs/architecture.md](docs/architecture.md) for the full
 structure, dependency diagram, and tech stack.
 
@@ -93,11 +90,10 @@ git tag v1.2.3
 git push origin v1.2.3
 ```
 
-`release.yml` builds both self-contained tarballs (`bpmonitor-tui-linux-x64.tar.gz`,
-`bpmonitor-web-linux-x64.tar.gz`) and publishes a container image to
-`ghcr.io/draptik/bpmonitor-web`. Tags containing `-` (e.g. `v1.2.3-rc1`) are
-automatically flagged as GitHub pre-releases, keeping `/releases/latest` on the
-stable release.
+`release.yml` builds the self-contained tarball (`bpmonitor-web-linux-x64.tar.gz`)
+and publishes a container image to `ghcr.io/draptik/bpmonitor-web`. Tags containing
+`-` (e.g. `v1.2.3-rc1`) are automatically flagged as GitHub pre-releases, keeping
+`/releases/latest` on the stable release.
 
 ## License
 

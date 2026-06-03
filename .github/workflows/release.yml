@@ -20,26 +20,6 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Publish TUI single executable
-        run: >
-          dotnet publish BpMonitor.Tui/BpMonitor.Tui.fsproj
-          --configuration Release
-          --runtime linux-x64
-          --self-contained true
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
-          -p:DebugType=none
-          --output ./publish
-        working-directory: code
-
-      - name: Rename TUI binary
-        run: mv code/publish/BpMonitor.Tui code/publish/bpmonitor-tui
-
-      - name: Package TUI bundle
-        run: >
-          tar -czf code/bpmonitor-tui-linux-x64.tar.gz
-          -C code/publish bpmonitor-tui appsettings.json
-
       - name: Publish web single executable
         run: >
           dotnet publish BpMonitor.Web/BpMonitor.Web.fsproj
@@ -64,7 +44,6 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            code/bpmonitor-tui-linux-x64.tar.gz
             code/bpmonitor-web-linux-x64.tar.gz
           generate_release_notes: true
           # Treat tags carrying a pre-release suffix (e.g. v0.1.11-rc1) as
