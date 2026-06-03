@@ -141,6 +141,24 @@ graph TD
 - Each project has a single clear responsibility
 - Best practices and longevity over shortcuts
 
+## Development Tooling
+
+[mise](https://mise.jdx.dev/) manages language runtimes and standalone tools for this project. The `mise.toml` at the repo root pins all tool versions; run `mise install` once after cloning to set up the local environment.
+
+| Tool | Version source | Purpose |
+| --- | --- | --- |
+| Biome | `mise.toml` | JS linter (`biome check`) for files in `wwwroot/` |
+
+**Local usage:**
+
+```bash
+mise install          # install all pinned tools
+mise exec -- biome check          # lint JS files
+mise exec -- biome check --write  # auto-fix safe issues
+```
+
+**CI:** the `lint-js` job in `.github/workflows/ci.yml` runs `biome check` via the `biomejs/setup-biome` action with the same pinned version.
+
 ## Architecture Decision Records
 
 See [docs/adr/](adr/) for records of significant architectural decisions, including abandoned spikes.

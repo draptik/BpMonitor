@@ -84,5 +84,12 @@ Never start work on `main`. Creating the branch is the first step, not an aftert
 ## Docs
 
 - `docs/vision.md` — product vision and requirements
-- `docs/architecture.md` — tech stack and architectural decisions
+- `docs/architecture.md` — tech stack, architectural decisions, and dev tooling (mise, Biome)
 - `.claude/skills/` — skill definitions (git-workflow, review-tests, setup-tooling, model-advisor, status-bar)
+
+## Dev Tooling
+
+Tool versions are pinned in `mise.toml` (repo root). Run `mise install` once after cloning.
+
+- `biome.json` — Biome JS linter config (scoped to `wwwroot/theme.js` and `wwwroot/theme-label.js`)
+- Run `mise exec -- biome check` to lint; `mise exec -- biome check --write` to auto-fix

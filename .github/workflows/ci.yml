@@ -17,6 +17,20 @@ jobs:
       - name: Run markdownlint-cli2
         run: npx markdownlint-cli2 "**/*.md"
 
+  lint-js:
+    name: Lint JS
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: biomejs/setup-biome@v2
+        with:
+          version: 2.4.16
+
+      - name: Run Biome
+        run: biome check
+
   lint-shell:
     name: Lint Shell
     runs-on: ubuntu-latest
