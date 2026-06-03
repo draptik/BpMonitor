@@ -27,6 +27,17 @@ let ``landing renders links to add and history`` () =
   test <@ html.Contains "href=\"/\" aria-current=\"page\"" @>
 
 [<Fact>]
+let ``every page has a BpMonitor footer`` () =
+  let pages =
+    [ renderHtml Views.landing
+      renderHtml (Views.history [ sample ])
+      renderHtml (Views.readingForm "/add" "Add reading" "/readings" [] Binding.empty) ]
+
+  for html in pages do
+    test <@ html.Contains "<footer" @>
+    test <@ html.Contains "BpMonitor" @>
+
+[<Fact>]
 let ``history renders reading values, chart iframe and nav links`` () =
   let html = renderHtml (Views.history [ sample ])
 

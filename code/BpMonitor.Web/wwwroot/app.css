@@ -123,3 +123,12 @@ td.col-center {
 .actions > * {
   margin-bottom: 0;
 }
+
+footer.container {
+  max-width: 900px;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--pico-muted-border-color);
+  text-align: center;
+  color: var(--pico-muted-color);
+}
