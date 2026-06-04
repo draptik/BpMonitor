@@ -15,6 +15,7 @@ open Xunit
 let ``serialize readings to JSON matches snapshot`` () : Task =
   let reading =
     { Id = 1
+      MemberId = 1
       Systolic = 120
       Diastolic = 80
       HeartRate = 70
@@ -30,6 +31,7 @@ let ``serialize readings to JSON matches snapshot`` () : Task =
 let ``tryWriteToFile writes serialized readings to the given path`` () =
   let reading =
     { Id = 1
+      MemberId = 1
       Systolic = 120
       Diastolic = 80
       HeartRate = 70

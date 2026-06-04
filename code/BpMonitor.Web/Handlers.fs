@@ -16,6 +16,9 @@ module Handlers =
   let private repo (ctx: HttpContext) =
     ctx.RequestServices.GetRequiredService<IReadingRepository>()
 
+  let private memberRepo (ctx: HttpContext) =
+    ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+
   let private ranges (ctx: HttpContext) =
     Config.readRanges (ctx.RequestServices.GetRequiredService<IConfiguration>())
 
@@ -51,8 +54,26 @@ module Handlers =
           Binding.Comments = get "Comments" }
     }
 
-  let private sortedReadings (ctx: HttpContext) =
-    (repo ctx).GetAll() |> List.sortByDescending _.Timestamp
+  /// Resolves the active family member from the bp_member cookie, falling back to
+  /// the first member when no cookie is set or the cookie Id is invalid.
+  let private activeMember (ctx: HttpContext) : FamilyMember =
+    let allMembers = (memberRepo ctx).GetAll()
+
+    let cookieMemberId =
+      match ctx.Request.Cookies.TryGetValue("bp_member") with
+      | true, v ->
+        match Int32.TryParse(v) with
+        | true, id -> Some id
+        | _ -> None
+      | _ -> None
+
+    cookieMemberId
+    |> Option.bind (fun id -> allMembers |> List.tryFind (fun m -> m.Id = id))
+    |> Option.orElse (allMembers |> List.tryHead)
+    |> Option.defaultWith (fun () -> failwith "No family members configured. Visit /members to create one.")
+
+  let private sortedReadings (memberId: int) (ctx: HttpContext) =
+    (repo ctx).GetAll(memberId) |> List.sortByDescending _.Timestamp
 
   /// Renders the add/edit form after a failed submit (status 422).
   let private renderFormErrors (ctx: HttpContext) active title action errors model : Task =
@@ -95,12 +116,15 @@ module Handlers =
   let landing: HttpContext -> Task = fun ctx -> htmlResponse Views.landing ctx
 
   let history: HttpContext -> Task =
-    fun ctx -> htmlResponse (Views.history (sortedReadings ctx)) ctx
+    fun ctx ->
+      let m = activeMember ctx
+      htmlResponse (Views.history m (sortedReadings m.Id ctx)) ctx
 
   let chart: HttpContext -> Task =
     fun ctx ->
+      let m = activeMember ctx
       ctx.Response.ContentType <- "text/html; charset=utf-8"
-      ctx.Response.WriteAsync(BpChart.toHtml ((repo ctx).GetAll()))
+      ctx.Response.WriteAsync(BpChart.toHtml ((repo ctx).GetAll(m.Id)))
 
   let newReading: HttpContext -> Task =
     fun ctx ->
@@ -111,11 +135,14 @@ module Handlers =
       htmlResponse (Views.readingForm "/add" "Add reading" "/readings" [] prefill) ctx
 
   let createReading: HttpContext -> Task =
-    fun ctx -> submit ctx "/add" "Add reading" "/readings" (repo ctx).Add
+    fun ctx ->
+      let m = activeMember ctx
+      submit ctx "/add" "Add reading" "/readings" ((repo ctx).Add m.Id)
 
   let editReading: HttpContext -> Task =
     fun ctx ->
       let log = logger ctx
+      let m = activeMember ctx
 
       match routeInt ctx "id" with
       | None ->
@@ -123,20 +150,74 @@ module Handlers =
         ctx.Response.StatusCode <- 400
         ctx.Response.WriteAsync("Bad request")
       | Some id ->
-        match (repo ctx).GetAll() |> List.tryFind (fun r -> r.Id = id) with
+        match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
         | Some r -> htmlResponse (Views.readingForm "" "Edit reading" $"/readings/{id}" [] (Binding.ofReading r)) ctx
         | None ->
-          log.LogWarning("editReading: reading {Id} not found", id)
+          log.LogWarning("editReading: reading {Id} not found for member {MemberId}", id, m.Id)
           ctx.Response.StatusCode <- 404
           ctx.Response.WriteAsync("Not found")
 
   let updateReading: HttpContext -> Task =
     fun ctx ->
       let log = logger ctx
+      let m = activeMember ctx
 
       match routeInt ctx "id" with
       | None ->
         log.LogWarning("updateReading: bad route value for {{id}}")
         ctx.Response.StatusCode <- 400
         ctx.Response.WriteAsync("Bad request")
-      | Some id -> submit ctx "" "Edit reading" $"/readings/{id}" (fun r -> (repo ctx).Update { r with Id = id })
+      | Some id ->
+        submit ctx "" "Edit reading" $"/readings/{id}" (fun r -> (repo ctx).Update { r with Id = id; MemberId = m.Id })
+
+  let members: HttpContext -> Task =
+    fun ctx ->
+      let allMembers = (memberRepo ctx).GetAll()
+      let active = activeMember ctx
+      htmlResponse (Views.members allMembers active) ctx
+
+  let createMember: HttpContext -> Task =
+    fun ctx ->
+      task {
+        let! form = ctx.Request.ReadFormAsync()
+        let name = form["Name"].ToString()
+
+        match FamilyMember.create name with
+        | Error NameIsEmpty ->
+          let allMembers = (memberRepo ctx).GetAll()
+          let active = activeMember ctx
+          ctx.Response.StatusCode <- 422
+          do! htmlResponse (Views.membersWithError allMembers active "Name cannot be empty") ctx
+        | Ok m ->
+          let created = (memberRepo ctx).Add(m)
+
+          ctx.Response.Cookies.Append(
+            "bp_member",
+            string created.Id,
+            CookieOptions(HttpOnly = true, SameSite = SameSiteMode.Strict)
+          )
+
+          ctx.Response.Redirect "/members"
+      }
+      :> Task
+
+  let switchMember: HttpContext -> Task =
+    fun ctx ->
+      task {
+        let! form = ctx.Request.ReadFormAsync()
+        let memberId = form["MemberId"].ToString()
+
+        ctx.Response.Cookies.Append(
+          "bp_member",
+          memberId,
+          CookieOptions(HttpOnly = true, SameSite = SameSiteMode.Strict)
+        )
+
+        let returnUrl =
+          match form.TryGetValue("ReturnUrl") with
+          | true, v when v.ToString() <> "" -> v.ToString()
+          | _ -> "/"
+
+        ctx.Response.Redirect(returnUrl)
+      }
+      :> Task

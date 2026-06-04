@@ -82,3 +82,9 @@ let ``parse sets CreatedAt and ModifiedAt to MinValue`` () =
     test <@ reading.CreatedAt = DateTimeOffset.MinValue @>
     test <@ reading.ModifiedAt = DateTimeOffset.MinValue @>
   | Error _ -> failwith "Expected Ok"
+
+[<Fact>]
+let ``parse sets MemberId to 0`` () =
+  match BloodPressureReading.parse ranges validUnvalidated with
+  | Ok reading -> test <@ reading.MemberId = 0 @>
+  | Error _ -> failwith "Expected Ok"

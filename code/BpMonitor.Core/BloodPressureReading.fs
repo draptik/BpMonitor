@@ -9,6 +9,7 @@ type BloodPressureReadingUnvalidated =
 
 type BloodPressureReading =
   { Id: int
+    MemberId: int
     Systolic: int
     Diastolic: int
     HeartRate: int
@@ -86,6 +87,7 @@ module BloodPressureReading =
 
       return
         { Id = 0
+          MemberId = 0
           Systolic = sys
           Diastolic = dia
           HeartRate = hr

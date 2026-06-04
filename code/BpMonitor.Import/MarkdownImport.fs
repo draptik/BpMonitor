@@ -63,10 +63,11 @@ let parseMarkdown (markdown: string) : (int * string * BloodPressureReadingUnval
 
 let import
   (repository: IReadingRepository)
+  (memberId: int)
   (ranges: ReadingRanges)
   (unvalidated: (int * string * BloodPressureReadingUnvalidated) list)
   : ImportSummary =
-  let existing = repository.GetAll()
+  let existing = repository.GetAll(memberId)
 
   let folder acc (lineNumber, line, reading) =
     let (added, updated, failed) = acc
@@ -76,12 +77,13 @@ let import
     | Ok validated ->
       match existing |> List.tryFind (fun r -> r.Timestamp = validated.Timestamp) with
       | None ->
-        repository.Add(validated)
+        repository.Add memberId validated
         (added + 1, updated, failed)
       | Some existingReading ->
         repository.Update(
           { validated with
-              Id = existingReading.Id }
+              Id = existingReading.Id
+              MemberId = memberId }
         )
 
         (added, updated + 1, failed)

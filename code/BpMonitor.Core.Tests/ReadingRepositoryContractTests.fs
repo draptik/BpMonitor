@@ -9,16 +9,24 @@ type private StubRepository(initial: BloodPressureReading list) =
   let readings = ResizeArray<BloodPressureReading>(initial)
 
   interface IReadingRepository with
-    member _.GetAll() = readings |> Seq.toList
-    member _.Add(r) = readings.Add(r)
-    member _.AddMany(rs) = rs |> List.iter readings.Add
+    member _.GetAll(memberId) =
+      readings |> Seq.filter (fun r -> r.MemberId = memberId) |> Seq.toList
+
+    member _.Add memberId r =
+      readings.Add({ r with MemberId = memberId })
+
+    member _.AddMany memberId rs =
+      rs |> List.iter (fun r -> readings.Add({ r with MemberId = memberId }))
 
     member _.Update(r) =
-      let idx = readings |> Seq.findIndex (fun x -> x.Id = r.Id)
+      let idx =
+        readings |> Seq.findIndex (fun x -> x.Id = r.Id && x.MemberId = r.MemberId)
+
       readings[idx] <- r
 
-let private reading id sys dia hr =
+let private reading id memberId sys dia hr =
   { Id = id
+    MemberId = memberId
     Systolic = sys
     Diastolic = dia
     HeartRate = hr
@@ -29,37 +37,64 @@ let private reading id sys dia hr =
 
 [<Fact>]
 let ``Update replaces the reading with the matching Id`` () =
-  let repo = StubRepository([ reading 1 120 80 70 ]) :> IReadingRepository
+  let repo = StubRepository([ reading 1 1 120 80 70 ]) :> IReadingRepository
 
   let updated =
-    { reading 1 135 88 75 with
+    { reading 1 1 135 88 75 with
         Comments = Some "updated" }
 
   repo.Update(updated)
-  test <@ repo.GetAll() |> List.exists (fun r -> r.Systolic = 135) @>
+  test <@ repo.GetAll(1) |> List.exists (fun r -> r.Systolic = 135) @>
 
 [<Fact>]
 let ``Update does not affect other readings`` () =
   let repo =
-    StubRepository([ reading 1 120 80 70; reading 2 130 85 72 ]) :> IReadingRepository
+    StubRepository([ reading 1 1 120 80 70; reading 2 1 130 85 72 ]) :> IReadingRepository
 
-  repo.Update({ reading 1 135 88 75 with Id = 1 })
-  test <@ repo.GetAll() |> List.exists (fun r -> r.Id = 2 && r.Systolic = 130) @>
+  repo.Update({ reading 1 1 135 88 75 with Id = 1 })
+  test <@ repo.GetAll(1) |> List.exists (fun r -> r.Id = 2 && r.Systolic = 130) @>
 
 [<Fact>]
 let ``Update preserves the Id`` () =
-  let repo = StubRepository([ reading 1 120 80 70 ]) :> IReadingRepository
-  let updated = reading 1 135 88 75
+  let repo = StubRepository([ reading 1 1 120 80 70 ]) :> IReadingRepository
+  let updated = reading 1 1 135 88 75
   repo.Update(updated)
-  test <@ repo.GetAll() |> List.forall (fun r -> r.Id = 1) @>
+  test <@ repo.GetAll(1) |> List.forall (fun r -> r.Id = 1) @>
 
 [<Fact>]
 let ``Update reflects changes in subsequent GetAll`` () =
-  let repo = StubRepository([ reading 1 120 80 70 ]) :> IReadingRepository
+  let repo = StubRepository([ reading 1 1 120 80 70 ]) :> IReadingRepository
 
   repo.Update(
-    { reading 1 120 80 70 with
+    { reading 1 1 120 80 70 with
         Comments = Some "after update" }
   )
 
-  test <@ repo.GetAll().[0].Comments = Some "after update" @>
+  test <@ repo.GetAll(1).[0].Comments = Some "after update" @>
+
+[<Fact>]
+let ``GetAll returns only readings for the requested member`` () =
+  let r1 = reading 1 1 120 80 70
+  let r2 = reading 2 2 130 85 72
+  let repo = StubRepository([ r1; r2 ]) :> IReadingRepository
+  test <@ repo.GetAll(1) |> List.length = 1 @>
+  test <@ repo.GetAll(1).[0].Id = 1 @>
+  test <@ repo.GetAll(2).[0].Id = 2 @>
+
+[<Fact>]
+let ``Add stamps the reading with the given memberId`` () =
+  let repo = StubRepository([]) :> IReadingRepository
+  repo.Add 2 (reading 0 0 120 80 70)
+  test <@ repo.GetAll(2) |> List.length = 1 @>
+  test <@ repo.GetAll(1) |> List.isEmpty @>
+
+[<Fact>]
+let ``Update does not affect a reading belonging to a different member`` () =
+  let r = reading 1 1 120 80 70
+  let repo = StubRepository([ r ]) :> IReadingRepository
+  // Attempt to update reading 1 as if it belonged to member 2 — should not find it
+  let crossMember = { reading 1 2 135 90 75 with Id = 1 }
+
+  let act () = repo.Update(crossMember)
+
+  Assert.ThrowsAny<Exception>(act) |> ignore
