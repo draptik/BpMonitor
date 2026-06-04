@@ -4,8 +4,8 @@
       {
          "name": "shellcheck",
          "group": "pre-commit",
-         "command": "shellcheck",
-         "args": ["${staged}"],
+         "command": "mise",
+         "args": ["exec", "--", "shellcheck", "${staged}"],
          "include": ["**/*.sh"],
          "exclude": [".husky/_/*.sh"],
          "staged": true
@@ -13,8 +13,8 @@
       {
          "name": "markdownlint",
          "group": "pre-commit",
-         "command": "markdownlint-cli2",
-         "args": ["${staged}"],
+         "command": "mise",
+         "args": ["exec", "--", "markdownlint-cli2", "${staged}"],
          "include": ["**/*.md"],
          "staged": true
       },

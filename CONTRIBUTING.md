@@ -3,12 +3,12 @@
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) — version is pinned in `code/global.json`
-- [mise](https://mise.jdx.dev/) — manages the JS tooling (Biome)
+- [mise](https://mise.jdx.dev/) — manages all non-dotnet linting tools (Biome, markdownlint-cli2, shellcheck, node)
 
 ## Getting started
 
 ```bash
-# Install pinned tools (Biome)
+# Install pinned tools (Biome, markdownlint-cli2, shellcheck, node)
 mise install
 
 # Restore .NET local tools (Fantomas, dotnet-ef) and dependencies
@@ -48,8 +48,17 @@ cd code && dotnet tool restore   # only needed once after cloning
 | ---- | ------- | -------------- |
 | Fantomas | `cd code && dotnet fantomas --check .` | F# formatting |
 | Biome | `mise exec -- biome check` | JS linting |
-| markdownlint | `npx markdownlint-cli2 "**/*.md"` | Markdown style |
-| shellcheck | `shellcheck <file>.sh` | Shell scripts |
+| markdownlint | `mise exec -- markdownlint-cli2 "**/*.md"` | Markdown style |
+| shellcheck | `mise exec -- shellcheck <file>.sh` | Shell scripts |
+
+Run all non-dotnet linters at once:
+
+```bash
+mise run lint        # markdownlint + biome + shellcheck
+mise run lint:md     # markdownlint only
+mise run lint:js     # biome only
+mise run lint:shell  # shellcheck only
+```
 
 Auto-fix where supported:
 

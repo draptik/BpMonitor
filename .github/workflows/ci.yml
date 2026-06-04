@@ -14,8 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - uses: jdx/mise-action@v2
+
       - name: Run markdownlint-cli2
-        run: npx markdownlint-cli2 "**/*.md"
+        run: mise run lint:md
 
   lint-js:
     name: Lint JS
@@ -24,12 +26,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: biomejs/setup-biome@v2
-        with:
-          version: 2.4.16
+      - uses: jdx/mise-action@v2
 
       - name: Run Biome
-        run: biome check
+        run: mise run lint:js
 
   lint-shell:
     name: Lint Shell
@@ -38,8 +38,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - uses: jdx/mise-action@v2
+
       - name: Run shellcheck
-        run: find . -name "*.sh" -not -path "./.husky/_/*" | xargs shellcheck
+        run: mise run lint:shell
 
   lint-fsharp:
     name: Lint F#
