@@ -98,7 +98,9 @@ Never start work on `main`. Creating the branch is the first step, not an aftert
 
 ## Dev Tooling
 
-Tool versions are pinned in `mise.toml` (repo root). Run `mise install` once after cloning.
+All non-dotnet linter versions are pinned in `mise.toml` (repo root). Run `mise install` once after cloning.
 
 - `biome.json` — Biome JS linter config (scoped to `wwwroot/theme.js` and `wwwroot/theme-label.js`)
-- Run `mise exec -- biome check` to lint; `mise exec -- biome check --write` to auto-fix
+- `.markdownlint-cli2.yaml` — markdownlint config
+- Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:md` / `lint:shell` individually
+- Run `mise exec -- biome check --write` to auto-fix JS issues

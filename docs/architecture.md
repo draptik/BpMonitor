@@ -145,21 +145,27 @@ graph TD
 
 ## Development Tooling
 
-[mise](https://mise.jdx.dev/) manages language runtimes and standalone tools for this project. The `mise.toml` at the repo root pins all tool versions; run `mise install` once after cloning to set up the local environment.
+[mise](https://mise.jdx.dev/) manages all non-dotnet linting tools for this project. The `mise.toml` at the repo root pins all tool versions; run `mise install` once after cloning to set up the local environment.
 
 | Tool | Version source | Purpose |
 | --- | --- | --- |
+| node | `mise.toml` | Runtime for npm-based tools (markdownlint-cli2) |
 | Biome | `mise.toml` | JS linter (`biome check`) for files in `wwwroot/` |
+| markdownlint-cli2 | `mise.toml` | Markdown style linter |
+| shellcheck | `mise.toml` | Shell script linter |
 
 **Local usage:**
 
 ```bash
 mise install          # install all pinned tools
-mise exec -- biome check          # lint JS files
-mise exec -- biome check --write  # auto-fix safe issues
+mise run lint         # run all non-dotnet linters
+mise run lint:md      # markdownlint only
+mise run lint:js      # biome only
+mise run lint:shell   # shellcheck only
+mise exec -- biome check --write  # auto-fix safe JS issues
 ```
 
-**CI:** the `lint-js` job in `.github/workflows/ci.yml` runs `biome check` via the `biomejs/setup-biome` action with the same pinned version.
+**CI:** the `lint-markdown`, `lint-js`, and `lint-shell` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
 
 ## Architecture Decision Records
 
