@@ -18,6 +18,7 @@
     <PackageReference Include="FsToolkit.ErrorHandling" />
     <PackageReference Include="Falco" />
     <PackageReference Include="Falco.Markup" />
+    <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
   </ItemGroup>
 

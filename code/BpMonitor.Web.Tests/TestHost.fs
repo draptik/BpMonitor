@@ -5,6 +5,7 @@ open System.IO
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Primitives
 open BpMonitor.Core
 
@@ -12,6 +13,7 @@ open BpMonitor.Core
 /// ranges) so the real Falco handlers can be invoked directly in tests.
 let context (repo: IReadingRepository) : HttpContext =
   let services = ServiceCollection()
+  services.AddLogging() |> ignore
   services.AddSingleton<IReadingRepository>(repo) |> ignore
   services.AddSingleton<IConfiguration>(ConfigurationBuilder().Build()) |> ignore
 

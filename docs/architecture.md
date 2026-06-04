@@ -28,6 +28,7 @@ code/
 | Language / Runtime | F# on .NET |
 | Web Framework | Falco 5 + Falco.Markup (server-rendered F# HTML) |
 | Web interactivity | htmx (vendored, no build step) |
+| Logging | Serilog.AspNetCore — structured CLEF JSON to stdout; `UseSerilogRequestLogging` for per-request lines; configured via `appsettings.json` `Serilog` section; captured by `docker logs` / `podman logs` / journald |
 | Database | SQLite + EF Core |
 | Charting | Plotly.NET — generates interactive HTML, opens in default browser |
 | Validation | `FsToolkit.ErrorHandling` — applicative validation with `Validation<'ok, 'err>` |
@@ -124,6 +125,7 @@ graph TD
 - Three pages: `/` landing hub, `/add` entry form, `/history` table + chart iframe
 - Server-rendered HTML via `Falco.Markup`; htmx for partial updates
 - Scoped `DbContext` per request (concurrency-safe)
+- Structured logging via Serilog: one CLEF JSON line per request + domain events; logs flow to stdout → container/journal
 - References Core + Data + Charts
 
 ### BpMonitor.Arch.Tests

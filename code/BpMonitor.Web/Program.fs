@@ -7,6 +7,7 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.EntityFrameworkCore
+open Serilog
 open BpMonitor.Core
 open BpMonitor.Data
 open BpMonitor.Web
@@ -22,24 +23,45 @@ let private endpoints =
 
 [<EntryPoint>]
 let main args =
-  let builder = WebApplication.CreateBuilder(args)
+  // Bootstrap logger captures startup failures before the host is built.
+  Log.Logger <- LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger()
 
-  let connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection")
+  try
+    let builder = WebApplication.CreateBuilder(args)
 
-  builder.Services.AddDbContext<BpMonitorDbContext>(fun opts -> opts.UseSqlite(connectionString) |> ignore)
-  |> ignore
+    // Replace the default logging pipeline with Serilog, configured from appsettings.
+    builder.Host.UseSerilog(fun ctx _services cfg ->
+      cfg.ReadFrom.Configuration(ctx.Configuration).Enrich.FromLogContext() |> ignore)
+    |> ignore
 
-  builder.Services.AddScoped<IReadingRepository>(fun sp ->
-    EfReadingRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
-  |> ignore
+    let connectionString =
+      builder.Configuration.GetConnectionString("DefaultConnection")
 
-  let app = builder.Build()
+    builder.Services.AddDbContext<BpMonitorDbContext>(fun opts -> opts.UseSqlite(connectionString) |> ignore)
+    |> ignore
 
-  // Apply schema migrations once at startup against a transient scope.
-  use scope = app.Services.CreateScope()
-  SchemaMigrations.apply (scope.ServiceProvider.GetRequiredService<BpMonitorDbContext>())
+    builder.Services.AddScoped<IReadingRepository>(fun sp ->
+      EfReadingRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
+    |> ignore
 
-  app.UseStaticFiles().UseRouting().UseFalco(endpoints) |> ignore
-  app.Run()
-  0
+    let app = builder.Build()
+
+    // Apply schema migrations once at startup against a transient scope.
+    Log.Information("Applying schema migrations…")
+    use scope = app.Services.CreateScope()
+    SchemaMigrations.apply (scope.ServiceProvider.GetRequiredService<BpMonitorDbContext>())
+
+    // One structured log line per request (method, path, status, elapsed ms).
+    app.UseSerilogRequestLogging() |> ignore
+    app.UseStaticFiles().UseRouting().UseFalco(endpoints) |> ignore
+
+    Log.Information("BpMonitor.Web {Version} starting on {Urls}", Version.current, app.Urls)
+    app.Run()
+    0
+  with ex ->
+    Log.Fatal(ex, "BpMonitor.Web terminated unexpectedly")
+
+    1
+    |> fun exitCode ->
+      Log.CloseAndFlush()
+      exitCode
