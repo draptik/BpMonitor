@@ -12,6 +12,7 @@ open BpMonitor.Charts
 
 let private reading id systolic diastolic heartRate day hour comment =
   { Id = id
+    MemberId = 1
     Systolic = systolic
     Diastolic = diastolic
     HeartRate = heartRate

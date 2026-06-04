@@ -7,8 +7,15 @@ open Falco.Markup
 open BpMonitor.Core
 open BpMonitor.Web
 
+let private defaultMember: FamilyMember =
+  { Id = 1
+    Name = "Me"
+    CreatedAt = DateTimeOffset.MinValue
+    ModifiedAt = DateTimeOffset.MinValue }
+
 let private sample =
   { Id = 7
+    MemberId = 1
     Systolic = 123
     Diastolic = 81
     HeartRate = 67
@@ -30,7 +37,7 @@ let ``landing renders links to add and history`` () =
 let ``every page has a BpMonitor footer`` () =
   let pages =
     [ renderHtml Views.landing
-      renderHtml (Views.history [ sample ])
+      renderHtml (Views.history defaultMember [ sample ])
       renderHtml (Views.readingForm "/add" "Add reading" "/readings" [] Binding.empty) ]
 
   for html in pages do
@@ -39,7 +46,7 @@ let ``every page has a BpMonitor footer`` () =
 
 [<Fact>]
 let ``history renders reading values, chart iframe and nav links`` () =
-  let html = renderHtml (Views.history [ sample ])
+  let html = renderHtml (Views.history defaultMember [ sample ])
 
   test <@ html.Contains "123" @>
   test <@ html.Contains "after walk" @>
@@ -74,7 +81,7 @@ let ``view encodes user-supplied content`` () =
     { sample with
         Comments = Some "<script>x</script>" }
 
-  let html = renderHtml (Views.history [ nasty ])
+  let html = renderHtml (Views.history defaultMember [ nasty ])
 
   test <@ not (html.Contains "<script>x</script>") @>
   test <@ html.Contains "&lt;script&gt;" @>

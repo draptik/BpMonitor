@@ -19,7 +19,10 @@ let private endpoints =
     get "/chart" Handlers.chart
     post "/readings" Handlers.createReading
     get "/readings/{id:int}/edit" Handlers.editReading
-    post "/readings/{id:int}" Handlers.updateReading ]
+    post "/readings/{id:int}" Handlers.updateReading
+    get "/members" Handlers.members
+    post "/members" Handlers.createMember
+    post "/members/switch" Handlers.switchMember ]
 
 [<EntryPoint>]
 let main args =
@@ -42,6 +45,10 @@ let main args =
 
     builder.Services.AddScoped<IReadingRepository>(fun sp ->
       EfReadingRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
+    |> ignore
+
+    builder.Services.AddScoped<IFamilyMemberRepository>(fun sp ->
+      EfFamilyMemberRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
     |> ignore
 
     let app = builder.Build()

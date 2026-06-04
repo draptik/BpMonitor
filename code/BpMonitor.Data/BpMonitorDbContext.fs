@@ -6,3 +6,4 @@ type BpMonitorDbContext(options: DbContextOptions<BpMonitorDbContext>) =
   inherit DbContext(options)
 
   member this.Readings = this.Set<ReadingRecord>()
+  member this.Members = this.Set<MemberRecord>()

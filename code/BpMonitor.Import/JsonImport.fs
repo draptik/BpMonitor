@@ -31,16 +31,21 @@ let tryReadFromFile (path: string) : Result<BloodPressureReading list, string> =
   | :? UnauthorizedAccessException as ex -> Error ex.Message
   |> Result.bind parse
 
-let import (repository: IReadingRepository) (readings: BloodPressureReading list) : JsonImportSummary =
-  let existing = repository.GetAll()
+let import (repository: IReadingRepository) (memberId: int) (readings: BloodPressureReading list) : JsonImportSummary =
+  let existing = repository.GetAll(memberId)
 
   let folder (added, updated) (reading: BloodPressureReading) =
     match existing |> List.tryFind (fun r -> r.Timestamp = reading.Timestamp) with
     | None ->
-      repository.Add(reading)
+      repository.Add memberId reading
       (added + 1, updated)
     | Some existingReading ->
-      repository.Update({ reading with Id = existingReading.Id })
+      repository.Update(
+        { reading with
+            Id = existingReading.Id
+            MemberId = memberId }
+      )
+
       (added, updated + 1)
 
   let (added, updated) = readings |> List.fold folder (0, 0)

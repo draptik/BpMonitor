@@ -39,6 +39,13 @@ code/
 
 ```fsharp
 // BpMonitor.Core
+type FamilyMember = {
+    Id:         int
+    Name:       string
+    CreatedAt:  DateTimeOffset
+    ModifiedAt: DateTimeOffset
+}
+
 type BloodPressureReadingUnvalidated = {
     Systolic:  int
     Diastolic: int
@@ -49,6 +56,7 @@ type BloodPressureReadingUnvalidated = {
 
 type BloodPressureReading = {
     Id:         int
+    MemberId:   int           // which family member this reading belongs to
     Systolic:   int
     Diastolic:  int
     HeartRate:  int
@@ -88,18 +96,20 @@ graph TD
 
 ### BpMonitor.Core
 
-- Domain models (`BloodPressureReading`, `BloodPressureReadingUnvalidated`)
-- Repository interface (`IReadingRepository`)
+- Domain models (`BloodPressureReading`, `BloodPressureReadingUnvalidated`, `FamilyMember`)
+- Repository interfaces (`IReadingRepository`, `IFamilyMemberRepository`)
+- `IReadingRepository` is member-scoped: `GetAll memberId`, `Add memberId`, `AddMany memberId`, `Update` (uses `reading.MemberId` as the guard)
 - Business logic: applicative validation via `FsToolkit.ErrorHandling`
 - No dependencies on other projects
 
 ### BpMonitor.Data
 
-- EF Core `DbContext` and `ReadingRecord` entity
-- SQLite configuration (`appsettings.json`)
-- `IReadingRepository` implementations: `EfReadingRepository`, `InMemoryReadingRepository`
-- Manual schema migrations via `SchemaMigrations` module (EF Core migrations do not support F#)
-- `ReadingRepositoryFactory` wiring
+- EF Core `DbContext` with two `DbSet`s: `Readings` (`ReadingRecord`) and `Members` (`MemberRecord`)
+- SQLite with WAL mode + 5 s busy timeout (applied at startup)
+- `IReadingRepository` implementations: `EfReadingRepository` (filters by `MemberId`), `InMemoryReadingRepository`
+- `IFamilyMemberRepository` implementations: `EfFamilyMemberRepository`, `InMemoryFamilyMemberRepository`
+- Manual schema migrations via `SchemaMigrations.apply` (EF Core migrations do not support F#); handles `Members` table creation, default-member seeding, and `MemberId` backfill for existing rows
+- `ReadingRepositoryFactory` / `FamilyMemberRepository` factory wiring
 
 ### BpMonitor.Import
 
@@ -122,7 +132,10 @@ graph TD
 ### BpMonitor.Web
 
 - Falco web application serving on `0.0.0.0:5000`
-- Three pages: `/` landing hub, `/add` entry form, `/history` table + chart iframe
+- Pages: `/` landing hub, `/add` entry form, `/history` table + chart iframe, `/members` family-member management
+- Active family member tracked via `bp_member` cookie (HttpOnly, SameSite=Strict); falls back to the first member when no cookie is set. Login is deferred — this cookie is the stepping stone for real auth later
+- `POST /members/switch` sets the cookie and redirects; `POST /members` creates a new family member
+- Every reading handler resolves the active member first; `IReadingRepository` calls are all member-scoped
 - Server-rendered HTML via `Falco.Markup`; htmx for partial updates
 - Scoped `DbContext` per request (concurrency-safe)
 - Structured logging via Serilog: one CLEF JSON line per request + domain events; logs flow to stdout → container/journal

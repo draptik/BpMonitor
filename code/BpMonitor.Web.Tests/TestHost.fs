@@ -8,18 +8,25 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Primitives
 open BpMonitor.Core
+open BpMonitor.Data
 
-/// Builds a DefaultHttpContext wired with the given repository (and default
-/// ranges) so the real Falco handlers can be invoked directly in tests.
+/// Builds a DefaultHttpContext wired with the given reading repository (and default
+/// ranges + a single in-memory family member) so the real Falco handlers can be
+/// invoked directly in tests. The default member has Id=1; the bp_member cookie
+/// is pre-set so activeMember resolves to it without needing a DB.
 let context (repo: IReadingRepository) : HttpContext =
+  let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
+
   let services = ServiceCollection()
   services.AddLogging() |> ignore
   services.AddSingleton<IReadingRepository>(repo) |> ignore
+  services.AddSingleton<IFamilyMemberRepository>(memberRepo) |> ignore
   services.AddSingleton<IConfiguration>(ConfigurationBuilder().Build()) |> ignore
 
   let ctx = DefaultHttpContext()
   ctx.RequestServices <- services.BuildServiceProvider()
   ctx.Response.Body <- new MemoryStream()
+  // No cookie set: activeMember falls back to the first member (Id=1) from InMemoryFamilyMemberRepository.
   ctx
 
 /// Reads back whatever a handler wrote to the response body.

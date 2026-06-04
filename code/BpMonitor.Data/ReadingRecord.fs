@@ -5,6 +5,7 @@ open System
 [<CLIMutable>]
 type ReadingRecord =
   { Id: int
+    MemberId: int
     Systolic: int
     Diastolic: int
     HeartRate: int

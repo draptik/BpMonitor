@@ -9,8 +9,11 @@ open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
 open BpMonitor.Data
 
+let private defaultMemberId = 1
+
 let private sample: BloodPressureReading =
   { Id = 0
+    MemberId = 0
     Systolic = 120
     Diastolic = 80
     HeartRate = 70
@@ -37,7 +40,7 @@ let ``GetAll returns empty list when database is empty`` () =
   let repo =
     EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
 
-  test <@ repo.GetAll() = [] @>
+  test <@ repo.GetAll(defaultMemberId) = [] @>
 
 [<Fact>]
 let ``Add persists a reading`` () =
@@ -46,8 +49,8 @@ let ``Add persists a reading`` () =
   let repo =
     EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
 
-  repo.Add(sample)
-  test <@ repo.GetAll().Length = 1 @>
+  repo.Add defaultMemberId sample
+  test <@ repo.GetAll(defaultMemberId).Length = 1 @>
 
 [<Fact>]
 let ``Add assigns a non-zero Id`` () =
@@ -56,8 +59,36 @@ let ``Add assigns a non-zero Id`` () =
   let repo =
     EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
 
-  repo.Add(sample)
-  test <@ repo.GetAll().[0].Id > 0 @>
+  repo.Add defaultMemberId sample
+  test <@ repo.GetAll(defaultMemberId).[0].Id > 0 @>
+
+[<Fact>]
+let ``Add stamps the reading with the given memberId`` () =
+  use ctx = createContext ()
+
+  let repo =
+    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+
+  repo.Add defaultMemberId sample
+  test <@ repo.GetAll(defaultMemberId).[0].MemberId = defaultMemberId @>
+
+[<Fact>]
+let ``GetAll returns only readings for the requested member`` () =
+  use ctx = createContext ()
+
+  let repo =
+    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+
+  repo.Add 1 sample
+
+  repo.Add
+    2
+    { sample with
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
+
+  test <@ repo.GetAll(1).Length = 1 @>
+  test <@ repo.GetAll(2).Length = 1 @>
+  test <@ repo.GetAll(1).[0].MemberId = 1 @>
 
 [<Fact>]
 let ``Add preserves Comments when present`` () =
@@ -66,12 +97,12 @@ let ``Add preserves Comments when present`` () =
   let repo =
     EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
 
-  repo.Add(
+  repo.Add
+    defaultMemberId
     { sample with
         Comments = Some "test note" }
-  )
 
-  test <@ repo.GetAll().[0].Comments = Some "test note" @>
+  test <@ repo.GetAll(defaultMemberId).[0].Comments = Some "test note" @>
 
 [<Fact>]
 let ``Add preserves Comments as None when absent`` () =
@@ -80,8 +111,8 @@ let ``Add preserves Comments as None when absent`` () =
   let repo =
     EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
 
-  repo.Add(sample)
-  test <@ repo.GetAll().[0].Comments = None @>
+  repo.Add defaultMemberId sample
+  test <@ repo.GetAll(defaultMemberId).[0].Comments = None @>
 
 [<Fact>]
 let ``Add sets CreatedAt and ModifiedAt to current time`` () =
@@ -89,8 +120,8 @@ let ``Add sets CreatedAt and ModifiedAt to current time`` () =
   let timeProvider = FakeTimeProvider(now)
   use ctx = createContext ()
   let repo = EfReadingRepository(ctx, timeProvider) :> IReadingRepository
-  repo.Add(sample)
-  let result = repo.GetAll()[0]
+  repo.Add defaultMemberId sample
+  let result = repo.GetAll(defaultMemberId)[0]
   test <@ result.CreatedAt = now @>
   test <@ result.ModifiedAt = now @>
 
@@ -105,8 +136,8 @@ let ``AddMany persists all readings`` () =
     { sample with
         Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
 
-  repo.AddMany([ sample; second ])
-  test <@ repo.GetAll().Length = 2 @>
+  repo.AddMany defaultMemberId [ sample; second ]
+  test <@ repo.GetAll(defaultMemberId).Length = 2 @>
 
 [<Fact>]
 let ``AddMany sets CreatedAt and ModifiedAt to current time`` () =
@@ -119,8 +150,8 @@ let ``AddMany sets CreatedAt and ModifiedAt to current time`` () =
     { sample with
         Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
 
-  repo.AddMany([ sample; second ])
-  let readings = repo.GetAll()
+  repo.AddMany defaultMemberId [ sample; second ]
+  let readings = repo.GetAll(defaultMemberId)
   test <@ readings[0].CreatedAt = now @>
   test <@ readings[0].ModifiedAt = now @>
   test <@ readings[1].CreatedAt = now @>
@@ -133,10 +164,28 @@ let ``Update preserves CreatedAt and sets ModifiedAt to current time`` () =
   let timeProvider = FakeTimeProvider(createdAt)
   use ctx = createContext ()
   let repo = EfReadingRepository(ctx, timeProvider) :> IReadingRepository
-  repo.Add(sample)
-  let added = repo.GetAll()[0]
+  repo.Add defaultMemberId sample
+  let added = repo.GetAll(defaultMemberId)[0]
   timeProvider.SetUtcNow(updatedAt)
   repo.Update({ added with Systolic = 130 })
-  let result = repo.GetAll()[0]
+  let result = repo.GetAll(defaultMemberId)[0]
   test <@ result.CreatedAt = createdAt @>
   test <@ result.ModifiedAt = updatedAt @>
+
+[<Fact>]
+let ``Update does not affect a reading belonging to a different member`` () =
+  use ctx = createContext ()
+
+  let repo =
+    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+
+  repo.Add 1 sample
+  let added = repo.GetAll(1)[0]
+  // Attempt to update as member 2 — MemberId guard should prevent it
+  repo.Update(
+    { added with
+        Systolic = 999
+        MemberId = 2 }
+  )
+  // Reading should remain unchanged for member 1
+  test <@ (repo.GetAll 1).[0].Systolic = 120 @>

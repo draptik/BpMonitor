@@ -40,6 +40,7 @@ let timestampGen: Gen<DateTimeOffset> =
 let readingGen: Gen<BloodPressureReading> =
   gen {
     let! id = Gen.choose (0, 100000)
+    let! memberId = Gen.choose (1, 10)
     let! sys = Gen.choose (1, 300)
     let! dia = Gen.choose (1, 200)
     let! hr = Gen.choose (1, 300)
@@ -50,6 +51,7 @@ let readingGen: Gen<BloodPressureReading> =
 
     return
       { Id = id
+        MemberId = memberId
         Systolic = sys
         Diastolic = dia
         HeartRate = hr

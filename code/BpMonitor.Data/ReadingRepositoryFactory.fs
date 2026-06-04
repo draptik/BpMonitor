@@ -11,3 +11,11 @@ module ReadingRepository =
     let ctx = new BpMonitorDbContext(options)
     SchemaMigrations.apply ctx
     EfReadingRepository(ctx, System.TimeProvider.System)
+
+module FamilyMemberRepository =
+  let create (connectionString: string) : IFamilyMemberRepository =
+    let options =
+      DbContextOptionsBuilder<BpMonitorDbContext>().UseSqlite(connectionString).Options
+
+    let ctx = new BpMonitorDbContext(options)
+    EfFamilyMemberRepository(ctx, System.TimeProvider.System)

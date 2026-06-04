@@ -7,8 +7,12 @@ open BpMonitor.Core
 open BpMonitor.Data
 open BpMonitor.Web
 
+// All tests use member 1 — the default member seeded by InMemoryFamilyMemberRepository.
+let private defaultMemberId = 1
+
 let private sample: BloodPressureReading =
   { Id = 1
+    MemberId = defaultMemberId
     Systolic = 120
     Diastolic = 80
     HeartRate = 66
@@ -56,7 +60,24 @@ let ``createReading persists a valid reading and redirects`` () =
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = "/history" @>
-  test <@ repo.GetAll() |> List.length = 1 @>
+  test <@ repo.GetAll(defaultMemberId) |> List.length = 1 @>
+
+[<Fact>]
+let ``createReading stamps reading with active member Id`` () =
+  let repo = repoWith []
+  let ctx = TestHost.context repo
+
+  TestHost.setForm
+    ctx
+    [ "Timestamp", "2026-05-01 09:00"
+      "Systolic", "120"
+      "Diastolic", "80"
+      "HeartRate", "66"
+      "Comments", "" ]
+
+  TestHost.run Handlers.createReading ctx
+
+  test <@ repo.GetAll(defaultMemberId).[0].MemberId = defaultMemberId @>
 
 [<Fact>]
 let ``createReading rejects an out-of-range reading with 422 and does not persist`` () =
@@ -75,7 +96,7 @@ let ``createReading rejects an out-of-range reading with 422 and does not persis
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "out of range" @>
-  test <@ repo.GetAll() |> List.isEmpty @>
+  test <@ repo.GetAll(defaultMemberId) |> List.isEmpty @>
 
 [<Fact>]
 let ``createReading rejects a non-numeric field with 422`` () =
@@ -94,7 +115,7 @@ let ``createReading rejects a non-numeric field with 422`` () =
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "not a valid integer" @>
-  test <@ repo.GetAll() |> List.isEmpty @>
+  test <@ repo.GetAll(defaultMemberId) |> List.isEmpty @>
 
 [<Fact>]
 let ``editReading prefills the form for an existing reading`` () =
@@ -133,5 +154,5 @@ let ``updateReading saves changes and redirects`` () =
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = "/history" @>
-  let updated = repo.GetAll() |> List.exactlyOne
+  let updated = repo.GetAll(defaultMemberId) |> List.exactlyOne
   test <@ updated.Systolic = 111 && updated.Comments = Some "updated" @>

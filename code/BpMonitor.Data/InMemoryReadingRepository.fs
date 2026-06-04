@@ -6,6 +6,7 @@ open BpMonitor.Core
 module private Defaults =
   let readings =
     [ { Id = 1
+        MemberId = 1
         Systolic = 122
         Diastolic = 78
         HeartRate = 65
@@ -14,6 +15,7 @@ module private Defaults =
         CreatedAt = DateTimeOffset.MinValue
         ModifiedAt = DateTimeOffset.MinValue }
       { Id = 2
+        MemberId = 1
         Systolic = 135
         Diastolic = 88
         HeartRate = 78
@@ -22,6 +24,7 @@ module private Defaults =
         CreatedAt = DateTimeOffset.MinValue
         ModifiedAt = DateTimeOffset.MinValue }
       { Id = 3
+        MemberId = 1
         Systolic = 118
         Diastolic = 74
         HeartRate = 62
@@ -30,6 +33,7 @@ module private Defaults =
         CreatedAt = DateTimeOffset.MinValue
         ModifiedAt = DateTimeOffset.MinValue }
       { Id = 4
+        MemberId = 1
         Systolic = 128
         Diastolic = 82
         HeartRate = 70
@@ -51,18 +55,32 @@ type InMemoryReadingRepository(initialReadings: BloodPressureReading list option
       (initial |> List.map _.Id |> List.max) + 1
 
   interface IReadingRepository with
-    member _.GetAll() = readings |> Seq.toList
+    member _.GetAll(memberId) =
+      readings |> Seq.filter (fun r -> r.MemberId = memberId) |> Seq.toList
 
-    member _.Add(reading) =
-      readings.Add({ reading with Id = nextId })
+    member _.Add memberId reading =
+      readings.Add(
+        { reading with
+            Id = nextId
+            MemberId = memberId }
+      )
+
       nextId <- nextId + 1
 
-    member _.AddMany(newReadings) =
+    member _.AddMany memberId newReadings =
       newReadings
       |> List.iter (fun r ->
-        readings.Add({ r with Id = nextId })
+        readings.Add(
+          { r with
+              Id = nextId
+              MemberId = memberId }
+        )
+
         nextId <- nextId + 1)
 
     member _.Update(reading) =
-      let idx = readings |> Seq.findIndex (fun r -> r.Id = reading.Id)
+      let idx =
+        readings
+        |> Seq.findIndex (fun r -> r.Id = reading.Id && r.MemberId = reading.MemberId)
+
       readings[idx] <- reading

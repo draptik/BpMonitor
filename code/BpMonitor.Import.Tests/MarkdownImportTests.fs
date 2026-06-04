@@ -229,7 +229,7 @@ let ``import - new valid reading is added to repository`` () =
       Comments = None }
 
   let result =
-    import repo ReadingRanges.defaults [ (1, "- 09:00: 120/80 70", reading) ]
+    import repo 1 ReadingRanges.defaults [ (1, "- 09:00: 120/80 70", reading) ]
 
   test <@ result.Added = 1 @>
   test <@ result.Updated = 0 @>
@@ -239,6 +239,7 @@ let ``import - new valid reading is added to repository`` () =
 let ``import - existing reading with same timestamp is updated`` () =
   let existing: BloodPressureReading =
     { Id = 1
+      MemberId = 1
       Systolic = 110
       Diastolic = 70
       HeartRate = 60
@@ -257,12 +258,12 @@ let ``import - existing reading with same timestamp is updated`` () =
       Comments = None }
 
   let result =
-    import repo ReadingRanges.defaults [ (1, "- 09:00: 120/80 70", updated) ]
+    import repo 1 ReadingRanges.defaults [ (1, "- 09:00: 120/80 70", updated) ]
 
   test <@ result.Added = 0 @>
   test <@ result.Updated = 1 @>
   test <@ result.Failed = [] @>
-  test <@ repo.GetAll().[0].Systolic = 120 @>
+  test <@ repo.GetAll(1).[0].Systolic = 120 @>
 
 [<Fact>]
 let ``import - invalid reading is captured in Failed, valid ones still imported`` () =
@@ -283,7 +284,7 @@ let ``import - invalid reading is captured in Failed, valid ones still imported`
       Comments = None }
 
   let result =
-    import repo ReadingRanges.defaults [ (1, "- 09:00: 0/80 70", invalid); (2, "- 10:00: 120/80 70", valid) ]
+    import repo 1 ReadingRanges.defaults [ (1, "- 09:00: 0/80 70", invalid); (2, "- 10:00: 120/80 70", valid) ]
 
   test <@ result.Added = 1 @>
   test <@ result.Updated = 0 @>

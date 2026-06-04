@@ -5,6 +5,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="FamilyMember.fs" />
+    <Compile Include="IFamilyMemberRepository.fs" />
     <Compile Include="BloodPressureReading.fs" />
     <Compile Include="IReadingRepository.fs" />
   </ItemGroup>

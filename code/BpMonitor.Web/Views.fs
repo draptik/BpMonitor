@@ -45,7 +45,8 @@ module Views =
                   [ Elem.li [] [ Elem.strong [] [ Text.raw "BpMonitor" ] ]
                     navLink active "/" "Home"
                     navLink active "/add" "Add"
-                    navLink active "/history" "History" ]
+                    navLink active "/history" "History"
+                    navLink active "/members" "Members" ]
                 Elem.ul
                   []
                   [ Elem.li
@@ -116,11 +117,11 @@ module Views =
             Elem.a [ Attr.href "/history"; Attr.role "button" ] [ Text.raw "History" ] ] ]
 
   /// History: chart (isolated in an iframe) above the readings table.
-  let history (readings: BloodPressureReading list) : XmlNode =
+  let history (activeMember: FamilyMember) (readings: BloodPressureReading list) : XmlNode =
     layout
       "/history"
       "History"
-      [ Elem.h1 [] [ Text.raw "History" ]
+      [ Elem.h1 [] [ Text.raw $"History — {activeMember.Name}" ]
         Elem.details
           []
           [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw "Blood Pressure Graph" ]
@@ -165,3 +166,55 @@ module Views =
               [ Attr.class' "actions" ]
               [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
                 Elem.a [ Attr.href "/history"; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
+
+  let private membersList
+    (allMembers: FamilyMember list)
+    (active: FamilyMember)
+    (errorMsg: string option)
+    : XmlNode list =
+    let memberRow (m: FamilyMember) =
+      let isCurrent = m.Id = active.Id
+
+      Elem.tr
+        []
+        [ Elem.td [] [ Text.enc m.Name ]
+          Elem.td
+            []
+            [ if isCurrent then
+                Elem.span [ Attr.class' "current-member" ] [ Text.raw "Active" ]
+              else
+                Elem.form
+                  [ Attr.method "post"; Attr.action "/members/switch" ]
+                  [ Elem.input [ Attr.type' "hidden"; Attr.name "MemberId"; Attr.value (string m.Id) ]
+                    Elem.input [ Attr.type' "hidden"; Attr.name "ReturnUrl"; Attr.value "/members" ]
+                    Elem.button [ Attr.type' "submit"; Attr.class' "outline" ] [ Text.raw "Switch" ] ] ] ]
+
+    [ match errorMsg with
+      | Some msg -> yield errorBox [ msg ]
+      | None -> ()
+      yield
+        Elem.table
+          []
+          [ Elem.thead [] [ Elem.tr [] [ Elem.th [] [ Text.raw "Name" ]; Elem.th [] [ Text.raw "" ] ] ]
+            Elem.tbody [] (allMembers |> List.map memberRow) ]
+      yield Elem.h2 [] [ Text.raw "Add family member" ]
+      yield
+        Elem.form
+          [ Attr.method "post"; Attr.action "/members" ]
+          [ Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label [ Attr.for' "Name" ] [ Text.raw "Name" ]
+                Elem.input [ Attr.type' "text"; Attr.id "Name"; Attr.name "Name" ] ]
+            Elem.button [ Attr.type' "submit" ] [ Text.raw "Add member" ] ] ]
+
+  /// Members page: list of family members with Switch buttons and an add form.
+  let members (allMembers: FamilyMember list) (active: FamilyMember) : XmlNode =
+    layout "/members" "Family Members" (Elem.h1 [] [ Text.raw "Family Members" ] :: membersList allMembers active None)
+
+  /// Members page rendered with a validation error message.
+  let membersWithError (allMembers: FamilyMember list) (active: FamilyMember) (error: string) : XmlNode =
+    layout
+      "/members"
+      "Family Members"
+      (Elem.h1 [] [ Text.raw "Family Members" ]
+       :: membersList allMembers active (Some error))

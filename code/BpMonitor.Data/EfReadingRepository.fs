@@ -6,6 +6,7 @@ open BpMonitor.Core
 module private Mapping =
   let toDomain (r: ReadingRecord) : BloodPressureReading =
     { Id = r.Id
+      MemberId = r.MemberId
       Systolic = r.Systolic
       Diastolic = r.Diastolic
       HeartRate = r.HeartRate
@@ -23,6 +24,7 @@ module private Mapping =
 
   let toEntity (r: BloodPressureReading) : ReadingRecord =
     { Id = r.Id
+      MemberId = r.MemberId
       Systolic = r.Systolic
       Diastolic = r.Diastolic
       HeartRate = r.HeartRate
@@ -33,33 +35,54 @@ module private Mapping =
 
 type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvider) =
   interface IReadingRepository with
-    member _.GetAll() =
-      ctx.Readings.AsNoTracking() |> Seq.map Mapping.toDomain |> Seq.toList
+    member _.GetAll(memberId) =
+      ctx.Readings.AsNoTracking()
+      |> Seq.filter (fun r -> r.MemberId = memberId)
+      |> Seq.map Mapping.toDomain
+      |> Seq.toList
 
-    member _.Add(reading) =
+    member _.Add memberId reading =
       let now = timeProvider.GetUtcNow()
 
-      ctx.Readings.Add(reading |> Mapping.withTimestamps now |> Mapping.toEntity)
+      ctx.Readings.Add(
+        reading
+        |> Mapping.withTimestamps now
+        |> (fun r -> { r with MemberId = memberId })
+        |> Mapping.toEntity
+      )
       |> ignore
 
       ctx.SaveChanges() |> ignore
 
-    member _.AddMany(readings) =
+    member _.AddMany memberId readings =
       let now = timeProvider.GetUtcNow()
 
       readings
-      |> List.iter (fun r -> ctx.Readings.Add(r |> Mapping.withTimestamps now |> Mapping.toEntity) |> ignore)
+      |> List.iter (fun r ->
+        ctx.Readings.Add(
+          r
+          |> Mapping.withTimestamps now
+          |> (fun r -> { r with MemberId = memberId })
+          |> Mapping.toEntity
+        )
+        |> ignore)
 
       ctx.SaveChanges() |> ignore
 
     member _.Update(reading) =
       let now = timeProvider.GetUtcNow()
 
-      ctx.ChangeTracker.Entries<ReadingRecord>()
-      |> Seq.tryFind (fun e -> e.Entity.Id = reading.Id)
-      |> Option.iter (fun e -> e.State <- Microsoft.EntityFrameworkCore.EntityState.Detached)
+      // Guard: only update if reading belongs to the expected member (prevents cross-member writes)
+      let existsForMember =
+        ctx.Readings.AsNoTracking()
+        |> Seq.exists (fun r -> r.Id = reading.Id && r.MemberId = reading.MemberId)
 
-      ctx.Readings.Update(reading |> Mapping.withModifiedAt now |> Mapping.toEntity)
-      |> ignore
+      if existsForMember then
+        ctx.ChangeTracker.Entries<ReadingRecord>()
+        |> Seq.tryFind (fun e -> e.Entity.Id = reading.Id)
+        |> Option.iter (fun e -> e.State <- Microsoft.EntityFrameworkCore.EntityState.Detached)
 
-      ctx.SaveChanges() |> ignore
+        ctx.Readings.Update(reading |> Mapping.withModifiedAt now |> Mapping.toEntity)
+        |> ignore
+
+        ctx.SaveChanges() |> ignore
