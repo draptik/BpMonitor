@@ -49,6 +49,8 @@ module SchemaMigrations =
       """CREATE TABLE IF NOT EXISTS "Members" (
         "Id" INTEGER NOT NULL CONSTRAINT "PK_Members" PRIMARY KEY AUTOINCREMENT,
         "Name" TEXT NOT NULL,
+        "IsAdmin" INTEGER NOT NULL DEFAULT 0,
+        "IsActive" INTEGER NOT NULL DEFAULT 1,
         "CreatedAt" TEXT NOT NULL,
         "ModifiedAt" TEXT NOT NULL
       )"""
@@ -62,8 +64,10 @@ module SchemaMigrations =
       withConn ctx (fun conn -> scalarInt64 conn "SELECT COUNT(*) FROM \"Members\"")
 
     if count = 0L then
+      let now = System.DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss zzz")
+
       ctx.Database.ExecuteSqlRaw(
-        "INSERT INTO \"Members\" (\"Name\", \"CreatedAt\", \"ModifiedAt\") VALUES ('Me', '0001-01-01 00:00:00 +00:00', '0001-01-01 00:00:00 +00:00')"
+        $"INSERT INTO \"Members\" (\"Name\", \"IsAdmin\", \"IsActive\", \"CreatedAt\", \"ModifiedAt\") VALUES ('Me', 1, 1, '{now}', '{now}')"
       )
       |> ignore
 
@@ -71,6 +75,21 @@ module SchemaMigrations =
     else
       withConn ctx (fun conn -> scalarInt64 conn "SELECT \"Id\" FROM \"Members\" ORDER BY \"Id\" LIMIT 1")
       |> int
+
+  /// Promotes the lowest-Id member to admin+active when no active admin exists.
+  /// Protects databases seeded before IsAdmin/IsActive columns were added — those
+  /// members received IsAdmin=0 (the column default) and would otherwise violate the
+  /// invariant.
+  let private ensureActiveAdmin (ctx: BpMonitorDbContext) =
+    let count =
+      withConn ctx (fun conn ->
+        scalarInt64 conn "SELECT COUNT(*) FROM \"Members\" WHERE \"IsAdmin\" = 1 AND \"IsActive\" = 1")
+
+    if count = 0L then
+      ctx.Database.ExecuteSqlRaw(
+        "UPDATE \"Members\" SET \"IsAdmin\" = 1, \"IsActive\" = 1 WHERE \"Id\" = (SELECT MIN(\"Id\") FROM \"Members\")"
+      )
+      |> ignore
 
   let apply (ctx: BpMonitorDbContext) =
     ctx.Database.EnsureCreated() |> ignore
@@ -85,8 +104,15 @@ module SchemaMigrations =
     // Create the Members table (no-op on fresh DBs where EnsureCreated already created it).
     createMembersTableIfMissing ctx
 
+    // Add IsAdmin/IsActive to existing Members tables that predate these columns.
+    addColumnIfMissing ctx "Members" "IsAdmin" "INTEGER" "0"
+    addColumnIfMissing ctx "Members" "IsActive" "INTEGER" "1"
+
     // Ensure at least one default member exists and get its Id.
     let defaultMemberId = ensureDefaultMember ctx
 
     // Back-fill existing readings with the default member Id.
     addColumnIfMissing ctx "Readings" "MemberId" "INTEGER" (string defaultMemberId)
+
+    // Promote the lowest-Id member to admin+active when no active admin exists yet.
+    ensureActiveAdmin ctx

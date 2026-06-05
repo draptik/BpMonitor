@@ -181,8 +181,9 @@ module Handlers =
       task {
         let! form = ctx.Request.ReadFormAsync()
         let name = form["Name"].ToString()
+        let isAdmin = form.ContainsKey("IsAdmin")
 
-        match FamilyMember.create name with
+        match FamilyMember.create name isAdmin with
         | Error NameIsEmpty ->
           let allMembers = (memberRepo ctx).GetAll()
           let active = activeMember ctx
@@ -198,6 +199,89 @@ module Handlers =
           )
 
           ctx.Response.Redirect "/members"
+      }
+      :> Task
+
+  let editMember: HttpContext -> Task =
+    fun ctx ->
+      let log = logger ctx
+
+      match routeInt ctx "id" with
+      | None ->
+        log.LogWarning("editMember: bad route value for {{id}}")
+        ctx.Response.StatusCode <- 400
+        ctx.Response.WriteAsync("Bad request")
+      | Some id ->
+        match (memberRepo ctx).GetById(id) with
+        | Some m -> htmlResponse (Views.memberForm "/members" "Edit member" $"/members/{id}" [] m) ctx
+        | None ->
+          log.LogWarning("editMember: member {Id} not found", id)
+          ctx.Response.StatusCode <- 404
+          ctx.Response.WriteAsync("Not found")
+
+  let updateMember: HttpContext -> Task =
+    fun ctx ->
+      task {
+        let log = logger ctx
+
+        match routeInt ctx "id" with
+        | None ->
+          log.LogWarning("updateMember: bad route value for {{id}}")
+          ctx.Response.StatusCode <- 400
+          do! ctx.Response.WriteAsync("Bad request")
+        | Some id ->
+          match (memberRepo ctx).GetById(id) with
+          | None ->
+            log.LogWarning("updateMember: member {Id} not found", id)
+            ctx.Response.StatusCode <- 404
+            do! ctx.Response.WriteAsync("Not found")
+          | Some existing ->
+            let! form = ctx.Request.ReadFormAsync()
+            let name = form["Name"].ToString()
+            let isAdmin = form.ContainsKey("IsAdmin")
+            let isActive = form.ContainsKey("IsActive")
+
+            match FamilyMember.create name isAdmin with
+            | Error NameIsEmpty ->
+              let updated =
+                { existing with
+                    Name = ""
+                    IsAdmin = isAdmin
+                    IsActive = isActive }
+
+              ctx.Response.StatusCode <- 422
+
+              do!
+                htmlResponse
+                  (Views.memberForm "/members" "Edit member" $"/members/{id}" [ "Name cannot be empty" ] updated)
+                  ctx
+            | Ok _ ->
+              let updated =
+                { existing with
+                    Name = name.Trim()
+                    IsAdmin = isAdmin
+                    IsActive = isActive }
+              // Compute what the member list would look like after the edit.
+              let allMembers = (memberRepo ctx).GetAll()
+
+              let postEditList =
+                allMembers |> List.map (fun m -> if m.Id = id then updated else m)
+
+              if not (FamilyMember.hasActiveAdmin postEditList) then
+                ctx.Response.StatusCode <- 422
+
+                do!
+                  htmlResponse
+                    (Views.memberForm
+                      "/members"
+                      "Edit member"
+                      $"/members/{id}"
+                      [ "At least one member must be an active admin" ]
+                      updated)
+                    ctx
+              else
+                (memberRepo ctx).Update(updated)
+                ctx.Response.Redirect "/members"
       }
       :> Task
 

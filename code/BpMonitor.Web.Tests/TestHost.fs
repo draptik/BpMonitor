@@ -29,6 +29,23 @@ let context (repo: IReadingRepository) : HttpContext =
   // No cookie set: activeMember falls back to the first member (Id=1) from InMemoryFamilyMemberRepository.
   ctx
 
+/// Variant of `context` that uses a custom list of family members. Useful for
+/// multi-member scenarios (e.g. testing edit/update invariant enforcement).
+let contextWithMembers (repo: IReadingRepository) (members: FamilyMember list) : HttpContext =
+  let memberRepo =
+    InMemoryFamilyMemberRepository(Some members) :> IFamilyMemberRepository
+
+  let services = ServiceCollection()
+  services.AddLogging() |> ignore
+  services.AddSingleton<IReadingRepository>(repo) |> ignore
+  services.AddSingleton<IFamilyMemberRepository>(memberRepo) |> ignore
+  services.AddSingleton<IConfiguration>(ConfigurationBuilder().Build()) |> ignore
+
+  let ctx = DefaultHttpContext()
+  ctx.RequestServices <- services.BuildServiceProvider()
+  ctx.Response.Body <- new MemoryStream()
+  ctx
+
 /// Reads back whatever a handler wrote to the response body.
 let readBody (ctx: HttpContext) : string =
   ctx.Response.Body.Position <- 0L

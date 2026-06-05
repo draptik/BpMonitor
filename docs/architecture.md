@@ -42,6 +42,8 @@ code/
 type FamilyMember = {
     Id:         int
     Name:       string
+    IsAdmin:    bool
+    IsActive:   bool
     CreatedAt:  DateTimeOffset
     ModifiedAt: DateTimeOffset
 }
@@ -99,6 +101,8 @@ graph TD
 - Domain models (`BloodPressureReading`, `BloodPressureReadingUnvalidated`, `FamilyMember`)
 - Repository interfaces (`IReadingRepository`, `IFamilyMemberRepository`)
 - `IReadingRepository` is member-scoped: `GetAll memberId`, `Add memberId`, `AddMany memberId`, `Update` (uses `reading.MemberId` as the guard)
+- `IFamilyMemberRepository`: `GetAll`, `GetById`, `Add`, `Update`
+- `FamilyMember.hasActiveAdmin` enforces the invariant: at least one member must have `IsAdmin = true` and `IsActive = true`; checked before every `Update`
 - Business logic: applicative validation via `FsToolkit.ErrorHandling`
 - No dependencies on other projects
 
@@ -108,7 +112,7 @@ graph TD
 - SQLite with WAL mode + 5 s busy timeout (applied at startup)
 - `IReadingRepository` implementations: `EfReadingRepository` (filters by `MemberId`), `InMemoryReadingRepository`
 - `IFamilyMemberRepository` implementations: `EfFamilyMemberRepository`, `InMemoryFamilyMemberRepository`
-- Manual schema migrations via `SchemaMigrations.apply` (EF Core migrations do not support F#); handles `Members` table creation, default-member seeding, and `MemberId` backfill for existing rows
+- Manual schema migrations via `SchemaMigrations.apply` (EF Core migrations do not support F#); handles `Members` table creation, default-member seeding, `MemberId` backfill for existing rows, and `IsAdmin`/`IsActive` column additions; `ensureActiveAdmin` promotes the lowest-Id member when no active admin exists (upgrade path for pre-PR#157 DBs)
 - `ReadingRepositoryFactory` / `FamilyMemberRepository` factory wiring
 
 ### BpMonitor.Import
@@ -132,9 +136,10 @@ graph TD
 ### BpMonitor.Web
 
 - Falco web application serving on `0.0.0.0:5000`
-- Pages: `/` landing hub, `/add` entry form, `/history` table + chart iframe, `/members` family-member management
+- Pages: `/` landing hub, `/add` entry form, `/history` table + chart iframe, `/members` family-member management (list + add), `/members/{id}/edit` member edit form
 - Active family member tracked via `bp_member` cookie (HttpOnly, SameSite=Strict); falls back to the first member when no cookie is set. Login is deferred — this cookie is the stepping stone for real auth later
-- `POST /members/switch` sets the cookie and redirects; `POST /members` creates a new family member
+- `POST /members/switch` sets the cookie and redirects; `POST /members` creates a new family member; `GET/POST /members/{id}/edit` edits an existing member
+- `IsAdmin` and `IsActive` are stored on each member; `IsActive`/`IsAdmin` flags do not yet affect cookie-based member resolution (deferred to login milestone). Invariant: at least one member must be admin + active — enforced on `updateMember` (POST /members/{id})
 - Every reading handler resolves the active member first; `IReadingRepository` calls are all member-scoped
 - Server-rendered HTML via `Falco.Markup`; htmx for partial updates
 - Scoped `DbContext` per request (concurrency-safe)

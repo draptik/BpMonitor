@@ -22,6 +22,8 @@ let private endpoints =
     post "/readings/{id:int}" Handlers.updateReading
     get "/members" Handlers.members
     post "/members" Handlers.createMember
+    get "/members/{id:int}/edit" Handlers.editMember
+    post "/members/{id:int}" Handlers.updateMember
     post "/members/switch" Handlers.switchMember ]
 
 [<EntryPoint>]

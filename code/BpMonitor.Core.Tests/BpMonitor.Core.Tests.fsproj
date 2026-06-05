@@ -9,6 +9,7 @@
     <Compile Include="BloodPressureReadingTests.fs" />
     <Compile Include="BloodPressureReadingPropertyTests.fs" />
     <Compile Include="ReadingRepositoryContractTests.fs" />
+    <Compile Include="FamilyMemberTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

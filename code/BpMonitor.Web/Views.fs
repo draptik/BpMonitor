@@ -172,22 +172,28 @@ module Views =
     (active: FamilyMember)
     (errorMsg: string option)
     : XmlNode list =
+    let badge (text: string) =
+      Elem.span [ Attr.class' "badge" ] [ Text.raw text ]
+
     let memberRow (m: FamilyMember) =
       let isCurrent = m.Id = active.Id
 
       Elem.tr
         []
         [ Elem.td [] [ Text.enc m.Name ]
+          Elem.td [] [ if m.IsAdmin then badge "Admin" else Text.raw "—" ]
+          Elem.td [] [ if m.IsActive then badge "Active" else Text.raw "—" ]
           Elem.td
-            []
+            [ Attr.style "display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap" ]
             [ if isCurrent then
-                Elem.span [ Attr.class' "current-member" ] [ Text.raw "Active" ]
+                Elem.span [ Attr.class' "current-member" ] [ Text.raw "Current" ]
               else
                 Elem.form
                   [ Attr.method "post"; Attr.action "/members/switch" ]
                   [ Elem.input [ Attr.type' "hidden"; Attr.name "MemberId"; Attr.value (string m.Id) ]
                     Elem.input [ Attr.type' "hidden"; Attr.name "ReturnUrl"; Attr.value "/members" ]
-                    Elem.button [ Attr.type' "submit"; Attr.class' "outline" ] [ Text.raw "Switch" ] ] ] ]
+                    Elem.button [ Attr.type' "submit"; Attr.class' "outline" ] [ Text.raw "Switch" ] ]
+              Elem.a [ Attr.href $"/members/{m.Id}/edit"; Attr.class' "outline" ] [ Text.raw "Edit" ] ] ]
 
     [ match errorMsg with
       | Some msg -> yield errorBox [ msg ]
@@ -195,19 +201,67 @@ module Views =
       yield
         Elem.table
           []
-          [ Elem.thead [] [ Elem.tr [] [ Elem.th [] [ Text.raw "Name" ]; Elem.th [] [ Text.raw "" ] ] ]
+          [ Elem.thead
+              []
+              [ Elem.tr
+                  []
+                  [ Elem.th [] [ Text.raw "Name" ]
+                    Elem.th [] [ Text.raw "Admin" ]
+                    Elem.th [] [ Text.raw "Active" ]
+                    Elem.th [] [ Text.raw "" ] ] ]
             Elem.tbody [] (allMembers |> List.map memberRow) ]
       yield Elem.h2 [] [ Text.raw "Add family member" ]
       yield
         Elem.form
-          [ Attr.method "post"; Attr.action "/members" ]
+          [ Attr.method "post"; Attr.action "/members"; Attr.class' "stacked" ]
           [ Elem.div
               [ Attr.class' "field" ]
               [ Elem.label [ Attr.for' "Name" ] [ Text.raw "Name" ]
                 Elem.input [ Attr.type' "text"; Attr.id "Name"; Attr.name "Name" ] ]
+            Elem.label
+              [ Attr.for' "IsAdmin" ]
+              [ Elem.input [ Attr.type' "checkbox"; Attr.id "IsAdmin"; Attr.name "IsAdmin" ]
+                Text.raw " Admin" ]
             Elem.button [ Attr.type' "submit" ] [ Text.raw "Add member" ] ] ]
 
-  /// Members page: list of family members with Switch buttons and an add form.
+  /// Shared add/edit form for family members. `action` is the POST target; `errors`
+  /// are rendered above the fields when re-displaying after a failed submit.
+  let memberForm (active: string) (title: string) (action: string) (errors: string list) (m: FamilyMember) : XmlNode =
+    let checkedAttr isChecked =
+      if isChecked then
+        [ Attr.type' "checkbox"; Attr.create "checked" "checked" ]
+      else
+        [ Attr.type' "checkbox" ]
+
+    layout
+      active
+      title
+      [ Elem.h1 [] [ Text.raw title ]
+        errorBox errors
+        Elem.form
+          [ Attr.method "post"; Attr.action action ]
+          [ Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label [ Attr.for' "Name" ] [ Text.raw "Name" ]
+                Elem.input [ Attr.type' "text"; Attr.id "Name"; Attr.name "Name"; Attr.value m.Name ] ]
+            Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label
+                  [ Attr.for' "IsAdmin" ]
+                  [ Elem.input (checkedAttr m.IsAdmin @ [ Attr.id "IsAdmin"; Attr.name "IsAdmin" ])
+                    Text.raw " Admin" ] ]
+            Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label
+                  [ Attr.for' "IsActive" ]
+                  [ Elem.input (checkedAttr m.IsActive @ [ Attr.id "IsActive"; Attr.name "IsActive" ])
+                    Text.raw " Active" ] ]
+            Elem.div
+              [ Attr.class' "actions" ]
+              [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
+                Elem.a [ Attr.href "/members"; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
+
+  /// Members page: list of family members with Switch/Edit buttons and an add form.
   let members (allMembers: FamilyMember list) (active: FamilyMember) : XmlNode =
     layout "/members" "Family Members" (Elem.h1 [] [ Text.raw "Family Members" ] :: membersList allMembers active None)
 
