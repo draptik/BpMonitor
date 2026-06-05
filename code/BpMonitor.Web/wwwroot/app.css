@@ -68,6 +68,14 @@ form input {
   font-size: inherit;
 }
 
+label input[type="checkbox"] {
+  vertical-align: middle;
+}
+
+form.stacked {
+  display: block;
+}
+
 input#Timestamp {
   width: 10.5rem;
   margin-inline: auto;

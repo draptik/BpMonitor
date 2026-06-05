@@ -7,6 +7,8 @@ module private MemberDefaults =
   let members =
     [ { Id = 1
         Name = "Me"
+        IsAdmin = true
+        IsActive = true
         CreatedAt = DateTimeOffset.MinValue
         ModifiedAt = DateTimeOffset.MinValue } ]
 
@@ -33,3 +35,10 @@ type InMemoryFamilyMemberRepository(initialMembers: FamilyMember list option) =
       members.Add(created)
       nextId <- nextId + 1
       created
+
+    member _.Update(m) =
+      let idx = members |> Seq.tryFindIndex (fun r -> r.Id = m.Id)
+
+      match idx with
+      | Some i -> members[i] <- m
+      | None -> ()

@@ -10,6 +10,8 @@ open BpMonitor.Web
 let private defaultMember: FamilyMember =
   { Id = 1
     Name = "Me"
+    IsAdmin = true
+    IsActive = true
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
 
@@ -85,3 +87,51 @@ let ``view encodes user-supplied content`` () =
 
   test <@ not (html.Contains "<script>x</script>") @>
   test <@ html.Contains "&lt;script&gt;" @>
+
+[<Fact>]
+let ``members page renders Admin and Active columns and Edit link`` () =
+  let otherMember =
+    { Id = 2
+      Name = "Alice"
+      IsAdmin = false
+      IsActive = true
+      CreatedAt = DateTimeOffset.MinValue
+      ModifiedAt = DateTimeOffset.MinValue }
+
+  let html = renderHtml (Views.members [ defaultMember; otherMember ] defaultMember)
+
+  test <@ html.Contains "Admin" @>
+  test <@ html.Contains "Active" @>
+  test <@ html.Contains "href=\"/members/1/edit\"" @>
+  test <@ html.Contains "href=\"/members/2/edit\"" @>
+
+[<Fact>]
+let ``memberForm prefills name and reflects IsAdmin and IsActive`` () =
+  let m =
+    { Id = 3
+      Name = "Bob"
+      IsAdmin = true
+      IsActive = false
+      CreatedAt = DateTimeOffset.MinValue
+      ModifiedAt = DateTimeOffset.MinValue }
+
+  let html = renderHtml (Views.memberForm "/members" "Edit member" "/members/3" [] m)
+
+  test <@ html.Contains "value=\"Bob\"" @>
+  test <@ html.Contains "action=\"/members/3\"" @>
+  // IsAdmin checked → checked attribute present
+  test <@ html.Contains "checked" @>
+
+[<Fact>]
+let ``memberForm renders errors`` () =
+  let html =
+    renderHtml (
+      Views.memberForm
+        "/members"
+        "Edit member"
+        "/members/3"
+        [ "At least one member must be an active admin" ]
+        defaultMember
+    )
+
+  test <@ html.Contains "active admin" @>

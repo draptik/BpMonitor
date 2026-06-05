@@ -56,7 +56,7 @@ code/
 ├── BpMonitor.Import      # Markdown and JSON importers (take memberId param)
 ├── BpMonitor.Export      # JSON serialisation and file write
 ├── BpMonitor.Charts      # Plotly.NET chart generation → HTML output
-├── BpMonitor.Web         # Falco web app (landing, add, history, members pages); Serilog structured stdout logging
+├── BpMonitor.Web         # Falco web app (landing, add, history, members pages + member edit); Serilog structured stdout logging
 └── BpMonitor.Arch.Tests  # ArchUnit Clean Architecture rules
 docs/                     # Product vision, architecture, ADRs
 ```

@@ -7,12 +7,16 @@ module private MemberMapping =
   let toDomain (r: MemberRecord) : FamilyMember =
     { Id = r.Id
       Name = r.Name
+      IsAdmin = r.IsAdmin
+      IsActive = r.IsActive
       CreatedAt = r.CreatedAt
       ModifiedAt = r.ModifiedAt }
 
   let toEntity (now: System.DateTimeOffset) (m: FamilyMember) : MemberRecord =
     { Id = m.Id
       Name = m.Name
+      IsAdmin = m.IsAdmin
+      IsActive = m.IsActive
       CreatedAt = now
       ModifiedAt = now }
 
@@ -32,3 +36,22 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.Time
       let entry = ctx.Members.Add(entity)
       ctx.SaveChanges() |> ignore
       MemberMapping.toDomain entry.Entity
+
+    member _.Update(m) =
+      let now = timeProvider.GetUtcNow()
+
+      // Detach any tracked entity with the same Id to avoid EF tracking conflicts.
+      ctx.ChangeTracker.Entries<MemberRecord>()
+      |> Seq.tryFind (fun e -> e.Entity.Id = m.Id)
+      |> Option.iter (fun e -> e.State <- Microsoft.EntityFrameworkCore.EntityState.Detached)
+
+      let entity: MemberRecord =
+        { Id = m.Id
+          Name = m.Name
+          IsAdmin = m.IsAdmin
+          IsActive = m.IsActive
+          CreatedAt = m.CreatedAt
+          ModifiedAt = now }
+
+      ctx.Members.Update(entity) |> ignore
+      ctx.SaveChanges() |> ignore
