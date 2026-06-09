@@ -38,19 +38,22 @@ module BpChart =
     else
       html.Replace("</head>", "<style>body{margin:0}</style></head>")
 
-  let private render
-    (lineDash: StyleParam.DrawingStyle)
-    (theme: string)
-    (readings: BloodPressureReading list)
-    : string =
+  let private finish (theme: string) (chart: GenericChart) =
+    chart
+    |> Chart.withLayout (layout theme)
+    |> Chart.withXAxis xAxis
+    |> Chart.withYAxis (yAxis theme)
+    |> GenericChart.toEmbeddedHTML
+    |> _.Replace("\"width\":600,", "")
+    |> injectBodyStyle theme
+
+  /// Classic x/y plot — one point per reading. Used by /history.
+  let private renderIndividual (theme: string) (readings: BloodPressureReading list) : string =
     let readings = readings |> List.sortBy _.Timestamp
-
     let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
-
     let systolic = readings |> List.map _.Systolic
     let diastolic = readings |> List.map _.Diastolic
     let heartRate = readings |> List.map _.HeartRate
-
     let commented = readings |> List.filter _.Comments.IsSome
 
     let commentTraces =
@@ -60,26 +63,99 @@ module BpChart =
         let cTimestamps = commented |> List.map (_.Timestamp >> Formats.formatLocal)
         let cSystolic = commented |> List.map _.Systolic
         let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
-
         [ Chart.Point(x = cTimestamps, y = cSystolic, Name = "Comments", MultiText = cTexts) ]
 
-    let showMarkers = lineDash <> StyleParam.DrawingStyle.Solid
-
-    [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic", LineDash = lineDash, ShowMarkers = showMarkers)
-      Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic", LineDash = lineDash, ShowMarkers = showMarkers)
-      Chart.Line(x = timestamps, y = heartRate, Name = "Heart Rate", LineDash = lineDash, ShowMarkers = showMarkers)
+    [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic")
+      Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic")
+      Chart.Line(x = timestamps, y = heartRate, Name = "Heart Rate")
       yield! commentTraces ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
-    |> Chart.withLayout (layout theme)
-    |> Chart.withXAxis xAxis
-    |> Chart.withYAxis (yAxis theme)
-    |> GenericChart.toEmbeddedHTML
-    |> _.Replace("\"width\":600,", "")
-    |> injectBodyStyle theme
+    |> finish theme
 
-  let toHtml (theme: string) =
-    render StyleParam.DrawingStyle.Solid theme
+  /// Daily-grouped plot — one point per calendar day, averaged when multiple readings exist.
+  /// Circle = single reading, Diamond = daily average. Used by /trends windowed chart.
+  let private renderDailyGrouped (theme: string) (readings: BloodPressureReading list) : string =
+    let readings = readings |> List.sortBy _.Timestamp
 
-  let toHtmlDashed (theme: string) =
-    render StyleParam.DrawingStyle.Dash theme
+    let dailyPoints =
+      readings
+      |> List.groupBy (fun r -> r.Timestamp.LocalDateTime.Date)
+      |> List.sortBy fst
+      |> List.map (fun (date, dayReadings) ->
+        let count = dayReadings.Length
+
+        let avg f =
+          dayReadings |> List.averageBy (fun r -> float (f r)) |> int
+
+        let label = date.ToString("yyyy-MM-dd")
+
+        let symbol =
+          if count = 1 then
+            StyleParam.MarkerSymbol.Circle
+          else
+            StyleParam.MarkerSymbol.Diamond
+
+        let hoverText =
+          if count = 1 then
+            "1 reading"
+          else
+            $"{count} readings (daily avg)"
+
+        label, avg _.Systolic, avg _.Diastolic, avg _.HeartRate, symbol, hoverText)
+
+    let timestamps = dailyPoints |> List.map (fun (t, _, _, _, _, _) -> t)
+    let systolic = dailyPoints |> List.map (fun (_, s, _, _, _, _) -> s)
+    let diastolic = dailyPoints |> List.map (fun (_, _, d, _, _, _) -> d)
+    let heartRate = dailyPoints |> List.map (fun (_, _, _, h, _, _) -> h)
+    let symbols = dailyPoints |> List.map (fun (_, _, _, _, sym, _) -> sym)
+    let hoverTexts = dailyPoints |> List.map (fun (_, _, _, _, _, h) -> h)
+
+    let commented = readings |> List.filter _.Comments.IsSome
+
+    let commentTraces =
+      if commented.IsEmpty then
+        []
+      else
+        let cTimestamps =
+          commented
+          |> List.map (fun r -> r.Timestamp.LocalDateTime.Date.ToString("yyyy-MM-dd"))
+
+        let cSystolic = commented |> List.map _.Systolic
+        let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
+        [ Chart.Point(x = cTimestamps, y = cSystolic, Name = "Comments", MultiText = cTexts) ]
+
+    [ Chart.Line(
+        x = timestamps,
+        y = systolic,
+        Name = "Systolic",
+        LineDash = StyleParam.DrawingStyle.Dash,
+        ShowMarkers = true,
+        MultiMarkerSymbol = symbols,
+        MultiText = hoverTexts
+      )
+      Chart.Line(
+        x = timestamps,
+        y = diastolic,
+        Name = "Diastolic",
+        LineDash = StyleParam.DrawingStyle.Dash,
+        ShowMarkers = true,
+        MultiMarkerSymbol = symbols,
+        MultiText = hoverTexts
+      )
+      Chart.Line(
+        x = timestamps,
+        y = heartRate,
+        Name = "Heart Rate",
+        LineDash = StyleParam.DrawingStyle.Dash,
+        ShowMarkers = true,
+        MultiMarkerSymbol = symbols,
+        MultiText = hoverTexts
+      )
+      yield! commentTraces ]
+    |> Chart.combine
+    |> Chart.withTitle "Blood Pressure History"
+    |> finish theme
+
+  let toHtml (theme: string) = renderIndividual theme
+  let toHtmlDashed (theme: string) = renderDailyGrouped theme

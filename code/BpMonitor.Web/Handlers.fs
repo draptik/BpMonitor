@@ -324,7 +324,7 @@ module Handlers =
             match Int32.TryParse(string v) with
             | true, days when days > 0 ->
               let now = (timeProvider ctx).GetUtcNow()
-              allReadings |> ReadingStats.since now days |> ReadingStats.dailyAverages, BpChart.toHtmlDashed theme
+              allReadings |> ReadingStats.since now days, BpChart.toHtmlDashed theme
             | _ -> allReadings, BpChart.toHtml theme
           | _ -> allReadings, BpChart.toHtml theme
 
