@@ -171,9 +171,19 @@ footer.container {
   font-size: 0.875rem;
 }
 
-/* Inline logout form — removes default form block display */
+/* Inline logout/action form — removes default form block display */
 form.inline {
   display: inline;
+}
+
+form.inline button {
+  --pico-nav-link-spacing-vertical: 0.25rem;
+  --pico-nav-link-spacing-horizontal: 0.75rem;
+  --pico-form-element-spacing-vertical: 0.25rem;
+  --pico-form-element-spacing-horizontal: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  margin: 0;
 }
 
 /* Member status badges */
