@@ -141,7 +141,7 @@ graph TD
 - Falco web application serving on `0.0.0.0:5000`
 - **Authentication:** ASP.NET Core cookie authentication (`AddAuthentication().AddCookie()`); `LoginPath=/login`. Per-member password via PBKDF2-SHA256 (`PasswordHashing` in Core). Members with no password are "unclaimed" and set their password on first login (claim flow). After claiming/verifying, `SignInAsync` issues a cookie carrying `NameIdentifier`, `Name`, and `Role=Admin` claims.
 - **Auth model — strict per-member isolation:** every member sees and records only their own readings. No on-behalf-of, no profile switching. Admin members can manage other members via `/members` but still see only their own readings.
-- Pages: `/login` member picker + password form (unauthenticated), `/` landing hub, `/add` entry form, `/history` table + chart iframe, `/members` family-member management (admin only), `/members/{id}/edit` member edit, `/members/{id}/reset-password` password reset (admin only), `POST /logout`
+- Pages: `/login` username + password form (unauthenticated); unclaimed members are redirected to `/login/{id}` where they set their password on first login (claim flow). `/` landing hub, `/add` entry form, `/history` table + chart iframe, `/members` family-member management (admin only), `/members/{id}/edit` member edit, `/members/{id}/reset-password` password reset (admin only), `POST /logout`
 - `protect` combinator wraps all app routes; `protectAdmin` wraps `/members*` routes; `/login*` and `/logout` are anonymous
 - Active member resolved via `ClaimTypes.NameIdentifier` from the authenticated principal (`authenticatedMember` in Handlers.fs)
 - `POST /members` creates a new unclaimed member (no cookie set; member claims on first login). `POST /members/switch` removed.
