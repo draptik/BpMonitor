@@ -5,15 +5,21 @@ open Plotly.NET.LayoutObjects
 open BpMonitor.Core
 
 module BpChart =
+  // ── palette ──────────────────────────────────────────────────────────────
   let private transparent = Color.fromString "rgba(0,0,0,0)"
   let private darkBg = Color.fromString "#11191f"
+  let private darkBgHex = "#11191f"
+  let private darkFont = Color.fromString "#c2cfd6"
+  let private darkGridLine = Color.fromString "rgba(194,207,214,0.12)"
+  let private lightGridLine = Color.fromString "rgba(0,0,0,0.08)"
+  let private systolicColor = Color.fromString "rgba(99,110,250,1)"
 
   let private layout (theme: string) =
     let bg = if theme = "dark" then darkBg else transparent
 
     let font =
       if theme = "dark" then
-        Font.init (Color = Color.fromString "#c2cfd6")
+        Font.init (Color = darkFont)
       else
         Font.init ()
 
@@ -22,19 +28,14 @@ module BpChart =
   let private xAxis = LinearAxis.init (ShowGrid = false)
 
   let private yAxis (theme: string) =
-    let gridColor =
-      if theme = "dark" then
-        Color.fromString "rgba(194,207,214,0.12)"
-      else
-        Color.fromString "rgba(0,0,0,0.08)"
-
+    let gridColor = if theme = "dark" then darkGridLine else lightGridLine
     LinearAxis.init (GridColor = gridColor)
 
   // The chart is rendered inside an iframe (separate document), so the iframe body
   // background must be set explicitly — it does not inherit the parent page theme.
   let private injectBodyStyle (theme: string) (html: string) =
     if theme = "dark" then
-      html.Replace("</head>", "<style>body{background:#11191f;margin:0}</style></head>")
+      html.Replace("</head>", $"<style>body{{background:{darkBgHex};margin:0}}</style></head>")
     else
       html.Replace("</head>", "<style>body{margin:0}</style></head>")
 
@@ -122,7 +123,15 @@ module BpChart =
 
         let cSystolic = commented |> List.map _.Systolic
         let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
-        [ Chart.Point(x = cTimestamps, y = cSystolic, Name = "Comments", MultiText = cTexts, Opacity = 0.5) ]
+
+        [ Chart.Point(
+            x = cTimestamps,
+            y = cSystolic,
+            Name = "Comments",
+            MultiText = cTexts,
+            Opacity = 0.5,
+            MarkerColor = systolicColor
+          ) ]
 
     let line name y =
       Chart.Line(
