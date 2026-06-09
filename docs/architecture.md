@@ -153,6 +153,15 @@ graph TD
 - Scoped `DbContext` per request (concurrency-safe)
 - Structured logging via Serilog: one CLEF JSON line per request + domain events; logs flow to stdout → container/journal
 - References Core + Data + Charts
+- **Version footer:** `Version.current` reads `AssemblyInformationalVersion` at runtime and maps it to a display string (see `BpMonitor.Web/Version.fs`). The version is stamped at publish time; the sentinel logic distinguishes three cases:
+
+  | Context | `AssemblyInformationalVersion` | Footer |
+  | --- | --- | --- |
+  | `dotnet run` locally (no `-p:Version`) | `1.0.0+<git-sha>` (SDK default in a git repo) | `dev` |
+  | Container built without `VERSION` build-arg | `dev` (Containerfile default) | `dev` |
+  | Tagged release (tarball or container) | `1.2.3` (no `+` suffix) | `v1.2.3` (linked to GitHub release) |
+
+  The key invariant: a stamped version never carries a `+` suffix, while the SDK default always does. The sentinel therefore checks for `base == "1.0.0" && contains '+'` — not bare `"1.0.0"` — so that `v1.0.0` (and any future patch built on it) displays correctly.
 
 ### BpMonitor.Arch.Tests
 
