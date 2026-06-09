@@ -18,7 +18,7 @@ module Version =
         | -1 -> s
         | i -> s.Substring(0, i)
 
-      if String.IsNullOrWhiteSpace base' || base' = "1.0.0" then
+      if String.IsNullOrWhiteSpace base' || (base' = "1.0.0" && s.Contains('+')) then
         "dev"
       else
         s

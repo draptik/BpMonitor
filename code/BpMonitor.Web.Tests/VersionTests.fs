@@ -16,8 +16,8 @@ let ``parse whitespace returns dev`` () =
   test <@ Version.parse (Some "   ") = "dev" @>
 
 [<Fact>]
-let ``parse default 1.0.0 returns dev`` () =
-  test <@ Version.parse (Some "1.0.0") = "dev" @>
+let ``parse 1.0.0 returns 1.0.0`` () =
+  test <@ Version.parse (Some "1.0.0") = "1.0.0" @>
 
 [<Fact>]
 let ``parse real version returns it unchanged`` () =
