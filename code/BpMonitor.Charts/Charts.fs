@@ -6,9 +6,9 @@ open BpMonitor.Core
 
 module BpChart =
   // ── palette ──────────────────────────────────────────────────────────────
-  let private transparent = Color.fromString "rgba(0,0,0,0)"
-  let private darkBg = Color.fromString "#11191f"
   let private darkBgHex = "#11191f"
+  let private darkBg = Color.fromString darkBgHex
+  let private transparent = Color.fromString "rgba(0,0,0,0)"
   let private darkFont = Color.fromString "#c2cfd6"
   let private darkGridLine = Color.fromString "rgba(194,207,214,0.12)"
   let private lightGridLine = Color.fromString "rgba(0,0,0,0.08)"
@@ -74,6 +74,13 @@ module BpChart =
     |> Chart.withTitle "Blood Pressure History"
     |> finish theme
 
+  type private DailyPoint =
+    { Label: string
+      Systolic: int
+      Diastolic: int
+      Symbol: StyleParam.MarkerSymbol
+      HoverText: string }
+
   /// Daily-grouped plot — one point per calendar day, averaged when multiple readings exist.
   /// Circle = single reading, Diamond = daily average. Used by /trends windowed chart.
   let private renderDailyGrouped (theme: string) (readings: BloodPressureReading list) : string =
@@ -89,27 +96,25 @@ module BpChart =
         let avg f =
           dayReadings |> List.averageBy (fun r -> float (f r)) |> int
 
-        let label = date.ToString("yyyy-MM-dd")
+        { Label = date.ToString("yyyy-MM-dd")
+          Systolic = avg _.Systolic
+          Diastolic = avg _.Diastolic
+          Symbol =
+            if count = 1 then
+              StyleParam.MarkerSymbol.Circle
+            else
+              StyleParam.MarkerSymbol.Diamond
+          HoverText =
+            if count = 1 then
+              "1 reading"
+            else
+              $"{count} readings (daily avg)" })
 
-        let symbol =
-          if count = 1 then
-            StyleParam.MarkerSymbol.Circle
-          else
-            StyleParam.MarkerSymbol.Diamond
-
-        let hoverText =
-          if count = 1 then
-            "1 reading"
-          else
-            $"{count} readings (daily avg)"
-
-        label, avg _.Systolic, avg _.Diastolic, avg _.HeartRate, symbol, hoverText)
-
-    let timestamps = dailyPoints |> List.map (fun (t, _, _, _, _, _) -> t)
-    let systolic = dailyPoints |> List.map (fun (_, s, _, _, _, _) -> s)
-    let diastolic = dailyPoints |> List.map (fun (_, _, d, _, _, _) -> d)
-    let symbols = dailyPoints |> List.map (fun (_, _, _, _, sym, _) -> sym)
-    let hoverTexts = dailyPoints |> List.map (fun (_, _, _, _, _, h) -> h)
+    let timestamps = dailyPoints |> List.map _.Label
+    let systolic = dailyPoints |> List.map _.Systolic
+    let diastolic = dailyPoints |> List.map _.Diastolic
+    let symbols = dailyPoints |> List.map _.Symbol
+    let hoverTexts = dailyPoints |> List.map _.HoverText
 
     let commented = readings |> List.filter _.Comments.IsSome
 
