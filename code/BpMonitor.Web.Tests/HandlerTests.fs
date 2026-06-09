@@ -4,6 +4,7 @@ open System
 open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
 open BpMonitor.Data
 open BpMonitor.Web
@@ -43,6 +44,17 @@ let ``history renders a row per reading`` () =
 
   test <@ ctx.Response.StatusCode = 200 @>
   test <@ (TestHost.readBody ctx).Contains "/readings/1/edit" @>
+
+[<Fact>]
+let ``newReading returns 200 and prefills timestamp with local time`` () =
+  let tp = FakeTimeProvider(Timestamp.utc 2026 6 9 8 0 0)
+  let ctx = TestHost.contextWithProvider (repoWith []) tp
+
+  TestHost.run Handlers.newReading ctx
+
+  test <@ ctx.Response.StatusCode = 200 @>
+  let expected = tp.GetLocalNow().ToString(Formats.timestamp)
+  test <@ (TestHost.readBody ctx).Contains $"value=\"{expected}\"" @>
 
 [<Fact>]
 let ``createReading persists a valid reading and redirects`` () =

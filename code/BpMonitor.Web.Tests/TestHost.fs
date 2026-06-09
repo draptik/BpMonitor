@@ -1,5 +1,6 @@
 module TestHost
 
+open System
 open System.Collections.Generic
 open System.IO
 open Microsoft.AspNetCore.Http
@@ -7,8 +8,18 @@ open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Primitives
+open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
 open BpMonitor.Data
+
+let private buildServices (repo: IReadingRepository) (memberRepo: IFamilyMemberRepository) (tp: TimeProvider) =
+  let services = ServiceCollection()
+  services.AddLogging() |> ignore
+  services.AddSingleton<IReadingRepository>(repo) |> ignore
+  services.AddSingleton<IFamilyMemberRepository>(memberRepo) |> ignore
+  services.AddSingleton<IConfiguration>(ConfigurationBuilder().Build()) |> ignore
+  services.AddSingleton<TimeProvider>(tp) |> ignore
+  services
 
 /// Builds a DefaultHttpContext wired with the given reading repository (and default
 /// ranges + a single in-memory family member) so the real Falco handlers can be
@@ -16,17 +27,19 @@ open BpMonitor.Data
 /// is pre-set so activeMember resolves to it without needing a DB.
 let context (repo: IReadingRepository) : HttpContext =
   let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
-
-  let services = ServiceCollection()
-  services.AddLogging() |> ignore
-  services.AddSingleton<IReadingRepository>(repo) |> ignore
-  services.AddSingleton<IFamilyMemberRepository>(memberRepo) |> ignore
-  services.AddSingleton<IConfiguration>(ConfigurationBuilder().Build()) |> ignore
-
   let ctx = DefaultHttpContext()
-  ctx.RequestServices <- services.BuildServiceProvider()
+  ctx.RequestServices <- (buildServices repo memberRepo TimeProvider.System).BuildServiceProvider()
   ctx.Response.Body <- new MemoryStream()
   // No cookie set: activeMember falls back to the first member (Id=1) from InMemoryFamilyMemberRepository.
+  ctx
+
+/// Variant of `context` that injects a custom TimeProvider — useful for testing
+/// handlers that read the current time (e.g. newReading timestamp prefill).
+let contextWithProvider (repo: IReadingRepository) (tp: TimeProvider) : HttpContext =
+  let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
+  let ctx = DefaultHttpContext()
+  ctx.RequestServices <- (buildServices repo memberRepo tp).BuildServiceProvider()
+  ctx.Response.Body <- new MemoryStream()
   ctx
 
 /// Variant of `context` that uses a custom list of family members. Useful for
@@ -35,14 +48,8 @@ let contextWithMembers (repo: IReadingRepository) (members: FamilyMember list) :
   let memberRepo =
     InMemoryFamilyMemberRepository(Some members) :> IFamilyMemberRepository
 
-  let services = ServiceCollection()
-  services.AddLogging() |> ignore
-  services.AddSingleton<IReadingRepository>(repo) |> ignore
-  services.AddSingleton<IFamilyMemberRepository>(memberRepo) |> ignore
-  services.AddSingleton<IConfiguration>(ConfigurationBuilder().Build()) |> ignore
-
   let ctx = DefaultHttpContext()
-  ctx.RequestServices <- services.BuildServiceProvider()
+  ctx.RequestServices <- (buildServices repo memberRepo TimeProvider.System).BuildServiceProvider()
   ctx.Response.Body <- new MemoryStream()
   ctx
 
