@@ -3,7 +3,9 @@ module Program
 open System
 open Falco
 open Falco.Routing
+open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.EntityFrameworkCore
@@ -13,18 +15,26 @@ open BpMonitor.Data
 open BpMonitor.Web
 
 let private endpoints =
-  [ get "/" Handlers.landing
-    get "/add" Handlers.newReading
-    get "/history" Handlers.history
-    get "/chart" Handlers.chart
-    post "/readings" Handlers.createReading
-    get "/readings/{id:int}/edit" Handlers.editReading
-    post "/readings/{id:int}" Handlers.updateReading
-    get "/members" Handlers.members
-    post "/members" Handlers.createMember
-    get "/members/{id:int}/edit" Handlers.editMember
-    post "/members/{id:int}" Handlers.updateMember
-    post "/members/switch" Handlers.switchMember ]
+  [ // Anonymous: login/logout
+    get "/login" Handlers.loginPage
+    post "/login" Handlers.loginWithCredentials
+    get "/login/{id:int}" Handlers.loginMember
+    post "/login/{id:int}" Handlers.loginSubmit
+    post "/logout" Handlers.logout
+    // Authenticated: reading CRUD + app pages
+    get "/" (Handlers.protect Handlers.landing)
+    get "/add" (Handlers.protect Handlers.newReading)
+    get "/history" (Handlers.protect Handlers.history)
+    get "/chart" (Handlers.protect Handlers.chart)
+    post "/readings" (Handlers.protect Handlers.createReading)
+    get "/readings/{id:int}/edit" (Handlers.protect Handlers.editReading)
+    post "/readings/{id:int}" (Handlers.protect Handlers.updateReading)
+    // Admin-only: member management
+    get "/members" (Handlers.protectAdmin Handlers.members)
+    post "/members" (Handlers.protectAdmin Handlers.createMember)
+    get "/members/{id:int}/edit" (Handlers.protectAdmin Handlers.editMember)
+    post "/members/{id:int}" (Handlers.protectAdmin Handlers.updateMember)
+    post "/members/{id:int}/reset-password" (Handlers.protectAdmin Handlers.resetPassword) ]
 
 [<EntryPoint>]
 let main args =
@@ -55,6 +65,18 @@ let main args =
       EfFamilyMemberRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
     |> ignore
 
+    builder.Services
+      .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+      .AddCookie(fun o ->
+        o.LoginPath <- PathString("/login")
+        o.Cookie.HttpOnly <- true
+        o.Cookie.SameSite <- SameSiteMode.Strict
+        o.Cookie.SecurePolicy <- CookieSecurePolicy.SameAsRequest
+        o.SlidingExpiration <- true)
+    |> ignore
+
+    builder.Services.AddAuthorization() |> ignore
+
     let app = builder.Build()
 
     // Apply schema migrations once at startup against a transient scope.
@@ -64,7 +86,9 @@ let main args =
 
     // One structured log line per request (method, path, status, elapsed ms).
     app.UseSerilogRequestLogging() |> ignore
-    app.UseStaticFiles().UseRouting().UseFalco(endpoints) |> ignore
+
+    app.UseStaticFiles().UseRouting().UseAuthentication().UseAuthorization().UseFalco(endpoints)
+    |> ignore
 
     Log.Information("BpMonitor.Web {Version} starting on {Urls}", Version.current, app.Urls)
     app.Run()

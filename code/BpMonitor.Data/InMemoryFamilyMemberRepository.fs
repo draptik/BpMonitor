@@ -9,6 +9,7 @@ module private MemberDefaults =
         Name = "Me"
         IsAdmin = true
         IsActive = true
+        PasswordHash = None
         CreatedAt = DateTimeOffset.MinValue
         ModifiedAt = DateTimeOffset.MinValue } ]
 

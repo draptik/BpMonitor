@@ -17,9 +17,15 @@ module Views =
 
     Elem.li [] [ Elem.a attrs [ Text.raw label ] ]
 
-  /// Page shell: shared <head>, vendored htmx, stylesheet and hx-boosted body.
-  /// `active` is the route of the current page so the nav can highlight it.
-  let private layout (active: string) (title: string) (content: XmlNode list) : XmlNode =
+  /// Page shell for authenticated pages: shared <head>, nav bar with logged-in member
+  /// name + logout, and hx-boosted body.
+  let private layout
+    (active: string)
+    (memberName: string)
+    (isAdmin: bool)
+    (title: string)
+    (content: XmlNode list)
+    : XmlNode =
     Elem.html
       [ Attr.lang "en" ]
       [ Elem.head
@@ -46,10 +52,17 @@ module Views =
                     navLink active "/" "Home"
                     navLink active "/add" "Add"
                     navLink active "/history" "History"
-                    navLink active "/members" "Members" ]
+                    if isAdmin then
+                      navLink active "/members" "Members" ]
                 Elem.ul
                   []
-                  [ Elem.li
+                  [ Elem.li [] [ Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ] ]
+                    Elem.li
+                      []
+                      [ Elem.form
+                          [ Attr.method "post"; Attr.action "/logout"; Attr.class' "inline" ]
+                          [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw "Logout" ] ] ]
+                    Elem.li
                       []
                       [ Elem.button
                           [ Attr.id "theme-toggle"
@@ -69,6 +82,53 @@ module Views =
             // Re-runs on every body render (initial + hx-boost swaps) to sync the button label.
             Elem.script [ Attr.src "/theme-label.js" ] [] ] ]
 
+  /// Minimal page shell for unauthenticated pages (login). No nav, no logout.
+  let private loginLayout (title: string) (content: XmlNode list) : XmlNode =
+    Elem.html
+      [ Attr.lang "en" ]
+      [ Elem.head
+          []
+          [ Elem.meta [ Attr.charset "utf-8" ]
+            Elem.meta [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]
+            Elem.title [] [ Text.raw title ]
+            Elem.link [ Attr.rel "icon"; Attr.href "/favicon.svg"; Attr.type' "image/svg+xml" ]
+            Elem.script [ Attr.src "/theme.js" ] []
+            Elem.link
+              [ Attr.rel "stylesheet"
+                Attr.href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" ]
+            Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ] ]
+        Elem.body
+          [ Attr.create "hx-boost" "false" ]
+          [ Elem.nav
+              [ Attr.class' "container" ]
+              [ Elem.ul [] []
+                Elem.ul
+                  []
+                  [ Elem.li
+                      []
+                      [ Elem.button
+                          [ Attr.id "theme-toggle"
+                            Attr.class' "outline secondary"
+                            Attr.create "onclick" "toggleTheme()" ]
+                          [] ] ] ]
+            Elem.main
+              [ Attr.class' "container login-container" ]
+              ([ Elem.header
+                   []
+                   [ Elem.h1 [] [ Text.raw "BpMonitor" ]
+                     Elem.p [] [ Text.raw "Blood pressure tracker" ] ] ]
+               @ content)
+            Elem.footer
+              [ Attr.class' "container" ]
+              [ Elem.small
+                  []
+                  (let v = Version.current
+
+                   match Version.releaseUrl v with
+                   | Some url -> [ Text.raw "BpMonitor "; Elem.a [ Attr.href url ] [ Text.raw $"v{v}" ] ]
+                   | None -> [ Text.raw $"BpMonitor {v}" ]) ]
+            Elem.script [ Attr.src "/theme-label.js" ] [] ] ]
+
   let private errorBox (errors: string list) : XmlNode =
     match errors with
     | [] -> Text.raw ""
@@ -76,6 +136,95 @@ module Views =
       Elem.div
         [ Attr.class' "errors"; Attr.role "alert" ]
         [ Elem.ul [] (errors |> List.map (fun e -> Elem.li [] [ Text.enc e ])) ]
+
+  // ---------------------------------------------------------------------------
+  // Login views
+  // ---------------------------------------------------------------------------
+
+  /// Login page: username + password form.
+  let loginPage (errors: string list) : XmlNode =
+    loginLayout
+      "Login — BpMonitor"
+      [ Elem.h2 [] [ Text.raw "Sign in" ]
+        errorBox errors
+        Elem.form
+          [ Attr.method "post"; Attr.action "/login"; Attr.class' "stacked" ]
+          [ Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label [ Attr.for' "Username" ] [ Text.raw "Name" ]
+                Elem.input
+                  [ Attr.type' "text"
+                    Attr.id "Username"
+                    Attr.name "Username"
+                    Attr.create "autofocus" "autofocus"
+                    Attr.create "autocomplete" "username" ] ]
+            Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label [ Attr.for' "Password" ] [ Text.raw "Password" ]
+                Elem.input
+                  [ Attr.type' "password"
+                    Attr.id "Password"
+                    Attr.name "Password"
+                    Attr.create "autocomplete" "current-password" ] ]
+            Elem.div [ Attr.class' "actions" ] [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Sign in" ] ] ] ]
+
+  /// Login form for a specific member. Shows a claim form (password + confirm) for
+  /// unclaimed accounts, or a simple password form for claimed ones.
+  let loginMember (m: FamilyMember) (errors: string list) : XmlNode =
+    let isClaimed = FamilyMember.isClaimed m
+
+    let passwordFields =
+      if isClaimed then
+        // Claimed: single password field
+        [ Elem.div
+            [ Attr.class' "field" ]
+            [ Elem.label [ Attr.for' "Password" ] [ Text.raw "Password" ]
+              Elem.input
+                [ Attr.type' "password"
+                  Attr.id "Password"
+                  Attr.name "Password"
+                  Attr.create "autofocus" "autofocus"
+                  Attr.create "autocomplete" "current-password" ] ] ]
+      else
+        // Unclaimed: set password + confirm
+        [ Elem.p
+            [ Attr.class' "claim-hint" ]
+            [ Text.raw "This account hasn't been claimed yet. Choose a password to activate it." ]
+          Elem.div
+            [ Attr.class' "field" ]
+            [ Elem.label [ Attr.for' "Password" ] [ Text.raw "New password" ]
+              Elem.input
+                [ Attr.type' "password"
+                  Attr.id "Password"
+                  Attr.name "Password"
+                  Attr.create "autofocus" "autofocus"
+                  Attr.create "autocomplete" "new-password" ] ]
+          Elem.div
+            [ Attr.class' "field" ]
+            [ Elem.label [ Attr.for' "PasswordConfirm" ] [ Text.raw "Confirm password" ]
+              Elem.input
+                [ Attr.type' "password"
+                  Attr.id "PasswordConfirm"
+                  Attr.name "PasswordConfirm"
+                  Attr.create "autocomplete" "new-password" ] ] ]
+
+    loginLayout
+      $"Login as {m.Name} — BpMonitor"
+      [ Elem.h2 [] [ Text.enc $"Login as {m.Name}" ]
+        errorBox errors
+        Elem.form
+          [ Attr.method "post"; Attr.action $"/login/{m.Id}" ]
+          (passwordFields
+           @ [ Elem.div
+                 [ Attr.class' "actions" ]
+                 [ Elem.button [ Attr.type' "submit" ] [ Text.raw (if isClaimed then "Login" else "Claim account") ]
+                   Elem.a
+                     [ Attr.href "/login"; Attr.role "button"; Attr.class' "secondary outline" ]
+                     [ Text.raw "Back" ] ] ]) ]
+
+  // ---------------------------------------------------------------------------
+  // App views (all need the logged-in member for the nav)
+  // ---------------------------------------------------------------------------
 
   /// The readings table; wrapped in an id'd container so it can be targeted for
   /// partial swaps later.
@@ -105,9 +254,11 @@ module Views =
     Elem.div [ Attr.id "readings" ] [ Elem.table [] [ header; Elem.tbody [] (readings |> List.map row) ] ]
 
   /// Landing page: a simple hub linking to the app's main destinations.
-  let landing: XmlNode =
+  let landing (m: FamilyMember) : XmlNode =
     layout
       "/"
+      m.Name
+      m.IsAdmin
       "BpMonitor"
       [ Elem.h1 [] [ Text.raw "BpMonitor" ]
         Elem.p [] [ Text.raw "Track and review your blood pressure readings." ]
@@ -120,6 +271,8 @@ module Views =
   let history (activeMember: FamilyMember) (readings: BloodPressureReading list) : XmlNode =
     layout
       "/history"
+      activeMember.Name
+      activeMember.IsAdmin
       "History"
       [ Elem.h1 [] [ Text.raw $"History — {activeMember.Name}" ]
         Elem.details
@@ -132,6 +285,8 @@ module Views =
   /// above the fields when re-displaying after a failed submit.
   let readingForm
     (active: string)
+    (memberName: string)
+    (isAdmin: bool)
     (title: string)
     (action: string)
     (errors: string list)
@@ -152,6 +307,8 @@ module Views =
 
     layout
       active
+      memberName
+      isAdmin
       title
       [ Elem.h1 [] [ Text.raw title ]
         errorBox errors
@@ -172,8 +329,8 @@ module Views =
     (active: FamilyMember)
     (errorMsg: string option)
     : XmlNode list =
-    let badge (text: string) =
-      Elem.span [ Attr.class' "badge" ] [ Text.raw text ]
+    let badge (text: string) (cls: string) =
+      Elem.span [ Attr.class' cls ] [ Text.raw text ]
 
     let memberRow (m: FamilyMember) =
       let isCurrent = m.Id = active.Id
@@ -181,19 +338,24 @@ module Views =
       Elem.tr
         []
         [ Elem.td [] [ Text.enc m.Name ]
-          Elem.td [] [ if m.IsAdmin then badge "Admin" else Text.raw "—" ]
-          Elem.td [] [ if m.IsActive then badge "Active" else Text.raw "—" ]
+          Elem.td [] [ if m.IsAdmin then badge "Admin" "badge" else Text.raw "—" ]
+          Elem.td [] [ if m.IsActive then badge "Active" "badge" else Text.raw "—" ]
+          Elem.td
+            []
+            [ if FamilyMember.isClaimed m then
+                badge "Claimed" "badge badge-claimed"
+              else
+                badge "Unclaimed" "badge badge-unclaimed" ]
           Elem.td
             [ Attr.style "display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap" ]
             [ if isCurrent then
-                Elem.span [ Attr.class' "current-member" ] [ Text.raw "Current" ]
-              else
-                Elem.form
-                  [ Attr.method "post"; Attr.action "/members/switch" ]
-                  [ Elem.input [ Attr.type' "hidden"; Attr.name "MemberId"; Attr.value (string m.Id) ]
-                    Elem.input [ Attr.type' "hidden"; Attr.name "ReturnUrl"; Attr.value "/members" ]
-                    Elem.button [ Attr.type' "submit"; Attr.class' "outline" ] [ Text.raw "Switch" ] ]
-              Elem.a [ Attr.href $"/members/{m.Id}/edit"; Attr.class' "outline" ] [ Text.raw "Edit" ] ] ]
+                Elem.span [ Attr.class' "current-member" ] [ Text.raw "You" ]
+              Elem.a [ Attr.href $"/members/{m.Id}/edit"; Attr.class' "outline" ] [ Text.raw "Edit" ]
+              Elem.form
+                [ Attr.method "post"
+                  Attr.action $"/members/{m.Id}/reset-password"
+                  Attr.class' "inline" ]
+                [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw "Reset password" ] ] ] ]
 
     [ match errorMsg with
       | Some msg -> yield errorBox [ msg ]
@@ -208,6 +370,7 @@ module Views =
                   [ Elem.th [] [ Text.raw "Name" ]
                     Elem.th [] [ Text.raw "Admin" ]
                     Elem.th [] [ Text.raw "Active" ]
+                    Elem.th [] [ Text.raw "Password" ]
                     Elem.th [] [ Text.raw "" ] ] ]
             Elem.tbody [] (allMembers |> List.map memberRow) ]
       yield Elem.h2 [] [ Text.raw "Add family member" ]
@@ -226,7 +389,15 @@ module Views =
 
   /// Shared add/edit form for family members. `action` is the POST target; `errors`
   /// are rendered above the fields when re-displaying after a failed submit.
-  let memberForm (active: string) (title: string) (action: string) (errors: string list) (m: FamilyMember) : XmlNode =
+  let memberForm
+    (active: string)
+    (memberName: string)
+    (isAdmin: bool)
+    (title: string)
+    (action: string)
+    (errors: string list)
+    (m: FamilyMember)
+    : XmlNode =
     let checkedAttr isChecked =
       if isChecked then
         [ Attr.type' "checkbox"; Attr.create "checked" "checked" ]
@@ -235,6 +406,8 @@ module Views =
 
     layout
       active
+      memberName
+      isAdmin
       title
       [ Elem.h1 [] [ Text.raw title ]
         errorBox errors
@@ -261,14 +434,21 @@ module Views =
               [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
                 Elem.a [ Attr.href "/members"; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
 
-  /// Members page: list of family members with Switch/Edit buttons and an add form.
+  /// Members page: list of family members with Edit/Reset-password buttons and an add form.
   let members (allMembers: FamilyMember list) (active: FamilyMember) : XmlNode =
-    layout "/members" "Family Members" (Elem.h1 [] [ Text.raw "Family Members" ] :: membersList allMembers active None)
+    layout
+      "/members"
+      active.Name
+      active.IsAdmin
+      "Family Members"
+      (Elem.h1 [] [ Text.raw "Family Members" ] :: membersList allMembers active None)
 
   /// Members page rendered with a validation error message.
   let membersWithError (allMembers: FamilyMember list) (active: FamilyMember) (error: string) : XmlNode =
     layout
       "/members"
+      active.Name
+      active.IsAdmin
       "Family Members"
       (Elem.h1 [] [ Text.raw "Family Members" ]
        :: membersList allMembers active (Some error))

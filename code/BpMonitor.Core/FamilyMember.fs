@@ -7,6 +7,7 @@ type FamilyMember =
     Name: string
     IsAdmin: bool
     IsActive: bool
+    PasswordHash: string option
     CreatedAt: DateTimeOffset
     ModifiedAt: DateTimeOffset }
 
@@ -22,6 +23,7 @@ module FamilyMember =
           Name = name.Trim()
           IsAdmin = isAdmin
           IsActive = true
+          PasswordHash = None
           CreatedAt = DateTimeOffset.MinValue
           ModifiedAt = DateTimeOffset.MinValue }
 
@@ -29,3 +31,6 @@ module FamilyMember =
   /// Used to enforce the invariant before saving member changes.
   let hasActiveAdmin (members: FamilyMember list) =
     members |> List.exists (fun m -> m.IsAdmin && m.IsActive)
+
+  /// Returns true when the member has a password set (has claimed their account).
+  let isClaimed (m: FamilyMember) = m.PasswordHash |> Option.isSome

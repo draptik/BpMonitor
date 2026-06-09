@@ -1,7 +1,10 @@
 namespace BpMonitor.Web
 
 open System
+open System.Security.Claims
 open System.Threading.Tasks
+open Microsoft.AspNetCore.Authentication
+open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
@@ -57,35 +60,85 @@ module Handlers =
           Binding.Comments = get "Comments" }
     }
 
-  /// Resolves the active family member from the bp_member cookie, falling back to
-  /// the first member when no cookie is set or the cookie Id is invalid.
-  let private activeMember (ctx: HttpContext) : FamilyMember =
-    let allMembers = (memberRepo ctx).GetAll()
+  // ---------------------------------------------------------------------------
+  // Auth: resolve identity from the authenticated principal
+  // ---------------------------------------------------------------------------
 
-    let cookieMemberId =
-      match ctx.Request.Cookies.TryGetValue("bp_member") with
-      | true, v ->
-        match Int32.TryParse(v) with
-        | true, id -> Some id
-        | _ -> None
+  /// Resolves the authenticated member from the principal's NameIdentifier claim.
+  /// Only valid inside a `protect`ed route — the principal is guaranteed to be present.
+  let private authenticatedMember (ctx: HttpContext) : FamilyMember option =
+    let claim = ctx.User.FindFirst(ClaimTypes.NameIdentifier)
+
+    if claim = null then
+      None
+    else
+      match Int32.TryParse(claim.Value) with
+      | true, id -> (memberRepo ctx).GetById(id)
       | _ -> None
 
-    cookieMemberId
-    |> Option.bind (fun id -> allMembers |> List.tryFind (fun m -> m.Id = id))
-    |> Option.orElse (allMembers |> List.tryHead)
-    |> Option.defaultWith (fun () -> failwith "No family members configured. Visit /members to create one.")
+  /// Builds the auth claims principal for a member.
+  let private claimsPrincipal (m: FamilyMember) : ClaimsPrincipal =
+    let claims =
+      [ yield Claim(ClaimTypes.NameIdentifier, string m.Id)
+        yield Claim(ClaimTypes.Name, m.Name)
+        if m.IsAdmin then
+          yield Claim(ClaimTypes.Role, "Admin") ]
+
+    let identity =
+      ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)
+
+    ClaimsPrincipal(identity)
+
+  // ---------------------------------------------------------------------------
+  // Auth combinators
+  // ---------------------------------------------------------------------------
+
+  /// Wraps a handler so it requires an authenticated user. Unauthenticated
+  /// requests are redirected to /login.
+  let protect (handler: HttpContext -> Task) : HttpContext -> Task =
+    fun ctx ->
+      if ctx.User.Identity <> null && ctx.User.Identity.IsAuthenticated then
+        handler ctx
+      else
+        ctx.Response.Redirect("/login")
+        Task.CompletedTask
+
+  /// Like `protect` but additionally requires the Admin role. Non-admin
+  /// authenticated requests get a 403.
+  let protectAdmin (handler: HttpContext -> Task) : HttpContext -> Task =
+    fun ctx ->
+      if ctx.User.Identity = null || not ctx.User.Identity.IsAuthenticated then
+        ctx.Response.Redirect("/login")
+        Task.CompletedTask
+      elif not (ctx.User.IsInRole("Admin")) then
+        ctx.Response.StatusCode <- 403
+        ctx.Response.WriteAsync("Forbidden")
+      else
+        handler ctx
+
+  // ---------------------------------------------------------------------------
+  // Reading helpers
+  // ---------------------------------------------------------------------------
 
   let private sortedReadings (memberId: int) (ctx: HttpContext) =
     (repo ctx).GetAll(memberId) |> List.sortByDescending _.Timestamp
 
   /// Renders the add/edit form after a failed submit (status 422).
-  let private renderFormErrors (ctx: HttpContext) active title action errors model : Task =
+  let private renderFormErrors (ctx: HttpContext) active memberName isAdmin title action errors model : Task =
     ctx.Response.StatusCode <- 422
-    htmlResponse (Views.readingForm active title action errors model) ctx
+    htmlResponse (Views.readingForm active memberName isAdmin title action errors model) ctx
 
   /// Validates a submitted form and persists via `save`; on any error re-renders
   /// the form with messages. Shared by create and update.
-  let private submit (ctx: HttpContext) active title action (save: BloodPressureReading -> unit) : Task =
+  let private submit
+    (ctx: HttpContext)
+    active
+    memberName
+    isAdmin
+    title
+    action
+    (save: BloodPressureReading -> unit)
+    : Task =
     task {
       let log = logger ctx
       let! model = formModel ctx
@@ -94,7 +147,7 @@ module Handlers =
       match Binding.toUnvalidated model with
       | Error errorMessages ->
         log.LogWarning("Reading form validation failed (binding): {Errors}", errorMessages)
-        do! renderFormErrors ctx active title action errorMessages model
+        do! renderFormErrors ctx active memberName isAdmin title action errorMessages model
       | Ok unvalidated ->
         match BloodPressureReading.parse rg unvalidated with
         | Ok reading ->
@@ -112,71 +165,239 @@ module Handlers =
         | Error errors ->
           let messages = Config.formatValidationErrors rg errors
           log.LogWarning("Reading form validation failed (domain): {Errors}", messages)
-          do! renderFormErrors ctx active title action messages model
+          do! renderFormErrors ctx active memberName isAdmin title action messages model
     }
     :> Task
 
-  let landing: HttpContext -> Task = fun ctx -> htmlResponse Views.landing ctx
+  // ---------------------------------------------------------------------------
+  // Login / logout
+  // ---------------------------------------------------------------------------
+
+  let loginPage: HttpContext -> Task =
+    fun ctx -> htmlResponse (Views.loginPage []) ctx
+
+  let loginWithCredentials: HttpContext -> Task =
+    fun ctx ->
+      task {
+        let log = logger ctx
+        let! form = ctx.Request.ReadFormAsync()
+        let username = form["Username"].ToString().Trim()
+        let password = form["Password"].ToString()
+
+        let found =
+          (memberRepo ctx).GetAll()
+          |> List.tryFind (fun m -> m.IsActive && m.Name.Equals(username, StringComparison.OrdinalIgnoreCase))
+
+        match found with
+        | None ->
+          ctx.Response.StatusCode <- 401
+          do! htmlResponse (Views.loginPage [ "Invalid name or password" ]) ctx
+        | Some m ->
+          if FamilyMember.isClaimed m then
+            if PasswordHashing.verify password (m.PasswordHash |> Option.get) then
+              log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
+              do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal m)
+              ctx.Response.Redirect "/"
+            else
+              log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
+              ctx.Response.StatusCode <- 401
+              do! htmlResponse (Views.loginPage [ "Invalid name or password" ]) ctx
+          else
+            ctx.Response.Redirect $"/login/{m.Id}"
+      }
+      :> Task
+
+  let loginMember: HttpContext -> Task =
+    fun ctx ->
+      match routeInt ctx "id" with
+      | None ->
+        ctx.Response.StatusCode <- 400
+        ctx.Response.WriteAsync("Bad request")
+      | Some id ->
+        match (memberRepo ctx).GetById(id) with
+        | None ->
+          ctx.Response.StatusCode <- 404
+          ctx.Response.WriteAsync("Not found")
+        | Some m ->
+          if not m.IsActive then
+            ctx.Response.StatusCode <- 403
+            ctx.Response.WriteAsync("This account is inactive")
+          else
+            htmlResponse (Views.loginMember m []) ctx
+
+  let loginSubmit: HttpContext -> Task =
+    fun ctx ->
+      task {
+        let log = logger ctx
+
+        match routeInt ctx "id" with
+        | None ->
+          ctx.Response.StatusCode <- 400
+          do! ctx.Response.WriteAsync("Bad request")
+        | Some id ->
+          match (memberRepo ctx).GetById(id) with
+          | None ->
+            ctx.Response.StatusCode <- 404
+            do! ctx.Response.WriteAsync("Not found")
+          | Some m when not m.IsActive ->
+            ctx.Response.StatusCode <- 403
+            do! ctx.Response.WriteAsync("This account is inactive")
+          | Some m ->
+            let! form = ctx.Request.ReadFormAsync()
+            let password = form["Password"].ToString()
+
+            if FamilyMember.isClaimed m then
+              // Claimed: verify the password
+              if PasswordHashing.verify password (m.PasswordHash |> Option.get) then
+                log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
+                do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal m)
+                ctx.Response.Redirect "/"
+              else
+                log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
+                ctx.Response.StatusCode <- 401
+                do! htmlResponse (Views.loginMember m [ "Incorrect password" ]) ctx
+            else
+              // Unclaimed: set the password (claim the account)
+              let confirm = form["PasswordConfirm"].ToString()
+
+              if String.IsNullOrWhiteSpace(password) then
+                ctx.Response.StatusCode <- 422
+                do! htmlResponse (Views.loginMember m [ "Password cannot be empty" ]) ctx
+              elif password <> confirm then
+                ctx.Response.StatusCode <- 422
+                do! htmlResponse (Views.loginMember m [ "Passwords do not match" ]) ctx
+              else
+                let hashed = PasswordHashing.hash password
+                let claimed = { m with PasswordHash = Some hashed }
+                (memberRepo ctx).Update(claimed)
+                log.LogInformation("Member {Name} (Id={Id}) claimed their account", m.Name, m.Id)
+                do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal claimed)
+                ctx.Response.Redirect "/"
+      }
+      :> Task
+
+  let logout: HttpContext -> Task =
+    fun ctx ->
+      task {
+        do! ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme)
+        ctx.Response.Redirect "/login"
+      }
+      :> Task
+
+  // ---------------------------------------------------------------------------
+  // App pages (all protected — authenticated member resolved from principal)
+  // ---------------------------------------------------------------------------
+
+  let landing: HttpContext -> Task =
+    fun ctx ->
+      match authenticatedMember ctx with
+      | None ->
+        ctx.Response.Redirect "/login"
+        Task.CompletedTask
+      | Some m -> htmlResponse (Views.landing m) ctx
 
   let history: HttpContext -> Task =
     fun ctx ->
-      let m = activeMember ctx
-      htmlResponse (Views.history m (sortedReadings m.Id ctx)) ctx
+      match authenticatedMember ctx with
+      | None ->
+        ctx.Response.Redirect "/login"
+        Task.CompletedTask
+      | Some m -> htmlResponse (Views.history m (sortedReadings m.Id ctx)) ctx
 
   let chart: HttpContext -> Task =
     fun ctx ->
-      let m = activeMember ctx
-      ctx.Response.ContentType <- "text/html; charset=utf-8"
-      ctx.Response.WriteAsync(BpChart.toHtml ((repo ctx).GetAll(m.Id)))
+      match authenticatedMember ctx with
+      | None ->
+        ctx.Response.Redirect "/login"
+        Task.CompletedTask
+      | Some m ->
+        ctx.Response.ContentType <- "text/html; charset=utf-8"
+        ctx.Response.WriteAsync(BpChart.toHtml ((repo ctx).GetAll(m.Id)))
 
   let newReading: HttpContext -> Task =
     fun ctx ->
+      let memberName =
+        match authenticatedMember ctx with
+        | Some m -> m.Name
+        | None -> ""
+
       let prefill =
         { Binding.empty with
             Binding.Timestamp = (timeProvider ctx).GetLocalNow().ToString(Formats.timestamp) }
 
-      htmlResponse (Views.readingForm "/add" "Add reading" "/readings" [] prefill) ctx
+      htmlResponse
+        (Views.readingForm
+          "/add"
+          memberName
+          (authenticatedMember ctx |> Option.exists _.IsAdmin)
+          "Add reading"
+          "/readings"
+          []
+          prefill)
+        ctx
 
   let createReading: HttpContext -> Task =
     fun ctx ->
-      let m = activeMember ctx
-      submit ctx "/add" "Add reading" "/readings" ((repo ctx).Add m.Id)
+      match authenticatedMember ctx with
+      | None ->
+        ctx.Response.Redirect "/login"
+        Task.CompletedTask
+      | Some m -> submit ctx "/add" m.Name m.IsAdmin "Add reading" "/readings" ((repo ctx).Add m.Id)
 
   let editReading: HttpContext -> Task =
     fun ctx ->
       let log = logger ctx
-      let m = activeMember ctx
 
-      match routeInt ctx "id" with
+      match authenticatedMember ctx with
       | None ->
-        log.LogWarning("editReading: bad route value for {{id}}")
-        ctx.Response.StatusCode <- 400
-        ctx.Response.WriteAsync("Bad request")
-      | Some id ->
-        match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
-        | Some r -> htmlResponse (Views.readingForm "" "Edit reading" $"/readings/{id}" [] (Binding.ofReading r)) ctx
+        ctx.Response.Redirect "/login"
+        Task.CompletedTask
+      | Some m ->
+        match routeInt ctx "id" with
         | None ->
-          log.LogWarning("editReading: reading {Id} not found for member {MemberId}", id, m.Id)
-          ctx.Response.StatusCode <- 404
-          ctx.Response.WriteAsync("Not found")
+          log.LogWarning("editReading: bad route value for {{id}}")
+          ctx.Response.StatusCode <- 400
+          ctx.Response.WriteAsync("Bad request")
+        | Some id ->
+          match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
+          | Some r ->
+            htmlResponse
+              (Views.readingForm "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" [] (Binding.ofReading r))
+              ctx
+          | None ->
+            log.LogWarning("editReading: reading {Id} not found for member {MemberId}", id, m.Id)
+            ctx.Response.StatusCode <- 404
+            ctx.Response.WriteAsync("Not found")
 
   let updateReading: HttpContext -> Task =
     fun ctx ->
       let log = logger ctx
-      let m = activeMember ctx
 
-      match routeInt ctx "id" with
+      match authenticatedMember ctx with
       | None ->
-        log.LogWarning("updateReading: bad route value for {{id}}")
-        ctx.Response.StatusCode <- 400
-        ctx.Response.WriteAsync("Bad request")
-      | Some id ->
-        submit ctx "" "Edit reading" $"/readings/{id}" (fun r -> (repo ctx).Update { r with Id = id; MemberId = m.Id })
+        ctx.Response.Redirect "/login"
+        Task.CompletedTask
+      | Some m ->
+        match routeInt ctx "id" with
+        | None ->
+          log.LogWarning("updateReading: bad route value for {{id}}")
+          ctx.Response.StatusCode <- 400
+          ctx.Response.WriteAsync("Bad request")
+        | Some id ->
+          submit ctx "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" (fun r ->
+            (repo ctx).Update { r with Id = id; MemberId = m.Id })
+
+  // ---------------------------------------------------------------------------
+  // Member management (all protectAdmin — must be admin)
+  // ---------------------------------------------------------------------------
 
   let members: HttpContext -> Task =
     fun ctx ->
       let allMembers = (memberRepo ctx).GetAll()
-      let active = activeMember ctx
+
+      let active =
+        authenticatedMember ctx |> Option.defaultWith (fun () -> failwith "No member")
+
       htmlResponse (Views.members allMembers active) ctx
 
   let createMember: HttpContext -> Task =
@@ -189,18 +410,14 @@ module Handlers =
         match FamilyMember.create name isAdmin with
         | Error NameIsEmpty ->
           let allMembers = (memberRepo ctx).GetAll()
-          let active = activeMember ctx
+
+          let active =
+            authenticatedMember ctx |> Option.defaultWith (fun () -> failwith "No member")
+
           ctx.Response.StatusCode <- 422
           do! htmlResponse (Views.membersWithError allMembers active "Name cannot be empty") ctx
         | Ok m ->
-          let created = (memberRepo ctx).Add(m)
-
-          ctx.Response.Cookies.Append(
-            "bp_member",
-            string created.Id,
-            CookieOptions(HttpOnly = true, SameSite = SameSiteMode.Strict)
-          )
-
+          (memberRepo ctx).Add(m) |> ignore
           ctx.Response.Redirect "/members"
       }
       :> Task
@@ -209,6 +426,9 @@ module Handlers =
     fun ctx ->
       let log = logger ctx
 
+      let adminName =
+        authenticatedMember ctx |> Option.map _.Name |> Option.defaultValue ""
+
       match routeInt ctx "id" with
       | None ->
         log.LogWarning("editMember: bad route value for {{id}}")
@@ -216,7 +436,7 @@ module Handlers =
         ctx.Response.WriteAsync("Bad request")
       | Some id ->
         match (memberRepo ctx).GetById(id) with
-        | Some m -> htmlResponse (Views.memberForm "/members" "Edit member" $"/members/{id}" [] m) ctx
+        | Some m -> htmlResponse (Views.memberForm "/members" adminName true "Edit member" $"/members/{id}" [] m) ctx
         | None ->
           log.LogWarning("editMember: member {Id} not found", id)
           ctx.Response.StatusCode <- 404
@@ -226,6 +446,9 @@ module Handlers =
     fun ctx ->
       task {
         let log = logger ctx
+
+        let adminName =
+          authenticatedMember ctx |> Option.map _.Name |> Option.defaultValue ""
 
         match routeInt ctx "id" with
         | None ->
@@ -256,7 +479,14 @@ module Handlers =
 
               do!
                 htmlResponse
-                  (Views.memberForm "/members" "Edit member" $"/members/{id}" [ "Name cannot be empty" ] updated)
+                  (Views.memberForm
+                    "/members"
+                    adminName
+                    true
+                    "Edit member"
+                    $"/members/{id}"
+                    [ "Name cannot be empty" ]
+                    updated)
                   ctx
             | Ok _ ->
               let updated =
@@ -277,6 +507,8 @@ module Handlers =
                   htmlResponse
                     (Views.memberForm
                       "/members"
+                      adminName
+                      true
                       "Edit member"
                       $"/members/{id}"
                       [ "At least one member must be an active admin" ]
@@ -288,23 +520,26 @@ module Handlers =
       }
       :> Task
 
-  let switchMember: HttpContext -> Task =
+  /// Resets a member's password to unclaimed (admin-only).
+  let resetPassword: HttpContext -> Task =
     fun ctx ->
       task {
-        let! form = ctx.Request.ReadFormAsync()
-        let memberId = form["MemberId"].ToString()
+        let log = logger ctx
 
-        ctx.Response.Cookies.Append(
-          "bp_member",
-          memberId,
-          CookieOptions(HttpOnly = true, SameSite = SameSiteMode.Strict)
-        )
-
-        let returnUrl =
-          match form.TryGetValue("ReturnUrl") with
-          | true, v when v.ToString() <> "" -> v.ToString()
-          | _ -> "/"
-
-        ctx.Response.Redirect(returnUrl)
+        match routeInt ctx "id" with
+        | None ->
+          log.LogWarning("resetPassword: bad route value for {{id}}")
+          ctx.Response.StatusCode <- 400
+          do! ctx.Response.WriteAsync("Bad request")
+        | Some id ->
+          match (memberRepo ctx).GetById(id) with
+          | None ->
+            log.LogWarning("resetPassword: member {Id} not found", id)
+            ctx.Response.StatusCode <- 404
+            do! ctx.Response.WriteAsync("Not found")
+          | Some m ->
+            (memberRepo ctx).Update({ m with PasswordHash = None })
+            log.LogInformation("Admin reset password for member {Name} (Id={Id})", m.Name, m.Id)
+            ctx.Response.Redirect "/members"
       }
       :> Task

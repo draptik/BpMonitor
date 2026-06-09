@@ -34,12 +34,19 @@ nav a[aria-current="page"] {
 }
 
 .errors {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #991b1b;
+  border: 1px solid;
   border-radius: var(--pico-border-radius);
   padding: 0.5rem 1rem;
   margin-bottom: 1rem;
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #991b1b;
+}
+
+[data-theme="dark"] .errors {
+  background: #2d0a0a;
+  color: #fca5a5;
+  border-color: #ef4444;
 }
 
 .field {
@@ -138,5 +145,58 @@ footer.container {
   padding-top: 1rem;
   border-top: 1px solid var(--pico-muted-border-color);
   text-align: center;
+  color: var(--pico-muted-color);
+}
+
+/* Login page */
+.login-container {
+  max-width: 420px;
+  margin-top: 4rem;
+}
+
+.claim-hint {
+  color: var(--pico-muted-color);
+  font-size: 0.9em;
+}
+
+/* Nav member name */
+.nav-member-name {
+  color: var(--pico-muted-color);
+  font-size: 0.875rem;
+}
+
+/* Inline logout/action form — removes default form block display */
+form.inline {
+  display: inline;
+}
+
+form.inline button {
+  --pico-nav-link-spacing-vertical: 0.25rem;
+  --pico-nav-link-spacing-horizontal: 0.75rem;
+  --pico-form-element-spacing-vertical: 0.25rem;
+  --pico-form-element-spacing-horizontal: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Member status badges */
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--pico-border-radius);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--pico-primary);
+  color: var(--pico-primary-inverse);
+}
+
+.badge-claimed {
+  background: var(--pico-color-green-550, #16a34a);
+  color: #fff;
+}
+
+.badge-unclaimed {
+  background: var(--pico-muted-border-color);
   color: var(--pico-muted-color);
 }

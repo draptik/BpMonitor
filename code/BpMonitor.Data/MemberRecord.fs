@@ -8,5 +8,6 @@ type MemberRecord =
     Name: string
     IsAdmin: bool
     IsActive: bool
+    PasswordHash: string
     CreatedAt: DateTimeOffset
     ModifiedAt: DateTimeOffset }
