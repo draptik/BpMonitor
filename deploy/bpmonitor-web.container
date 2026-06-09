@@ -16,6 +16,7 @@ Image=localhost/bpmonitor-web:latest
 PublishPort=5000:5000
 Volume=bpmonitor-data.volume:/data
 Environment=ConnectionStrings__DefaultConnection=Data Source=/data/bpmonitor.db
+Environment=TZ=Europe/Berlin
 
 [Service]
 Restart=always
