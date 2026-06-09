@@ -107,7 +107,6 @@ module BpChart =
     let timestamps = dailyPoints |> List.map (fun (t, _, _, _, _, _) -> t)
     let systolic = dailyPoints |> List.map (fun (_, s, _, _, _, _) -> s)
     let diastolic = dailyPoints |> List.map (fun (_, _, d, _, _, _) -> d)
-    let heartRate = dailyPoints |> List.map (fun (_, _, _, h, _, _) -> h)
     let symbols = dailyPoints |> List.map (fun (_, _, _, _, sym, _) -> sym)
     let hoverTexts = dailyPoints |> List.map (fun (_, _, _, _, _, h) -> h)
 
@@ -123,36 +122,22 @@ module BpChart =
 
         let cSystolic = commented |> List.map _.Systolic
         let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
-        [ Chart.Point(x = cTimestamps, y = cSystolic, Name = "Comments", MultiText = cTexts) ]
+        [ Chart.Point(x = cTimestamps, y = cSystolic, Name = "Comments", MultiText = cTexts, Opacity = 0.5) ]
 
-    [ Chart.Line(
-        x = timestamps,
-        y = systolic,
-        Name = "Systolic",
-        LineDash = StyleParam.DrawingStyle.Dash,
-        ShowMarkers = true,
-        MultiMarkerSymbol = symbols,
-        MultiText = hoverTexts
-      )
+    let line name y =
       Chart.Line(
         x = timestamps,
-        y = diastolic,
-        Name = "Diastolic",
+        y = y,
+        Name = name,
         LineDash = StyleParam.DrawingStyle.Dash,
         ShowMarkers = true,
         MultiMarkerSymbol = symbols,
-        MultiText = hoverTexts
+        MultiText = hoverTexts,
+        LineWidth = 1.0
       )
-      Chart.Line(
-        x = timestamps,
-        y = heartRate,
-        Name = "Heart Rate",
-        LineDash = StyleParam.DrawingStyle.Dash,
-        ShowMarkers = true,
-        MultiMarkerSymbol = symbols,
-        MultiText = hoverTexts
-      )
-      yield! commentTraces ]
+      |> Chart.withMarkerStyle (Size = 8)
+
+    [ line "Systolic" systolic; line "Diastolic" diastolic; yield! commentTraces ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
     |> finish theme
