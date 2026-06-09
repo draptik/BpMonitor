@@ -20,7 +20,6 @@ let private stampedVersionGen =
     else
       return base'
   }
-  |> Gen.where (fun s -> s <> "1.0.0")
 
 let private whitespaceGen =
   Gen.nonEmptyListOf (Gen.elements [ ' '; '\t'; '\r'; '\n' ])
