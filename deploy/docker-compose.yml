@@ -13,4 +13,6 @@ services:
       - "5000:5000"
     volumes:
       - ./data:/data
+    environment:
+      - TZ=Europe/Berlin
     restart: unless-stopped
