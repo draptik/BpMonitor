@@ -4,7 +4,18 @@ open Plotly.NET
 open BpMonitor.Core
 
 module BpChart =
-  let private render (lineDash: StyleParam.DrawingStyle) (readings: BloodPressureReading list) : string =
+  let private darkLayout =
+    Layout.init (
+      PaperBGColor = Color.fromString "#11191f",
+      PlotBGColor = Color.fromString "#11191f",
+      Font = Font.init (Color = Color.fromString "#c2cfd6")
+    )
+
+  let private render
+    (lineDash: StyleParam.DrawingStyle)
+    (theme: string)
+    (readings: BloodPressureReading list)
+    : string =
     let readings = readings |> List.sortBy _.Timestamp
 
     let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
@@ -33,9 +44,12 @@ module BpChart =
       yield! commentTraces ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
+    |> (if theme = "dark" then Chart.withLayout darkLayout else id)
     |> GenericChart.toEmbeddedHTML
     |> _.Replace("\"width\":600,", "")
 
-  let toHtml = render StyleParam.DrawingStyle.Solid
+  let toHtml (theme: string) =
+    render StyleParam.DrawingStyle.Solid theme
 
-  let toHtmlDashed = render StyleParam.DrawingStyle.Dash
+  let toHtmlDashed (theme: string) =
+    render StyleParam.DrawingStyle.Dash theme

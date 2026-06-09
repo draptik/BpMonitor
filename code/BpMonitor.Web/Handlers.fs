@@ -313,15 +313,20 @@ module Handlers =
       | Some m ->
         let allReadings = (repo ctx).GetAll(m.Id)
 
+        let theme =
+          match ctx.Request.Query.TryGetValue "theme" with
+          | true, v when string v = "dark" -> "dark"
+          | _ -> "light"
+
         let readings, chartFn =
           match ctx.Request.Query.TryGetValue "window" with
           | true, v ->
             match Int32.TryParse(string v) with
             | true, days when days > 0 ->
               let now = (timeProvider ctx).GetUtcNow()
-              allReadings |> ReadingStats.since now days |> ReadingStats.dailyAverages, BpChart.toHtmlDashed
-            | _ -> allReadings, BpChart.toHtml
-          | _ -> allReadings, BpChart.toHtml
+              allReadings |> ReadingStats.since now days |> ReadingStats.dailyAverages, BpChart.toHtmlDashed theme
+            | _ -> allReadings, BpChart.toHtml theme
+          | _ -> allReadings, BpChart.toHtml theme
 
         ctx.Response.ContentType <- "text/html; charset=utf-8"
         ctx.Response.WriteAsync(chartFn readings)

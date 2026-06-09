@@ -3,10 +3,26 @@
   var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
   document.documentElement.setAttribute('data-theme',t);
 })();
+
+function updateChartIframes(theme) {
+  document.querySelectorAll('[data-chart-src]').forEach(function(el) {
+    var base = el.getAttribute('data-chart-src');
+    el.src = base + (base.includes('?') ? '&' : '?') + 'theme=' + theme;
+  });
+}
+
 window.toggleTheme=()=> {
   var h=document.documentElement,n=h.getAttribute('data-theme')==='dark'?'light':'dark';
   h.setAttribute('data-theme',n);
   localStorage.setItem('theme',n);
   var b=document.getElementById('theme-toggle');
   if(b)b.textContent=n==='dark'?'Light':'Dark';
+  updateChartIframes(n);
 };
+
+document.addEventListener('DOMContentLoaded',function() {
+  updateChartIframes(document.documentElement.getAttribute('data-theme')||'light');
+});
+document.addEventListener('htmx:afterSettle',function() {
+  updateChartIframes(document.documentElement.getAttribute('data-theme')||'light');
+});

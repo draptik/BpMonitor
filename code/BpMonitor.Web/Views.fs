@@ -279,7 +279,11 @@ module Views =
         Elem.details
           []
           [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw "Blood Pressure Graph" ]
-            Elem.iframe [ Attr.src "/chart"; Attr.class' "chart"; Attr.title "Blood Pressure History" ] [] ]
+            Elem.iframe
+              [ Attr.create "data-chart-src" "/chart"
+                Attr.class' "chart"
+                Attr.title "Blood Pressure History" ]
+              [] ]
         readingsTable readings ]
 
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
@@ -504,7 +508,7 @@ module Views =
                   statRow "Avg Diastolic" "mmHg" summary.AvgDiastolic summary.MinDiastolic summary.MaxDiastolic
                   statRow "Avg Heart Rate" "bpm" summary.AvgHeartRate summary.MinHeartRate summary.MaxHeartRate ] ]
           Elem.iframe
-            [ Attr.src $"/chart?window={summary.Days}"
+            [ Attr.create "data-chart-src" $"/chart?window={summary.Days}"
               Attr.class' "chart"
               Attr.title $"Blood Pressure — last {summary.Days} days" ]
             [] ]
