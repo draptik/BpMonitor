@@ -26,6 +26,8 @@ let private endpoints =
     get "/add" (Handlers.protect Handlers.newReading)
     get "/history" (Handlers.protect Handlers.history)
     get "/chart" (Handlers.protect Handlers.chart)
+    get "/trends" (Handlers.protect Handlers.trends)
+    get "/trends/{days:int}" (Handlers.protect Handlers.trendsPanel)
     post "/readings" (Handlers.protect Handlers.createReading)
     get "/readings/{id:int}/edit" (Handlers.protect Handlers.editReading)
     post "/readings/{id:int}" (Handlers.protect Handlers.updateReading)

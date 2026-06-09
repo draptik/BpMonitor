@@ -52,6 +52,7 @@ module Views =
                     navLink active "/" "Home"
                     navLink active "/add" "Add"
                     navLink active "/history" "History"
+                    navLink active "/trends" "Trends"
                     if isAdmin then
                       navLink active "/members" "Members" ]
                 Elem.ul
@@ -452,3 +453,67 @@ module Views =
       "Family Members"
       (Elem.h1 [] [ Text.raw "Family Members" ]
        :: membersList allMembers active (Some error))
+
+  // ---------------------------------------------------------------------------
+  // Trends views
+  // ---------------------------------------------------------------------------
+
+  /// The swappable panel: window-toggle buttons + stats + chart iframe.
+  /// Rendered as a fragment for htmx swaps (GET /trends/{days}); also used directly
+  /// by the full /trends page so the buttons are always inside the swapped region.
+  let trendsPanel (summary: WindowSummary) : XmlNode =
+    let windows = [ 7; 14; 30; 90 ]
+
+    let windowButton (days: int) =
+      let isActive = days = summary.Days
+
+      let baseAttrs =
+        [ Attr.href $"/trends/{days}"
+          Attr.role "button"
+          Attr.create "hx-get" $"/trends/{days}"
+          Attr.create "hx-target" "#trends-panel"
+          Attr.create "hx-swap" "outerHTML" ]
+
+      let attrs =
+        if isActive then
+          baseAttrs @ [ Attr.create "aria-current" "page" ]
+        else
+          baseAttrs @ [ Attr.class' "outline" ]
+
+      Elem.a attrs [ Text.raw $"{days}d" ]
+
+    let content =
+      if summary.Count = 0 then
+        [ Elem.p [ Attr.class' "trends-empty" ] [ Text.enc $"No readings in the last {summary.Days} days." ] ]
+      else
+        let simpleRow (label: string) (value: string) =
+          Elem.tr
+            []
+            [ Elem.th [ Attr.scope "row" ] [ Text.raw label ]
+              Elem.td [] [ Text.raw value ] ]
+
+        let statRow (label: string) (unit: string) (avg: int) (mn: int) (mx: int) =
+          simpleRow $"{label} ({unit})" $"{avg} (min: {mn}, max: {mx})"
+
+        [ Elem.table
+            [ Attr.class' "trends-stats" ]
+            [ Elem.tbody
+                []
+                [ simpleRow "Readings" (string summary.Count)
+                  statRow "Avg Systolic" "mmHg" summary.AvgSystolic summary.MinSystolic summary.MaxSystolic
+                  statRow "Avg Diastolic" "mmHg" summary.AvgDiastolic summary.MinDiastolic summary.MaxDiastolic
+                  statRow "Avg Heart Rate" "bpm" summary.AvgHeartRate summary.MinHeartRate summary.MaxHeartRate ] ]
+          Elem.iframe
+            [ Attr.src $"/chart?window={summary.Days}"
+              Attr.class' "chart"
+              Attr.title $"Blood Pressure — last {summary.Days} days" ]
+            [] ]
+
+    Elem.div
+      [ Attr.id "trends-panel" ]
+      (Elem.div [ Attr.class' "trends-window-buttons" ] (windows |> List.map windowButton)
+       :: content)
+
+  /// The /trends full page. Pre-renders the 30-day panel (including toggle buttons).
+  let trends (m: FamilyMember) (summary: WindowSummary) : XmlNode =
+    layout "/trends" m.Name m.IsAdmin "Trends" [ Elem.h1 [] [ Text.raw "Trends" ]; trendsPanel summary ]

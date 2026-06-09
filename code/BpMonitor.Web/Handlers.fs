@@ -311,8 +311,49 @@ module Handlers =
         ctx.Response.Redirect "/login"
         Task.CompletedTask
       | Some m ->
+        let allReadings = (repo ctx).GetAll(m.Id)
+
+        let readings, chartFn =
+          match ctx.Request.Query.TryGetValue "window" with
+          | true, v ->
+            match Int32.TryParse(string v) with
+            | true, days when days > 0 ->
+              let now = (timeProvider ctx).GetUtcNow()
+              allReadings |> ReadingStats.since now days |> ReadingStats.dailyAverages, BpChart.toHtmlDashed
+            | _ -> allReadings, BpChart.toHtml
+          | _ -> allReadings, BpChart.toHtml
+
         ctx.Response.ContentType <- "text/html; charset=utf-8"
-        ctx.Response.WriteAsync(BpChart.toHtml ((repo ctx).GetAll(m.Id)))
+        ctx.Response.WriteAsync(chartFn readings)
+
+  let trends: HttpContext -> Task =
+    fun ctx ->
+      match authenticatedMember ctx with
+      | None ->
+        ctx.Response.Redirect "/login"
+        Task.CompletedTask
+      | Some m ->
+        let now = (timeProvider ctx).GetUtcNow()
+        let allReadings = (repo ctx).GetAll(m.Id)
+        let summary = ReadingStats.summarize now 30 allReadings
+        htmlResponse (Views.trends m summary) ctx
+
+  let trendsPanel: HttpContext -> Task =
+    fun ctx ->
+      match authenticatedMember ctx with
+      | None ->
+        ctx.Response.Redirect "/login"
+        Task.CompletedTask
+      | Some m ->
+        match routeInt ctx "days" with
+        | None ->
+          ctx.Response.StatusCode <- 400
+          ctx.Response.WriteAsync("Bad request")
+        | Some days ->
+          let now = (timeProvider ctx).GetUtcNow()
+          let allReadings = (repo ctx).GetAll(m.Id)
+          let summary = ReadingStats.summarize now days allReadings
+          htmlResponse (Views.trendsPanel summary) ctx
 
   let newReading: HttpContext -> Task =
     fun ctx ->

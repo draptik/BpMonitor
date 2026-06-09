@@ -4,7 +4,7 @@ open Plotly.NET
 open BpMonitor.Core
 
 module BpChart =
-  let toHtml (readings: BloodPressureReading list) : string =
+  let private render (lineDash: StyleParam.DrawingStyle) (readings: BloodPressureReading list) : string =
     let readings = readings |> List.sortBy _.Timestamp
 
     let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
@@ -25,11 +25,17 @@ module BpChart =
 
         [ Chart.Point(x = cTimestamps, y = cSystolic, Name = "Comments", MultiText = cTexts) ]
 
-    [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic")
-      Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic")
-      Chart.Line(x = timestamps, y = heartRate, Name = "Heart Rate")
+    let showMarkers = lineDash <> StyleParam.DrawingStyle.Solid
+
+    [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic", LineDash = lineDash, ShowMarkers = showMarkers)
+      Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic", LineDash = lineDash, ShowMarkers = showMarkers)
+      Chart.Line(x = timestamps, y = heartRate, Name = "Heart Rate", LineDash = lineDash, ShowMarkers = showMarkers)
       yield! commentTraces ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
     |> GenericChart.toEmbeddedHTML
     |> _.Replace("\"width\":600,", "")
+
+  let toHtml = render StyleParam.DrawingStyle.Solid
+
+  let toHtmlDashed = render StyleParam.DrawingStyle.Dash
