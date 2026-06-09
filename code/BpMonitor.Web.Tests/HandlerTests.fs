@@ -298,12 +298,58 @@ let private claimedMember (hash: string) : FamilyMember =
       PasswordHash = Some hash }
 
 [<Fact>]
-let ``loginPage returns 200`` () =
-  let repo = repoWith []
-  let ctx = TestHost.context repo
+let ``loginPage returns 200 with sign-in form`` () =
+  let ctx = TestHost.context (repoWith [])
   TestHost.run Handlers.loginPage ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
+  test <@ (TestHost.readBody ctx).Contains "Sign in" @>
+
+[<Fact>]
+let ``loginWithCredentials redirects to / for correct credentials`` () =
+  let hash = PasswordHashing.hash "correct"
+
+  let claimed = { claimedMember hash with Name = "Me" }
+
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ claimed ]
+  TestHost.setForm ctx [ "Username", "Me"; "Password", "correct" ]
+  TestHost.run Handlers.loginWithCredentials ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+  test <@ ctx.Response.Headers.Location.ToString() = "/" @>
+
+[<Fact>]
+let ``loginWithCredentials returns 401 for wrong password`` () =
+  let hash = PasswordHashing.hash "correct"
+
+  let claimed = { claimedMember hash with Name = "Me" }
+
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ claimed ]
+  TestHost.setForm ctx [ "Username", "Me"; "Password", "wrong" ]
+  TestHost.run Handlers.loginWithCredentials ctx
+
+  test <@ ctx.Response.StatusCode = 401 @>
+
+[<Fact>]
+let ``loginWithCredentials returns 401 for unknown user`` () =
+  let repo = repoWith []
+  let ctx = TestHost.context repo
+  TestHost.setForm ctx [ "Username", "Nobody"; "Password", "anything" ]
+  TestHost.run Handlers.loginWithCredentials ctx
+
+  test <@ ctx.Response.StatusCode = 401 @>
+
+[<Fact>]
+let ``loginWithCredentials redirects to claim page for unclaimed member`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
+  TestHost.setForm ctx [ "Username", "Me"; "Password", "" ]
+  TestHost.run Handlers.loginWithCredentials ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+  test <@ ctx.Response.Headers.Location.ToString() = "/login/1" @>
 
 [<Fact>]
 let ``loginMember returns 200 for an existing active member`` () =

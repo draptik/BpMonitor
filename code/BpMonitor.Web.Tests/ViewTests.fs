@@ -201,26 +201,18 @@ let ``memberForm renders errors`` () =
   test <@ html.Contains "active admin" @>
 
 [<Fact>]
-let ``loginPage lists active members`` () =
-  let members =
-    [ defaultMember
-      { defaultMember with
-          Id = 2
-          Name = "Kid"
-          IsAdmin = false
-          IsActive = true }
-      { defaultMember with
-          Id = 3
-          Name = "Inactive"
-          IsAdmin = false
-          IsActive = false } ]
+let ``loginPage renders sign-in form with username and password fields`` () =
+  let html = renderHtml (Views.loginPage [])
 
-  let html = renderHtml (Views.loginPage members)
+  test <@ html.Contains "Sign in" @>
+  test <@ html.Contains "Username" @>
+  test <@ html.Contains "Password" @>
 
-  test <@ html.Contains "Me" @>
-  test <@ html.Contains "Kid" @>
-  // inactive member is not shown
-  test <@ not (html.Contains "Inactive") @>
+[<Fact>]
+let ``loginPage renders errors when provided`` () =
+  let html = renderHtml (Views.loginPage [ "Invalid name or password" ])
+
+  test <@ html.Contains "Invalid name or password" @>
 
 [<Fact>]
 let ``loginMember shows claim form for unclaimed member`` () =

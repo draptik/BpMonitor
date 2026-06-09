@@ -174,9 +174,38 @@ module Handlers =
   // ---------------------------------------------------------------------------
 
   let loginPage: HttpContext -> Task =
+    fun ctx -> htmlResponse (Views.loginPage []) ctx
+
+  let loginWithCredentials: HttpContext -> Task =
     fun ctx ->
-      let allMembers = (memberRepo ctx).GetAll()
-      htmlResponse (Views.loginPage allMembers) ctx
+      task {
+        let log = logger ctx
+        let! form = ctx.Request.ReadFormAsync()
+        let username = form["Username"].ToString().Trim()
+        let password = form["Password"].ToString()
+
+        let found =
+          (memberRepo ctx).GetAll()
+          |> List.tryFind (fun m -> m.IsActive && m.Name.Equals(username, StringComparison.OrdinalIgnoreCase))
+
+        match found with
+        | None ->
+          ctx.Response.StatusCode <- 401
+          do! htmlResponse (Views.loginPage [ "Invalid name or password" ]) ctx
+        | Some m ->
+          if FamilyMember.isClaimed m then
+            if PasswordHashing.verify password (m.PasswordHash |> Option.get) then
+              log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
+              do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal m)
+              ctx.Response.Redirect "/"
+            else
+              log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
+              ctx.Response.StatusCode <- 401
+              do! htmlResponse (Views.loginPage [ "Invalid name or password" ]) ctx
+          else
+            ctx.Response.Redirect $"/login/{m.Id}"
+      }
+      :> Task
 
   let loginMember: HttpContext -> Task =
     fun ctx ->

@@ -34,12 +34,19 @@ nav a[aria-current="page"] {
 }
 
 .errors {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #991b1b;
+  border: 1px solid;
   border-radius: var(--pico-border-radius);
   padding: 0.5rem 1rem;
   margin-bottom: 1rem;
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #991b1b;
+}
+
+[data-theme="dark"] .errors {
+  background: #2d0a0a;
+  color: #fca5a5;
+  border-color: #ef4444;
 }
 
 .field {
@@ -145,19 +152,6 @@ footer.container {
 .login-container {
   max-width: 420px;
   margin-top: 4rem;
-}
-
-.member-list {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.member-list li a[role="button"] {
-  display: block;
-  text-align: center;
 }
 
 .claim-hint {

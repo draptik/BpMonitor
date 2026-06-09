@@ -98,8 +98,20 @@ module Views =
                 Attr.href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" ]
             Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ] ]
         Elem.body
-          []
-          [ Elem.main
+          [ Attr.create "hx-boost" "false" ]
+          [ Elem.nav
+              [ Attr.class' "container" ]
+              [ Elem.ul [] []
+                Elem.ul
+                  []
+                  [ Elem.li
+                      []
+                      [ Elem.button
+                          [ Attr.id "theme-toggle"
+                            Attr.class' "outline secondary"
+                            Attr.create "onclick" "toggleTheme()" ]
+                          [] ] ] ]
+            Elem.main
               [ Attr.class' "container login-container" ]
               ([ Elem.header
                    []
@@ -129,19 +141,32 @@ module Views =
   // Login views
   // ---------------------------------------------------------------------------
 
-  /// Login page: list active members so the user can pick their account.
-  let loginPage (allMembers: FamilyMember list) : XmlNode =
-    let activeMembers = allMembers |> List.filter _.IsActive
-
-    let memberCard (m: FamilyMember) =
-      Elem.li
-        []
-        [ Elem.a [ Attr.href $"/login/{m.Id}"; Attr.role "button"; Attr.class' "outline" ] [ Text.enc m.Name ] ]
-
+  /// Login page: username + password form.
+  let loginPage (errors: string list) : XmlNode =
     loginLayout
       "Login — BpMonitor"
-      [ Elem.h2 [] [ Text.raw "Who are you?" ]
-        Elem.ul [ Attr.class' "member-list" ] (activeMembers |> List.map memberCard) ]
+      [ Elem.h2 [] [ Text.raw "Sign in" ]
+        errorBox errors
+        Elem.form
+          [ Attr.method "post"; Attr.action "/login"; Attr.class' "stacked" ]
+          [ Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label [ Attr.for' "Username" ] [ Text.raw "Name" ]
+                Elem.input
+                  [ Attr.type' "text"
+                    Attr.id "Username"
+                    Attr.name "Username"
+                    Attr.create "autofocus" "autofocus"
+                    Attr.create "autocomplete" "username" ] ]
+            Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label [ Attr.for' "Password" ] [ Text.raw "Password" ]
+                Elem.input
+                  [ Attr.type' "password"
+                    Attr.id "Password"
+                    Attr.name "Password"
+                    Attr.create "autocomplete" "current-password" ] ]
+            Elem.div [ Attr.class' "actions" ] [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Sign in" ] ] ] ]
 
   /// Login form for a specific member. Shows a claim form (password + confirm) for
   /// unclaimed accounts, or a simple password form for claimed ones.

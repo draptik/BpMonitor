@@ -17,6 +17,7 @@ open BpMonitor.Web
 let private endpoints =
   [ // Anonymous: login/logout
     get "/login" Handlers.loginPage
+    post "/login" Handlers.loginWithCredentials
     get "/login/{id:int}" Handlers.loginMember
     post "/login/{id:int}" Handlers.loginSubmit
     post "/logout" Handlers.logout
