@@ -140,3 +140,59 @@ footer.container {
   text-align: center;
   color: var(--pico-muted-color);
 }
+
+/* Login page */
+.login-container {
+  max-width: 420px;
+  margin-top: 4rem;
+}
+
+.member-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.member-list li a[role="button"] {
+  display: block;
+  text-align: center;
+}
+
+.claim-hint {
+  color: var(--pico-muted-color);
+  font-size: 0.9em;
+}
+
+/* Nav member name */
+.nav-member-name {
+  color: var(--pico-muted-color);
+  font-size: 0.875rem;
+}
+
+/* Inline logout form — removes default form block display */
+form.inline {
+  display: inline;
+}
+
+/* Member status badges */
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--pico-border-radius);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--pico-primary);
+  color: var(--pico-primary-inverse);
+}
+
+.badge-claimed {
+  background: var(--pico-color-green-550, #16a34a);
+  color: #fff;
+}
+
+.badge-unclaimed {
+  background: var(--pico-muted-border-color);
+  color: var(--pico-muted-color);
+}

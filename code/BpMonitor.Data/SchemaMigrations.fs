@@ -51,6 +51,7 @@ module SchemaMigrations =
         "Name" TEXT NOT NULL,
         "IsAdmin" INTEGER NOT NULL DEFAULT 0,
         "IsActive" INTEGER NOT NULL DEFAULT 1,
+        "PasswordHash" TEXT NOT NULL DEFAULT '',
         "CreatedAt" TEXT NOT NULL,
         "ModifiedAt" TEXT NOT NULL
       )"""
@@ -67,7 +68,7 @@ module SchemaMigrations =
       let now = System.DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss zzz")
 
       ctx.Database.ExecuteSqlRaw(
-        $"INSERT INTO \"Members\" (\"Name\", \"IsAdmin\", \"IsActive\", \"CreatedAt\", \"ModifiedAt\") VALUES ('Me', 1, 1, '{now}', '{now}')"
+        $"INSERT INTO \"Members\" (\"Name\", \"IsAdmin\", \"IsActive\", \"PasswordHash\", \"CreatedAt\", \"ModifiedAt\") VALUES ('Me', 1, 1, '', '{now}', '{now}')"
       )
       |> ignore
 
@@ -107,6 +108,8 @@ module SchemaMigrations =
     // Add IsAdmin/IsActive to existing Members tables that predate these columns.
     addColumnIfMissing ctx "Members" "IsAdmin" "INTEGER" "0"
     addColumnIfMissing ctx "Members" "IsActive" "INTEGER" "1"
+    // Add PasswordHash for per-member login (empty string = unclaimed account).
+    addColumnIfMissing ctx "Members" "PasswordHash" "TEXT" ""
 
     // Ensure at least one default member exists and get its Id.
     let defaultMemberId = ensureDefaultMember ctx

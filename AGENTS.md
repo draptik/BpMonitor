@@ -51,12 +51,12 @@ The following are available as slash commands (defined in `.claude/skills/`):
 ```text
 code/
 ├── BpMonitor.slnx
-├── BpMonitor.Core        # Domain models (BloodPressureReading + FamilyMember), interfaces, business logic
+├── BpMonitor.Core        # Domain models (BloodPressureReading + FamilyMember), interfaces, PasswordHashing, business logic
 ├── BpMonitor.Data        # EF Core + SQLite, member-scoped repository implementations
 ├── BpMonitor.Import      # Markdown and JSON importers (take memberId param)
 ├── BpMonitor.Export      # JSON serialisation and file write
 ├── BpMonitor.Charts      # Plotly.NET chart generation → HTML output
-├── BpMonitor.Web         # Falco web app (landing, add, history, members pages + member edit); Serilog structured stdout logging
+├── BpMonitor.Web         # Falco web app (login + per-member auth, landing, add, history, members pages); Serilog structured stdout logging
 └── BpMonitor.Arch.Tests  # ArchUnit Clean Architecture rules
 docs/                     # Product vision, architecture, ADRs
 ```

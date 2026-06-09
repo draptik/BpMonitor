@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="FamilyMember.fs" />
+    <Compile Include="PasswordHashing.fs" />
     <Compile Include="IFamilyMemberRepository.fs" />
     <Compile Include="BloodPressureReading.fs" />
     <Compile Include="IReadingRepository.fs" />

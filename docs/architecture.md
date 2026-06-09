@@ -40,12 +40,13 @@ code/
 ```fsharp
 // BpMonitor.Core
 type FamilyMember = {
-    Id:         int
-    Name:       string
-    IsAdmin:    bool
-    IsActive:   bool
-    CreatedAt:  DateTimeOffset
-    ModifiedAt: DateTimeOffset
+    Id:           int
+    Name:         string
+    IsAdmin:      bool
+    IsActive:     bool
+    PasswordHash: string option   // None = unclaimed (no password set yet)
+    CreatedAt:    DateTimeOffset
+    ModifiedAt:   DateTimeOffset
 }
 
 type BloodPressureReadingUnvalidated = {
@@ -103,6 +104,8 @@ graph TD
 - `IReadingRepository` is member-scoped: `GetAll memberId`, `Add memberId`, `AddMany memberId`, `Update` (uses `reading.MemberId` as the guard)
 - `IFamilyMemberRepository`: `GetAll`, `GetById`, `Add`, `Update`
 - `FamilyMember.hasActiveAdmin` enforces the invariant: at least one member must have `IsAdmin = true` and `IsActive = true`; checked before every `Update`
+- `FamilyMember.isClaimed m` — true when `PasswordHash` is `Some`
+- `PasswordHashing` module — pure PBKDF2-SHA256 hashing via BCL (`Rfc2898DeriveBytes`); `hash password → encoded` (iterations.base64salt.base64hash), `verify password encoded → bool` (constant-time compare)
 - Business logic: applicative validation via `FsToolkit.ErrorHandling`
 - No dependencies on other projects
 
@@ -112,7 +115,7 @@ graph TD
 - SQLite with WAL mode + 5 s busy timeout (applied at startup)
 - `IReadingRepository` implementations: `EfReadingRepository` (filters by `MemberId`), `InMemoryReadingRepository`
 - `IFamilyMemberRepository` implementations: `EfFamilyMemberRepository`, `InMemoryFamilyMemberRepository`
-- Manual schema migrations via `SchemaMigrations.apply` (EF Core migrations do not support F#); handles `Members` table creation, default-member seeding, `MemberId` backfill for existing rows, and `IsAdmin`/`IsActive` column additions; `ensureActiveAdmin` promotes the lowest-Id member when no active admin exists (upgrade path for pre-PR#157 DBs)
+- Manual schema migrations via `SchemaMigrations.apply` (EF Core migrations do not support F#); handles `Members` table creation, default-member seeding, `MemberId` backfill for existing rows, `IsAdmin`/`IsActive` column additions, and `PasswordHash TEXT DEFAULT ''` column addition; `ensureActiveAdmin` promotes the lowest-Id member when no active admin exists (upgrade path for pre-PR#157 DBs)
 - `ReadingRepositoryFactory` / `FamilyMemberRepository` factory wiring
 
 ### BpMonitor.Import
@@ -136,10 +139,13 @@ graph TD
 ### BpMonitor.Web
 
 - Falco web application serving on `0.0.0.0:5000`
-- Pages: `/` landing hub, `/add` entry form, `/history` table + chart iframe, `/members` family-member management (list + add), `/members/{id}/edit` member edit form
-- Active family member tracked via `bp_member` cookie (HttpOnly, SameSite=Strict); falls back to the first member when no cookie is set. Login is deferred — this cookie is the stepping stone for real auth later
-- `POST /members/switch` sets the cookie and redirects; `POST /members` creates a new family member; `GET/POST /members/{id}/edit` edits an existing member
-- `IsAdmin` and `IsActive` are stored on each member; `IsActive`/`IsAdmin` flags do not yet affect cookie-based member resolution (deferred to login milestone). Invariant: at least one member must be admin + active — enforced on `updateMember` (POST /members/{id})
+- **Authentication:** ASP.NET Core cookie authentication (`AddAuthentication().AddCookie()`); `LoginPath=/login`. Per-member password via PBKDF2-SHA256 (`PasswordHashing` in Core). Members with no password are "unclaimed" and set their password on first login (claim flow). After claiming/verifying, `SignInAsync` issues a cookie carrying `NameIdentifier`, `Name`, and `Role=Admin` claims.
+- **Auth model — strict per-member isolation:** every member sees and records only their own readings. No on-behalf-of, no profile switching. Admin members can manage other members via `/members` but still see only their own readings.
+- Pages: `/login` member picker + password form (unauthenticated), `/` landing hub, `/add` entry form, `/history` table + chart iframe, `/members` family-member management (admin only), `/members/{id}/edit` member edit, `/members/{id}/reset-password` password reset (admin only), `POST /logout`
+- `protect` combinator wraps all app routes; `protectAdmin` wraps `/members*` routes; `/login*` and `/logout` are anonymous
+- Active member resolved via `ClaimTypes.NameIdentifier` from the authenticated principal (`authenticatedMember` in Handlers.fs)
+- `POST /members` creates a new unclaimed member (no cookie set; member claims on first login). `POST /members/switch` removed.
+- `IsAdmin`/`IsActive` stored on each member; invariant (≥1 admin+active) enforced on `updateMember`. Admin flag also determines role claim and `protectAdmin` access.
 - Every reading handler resolves the active member first; `IReadingRepository` calls are all member-scoped
 - Server-rendered HTML via `Falco.Markup`; htmx for partial updates
 - Scoped `DbContext` per request (concurrency-safe)

@@ -41,6 +41,7 @@ let ``hasActiveAdmin is false when no member is admin`` () =
         Name = "A"
         IsAdmin = false
         IsActive = true
+        PasswordHash = None
         CreatedAt = System.DateTimeOffset.MinValue
         ModifiedAt = System.DateTimeOffset.MinValue } ]
 
@@ -53,6 +54,7 @@ let ``hasActiveAdmin is false when admin member is inactive`` () =
         Name = "A"
         IsAdmin = true
         IsActive = false
+        PasswordHash = None
         CreatedAt = System.DateTimeOffset.MinValue
         ModifiedAt = System.DateTimeOffset.MinValue } ]
 
@@ -65,12 +67,14 @@ let ``hasActiveAdmin is true when at least one member is admin and active`` () =
         Name = "A"
         IsAdmin = false
         IsActive = true
+        PasswordHash = None
         CreatedAt = System.DateTimeOffset.MinValue
         ModifiedAt = System.DateTimeOffset.MinValue }
       { Id = 2
         Name = "B"
         IsAdmin = true
         IsActive = true
+        PasswordHash = None
         CreatedAt = System.DateTimeOffset.MinValue
         ModifiedAt = System.DateTimeOffset.MinValue } ]
 

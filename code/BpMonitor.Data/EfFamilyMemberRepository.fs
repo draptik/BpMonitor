@@ -9,6 +9,11 @@ module private MemberMapping =
       Name = r.Name
       IsAdmin = r.IsAdmin
       IsActive = r.IsActive
+      PasswordHash =
+        if System.String.IsNullOrEmpty(r.PasswordHash) then
+          None
+        else
+          Some r.PasswordHash
       CreatedAt = r.CreatedAt
       ModifiedAt = r.ModifiedAt }
 
@@ -17,6 +22,7 @@ module private MemberMapping =
       Name = m.Name
       IsAdmin = m.IsAdmin
       IsActive = m.IsActive
+      PasswordHash = m.PasswordHash |> Option.defaultValue ""
       CreatedAt = now
       ModifiedAt = now }
 
@@ -50,6 +56,7 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.Time
           Name = m.Name
           IsAdmin = m.IsAdmin
           IsActive = m.IsActive
+          PasswordHash = m.PasswordHash |> Option.defaultValue ""
           CreatedAt = m.CreatedAt
           ModifiedAt = now }
 
