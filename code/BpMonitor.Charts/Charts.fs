@@ -138,7 +138,7 @@ module BpChart =
             MarkerColor = systolicColor
           ) ]
 
-    let line name y =
+    let line name y text =
       Chart.Line(
         x = timestamps,
         y = y,
@@ -146,12 +146,15 @@ module BpChart =
         LineDash = StyleParam.DrawingStyle.Dash,
         ShowMarkers = true,
         MultiMarkerSymbol = symbols,
-        MultiText = hoverTexts,
+        MultiText = text,
         LineWidth = 1.0
       )
       |> Chart.withMarkerStyle (Size = 8)
 
-    [ line "Systolic" systolic; line "Diastolic" diastolic; yield! commentTraces ]
+    // Reading count only on Systolic — showing it on every trace would multiply the count in hover.
+    [ line "Systolic" systolic hoverTexts
+      line "Diastolic" diastolic (List.replicate diastolic.Length "")
+      yield! commentTraces ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
     |> finish theme
