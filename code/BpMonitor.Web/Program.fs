@@ -45,6 +45,8 @@ let main args =
     builder.Services.AddDbContext<BpMonitorDbContext>(fun opts -> opts.UseSqlite(connectionString) |> ignore)
     |> ignore
 
+    builder.Services.AddSingleton<TimeProvider>(TimeProvider.System) |> ignore
+
     builder.Services.AddScoped<IReadingRepository>(fun sp ->
       EfReadingRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
     |> ignore

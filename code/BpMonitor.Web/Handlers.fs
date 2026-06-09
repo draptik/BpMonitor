@@ -22,6 +22,9 @@ module Handlers =
   let private ranges (ctx: HttpContext) =
     Config.readRanges (ctx.RequestServices.GetRequiredService<IConfiguration>())
 
+  let private timeProvider (ctx: HttpContext) =
+    ctx.RequestServices.GetRequiredService<TimeProvider>()
+
   let private logger (ctx: HttpContext) =
     ctx.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("BpMonitor.Web.Handlers")
 
@@ -130,7 +133,7 @@ module Handlers =
     fun ctx ->
       let prefill =
         { Binding.empty with
-            Binding.Timestamp = DateTimeOffset.Now.ToString(Formats.timestamp) }
+            Binding.Timestamp = (timeProvider ctx).GetLocalNow().ToString(Formats.timestamp) }
 
       htmlResponse (Views.readingForm "/add" "Add reading" "/readings" [] prefill) ctx
 
