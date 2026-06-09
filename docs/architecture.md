@@ -106,6 +106,7 @@ graph TD
 - `FamilyMember.hasActiveAdmin` enforces the invariant: at least one member must have `IsAdmin = true` and `IsActive = true`; checked before every `Update`
 - `FamilyMember.isClaimed m` — true when `PasswordHash` is `Some`
 - `PasswordHashing` module — pure PBKDF2-SHA256 hashing via BCL (`Rfc2898DeriveBytes`); `hash password → encoded` (iterations.base64salt.base64hash), `verify password encoded → bool` (constant-time compare)
+- `ReadingStats` module — pure statistics/filtering helpers: `since now days readings` (date-window filter), `classify avgSys avgDia → BloodPressureCategory` (AHA 2017 thresholds: Normal/Elevated/Stage1/Stage2), `summarize now days readings → WindowSummary` (count + integer averages + category). Used by the `/trends` page and `/chart?window=` route.
 - Business logic: applicative validation via `FsToolkit.ErrorHandling`
 - No dependencies on other projects
 
@@ -141,7 +142,8 @@ graph TD
 - Falco web application serving on `0.0.0.0:5000`
 - **Authentication:** ASP.NET Core cookie authentication (`AddAuthentication().AddCookie()`); `LoginPath=/login`. Per-member password via PBKDF2-SHA256 (`PasswordHashing` in Core). Members with no password are "unclaimed" and set their password on first login (claim flow). After claiming/verifying, `SignInAsync` issues a cookie carrying `NameIdentifier`, `Name`, and `Role=Admin` claims.
 - **Auth model — strict per-member isolation:** every member sees and records only their own readings. No on-behalf-of, no profile switching. Admin members can manage other members via `/members` but still see only their own readings.
-- Pages: `/login` username + password form (unauthenticated); unclaimed members are redirected to `/login/{id}` where they set their password on first login (claim flow). `/` landing hub, `/add` entry form, `/history` table + chart iframe, `/members` family-member management (admin only), `/members/{id}/edit` member edit, `/members/{id}/reset-password` password reset (admin only), `POST /logout`
+- Pages: `/login` username + password form (unauthenticated); unclaimed members are redirected to `/login/{id}` where they set their password on first login (claim flow). `/` landing hub, `/add` entry form, `/history` table + chart iframe, `/trends` windowed overview (see below), `/members` family-member management (admin only), `/members/{id}/edit` member edit, `/members/{id}/reset-password` password reset (admin only), `POST /logout`
+- **`/trends` (windowed overview):** full page with 7/14/30/90-day window toggle buttons. Each button swaps a fragment (`GET /trends/{days:int}`) via htmx that shows average systolic/diastolic/heart rate, a color-coded AHA-2017 blood pressure category badge (`Normal`/`Elevated`/`Stage 1`/`Stage 2`), and a filtered Plotly chart iframe (`/chart?window={days}`). Default window is 30 days. Empty state shown (no iframe) when no readings exist in the window. `TimeProvider` is injected so the "now" cutoff is testable with `FakeTimeProvider`. Stats/classification live in `ReadingStats` (Core); CSS classes `bp-normal/bp-elevated/bp-stage1/bp-stage2` in `wwwroot/app.css`.
 - `protect` combinator wraps all app routes; `protectAdmin` wraps `/members*` routes; `/login*` and `/logout` are anonymous
 - Active member resolved via `ClaimTypes.NameIdentifier` from the authenticated principal (`authenticatedMember` in Handlers.fs)
 - `POST /members` creates a new unclaimed member (no cookie set; member claims on first login). `POST /members/switch` removed.

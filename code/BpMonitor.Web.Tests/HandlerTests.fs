@@ -470,3 +470,86 @@ let ``resetPassword sets member to unclaimed`` () =
   let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
   let saved = memberRepo.GetById(1) |> Option.get
   test <@ not (BpMonitor.Core.FamilyMember.isClaimed saved) @>
+
+// ─── Trends handler tests ─────────────────────────────────────────────────────
+
+let private setRouteDays (ctx: Microsoft.AspNetCore.Http.HttpContext) (days: int) =
+  ctx.Request.RouteValues["days"] <- box (string days)
+
+[<Fact>]
+let ``trends renders 200 with window buttons and pre-rendered panel`` () =
+  let now = Timestamp.utc 2026 6 9 12 0 0
+  let tp = FakeTimeProvider(now)
+
+  let r =
+    { sample with
+        Timestamp = now.AddDays(-5.0)
+        Systolic = 130
+        Diastolic = 85
+        HeartRate = 70 }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  TestHost.run Handlers.trends ctx
+
+  test <@ ctx.Response.StatusCode = 200 @>
+  let body = TestHost.readBody ctx
+  // Window toggle buttons
+  test <@ body.Contains "href=\"/trends/7\"" @>
+  test <@ body.Contains "href=\"/trends/30\"" @>
+  // Default 30-day panel pre-rendered: chart iframe with window=30
+  test <@ body.Contains "/chart?window=30" @>
+  // 30-day button is active
+  test <@ body.Contains "aria-current=\"page\"" @>
+
+[<Fact>]
+let ``trendsPanel returns fragment with avg stats and chart iframe`` () =
+  let now = Timestamp.utc 2026 6 9 12 0 0
+  let tp = FakeTimeProvider(now)
+  // One reading in the 7-day window: sys=130 dia=85 hr=70
+  let r =
+    { sample with
+        Timestamp = now.AddDays(-3.0)
+        Systolic = 130
+        Diastolic = 85
+        HeartRate = 70 }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  setRouteDays ctx 7
+  TestHost.run Handlers.trendsPanel ctx
+
+  test <@ ctx.Response.StatusCode = 200 @>
+  let body = TestHost.readBody ctx
+  // Averages
+  test <@ body.Contains "130" @>
+  test <@ body.Contains "85" @>
+  test <@ body.Contains "70" @>
+  // Chart iframe filtered to 7-day window
+  test <@ body.Contains "/chart?window=7" @>
+
+[<Fact>]
+let ``trendsPanel shows empty state and no iframe when no readings in window`` () =
+  let now = Timestamp.utc 2026 6 9 12 0 0
+  let tp = FakeTimeProvider(now)
+  // Reading outside the 7-day window
+  let r =
+    { sample with
+        Timestamp = now.AddDays(-100.0) }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  setRouteDays ctx 7
+  TestHost.run Handlers.trendsPanel ctx
+
+  test <@ ctx.Response.StatusCode = 200 @>
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "No readings in the last 7 days" @>
+  test <@ body.Contains "/chart?window=7" |> not @>
+
+[<Fact>]
+let ``trendsPanel returns 400 for invalid days param`` () =
+  let now = Timestamp.utc 2026 6 9 12 0 0
+  let tp = FakeTimeProvider(now)
+  let ctx = TestHost.contextWithProvider (repoWith []) tp
+  // No route value set → routeInt returns None
+  TestHost.run Handlers.trendsPanel ctx
+
+  test <@ ctx.Response.StatusCode = 400 @>

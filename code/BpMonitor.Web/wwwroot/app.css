@@ -200,3 +200,46 @@ form.inline button {
   background: var(--pico-muted-border-color);
   color: var(--pico-muted-color);
 }
+
+/* ── Trends page ────────────────────────────────────────────────────────── */
+
+/* Window-selector button row */
+.trends-window-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.trends-window-buttons a[role="button"] {
+  padding: 0.25rem 0.9rem;
+  font-size: 0.9rem;
+  margin: 0;
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+/* Active window button — filled primary (matches nav active pill style) */
+.trends-window-buttons a[aria-current="page"] {
+  background: var(--pico-primary);
+  color: var(--pico-primary-inverse);
+  border-color: var(--pico-primary);
+}
+
+/* Stats table inside the panel */
+.trends-stats {
+  width: auto;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.trends-stats th {
+  font-weight: 600;
+  padding-right: 1.5rem;
+  text-align: left;
+}
+
+.trends-empty {
+  color: var(--pico-muted-color);
+  font-style: italic;
+}
