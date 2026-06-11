@@ -341,7 +341,11 @@ module Handlers =
         let now = (timeProvider ctx).GetUtcNow()
         let allReadings = (repo ctx).GetAll(m.Id)
         let summary = ReadingStats.summarize now 7 allReadings
-        htmlResponse (Views.trends m summary) ctx
+
+        let windowed =
+          allReadings |> ReadingStats.since now 7 |> List.sortByDescending _.Timestamp
+
+        htmlResponse (Views.trends m summary windowed) ctx
 
   let trendsPanel: HttpContext -> Task =
     fun ctx ->
@@ -358,7 +362,11 @@ module Handlers =
           let now = (timeProvider ctx).GetUtcNow()
           let allReadings = (repo ctx).GetAll(m.Id)
           let summary = ReadingStats.summarize now days allReadings
-          htmlResponse (Views.trendsPanel summary) ctx
+
+          let windowed =
+            allReadings |> ReadingStats.since now days |> List.sortByDescending _.Timestamp
+
+          htmlResponse (Views.trendsPanel summary windowed) ctx
 
   let newReading: HttpContext -> Task =
     fun ctx ->
