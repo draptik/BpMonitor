@@ -340,7 +340,7 @@ module Handlers =
       | Some m ->
         let now = (timeProvider ctx).GetUtcNow()
         let allReadings = (repo ctx).GetAll(m.Id)
-        let summary = ReadingStats.summarize now 30 allReadings
+        let summary = ReadingStats.summarize now 7 allReadings
         htmlResponse (Views.trends m summary) ctx
 
   let trendsPanel: HttpContext -> Task =

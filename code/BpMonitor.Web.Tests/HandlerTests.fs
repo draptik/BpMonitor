@@ -496,9 +496,9 @@ let ``trends renders 200 with window buttons and pre-rendered panel`` () =
   // Window toggle buttons
   test <@ body.Contains "href=\"/trends/7\"" @>
   test <@ body.Contains "href=\"/trends/30\"" @>
-  // Default 30-day panel pre-rendered: chart iframe with window=30
-  test <@ body.Contains "/chart?window=30" @>
-  // 30-day button is active
+  // Default 7-day panel pre-rendered: chart iframe with window=7
+  test <@ body.Contains "/chart?window=7" @>
+  // 7-day button is active
   test <@ body.Contains "aria-current=\"page\"" @>
 
 [<Fact>]
