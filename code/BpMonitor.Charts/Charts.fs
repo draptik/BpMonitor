@@ -48,6 +48,52 @@ module BpChart =
     |> _.Replace("\"width\":600,", "")
     |> injectBodyStyle theme
 
+  // Trends-specific tuning for mobile:
+  // - Compact margins maximise the narrow plot area.
+  // - DragMode.False: touch is a tap (tooltip), not a scroll-hijacking pan.
+  // - TickAngle=-45: rotated date labels don't overlap on narrow viewports.
+  // - Horizontal centred legend avoids stealing horizontal width.
+  // - DisplayModeBar=false: no floating toolbar (awkward on touch).
+  // - ScrollZoom=NoZoom: wheel/pinch won't fight page scroll.
+  let private trendsLayout (theme: string) =
+    let bg = if theme = "dark" then darkBg else transparent
+
+    let font =
+      if theme = "dark" then
+        Font.init (Color = darkFont)
+      else
+        Font.init ()
+
+    let margin = Margin.init (Left = 48, Right = 16, Top = 24, Bottom = 56)
+
+    Layout.init (
+      PaperBGColor = bg,
+      PlotBGColor = bg,
+      Font = font,
+      Margin = margin,
+      DragMode = StyleParam.DragMode.False
+    )
+
+  let private trendsXAxis = LinearAxis.init (ShowGrid = false, TickAngle = -45)
+
+  let private trendsConfig =
+    Config.init (Responsive = true, DisplayModeBar = false, ScrollZoom = StyleParam.ScrollZoom.NoZoom)
+
+  let private finishTrends (theme: string) (chart: GenericChart) =
+    chart
+    |> Chart.withLayout (trendsLayout theme)
+    |> Chart.withXAxis trendsXAxis
+    |> Chart.withYAxis (yAxis theme)
+    |> Chart.withConfig trendsConfig
+    |> Chart.withLegendStyle (
+      Orientation = StyleParam.Orientation.Horizontal,
+      X = 0.5,
+      XAnchor = StyleParam.XAnchorPosition.Center
+    )
+    |> GenericChart.toEmbeddedHTML
+    |> _.Replace("\"width\":600,", "")
+    |> injectBodyStyle theme
+
   /// Classic x/y plot — one point per reading. Used by /history.
   let private renderIndividual (theme: string) (readings: BloodPressureReading list) : string =
     let readings = readings |> List.sortBy _.Timestamp
@@ -159,8 +205,7 @@ module BpChart =
       line "Diastolic" diastolic (List.replicate diastolic.Length "")
       yield! commentTraces ]
     |> Chart.combine
-    |> Chart.withTitle "Blood Pressure History"
-    |> finish theme
+    |> finishTrends theme
 
   let toHtml (theme: string) = renderIndividual theme
   let toHtmlDashed (theme: string) = renderDailyGrouped theme
