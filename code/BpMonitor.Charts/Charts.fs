@@ -1,5 +1,6 @@
 namespace BpMonitor.Charts
 
+open System.Globalization
 open Plotly.NET
 open Plotly.NET.LayoutObjects
 open BpMonitor.Core
@@ -128,35 +129,32 @@ module BpChart =
       Size: int
       HoverText: string }
 
-  /// Daily-grouped plot — one point per calendar day, averaged when multiple readings exist.
-  /// Circle = single reading, Diamond = daily average. Used by /trends windowed chart.
-  let private renderDailyGrouped (theme: string) (readings: BloodPressureReading list) : string =
+  /// Dashed line chart — one point per reading, connected by a dashed line with circle markers.
+  /// Readings should be pre-aggregated by the caller (daily / weekly / monthly averages).
+  /// X-axis labels adapt to granularity: Weekly → date, Monthly → ISO week, Yearly → month name.
+  /// Used by /trends for all granularities.
+  let private renderDashed (gran: Granularity) (theme: string) (readings: BloodPressureReading list) : string =
     let readings = readings |> List.sortBy _.Timestamp
+
+    let xLabel (r: BloodPressureReading) =
+      let local = r.Timestamp.ToLocalTime()
+
+      match gran with
+      | Weekly -> local.Date.ToString("d MMM")
+      | Monthly ->
+        let week = ISOWeek.GetWeekOfYear(local.Date)
+        $"W{week}"
+      | Yearly -> local.Date.ToString("MMM")
 
     let dailyPoints =
       readings
-      |> List.groupBy (fun r -> r.Timestamp.LocalDateTime.Date)
-      |> List.sortBy fst
-      |> List.map (fun (date, dayReadings) ->
-        let count = dayReadings.Length
-
-        let avg f =
-          dayReadings |> List.averageBy (fun r -> float (f r)) |> int
-
-        { Label = date.ToString("yyyy-MM-dd")
-          Systolic = avg _.Systolic
-          Diastolic = avg _.Diastolic
-          Symbol =
-            if count = 1 then
-              StyleParam.MarkerSymbol.Circle
-            else
-              StyleParam.MarkerSymbol.Diamond
-          Size = if count = 1 then 8 else 11
-          HoverText =
-            if count = 1 then
-              "1 reading"
-            else
-              $"{count} readings (daily avg)" })
+      |> List.map (fun r ->
+        { Label = xLabel r
+          Systolic = r.Systolic
+          Diastolic = r.Diastolic
+          Symbol = StyleParam.MarkerSymbol.Circle
+          Size = 8
+          HoverText = "" })
 
     let timestamps = dailyPoints |> List.map _.Label
     let systolic = dailyPoints |> List.map _.Systolic
@@ -171,9 +169,7 @@ module BpChart =
       if commented.IsEmpty then
         []
       else
-        let cTimestamps =
-          commented
-          |> List.map (fun r -> r.Timestamp.LocalDateTime.Date.ToString("yyyy-MM-dd"))
+        let cTimestamps = commented |> List.map xLabel
 
         let cSystolic = commented |> List.map _.Systolic
         let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
@@ -208,4 +204,4 @@ module BpChart =
     |> finishTrends theme
 
   let toHtml (theme: string) = renderIndividual theme
-  let toHtmlDashed (theme: string) = renderDailyGrouped theme
+  let toHtmlDashed (gran: Granularity) (theme: string) = renderDashed gran theme

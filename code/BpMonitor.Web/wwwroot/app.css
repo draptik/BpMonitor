@@ -225,12 +225,12 @@ form.inline button {
 
 /* ── Trends page ────────────────────────────────────────────────────────── */
 
-/* Window-selector button row */
+/* Granularity selector row (Weekly / Monthly / Yearly) */
 .trends-window-buttons {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .trends-window-buttons a[role="button"] {
@@ -241,8 +241,34 @@ form.inline button {
   text-align: center;
 }
 
-/* Active window button — filled primary (matches nav active pill style) */
+/* Active granularity button — filled primary (matches nav active pill style) */
 .trends-window-buttons a[aria-current="page"] {
+  background: var(--pico-primary);
+  color: var(--pico-primary-inverse);
+  border-color: var(--pico-primary);
+}
+
+/* Sub-period pill row — horizontally scrollable, no wrapping */
+.trends-subperiod-buttons {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.25rem; /* keep scrollbar from clipping pill border */
+}
+
+.trends-subperiod-buttons a[role="button"] {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.85rem;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* Active sub-period pill */
+.trends-subperiod-buttons a[aria-current="page"] {
   background: var(--pico-primary);
   color: var(--pico-primary-inverse);
   border-color: var(--pico-primary);

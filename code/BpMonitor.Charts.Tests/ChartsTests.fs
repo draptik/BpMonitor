@@ -97,7 +97,7 @@ type ChartTests() =
 
   [<Fact>]
   member _.``toHtmlDashed matches snapshot``() : Task =
-    let html: string = BpChart.toHtmlDashed "light" readings
+    let html: string = BpChart.toHtmlDashed Weekly "light" readings
     let settings = VerifyTests.VerifySettings()
     settings.ScrubInlineGuids()
 

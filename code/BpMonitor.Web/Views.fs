@@ -462,33 +462,61 @@ module Views =
   // Trends views
   // ---------------------------------------------------------------------------
 
-  /// The swappable panel: window-toggle buttons + stats + chart iframe.
-  /// Rendered as a fragment for htmx swaps (GET /trends/{days}); also used directly
-  /// by the full /trends page so the buttons are always inside the swapped region.
-  let trendsPanel (summary: WindowSummary) (readings: BloodPressureReading list) : XmlNode =
-    let windows = [ 7; 14; 30; 90 ]
+  /// The swappable panel: granularity toggle + sub-period strip + stats + chart iframe.
+  /// Rendered as a fragment for htmx swaps (GET /trends/{gran} and GET /trends/{gran}/{key});
+  /// also used directly by the full /trends page so the buttons are always inside the swapped region.
+  let trendsPanel (summary: WindowSummary) (periods: TrendPeriod list) (readings: BloodPressureReading list) : XmlNode =
+    let gran = summary.Granularity
+    let granSlug = TrendPeriod.slug gran
 
-    let windowButton (days: int) =
-      let isActive = days = summary.Days
+    // ── Level 1: granularity pills ───────────────────────────────────────────
+    let granButton (g: Granularity) =
+      let s = TrendPeriod.slug g
+
+      let label =
+        match g with
+        | Weekly -> "Weekly"
+        | Monthly -> "Monthly"
+        | Yearly -> "Yearly"
 
       let baseAttrs =
-        [ Attr.href $"/trends/{days}"
+        [ Attr.href $"/trends/{s}"
           Attr.role "button"
-          Attr.create "hx-get" $"/trends/{days}"
+          Attr.create "hx-get" $"/trends/{s}"
           Attr.create "hx-target" "#trends-panel"
           Attr.create "hx-swap" "outerHTML" ]
 
       let attrs =
-        if isActive then
+        if g = gran then
           baseAttrs @ [ Attr.create "aria-current" "page" ]
         else
           baseAttrs @ [ Attr.class' "outline" ]
 
-      Elem.a attrs [ Text.raw $"{days}d" ]
+      Elem.a attrs [ Text.raw label ]
 
+    // ── Level 2: sub-period pills ────────────────────────────────────────────
+    let periodButton (p: TrendPeriod) =
+      let href = $"/trends/{granSlug}/{p.Key}"
+
+      let baseAttrs =
+        [ Attr.href href
+          Attr.role "button"
+          Attr.create "hx-get" href
+          Attr.create "hx-target" "#trends-panel"
+          Attr.create "hx-swap" "outerHTML" ]
+
+      let attrs =
+        if p.Key = summary.PeriodKey then
+          baseAttrs @ [ Attr.create "aria-current" "page" ]
+        else
+          baseAttrs @ [ Attr.class' "outline" ]
+
+      Elem.a attrs [ Text.raw p.Label ]
+
+    // ── Content ──────────────────────────────────────────────────────────────
     let content =
       if summary.Count = 0 then
-        [ Elem.p [ Attr.class' "trends-empty" ] [ Text.enc $"No readings in the last {summary.Days} days." ] ]
+        [ Elem.p [ Attr.class' "trends-empty" ] [ Text.enc $"No readings in {summary.Label}." ] ]
       else
         let simpleRow (label: string) (value: string) =
           Elem.tr
@@ -508,17 +536,33 @@ module Views =
                   statRow "Avg Diastolic" "mmHg" summary.AvgDiastolic summary.MinDiastolic summary.MaxDiastolic
                   statRow "Avg Heart Rate" "bpm" summary.AvgHeartRate summary.MinHeartRate summary.MaxHeartRate ] ]
           Elem.iframe
-            [ Attr.create "data-chart-src" $"/chart?window={summary.Days}"
+            [ Attr.create "data-chart-src" $"/chart?gran={granSlug}&period={summary.PeriodKey}"
               Attr.class' "chart"
-              Attr.title $"Blood Pressure — last {summary.Days} days" ]
+              Attr.title $"Blood Pressure — {summary.Label}" ]
             []
           readingsTable readings ]
 
     Elem.div
       [ Attr.id "trends-panel" ]
-      (Elem.div [ Attr.class' "trends-window-buttons" ] (windows |> List.map windowButton)
-       :: content)
+      [ Elem.div [ Attr.class' "trends-window-buttons" ] ([ Weekly; Monthly; Yearly ] |> List.map granButton)
+        Elem.div [ Attr.class' "trends-subperiod-buttons" ] (periods |> List.map periodButton)
+        yield! content
+        // Scroll the active sub-period pill into view (runs after htmx swaps in this fragment).
+        Elem.script
+          []
+          [ Text.raw
+              "(function(){var a=document.querySelector('.trends-subperiod-buttons [aria-current=\"page\"]');if(a)a.scrollIntoView({inline:'nearest',block:'nearest'});})()" ] ]
 
-  /// The /trends full page. Pre-renders the 7-day panel (including toggle buttons).
-  let trends (m: FamilyMember) (summary: WindowSummary) (readings: BloodPressureReading list) : XmlNode =
-    layout "/trends" m.Name m.IsAdmin "Trends" [ Elem.h1 [] [ Text.raw "Trends" ]; trendsPanel summary readings ]
+  /// The /trends full page. Pre-renders the Weekly/current panel (including toggle buttons).
+  let trends
+    (m: FamilyMember)
+    (summary: WindowSummary)
+    (periods: TrendPeriod list)
+    (readings: BloodPressureReading list)
+    : XmlNode =
+    layout
+      "/trends"
+      m.Name
+      m.IsAdmin
+      "Trends"
+      [ Elem.h1 [] [ Text.raw "Trends" ]; trendsPanel summary periods readings ]
