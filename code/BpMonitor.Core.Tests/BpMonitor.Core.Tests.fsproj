@@ -10,6 +10,7 @@
     <Compile Include="BloodPressureReadingPropertyTests.fs" />
     <Compile Include="ReadingRepositoryContractTests.fs" />
     <Compile Include="FamilyMemberTests.fs" />
+    <Compile Include="TrendPeriodTests.fs" />
     <Compile Include="ReadingStatsTests.fs" />
     <Compile Include="PasswordHashingTests.fs" />
   </ItemGroup>

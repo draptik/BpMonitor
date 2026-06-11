@@ -43,6 +43,14 @@ module Handlers =
       | _ -> None
     | _ -> None
 
+  let private routeStr (ctx: HttpContext) (key: string) : string option =
+    match ctx.Request.RouteValues.TryGetValue key with
+    | true, v ->
+      let s = string v
+
+      if String.IsNullOrEmpty s then None else Some s
+    | _ -> None
+
   let private formModel (ctx: HttpContext) : Task<Binding.FormModel> =
     task {
       let! form = ctx.Request.ReadFormAsync()
@@ -319,14 +327,28 @@ module Handlers =
           | _ -> "light"
 
         let readings, chartFn =
-          match ctx.Request.Query.TryGetValue "window" with
-          | true, v ->
-            match Int32.TryParse(string v) with
-            | true, days when days > 0 ->
-              let now = (timeProvider ctx).GetUtcNow()
-              allReadings |> ReadingStats.since now days, BpChart.toHtmlDashed theme
-            | _ -> allReadings, BpChart.toHtml theme
-          | _ -> allReadings, BpChart.toHtml theme
+          let granStr =
+            match ctx.Request.Query.TryGetValue "gran" with
+            | true, v -> string v
+            | _ -> ""
+
+          let periodStr =
+            match ctx.Request.Query.TryGetValue "period" with
+            | true, v -> string v
+            | _ -> ""
+
+          match TrendPeriod.parseGranularity granStr with
+          | Some gran ->
+            let now = (timeProvider ctx).GetUtcNow()
+
+            let period =
+              TrendPeriod.ofKey gran periodStr now
+              |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
+
+            let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
+            let aggregated = ReadingStats.aggregate gran windowed
+            aggregated, BpChart.toHtmlDashed gran theme
+          | None -> allReadings, BpChart.toHtml theme
 
         ctx.Response.ContentType <- "text/html; charset=utf-8"
         ctx.Response.WriteAsync(chartFn readings)
@@ -340,12 +362,14 @@ module Handlers =
       | Some m ->
         let now = (timeProvider ctx).GetUtcNow()
         let allReadings = (repo ctx).GetAll(m.Id)
-        let summary = ReadingStats.summarize now 7 allReadings
+        let period = TrendPeriod.current Weekly now
+        let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
+        let summary = ReadingStats.summarizeRange period windowed
+        let periods = TrendPeriod.available Weekly now allReadings
 
-        let windowed =
-          allReadings |> ReadingStats.since now 7 |> List.sortByDescending _.Timestamp
+        let tableReadings = windowed |> List.sortByDescending _.Timestamp
 
-        htmlResponse (Views.trends m summary windowed) ctx
+        htmlResponse (Views.trends m summary periods tableReadings) ctx
 
   let trendsPanel: HttpContext -> Task =
     fun ctx ->
@@ -354,19 +378,25 @@ module Handlers =
         ctx.Response.Redirect "/login"
         Task.CompletedTask
       | Some m ->
-        match routeInt ctx "days" with
+        match routeStr ctx "gran" |> Option.bind TrendPeriod.parseGranularity with
         | None ->
           ctx.Response.StatusCode <- 400
           ctx.Response.WriteAsync("Bad request")
-        | Some days ->
+        | Some gran ->
           let now = (timeProvider ctx).GetUtcNow()
           let allReadings = (repo ctx).GetAll(m.Id)
-          let summary = ReadingStats.summarize now days allReadings
 
-          let windowed =
-            allReadings |> ReadingStats.since now days |> List.sortByDescending _.Timestamp
+          let period =
+            routeStr ctx "key"
+            |> Option.bind (fun k -> TrendPeriod.ofKey gran k now)
+            |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
 
-          htmlResponse (Views.trendsPanel summary windowed) ctx
+          let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
+          let summary = ReadingStats.summarizeRange period windowed
+          let periods = TrendPeriod.available gran now allReadings
+          let tableReadings = windowed |> List.sortByDescending _.Timestamp
+
+          htmlResponse (Views.trendsPanel summary periods tableReadings) ctx
 
   let newReading: HttpContext -> Task =
     fun ctx ->
