@@ -465,7 +465,7 @@ module Views =
   /// The swappable panel: window-toggle buttons + stats + chart iframe.
   /// Rendered as a fragment for htmx swaps (GET /trends/{days}); also used directly
   /// by the full /trends page so the buttons are always inside the swapped region.
-  let trendsPanel (summary: WindowSummary) : XmlNode =
+  let trendsPanel (summary: WindowSummary) (readings: BloodPressureReading list) : XmlNode =
     let windows = [ 7; 14; 30; 90 ]
 
     let windowButton (days: int) =
@@ -511,7 +511,8 @@ module Views =
             [ Attr.create "data-chart-src" $"/chart?window={summary.Days}"
               Attr.class' "chart"
               Attr.title $"Blood Pressure — last {summary.Days} days" ]
-            [] ]
+            []
+          readingsTable readings ]
 
     Elem.div
       [ Attr.id "trends-panel" ]
@@ -519,5 +520,5 @@ module Views =
        :: content)
 
   /// The /trends full page. Pre-renders the 7-day panel (including toggle buttons).
-  let trends (m: FamilyMember) (summary: WindowSummary) : XmlNode =
-    layout "/trends" m.Name m.IsAdmin "Trends" [ Elem.h1 [] [ Text.raw "Trends" ]; trendsPanel summary ]
+  let trends (m: FamilyMember) (summary: WindowSummary) (readings: BloodPressureReading list) : XmlNode =
+    layout "/trends" m.Name m.IsAdmin "Trends" [ Elem.h1 [] [ Text.raw "Trends" ]; trendsPanel summary readings ]

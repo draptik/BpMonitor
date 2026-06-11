@@ -527,6 +527,59 @@ let ``trendsPanel returns fragment with avg stats and chart iframe`` () =
   test <@ body.Contains "/chart?window=7" @>
 
 [<Fact>]
+let ``trendsPanel includes readings table with in-window readings`` () =
+  let now = Timestamp.utc 2026 6 9 12 0 0
+  let tp = FakeTimeProvider(now)
+
+  let r =
+    { sample with
+        Timestamp = now.AddDays(-3.0)
+        Systolic = 130
+        Diastolic = 85
+        HeartRate = 70 }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  setRouteDays ctx 7
+  TestHost.run Handlers.trendsPanel ctx
+
+  test <@ ctx.Response.StatusCode = 200 @>
+  let body = TestHost.readBody ctx
+  // Readings table is rendered
+  test <@ body.Contains "id=\"readings\"" @>
+  // The reading's values appear in the table
+  test <@ body.Contains "130" @>
+  test <@ body.Contains "85" @>
+  test <@ body.Contains "70" @>
+
+[<Fact>]
+let ``trendsPanel excludes readings outside the window from the table`` () =
+  let now = Timestamp.utc 2026 6 9 12 0 0
+  let tp = FakeTimeProvider(now)
+  // One reading inside and one outside the 7-day window
+  let inside =
+    { sample with
+        Timestamp = now.AddDays(-3.0)
+        Systolic = 130 }
+
+  let outside =
+    { sample with
+        Id = 2
+        Timestamp = now.AddDays(-100.0)
+        Systolic = 999 }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ inside; outside ]) tp
+  setRouteDays ctx 7
+  TestHost.run Handlers.trendsPanel ctx
+
+  test <@ ctx.Response.StatusCode = 200 @>
+  let body = TestHost.readBody ctx
+  // Table is present with the in-window reading
+  test <@ body.Contains "id=\"readings\"" @>
+  test <@ body.Contains "130" @>
+  // Out-of-window reading value is absent
+  test <@ body.Contains "999" |> not @>
+
+[<Fact>]
 let ``trendsPanel shows empty state and no iframe when no readings in window`` () =
   let now = Timestamp.utc 2026 6 9 12 0 0
   let tp = FakeTimeProvider(now)
