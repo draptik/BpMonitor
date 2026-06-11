@@ -79,6 +79,7 @@ module BpChart =
       Systolic: int
       Diastolic: int
       Symbol: StyleParam.MarkerSymbol
+      Size: int
       HoverText: string }
 
   /// Daily-grouped plot — one point per calendar day, averaged when multiple readings exist.
@@ -104,6 +105,7 @@ module BpChart =
               StyleParam.MarkerSymbol.Circle
             else
               StyleParam.MarkerSymbol.Diamond
+          Size = if count = 1 then 8 else 11
           HoverText =
             if count = 1 then
               "1 reading"
@@ -114,6 +116,7 @@ module BpChart =
     let systolic = dailyPoints |> List.map _.Systolic
     let diastolic = dailyPoints |> List.map _.Diastolic
     let symbols = dailyPoints |> List.map _.Symbol
+    let sizes = dailyPoints |> List.map _.Size
     let hoverTexts = dailyPoints |> List.map _.HoverText
 
     let commented = readings |> List.filter _.Comments.IsSome
@@ -149,7 +152,7 @@ module BpChart =
         MultiText = text,
         LineWidth = 1.0
       )
-      |> Chart.withMarkerStyle (Size = 8)
+      |> Chart.withMarkerStyle (MultiSize = sizes)
 
     // Reading count only on Systolic — showing it on every trace would multiply the count in hover.
     [ line "Systolic" systolic hoverTexts
