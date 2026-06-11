@@ -518,6 +518,6 @@ module Views =
       (Elem.div [ Attr.class' "trends-window-buttons" ] (windows |> List.map windowButton)
        :: content)
 
-  /// The /trends full page. Pre-renders the 30-day panel (including toggle buttons).
+  /// The /trends full page. Pre-renders the 7-day panel (including toggle buttons).
   let trends (m: FamilyMember) (summary: WindowSummary) : XmlNode =
     layout "/trends" m.Name m.IsAdmin "Trends" [ Elem.h1 [] [ Text.raw "Trends" ]; trendsPanel summary ]
