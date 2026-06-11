@@ -94,3 +94,17 @@ type ChartTests() =
       sb.Clear().Append(scrubbed) |> ignore)
 
     Verifier.Verify(html, settings).ToTask()
+
+  [<Fact>]
+  member _.``toHtmlDashed matches snapshot``() : Task =
+    let html: string = BpChart.toHtmlDashed "light" readings
+    let settings = VerifyTests.VerifySettings()
+    settings.ScrubInlineGuids()
+
+    settings.AddScrubber(fun sb ->
+      let scrubbed =
+        Regex.Replace(string sb, @"renderPlotly_[0-9a-f]{32}", "renderPlotly_GUID")
+
+      sb.Clear().Append(scrubbed) |> ignore)
+
+    Verifier.Verify(html, settings).ToTask()
