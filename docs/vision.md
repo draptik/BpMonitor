@@ -32,23 +32,14 @@ A personal health tracking tool to log and visualize blood pressure data over ti
 
 ## Usage
 
-- Primary user: personal use only, single user
+- Users: family / household members, each with their own readings
 - Logging frequency: sporadic (multiple times/day or gaps of several days)
-- Devices: phone (input) and desktop TUI (input + viewing) — both talk to the API
+- Devices: any browser (phone or desktop)
 
 ## Hosting
 
-- No central server — each client is self-sufficient with its own local database
+- Self-hosted web server with a single SQLite database
 - Data stays on personal infrastructure; no cloud dependency
-- Nextcloud is the transport layer for syncing between clients (via desktop sync client on TUI side, WebDAV API on PWA side)
-
-## Architecture (high-level, idea stage)
-
-- **TUI** — local SQLite; exports readings to a JSON file in a Nextcloud-watched folder on open/close or manual trigger
-- **PWA (phone)** — local IndexedDB; reads/writes JSON via Nextcloud WebDAV API; installable, works offline
-  — _spike abandoned: see [ADR-0001](adr/0001-pwa-phone-client-spike.md)_
-- **Sync** — append-only merge: each client imports readings it hasn't seen before from other clients' JSON files; no conflict resolution needed
-- **Nextcloud** — file transport only; no custom API required
 
 ## Success Criteria
 

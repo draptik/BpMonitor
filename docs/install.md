@@ -5,7 +5,7 @@ BpMonitor Web ships as a self-contained Linux binary — no .NET runtime require
 ## Quick install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -t web
+curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash
 ```
 
 This installs the latest release to `~/.local/bin/bpweb/bpmonitor-web`. Run it
@@ -28,14 +28,14 @@ Use flags to override defaults:
 | `-n NAME` | `bpmonitor-web` | Executable name |
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -t web -b /usr/local/bin -d bpweb
+curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -b /usr/local/bin -d bpweb
 ```
 
 Or via environment variables:
 
 ```bash
 BASE_PATH=/usr/local/bin INSTALL_DIR_NAME=bpweb \
-  curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -t web
+  curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash
 ```
 
 ## Configuration
