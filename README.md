@@ -5,7 +5,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A personal blood pressure monitoring application built with F# on .NET. Ships a web frontend (Falco) backed by a shared SQLite database.
+A blood pressure monitoring application for families and households, built with F# on .NET. Ships a multi-user web frontend (Falco) backed by a SQLite database.
 
 ## Docs
 
