@@ -28,7 +28,6 @@ type WindowSummary =
 
 module ReadingStats =
   open System
-  open System.Globalization
 
   // ── filtering ────────────────────────────────────────────────────────────────
 
@@ -83,13 +82,11 @@ module ReadingStats =
   /// Comments are dropped.
   let private weeklyAveragesWithCount (readings: BloodPressureReading list) : AggregatedReading list =
     readings
-    |> List.groupBy (fun r ->
-      let d = r.Timestamp.ToLocalTime().Date
-      ISOWeek.GetYear(d), ISOWeek.GetWeekOfYear(d))
+    |> List.groupBy (fun r -> IsoWeek.ofDate (r.Timestamp.ToLocalTime().Date))
     |> List.sortBy fst
-    |> List.map (fun ((isoYear, week), rs) ->
+    |> List.map (fun (w, rs) ->
       let n = List.length rs
-      let monday = ISOWeek.ToDateTime(isoYear, week, DayOfWeek.Monday)
+      let monday = IsoWeek.monday w
       let offset = TimeZoneInfo.Local.GetUtcOffset(monday)
 
       { Reading =
@@ -122,11 +119,11 @@ module ReadingStats =
     readings
     |> List.groupBy (fun r ->
       let d = r.Timestamp.ToLocalTime().Date
-      d.Year, d.Month)
+      { Year = d.Year; Month = d.Month })
     |> List.sortBy fst
-    |> List.map (fun ((year, month), rs) ->
+    |> List.map (fun (ym, rs) ->
       let n = List.length rs
-      let firstOfMonth = DateTime(year, month, 1)
+      let firstOfMonth = DateTime(ym.Year, ym.Month, 1)
       let offset = TimeZoneInfo.Local.GetUtcOffset(firstOfMonth)
 
       { Reading =
