@@ -1,10 +1,10 @@
-module BpMonitor.Import.Tests.JsonRoundTripPropertyTests
+module JsonRoundTripPropertyTests
 
 open FsCheck.FSharp
 open FsCheck.Xunit
 open BpMonitor.Export
 open BpMonitor.Import
-open BpMonitor.Import.Tests.Generators
+open Generators
 
 [<Property>]
 let ``serialize then parse round-trips a reading list`` () =

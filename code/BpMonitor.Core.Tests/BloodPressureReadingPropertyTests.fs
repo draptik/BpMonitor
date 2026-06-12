@@ -1,10 +1,10 @@
-module BpMonitor.Core.Tests.BloodPressureReadingPropertyTests
+module BloodPressureReadingPropertyTests
 
 open System
 open FsCheck.FSharp
 open FsCheck.Xunit
 open BpMonitor.Core
-open BpMonitor.Core.Tests.Generators
+open Generators
 
 let private inRange lo hi v = v >= lo && v <= hi
 

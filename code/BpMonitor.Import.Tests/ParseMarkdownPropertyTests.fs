@@ -1,10 +1,10 @@
-module BpMonitor.Import.Tests.ParseMarkdownPropertyTests
+module ParseMarkdownPropertyTests
 
 open FsCheck.FSharp
 open FsCheck.Xunit
 open BpMonitor.Core
 open BpMonitor.Import.MarkdownImport
-open BpMonitor.Import.Tests.Generators
+open Generators
 
 let private render (items: DocItem list) =
   items |> List.map renderDocLine |> String.concat "\n"

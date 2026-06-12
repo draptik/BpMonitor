@@ -8,17 +8,6 @@ open BpMonitor.Core
 // Fixed "now" = Tuesday 2026-06-09 12:00 UTC (ISO week 24 of 2026, June, 2026)
 let private now = DateTimeOffset(2026, 6, 9, 12, 0, 0, TimeSpan.Zero)
 
-let private mkReading id (ts: DateTimeOffset) =
-  { Id = id
-    MemberId = 1
-    Systolic = 120
-    Diastolic = 80
-    HeartRate = 70
-    Timestamp = ts
-    Comments = None
-    CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
-
 // ── slug / parseGranularity ────────────────────────────────────────────────────
 
 [<Fact>]

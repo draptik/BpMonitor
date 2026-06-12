@@ -108,3 +108,28 @@ let ``Import should not depend on Web`` () =
 let ``Export should not depend on Web`` () =
   let rule = exportTypes.Should().NotDependOnAny(webTypes)
   ArchRuleAssert.CheckRule(architecture, rule)
+
+[<Fact>]
+let ``Web should not depend on Import`` () =
+  let rule = webTypes.Should().NotDependOnAny(importTypes)
+  ArchRuleAssert.CheckRule(architecture, rule)
+
+[<Fact>]
+let ``Web should not depend on Export`` () =
+  let rule = webTypes.Should().NotDependOnAny(exportTypes)
+  ArchRuleAssert.CheckRule(architecture, rule)
+
+[<Fact>]
+let ``Core should not depend on Charts`` () =
+  let rule = coreTypes.Should().NotDependOnAny(chartsTypes)
+  ArchRuleAssert.CheckRule(architecture, rule)
+
+[<Fact>]
+let ``Core should not depend on Import`` () =
+  let rule = coreTypes.Should().NotDependOnAny(importTypes)
+  ArchRuleAssert.CheckRule(architecture, rule)
+
+[<Fact>]
+let ``Core should not depend on Export`` () =
+  let rule = coreTypes.Should().NotDependOnAny(exportTypes)
+  ArchRuleAssert.CheckRule(architecture, rule)

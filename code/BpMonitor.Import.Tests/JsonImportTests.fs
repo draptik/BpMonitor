@@ -1,4 +1,4 @@
-module BpMonitor.Import.Tests.JsonImportTests
+module JsonImportTests
 
 open System
 open System.IO

@@ -1,11 +1,11 @@
-module BpMonitor.Import.Tests.ImportPropertyTests
+module ImportPropertyTests
 
 open FsCheck.FSharp
 open FsCheck.Xunit
 open BpMonitor.Core
 open BpMonitor.Data
 open BpMonitor.Import
-open BpMonitor.Import.Tests.Generators
+open Generators
 
 let private defaultMemberId = 1
 
