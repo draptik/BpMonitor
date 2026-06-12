@@ -96,7 +96,14 @@ let ``toHtml matches snapshot`` () : Task =
 
 /// Wrap a list of readings as single-reading aggregated points (Count = 1 each).
 let private asAggregated (rs: BloodPressureReading list) =
-  rs |> List.map (fun r -> { Reading = r; Count = 1 })
+  rs
+  |> List.map (fun r ->
+    { Reading = r
+      Count = 1
+      MinSystolic = r.Systolic
+      MaxSystolic = r.Systolic
+      MinDiastolic = r.Diastolic
+      MaxDiastolic = r.Diastolic })
 
 [<Fact>]
 let ``toHtmlDashed matches snapshot`` () : Task =
@@ -115,17 +122,80 @@ let ``toHtmlDashed matches snapshot`` () : Task =
 [<Fact>]
 let ``toHtmlDashed: multi-reading period uses diamond marker (size 11) and 'readings (avg)' hover`` () =
   // Count = 2 → larger diamond marker (size 11, Plotly symbol "2") + hover "2 readings (avg)"
-  let aggregated = [ { Reading = readings[0]; Count = 2 } ]
+  let aggregated =
+    [ { Reading = readings[0]
+        Count = 2
+        MinSystolic = readings[0].Systolic - 10
+        MaxSystolic = readings[0].Systolic + 10
+        MinDiastolic = readings[0].Diastolic - 5
+        MaxDiastolic = readings[0].Diastolic + 5 } ]
+
   let html = BpChart.toHtmlDashed Weekly "light" aggregated
-  test <@ html.Contains("readings (avg)") @>
+  test <@ html.Contains("readings") @>
   test <@ html.Contains("\"size\":[11]") @> // diamond is rendered larger than circle
   test <@ html.Contains("\"symbol\":[\"2\"]") @> // Plotly numeric code for Diamond
 
 [<Fact>]
 let ``toHtmlDashed: single-reading period uses circle marker (size 8) and '1 reading' hover`` () =
   // Count = 1 → standard circle marker (size 8, Plotly symbol "0") + hover "1 reading"
-  let aggregated = [ { Reading = readings[0]; Count = 1 } ]
+  let aggregated =
+    [ { Reading = readings[0]
+        Count = 1
+        MinSystolic = readings[0].Systolic
+        MaxSystolic = readings[0].Systolic
+        MinDiastolic = readings[0].Diastolic
+        MaxDiastolic = readings[0].Diastolic } ]
+
   let html = BpChart.toHtmlDashed Weekly "light" aggregated
   test <@ html.Contains("1 reading") @>
   test <@ html.Contains("\"size\":[8]") @> // circle is smaller than diamond
   test <@ html.Contains("\"symbol\":[\"0\"]") @> // Plotly numeric code for Circle
+
+[<Fact>]
+let ``toHtmlDashed: multi-reading period renders error_y with non-zero spread`` () =
+  // avg sys=120, min=110, max=135 → upper offset=15, lower offset=10
+  let aggregated =
+    [ { Reading = readings[0] // Systolic=120, Diastolic=80
+        Count = 3
+        MinSystolic = 110
+        MaxSystolic = 135
+        MinDiastolic = 75
+        MaxDiastolic = 90 } ]
+
+  let html = BpChart.toHtmlDashed Weekly "light" aggregated
+  test <@ html.Contains("\"error_y\"") @>
+  test <@ html.Contains("\"type\":\"data\"") @>
+  test <@ html.Contains("\"symmetric\":false") @>
+
+[<Fact>]
+let ``toHtmlDashed: single-reading period has zero-spread error_y`` () =
+  // min = max = avg → upper and lower offsets are both 0
+  let aggregated =
+    [ { Reading = readings[0] // Systolic=120, Diastolic=80
+        Count = 1
+        MinSystolic = readings[0].Systolic
+        MaxSystolic = readings[0].Systolic
+        MinDiastolic = readings[0].Diastolic
+        MaxDiastolic = readings[0].Diastolic } ]
+
+  let html = BpChart.toHtmlDashed Weekly "light" aggregated
+  // error_y present but array values are all 0
+  test <@ html.Contains("\"error_y\"") @>
+  test <@ html.Contains("\"array\":[0]") @>
+  test <@ html.Contains("\"arrayminus\":[0]") @>
+
+[<Fact>]
+let ``toHtmlDashed: multi-reading systolic tooltip shows count and range`` () =
+  let aggregated =
+    [ { Reading = readings[0] // Systolic=120
+        Count = 2
+        MinSystolic = 110
+        MaxSystolic = 130
+        MinDiastolic = 75
+        MaxDiastolic = 85 } ]
+
+  let html = BpChart.toHtmlDashed Weekly "light" aggregated
+  // Systolic trace hover: "2 readings · 110–130"
+  test <@ html.Contains("2 readings") @>
+  test <@ html.Contains("110") @>
+  test <@ html.Contains("130") @>

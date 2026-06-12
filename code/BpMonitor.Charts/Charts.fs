@@ -127,7 +127,12 @@ module BpChart =
       Diastolic: int
       Symbol: StyleParam.MarkerSymbol
       Size: int
-      HoverText: string }
+      SysHover: string
+      DiaHover: string
+      SysUpper: int
+      SysLower: int
+      DiaUpper: int
+      DiaLower: int }
 
   /// Dashed line chart — one point per aggregated period, connected by a dashed line.
   /// Circle marker = single reading in that period; Diamond marker = average of multiple readings.
@@ -149,27 +154,44 @@ module BpChart =
     let dailyPoints =
       aggregated
       |> List.map (fun a ->
+        let avgSys = a.Reading.Systolic
+        let avgDia = a.Reading.Diastolic
+
         { Label = xLabel a.Reading
-          Systolic = a.Reading.Systolic
-          Diastolic = a.Reading.Diastolic
+          Systolic = avgSys
+          Diastolic = avgDia
           Symbol =
             if a.Count = 1 then
               StyleParam.MarkerSymbol.Circle
             else
               StyleParam.MarkerSymbol.Diamond
           Size = if a.Count = 1 then 8 else 11
-          HoverText =
+          SysHover =
             if a.Count = 1 then
               "1 reading"
             else
-              $"{a.Count} readings (avg)" })
+              $"{a.Count} readings · {a.MinSystolic}–{avgSys}–{a.MaxSystolic}"
+          DiaHover =
+            if a.Count = 1 then
+              ""
+            else
+              $"{a.MinDiastolic}–{avgDia}–{a.MaxDiastolic}"
+          SysUpper = a.MaxSystolic - avgSys
+          SysLower = avgSys - a.MinSystolic
+          DiaUpper = a.MaxDiastolic - avgDia
+          DiaLower = avgDia - a.MinDiastolic })
 
     let timestamps = dailyPoints |> List.map _.Label
     let systolic = dailyPoints |> List.map _.Systolic
     let diastolic = dailyPoints |> List.map _.Diastolic
     let symbols = dailyPoints |> List.map _.Symbol
     let sizes = dailyPoints |> List.map _.Size
-    let hoverTexts = dailyPoints |> List.map _.HoverText
+    let sysHover = dailyPoints |> List.map _.SysHover
+    let diaHover = dailyPoints |> List.map _.DiaHover
+    let sysUpper = dailyPoints |> List.map _.SysUpper
+    let sysLower = dailyPoints |> List.map _.SysLower
+    let diaUpper = dailyPoints |> List.map _.DiaUpper
+    let diaLower = dailyPoints |> List.map _.DiaLower
 
     // Aggregated readings always have Comments = None, so this trace is empty in practice.
     // Kept for structural completeness.
@@ -194,7 +216,7 @@ module BpChart =
             MarkerColor = systolicColor
           ) ]
 
-    let line name y text =
+    let line name y text upper lower errorColor =
       Chart.Line(
         x = timestamps,
         y = y,
@@ -206,10 +228,20 @@ module BpChart =
         LineWidth = 1.0
       )
       |> Chart.withMarkerStyle (MultiSize = sizes)
+      |> Chart.withYErrorStyle (
+        Visible = true,
+        Type = StyleParam.ErrorType.Data,
+        Symmetric = false,
+        Array = upper,
+        Arrayminus = lower,
+        Color = errorColor
+      )
 
-    // Reading count only on Systolic — showing it on every trace would multiply the count in hover.
-    [ line "Systolic" systolic hoverTexts
-      line "Diastolic" diastolic (List.replicate diastolic.Length "")
+    let sysErrorColor = Color.fromString "rgba(99,110,250,0.35)"
+    let diaErrorColor = Color.fromString "rgba(239,85,59,0.35)"
+
+    [ line "Systolic" systolic sysHover sysUpper sysLower sysErrorColor
+      line "Diastolic" diastolic diaHover diaUpper diaLower diaErrorColor
       yield! commentTraces ]
     |> Chart.combine
     |> finishTrends theme
