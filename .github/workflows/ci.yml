@@ -87,13 +87,13 @@ jobs:
         working-directory: code
 
       - name: Test
-        run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./TestResults
+        run: dotnet test --no-build --configuration Release --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
         working-directory: code
 
       - name: Generate coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5
         with:
-          reports: "code/TestResults/**/coverage.cobertura.xml"
+          reports: "code/TestResults/**/*.cobertura.xml"
           targetdir: "code/CoverageReport"
           reporttypes: "MarkdownSummaryGithub;Badges"
 
