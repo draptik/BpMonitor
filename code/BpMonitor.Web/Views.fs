@@ -51,10 +51,10 @@ module Views =
                   [ Elem.li [] [ Elem.strong [] [ Text.raw "BpMonitor" ] ]
                     navLink active "/" "Home"
                     navLink active "/add" "Add"
-                    navLink active "/history" "History"
+                    navLink active Routes.history "History"
                     navLink active "/trends" "Trends"
                     if isAdmin then
-                      navLink active "/members" "Members" ]
+                      navLink active Routes.members "Members" ]
                 Elem.ul
                   []
                   [ Elem.li [] [ Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ] ]
@@ -149,7 +149,7 @@ module Views =
       [ Elem.h2 [] [ Text.raw "Sign in" ]
         errorBox errors
         Elem.form
-          [ Attr.method "post"; Attr.action "/login"; Attr.class' "stacked" ]
+          [ Attr.method "post"; Attr.action Routes.login; Attr.class' "stacked" ]
           [ Elem.div
               [ Attr.class' "field" ]
               [ Elem.label [ Attr.for' "Username" ] [ Text.raw "Name" ]
@@ -220,7 +220,7 @@ module Views =
                  [ Attr.class' "actions" ]
                  [ Elem.button [ Attr.type' "submit" ] [ Text.raw (if isClaimed then "Login" else "Claim account") ]
                    Elem.a
-                     [ Attr.href "/login"; Attr.role "button"; Attr.class' "secondary outline" ]
+                     [ Attr.href Routes.login; Attr.role "button"; Attr.class' "secondary outline" ]
                      [ Text.raw "Back" ] ] ]) ]
 
   // ---------------------------------------------------------------------------
@@ -266,12 +266,12 @@ module Views =
         Elem.div
           [ Attr.class' "actions" ]
           [ Elem.a [ Attr.href "/add"; Attr.role "button" ] [ Text.raw "Add reading" ]
-            Elem.a [ Attr.href "/history"; Attr.role "button" ] [ Text.raw "History" ] ] ]
+            Elem.a [ Attr.href Routes.history; Attr.role "button" ] [ Text.raw "History" ] ] ]
 
   /// History: chart (isolated in an iframe) above the readings table.
   let history (activeMember: FamilyMember) (readings: BloodPressureReading list) : XmlNode =
     layout
-      "/history"
+      Routes.history
       activeMember.Name
       activeMember.IsAdmin
       "History"
@@ -327,7 +327,7 @@ module Views =
             Elem.div
               [ Attr.class' "actions" ]
               [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
-                Elem.a [ Attr.href "/history"; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
+                Elem.a [ Attr.href Routes.history; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
 
   let private membersList
     (allMembers: FamilyMember list)
@@ -381,7 +381,7 @@ module Views =
       yield Elem.h2 [] [ Text.raw "Add family member" ]
       yield
         Elem.form
-          [ Attr.method "post"; Attr.action "/members"; Attr.class' "stacked" ]
+          [ Attr.method "post"; Attr.action Routes.members; Attr.class' "stacked" ]
           [ Elem.div
               [ Attr.class' "field" ]
               [ Elem.label [ Attr.for' "Name" ] [ Text.raw "Name" ]
@@ -437,12 +437,12 @@ module Views =
             Elem.div
               [ Attr.class' "actions" ]
               [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
-                Elem.a [ Attr.href "/members"; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
+                Elem.a [ Attr.href Routes.members; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
 
   /// Members page: list of family members with Edit/Reset-password buttons and an add form.
   let members (allMembers: FamilyMember list) (active: FamilyMember) : XmlNode =
     layout
-      "/members"
+      Routes.members
       active.Name
       active.IsAdmin
       "Family Members"
@@ -451,7 +451,7 @@ module Views =
   /// Members page rendered with a validation error message.
   let membersWithError (allMembers: FamilyMember list) (active: FamilyMember) (error: string) : XmlNode =
     layout
-      "/members"
+      Routes.members
       active.Name
       active.IsAdmin
       "Family Members"
