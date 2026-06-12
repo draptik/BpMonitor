@@ -1,5 +1,12 @@
 namespace BpMonitor.Core
 
+/// A period-averaged reading together with the number of raw readings that were
+/// folded into it. Used by the trends chart to distinguish single-reading periods
+/// (circle marker) from multi-reading averages (diamond marker).
+type AggregatedReading =
+  { Reading: BloodPressureReading
+    Count: int }
+
 type WindowSummary =
   { Granularity: Granularity
     PeriodKey: string
@@ -32,10 +39,11 @@ module ReadingStats =
 
   // ── aggregation ──────────────────────────────────────────────────────────────
 
-  /// Groups readings by local calendar date and returns one averaged reading per day,
-  /// sorted ascending. The returned reading's Timestamp is midnight of that local date.
+  /// Groups readings by local calendar date and returns one averaged reading per day
+  /// together with the raw reading count, sorted ascending.
+  /// The returned reading's Timestamp is midnight of that local date.
   /// Comments are dropped (not meaningful for averages).
-  let dailyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
+  let private dailyAveragesWithCount (readings: BloodPressureReading list) : AggregatedReading list =
     readings
     |> List.groupBy (fun r -> r.Timestamp.ToLocalTime().Date)
     |> List.sortBy fst
@@ -43,20 +51,29 @@ module ReadingStats =
       let n = List.length rs
       let offset = TimeZoneInfo.Local.GetUtcOffset(date)
 
-      { Id = 0
-        MemberId = 0
-        Systolic = rs |> List.sumBy _.Systolic |> (fun s -> s / n)
-        Diastolic = rs |> List.sumBy _.Diastolic |> (fun s -> s / n)
-        HeartRate = rs |> List.sumBy _.HeartRate |> (fun s -> s / n)
-        Timestamp = DateTimeOffset(date, offset)
-        Comments = None
-        CreatedAt = DateTimeOffset.MinValue
-        ModifiedAt = DateTimeOffset.MinValue })
+      { Reading =
+          { Id = 0
+            MemberId = 0
+            Systolic = rs |> List.sumBy _.Systolic |> (fun s -> s / n)
+            Diastolic = rs |> List.sumBy _.Diastolic |> (fun s -> s / n)
+            HeartRate = rs |> List.sumBy _.HeartRate |> (fun s -> s / n)
+            Timestamp = DateTimeOffset(date, offset)
+            Comments = None
+            CreatedAt = DateTimeOffset.MinValue
+            ModifiedAt = DateTimeOffset.MinValue }
+        Count = n })
 
-  /// Groups readings by ISO week and returns one averaged reading per week,
-  /// sorted ascending. The returned reading's Timestamp is Monday midnight of that week.
+  /// Groups readings by local calendar date and returns one averaged reading per day,
+  /// sorted ascending. The returned reading's Timestamp is midnight of that local date.
+  /// Comments are dropped (not meaningful for averages).
+  let dailyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
+    dailyAveragesWithCount readings |> List.map _.Reading
+
+  /// Groups readings by ISO week and returns one averaged reading per week
+  /// together with the raw reading count, sorted ascending.
+  /// The returned reading's Timestamp is Monday midnight of that week.
   /// Comments are dropped.
-  let weeklyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
+  let private weeklyAveragesWithCount (readings: BloodPressureReading list) : AggregatedReading list =
     readings
     |> List.groupBy (fun r ->
       let d = r.Timestamp.ToLocalTime().Date
@@ -67,20 +84,29 @@ module ReadingStats =
       let monday = ISOWeek.ToDateTime(isoYear, week, DayOfWeek.Monday)
       let offset = TimeZoneInfo.Local.GetUtcOffset(monday)
 
-      { Id = 0
-        MemberId = 0
-        Systolic = rs |> List.sumBy _.Systolic |> (fun s -> s / n)
-        Diastolic = rs |> List.sumBy _.Diastolic |> (fun s -> s / n)
-        HeartRate = rs |> List.sumBy _.HeartRate |> (fun s -> s / n)
-        Timestamp = DateTimeOffset(monday, offset)
-        Comments = None
-        CreatedAt = DateTimeOffset.MinValue
-        ModifiedAt = DateTimeOffset.MinValue })
+      { Reading =
+          { Id = 0
+            MemberId = 0
+            Systolic = rs |> List.sumBy _.Systolic |> (fun s -> s / n)
+            Diastolic = rs |> List.sumBy _.Diastolic |> (fun s -> s / n)
+            HeartRate = rs |> List.sumBy _.HeartRate |> (fun s -> s / n)
+            Timestamp = DateTimeOffset(monday, offset)
+            Comments = None
+            CreatedAt = DateTimeOffset.MinValue
+            ModifiedAt = DateTimeOffset.MinValue }
+        Count = n })
 
-  /// Groups readings by calendar month and returns one averaged reading per month,
-  /// sorted ascending. The returned reading's Timestamp is the 1st of that month midnight.
+  /// Groups readings by ISO week and returns one averaged reading per week,
+  /// sorted ascending. The returned reading's Timestamp is Monday midnight of that week.
   /// Comments are dropped.
-  let monthlyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
+  let weeklyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
+    weeklyAveragesWithCount readings |> List.map _.Reading
+
+  /// Groups readings by calendar month and returns one averaged reading per month
+  /// together with the raw reading count, sorted ascending.
+  /// The returned reading's Timestamp is the 1st of that month midnight.
+  /// Comments are dropped.
+  let private monthlyAveragesWithCount (readings: BloodPressureReading list) : AggregatedReading list =
     readings
     |> List.groupBy (fun r ->
       let d = r.Timestamp.ToLocalTime().Date
@@ -91,23 +117,32 @@ module ReadingStats =
       let firstOfMonth = DateTime(year, month, 1)
       let offset = TimeZoneInfo.Local.GetUtcOffset(firstOfMonth)
 
-      { Id = 0
-        MemberId = 0
-        Systolic = rs |> List.sumBy _.Systolic |> (fun s -> s / n)
-        Diastolic = rs |> List.sumBy _.Diastolic |> (fun s -> s / n)
-        HeartRate = rs |> List.sumBy _.HeartRate |> (fun s -> s / n)
-        Timestamp = DateTimeOffset(firstOfMonth, offset)
-        Comments = None
-        CreatedAt = DateTimeOffset.MinValue
-        ModifiedAt = DateTimeOffset.MinValue })
+      { Reading =
+          { Id = 0
+            MemberId = 0
+            Systolic = rs |> List.sumBy _.Systolic |> (fun s -> s / n)
+            Diastolic = rs |> List.sumBy _.Diastolic |> (fun s -> s / n)
+            HeartRate = rs |> List.sumBy _.HeartRate |> (fun s -> s / n)
+            Timestamp = DateTimeOffset(firstOfMonth, offset)
+            Comments = None
+            CreatedAt = DateTimeOffset.MinValue
+            ModifiedAt = DateTimeOffset.MinValue }
+        Count = n })
+
+  /// Groups readings by calendar month and returns one averaged reading per month,
+  /// sorted ascending. The returned reading's Timestamp is the 1st of that month midnight.
+  /// Comments are dropped.
+  let monthlyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
+    monthlyAveragesWithCount readings |> List.map _.Reading
 
   /// Aggregates readings at the granularity appropriate for the given view:
   /// Weekly → daily averages, Monthly → weekly averages, Yearly → monthly averages.
-  let aggregate (gran: Granularity) (readings: BloodPressureReading list) : BloodPressureReading list =
+  /// Returns AggregatedReading so the caller can distinguish single vs. multi-reading periods.
+  let aggregate (gran: Granularity) (readings: BloodPressureReading list) : AggregatedReading list =
     match gran with
-    | Weekly -> dailyAverages readings
-    | Monthly -> weeklyAverages readings
-    | Yearly -> monthlyAverages readings
+    | Weekly -> dailyAveragesWithCount readings
+    | Monthly -> weeklyAveragesWithCount readings
+    | Yearly -> monthlyAveragesWithCount readings
 
   // ── summary ──────────────────────────────────────────────────────────────────
 

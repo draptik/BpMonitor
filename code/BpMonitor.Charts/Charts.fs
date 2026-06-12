@@ -129,12 +129,12 @@ module BpChart =
       Size: int
       HoverText: string }
 
-  /// Dashed line chart — one point per reading, connected by a dashed line with circle markers.
-  /// Readings should be pre-aggregated by the caller (daily / weekly / monthly averages).
+  /// Dashed line chart — one point per aggregated period, connected by a dashed line.
+  /// Circle marker = single reading in that period; Diamond marker = average of multiple readings.
   /// X-axis labels adapt to granularity: Weekly → date, Monthly → ISO week, Yearly → month name.
   /// Used by /trends for all granularities.
-  let private renderDashed (gran: Granularity) (theme: string) (readings: BloodPressureReading list) : string =
-    let readings = readings |> List.sortBy _.Timestamp
+  let private renderDashed (gran: Granularity) (theme: string) (aggregated: AggregatedReading list) : string =
+    let aggregated = aggregated |> List.sortBy _.Reading.Timestamp
 
     let xLabel (r: BloodPressureReading) =
       let local = r.Timestamp.ToLocalTime()
@@ -147,14 +147,22 @@ module BpChart =
       | Yearly -> local.Date.ToString("MMM")
 
     let dailyPoints =
-      readings
-      |> List.map (fun r ->
-        { Label = xLabel r
-          Systolic = r.Systolic
-          Diastolic = r.Diastolic
-          Symbol = StyleParam.MarkerSymbol.Circle
-          Size = 8
-          HoverText = "" })
+      aggregated
+      |> List.map (fun a ->
+        { Label = xLabel a.Reading
+          Systolic = a.Reading.Systolic
+          Diastolic = a.Reading.Diastolic
+          Symbol =
+            if a.Count = 1 then
+              StyleParam.MarkerSymbol.Circle
+            else
+              StyleParam.MarkerSymbol.Diamond
+          Size = if a.Count = 1 then 8 else 11
+          HoverText =
+            if a.Count = 1 then
+              "1 reading"
+            else
+              $"{a.Count} readings (avg)" })
 
     let timestamps = dailyPoints |> List.map _.Label
     let systolic = dailyPoints |> List.map _.Systolic
@@ -163,16 +171,19 @@ module BpChart =
     let sizes = dailyPoints |> List.map _.Size
     let hoverTexts = dailyPoints |> List.map _.HoverText
 
-    let commented = readings |> List.filter _.Comments.IsSome
+    // Aggregated readings always have Comments = None, so this trace is empty in practice.
+    // Kept for structural completeness.
+    let commented = aggregated |> List.filter (fun a -> a.Reading.Comments.IsSome)
 
     let commentTraces =
       if commented.IsEmpty then
         []
       else
-        let cTimestamps = commented |> List.map xLabel
+        let cTimestamps = commented |> List.map (fun a -> xLabel a.Reading)
+        let cSystolic = commented |> List.map (fun a -> a.Reading.Systolic)
 
-        let cSystolic = commented |> List.map _.Systolic
-        let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
+        let cTexts =
+          commented |> List.map (fun a -> a.Reading.Comments |> Option.defaultValue "")
 
         [ Chart.Point(
             x = cTimestamps,

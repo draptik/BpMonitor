@@ -94,9 +94,13 @@ let ``toHtml matches snapshot`` () : Task =
 
   Verifier.Verify(html, settings).ToTask()
 
+/// Wrap a list of readings as single-reading aggregated points (Count = 1 each).
+let private asAggregated (rs: BloodPressureReading list) =
+  rs |> List.map (fun r -> { Reading = r; Count = 1 })
+
 [<Fact>]
 let ``toHtmlDashed matches snapshot`` () : Task =
-  let html: string = BpChart.toHtmlDashed Weekly "light" readings
+  let html: string = BpChart.toHtmlDashed Weekly "light" (asAggregated readings)
   let settings = VerifyTests.VerifySettings()
   settings.ScrubInlineGuids()
 
@@ -107,3 +111,21 @@ let ``toHtmlDashed matches snapshot`` () : Task =
     sb.Clear().Append(scrubbed) |> ignore)
 
   Verifier.Verify(html, settings).ToTask()
+
+[<Fact>]
+let ``toHtmlDashed: multi-reading period uses diamond marker (size 11) and 'readings (avg)' hover`` () =
+  // Count = 2 → larger diamond marker (size 11, Plotly symbol "2") + hover "2 readings (avg)"
+  let aggregated = [ { Reading = readings[0]; Count = 2 } ]
+  let html = BpChart.toHtmlDashed Weekly "light" aggregated
+  test <@ html.Contains("readings (avg)") @>
+  test <@ html.Contains("\"size\":[11]") @> // diamond is rendered larger than circle
+  test <@ html.Contains("\"symbol\":[\"2\"]") @> // Plotly numeric code for Diamond
+
+[<Fact>]
+let ``toHtmlDashed: single-reading period uses circle marker (size 8) and '1 reading' hover`` () =
+  // Count = 1 → standard circle marker (size 8, Plotly symbol "0") + hover "1 reading"
+  let aggregated = [ { Reading = readings[0]; Count = 1 } ]
+  let html = BpChart.toHtmlDashed Weekly "light" aggregated
+  test <@ html.Contains("1 reading") @>
+  test <@ html.Contains("\"size\":[8]") @> // circle is smaller than diamond
+  test <@ html.Contains("\"symbol\":[\"0\"]") @> // Plotly numeric code for Circle

@@ -200,6 +200,33 @@ let ``aggregate Yearly delegates to monthlyAverages`` () =
   // Two different months → two monthly averages
   test <@ result.Length = 2 @>
 
+[<Fact>]
+let ``aggregate Weekly: two readings on same day yields Count=2`` () =
+  let r1 = mkReading 1 120 80 60 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
+  let r2 = mkReading 2 140 90 80 (DateTimeOffset(2026, 6, 8, 20, 0, 0, TimeSpan.Zero))
+  let result = ReadingStats.aggregate Weekly [ r1; r2 ]
+  test <@ result[0].Count = 2 @>
+
+[<Fact>]
+let ``aggregate Weekly: single reading on a day yields Count=1`` () =
+  let r = mkReading 1 120 80 60 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
+  let result = ReadingStats.aggregate Weekly [ r ]
+  test <@ result[0].Count = 1 @>
+
+[<Fact>]
+let ``aggregate Monthly: two readings in same ISO week yields Count=2`` () =
+  let r1 = mkReading 1 120 80 60 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
+  let r2 = mkReading 2 140 90 80 (DateTimeOffset(2026, 6, 9, 9, 0, 0, TimeSpan.Zero))
+  let result = ReadingStats.aggregate Monthly [ r1; r2 ]
+  test <@ result[0].Count = 2 @>
+
+[<Fact>]
+let ``aggregate Yearly: two readings in same calendar month yields Count=2`` () =
+  let r1 = mkReading 1 120 80 60 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
+  let r2 = mkReading 2 140 90 80 (DateTimeOffset(2026, 6, 15, 9, 0, 0, TimeSpan.Zero))
+  let result = ReadingStats.aggregate Yearly [ r1; r2 ]
+  test <@ result[0].Count = 2 @>
+
 // ── summarizeRange ────────────────────────────────────────────────────────────
 
 [<Fact>]
