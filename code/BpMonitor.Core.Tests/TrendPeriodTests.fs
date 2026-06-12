@@ -231,55 +231,55 @@ let ``ofKey Yearly: invalid key returns None`` () =
 
 [<Fact>]
 let ``available Weekly: returns 12 periods`` () =
-  let result = TrendPeriod.available Weekly now []
+  let result = TrendPeriod.available Weekly now
   let len = result.Length
   test <@ len = 12 @>
 
 [<Fact>]
 let ``available Monthly: returns 12 periods`` () =
-  let result = TrendPeriod.available Monthly now []
+  let result = TrendPeriod.available Monthly now
   let len = result.Length
   test <@ len = 12 @>
 
 [<Fact>]
 let ``available Yearly: returns 5 periods`` () =
-  let result = TrendPeriod.available Yearly now []
+  let result = TrendPeriod.available Yearly now
   let len = result.Length
   test <@ len = 5 @>
 
 [<Fact>]
 let ``available Weekly: current (This Week) is last`` () =
-  let result = TrendPeriod.available Weekly now []
+  let result = TrendPeriod.available Weekly now
   let last = result |> List.last |> _.Label
   test <@ last = "This Week" @>
 
 [<Fact>]
 let ``available Monthly: current (This Month) is last`` () =
-  let result = TrendPeriod.available Monthly now []
+  let result = TrendPeriod.available Monthly now
   let last = result |> List.last |> _.Label
   test <@ last = "This Month" @>
 
 [<Fact>]
 let ``available Yearly: current (This Year) is last`` () =
-  let result = TrendPeriod.available Yearly now []
+  let result = TrendPeriod.available Yearly now
   let last = result |> List.last |> _.Label
   test <@ last = "This Year" @>
 
 [<Fact>]
 let ``available Weekly: second-to-last is Last Week`` () =
-  let result = TrendPeriod.available Weekly now []
+  let result = TrendPeriod.available Weekly now
   let secondLast = result |> List.item (result.Length - 2) |> _.Label
   test <@ secondLast = "Last Week" @>
 
 [<Fact>]
 let ``available Monthly: second-to-last is Last Month`` () =
-  let result = TrendPeriod.available Monthly now []
+  let result = TrendPeriod.available Monthly now
   let secondLast = result |> List.item (result.Length - 2) |> _.Label
   test <@ secondLast = "Last Month" @>
 
 [<Fact>]
 let ``available Weekly: periods are in chronological order`` () =
-  let result = TrendPeriod.available Weekly now []
+  let result = TrendPeriod.available Weekly now
 
   let isAscending =
     result |> List.pairwise |> List.forall (fun (a, b) -> a.Start < b.Start)
@@ -288,7 +288,7 @@ let ``available Weekly: periods are in chronological order`` () =
 
 [<Fact>]
 let ``available Monthly: periods are in chronological order`` () =
-  let result = TrendPeriod.available Monthly now []
+  let result = TrendPeriod.available Monthly now
 
   let isAscending =
     result |> List.pairwise |> List.forall (fun (a, b) -> a.Start < b.Start)
@@ -298,21 +298,13 @@ let ``available Monthly: periods are in chronological order`` () =
 [<Fact>]
 let ``available Yearly: includes 2024 even with no readings`` () =
   // Fixed window of 5 years back from 2026 includes 2022..2026; 2024 must be present
-  let result = TrendPeriod.available Yearly now []
+  let result = TrendPeriod.available Yearly now
   let has2024 = result |> List.exists (fun p -> p.Key = "2024")
   test <@ has2024 @>
 
 [<Fact>]
 let ``available: no duplicate keys`` () =
-  let result = TrendPeriod.available Monthly now []
+  let result = TrendPeriod.available Monthly now
   let keys = result |> List.map _.Key
   let uniqueCount = keys |> List.distinct |> List.length
   test <@ keys.Length = uniqueCount @>
-
-[<Fact>]
-let ``available: readings parameter does not affect result`` () =
-  let r1 = mkReading 1 (DateTimeOffset(2026, 3, 1, 12, 0, 0, TimeSpan.Zero))
-  let r2 = mkReading 2 (DateTimeOffset(2026, 3, 15, 12, 0, 0, TimeSpan.Zero))
-  let withReadings = TrendPeriod.available Monthly now [ r1; r2 ]
-  let noReadings = TrendPeriod.available Monthly now []
-  test <@ withReadings = noReadings @>

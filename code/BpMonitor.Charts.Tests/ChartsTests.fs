@@ -56,14 +56,14 @@ let private readings =
 [<Fact>]
 let ``toHtml renders timestamps in ascending order regardless of input order`` () =
   let reversed = List.rev readings
-  let html = BpChart.toHtml "light" reversed
+  let html = BpChart.toHtml Light reversed
   let pos1 = html.IndexOf("2026-01-01")
   let pos30 = html.IndexOf("2026-01-30")
   test <@ pos1 < pos30 @>
 
 [<Fact>]
 let ``toHtml includes comment text as hover info for commented readings`` () =
-  let html = BpChart.toHtml "light" readings
+  let html = BpChart.toHtml Light readings
   test <@ html.Contains("After coffee") @>
   test <@ html.Contains("Stressful day") @>
   test <@ html.Contains("After walk") @>
@@ -72,17 +72,17 @@ let ``toHtml includes comment text as hover info for commented readings`` () =
 [<Fact>]
 let ``toHtml does not include None comment readings in comments trace`` () =
   let noCommentOnly = [ reading 1 120 80 70 1 9 None ]
-  let html = BpChart.toHtml "light" noCommentOnly
+  let html = BpChart.toHtml Light noCommentOnly
   test <@ not (html.Contains("Comments")) @>
 
 [<Fact>]
 let ``toHtml dark theme output contains dark background color`` () =
-  let html = BpChart.toHtml "dark" readings
+  let html = BpChart.toHtml Dark readings
   test <@ html.Contains("#11191f") @>
 
 [<Fact>]
 let ``toHtml matches snapshot`` () : Task =
-  let html: string = BpChart.toHtml "light" readings
+  let html: string = BpChart.toHtml Light readings
   let settings = VerifyTests.VerifySettings()
   settings.ScrubInlineGuids()
 
@@ -107,7 +107,7 @@ let private asAggregated (rs: BloodPressureReading list) =
 
 [<Fact>]
 let ``toHtmlDashed matches snapshot`` () : Task =
-  let html: string = BpChart.toHtmlDashed Weekly "light" (asAggregated readings)
+  let html: string = BpChart.toHtmlDashed Weekly Light (asAggregated readings)
   let settings = VerifyTests.VerifySettings()
   settings.ScrubInlineGuids()
 
@@ -130,7 +130,7 @@ let ``toHtmlDashed: multi-reading period uses diamond marker (size 11) and 'read
         MinDiastolic = readings[0].Diastolic - 5
         MaxDiastolic = readings[0].Diastolic + 5 } ]
 
-  let html = BpChart.toHtmlDashed Weekly "light" aggregated
+  let html = BpChart.toHtmlDashed Weekly Light aggregated
   test <@ html.Contains("readings") @>
   test <@ html.Contains("\"size\":[11]") @> // diamond is rendered larger than circle
   test <@ html.Contains("\"symbol\":[\"2\"]") @> // Plotly numeric code for Diamond
@@ -146,7 +146,7 @@ let ``toHtmlDashed: single-reading period uses circle marker (size 8) and '1 rea
         MinDiastolic = readings[0].Diastolic
         MaxDiastolic = readings[0].Diastolic } ]
 
-  let html = BpChart.toHtmlDashed Weekly "light" aggregated
+  let html = BpChart.toHtmlDashed Weekly Light aggregated
   test <@ html.Contains("1 reading") @>
   test <@ html.Contains("\"size\":[8]") @> // circle is smaller than diamond
   test <@ html.Contains("\"symbol\":[\"0\"]") @> // Plotly numeric code for Circle
@@ -162,7 +162,7 @@ let ``toHtmlDashed: multi-reading period renders error_y with non-zero spread`` 
         MinDiastolic = 75
         MaxDiastolic = 90 } ]
 
-  let html = BpChart.toHtmlDashed Weekly "light" aggregated
+  let html = BpChart.toHtmlDashed Weekly Light aggregated
   test <@ html.Contains("\"error_y\"") @>
   test <@ html.Contains("\"type\":\"data\"") @>
   test <@ html.Contains("\"symmetric\":false") @>
@@ -178,7 +178,7 @@ let ``toHtmlDashed: single-reading period has zero-spread error_y`` () =
         MinDiastolic = readings[0].Diastolic
         MaxDiastolic = readings[0].Diastolic } ]
 
-  let html = BpChart.toHtmlDashed Weekly "light" aggregated
+  let html = BpChart.toHtmlDashed Weekly Light aggregated
   // error_y present but array values are all 0
   test <@ html.Contains("\"error_y\"") @>
   test <@ html.Contains("\"array\":[0]") @>
@@ -194,7 +194,7 @@ let ``toHtmlDashed: multi-reading systolic tooltip shows count and range`` () =
         MinDiastolic = 75
         MaxDiastolic = 85 } ]
 
-  let html = BpChart.toHtmlDashed Weekly "light" aggregated
+  let html = BpChart.toHtmlDashed Weekly Light aggregated
   // Systolic trace hover: "2 readings · 110–130"
   test <@ html.Contains("2 readings") @>
   test <@ html.Contains("110") @>

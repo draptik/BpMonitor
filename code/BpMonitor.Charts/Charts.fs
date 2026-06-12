@@ -5,6 +5,10 @@ open Plotly.NET
 open Plotly.NET.LayoutObjects
 open BpMonitor.Core
 
+type Theme =
+  | Dark
+  | Light
+
 module BpChart =
   // ── palette ──────────────────────────────────────────────────────────────
   let private darkBgHex = "#11191f"
@@ -15,11 +19,11 @@ module BpChart =
   let private lightGridLine = Color.fromString "rgba(0,0,0,0.08)"
   let private systolicColor = Color.fromString "rgba(99,110,250,1)"
 
-  let private layout (theme: string) =
-    let bg = if theme = "dark" then darkBg else transparent
+  let private layout (theme: Theme) =
+    let bg = if theme = Dark then darkBg else transparent
 
     let font =
-      if theme = "dark" then
+      if theme = Dark then
         Font.init (Color = darkFont)
       else
         Font.init ()
@@ -28,19 +32,19 @@ module BpChart =
 
   let private xAxis = LinearAxis.init (ShowGrid = false)
 
-  let private yAxis (theme: string) =
-    let gridColor = if theme = "dark" then darkGridLine else lightGridLine
+  let private yAxis (theme: Theme) =
+    let gridColor = if theme = Dark then darkGridLine else lightGridLine
     LinearAxis.init (GridColor = gridColor)
 
   // The chart is rendered inside an iframe (separate document), so the iframe body
   // background must be set explicitly — it does not inherit the parent page theme.
-  let private injectBodyStyle (theme: string) (html: string) =
-    if theme = "dark" then
+  let private injectBodyStyle (theme: Theme) (html: string) =
+    if theme = Dark then
       html.Replace("</head>", $"<style>body{{background:{darkBgHex};margin:0}}</style></head>")
     else
       html.Replace("</head>", "<style>body{margin:0}</style></head>")
 
-  let private finish (theme: string) (chart: GenericChart) =
+  let private finish (theme: Theme) (chart: GenericChart) =
     chart
     |> Chart.withLayout (layout theme)
     |> Chart.withXAxis xAxis
@@ -56,11 +60,11 @@ module BpChart =
   // - Horizontal centred legend avoids stealing horizontal width.
   // - DisplayModeBar=false: no floating toolbar (awkward on touch).
   // - ScrollZoom=NoZoom: wheel/pinch won't fight page scroll.
-  let private trendsLayout (theme: string) =
-    let bg = if theme = "dark" then darkBg else transparent
+  let private trendsLayout (theme: Theme) =
+    let bg = if theme = Dark then darkBg else transparent
 
     let font =
-      if theme = "dark" then
+      if theme = Dark then
         Font.init (Color = darkFont)
       else
         Font.init ()
@@ -80,7 +84,7 @@ module BpChart =
   let private trendsConfig =
     Config.init (Responsive = true, DisplayModeBar = false, ScrollZoom = StyleParam.ScrollZoom.NoZoom)
 
-  let private finishTrends (theme: string) (chart: GenericChart) =
+  let private finishTrends (theme: Theme) (chart: GenericChart) =
     chart
     |> Chart.withLayout (trendsLayout theme)
     |> Chart.withXAxis trendsXAxis
@@ -96,7 +100,7 @@ module BpChart =
     |> injectBodyStyle theme
 
   /// Classic x/y plot — one point per reading. Used by /history.
-  let private renderIndividual (theme: string) (readings: BloodPressureReading list) : string =
+  let private renderIndividual (theme: Theme) (readings: BloodPressureReading list) : string =
     let readings = readings |> List.sortBy _.Timestamp
     let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
     let systolic = readings |> List.map _.Systolic
@@ -138,7 +142,7 @@ module BpChart =
   /// Circle marker = single reading in that period; Diamond marker = average of multiple readings.
   /// X-axis labels adapt to granularity: Weekly → date, Monthly → ISO week, Yearly → month name.
   /// Used by /trends for all granularities.
-  let private renderDashed (gran: Granularity) (theme: string) (aggregated: AggregatedReading list) : string =
+  let private renderDashed (gran: Granularity) (theme: Theme) (aggregated: AggregatedReading list) : string =
     let aggregated = aggregated |> List.sortBy _.Reading.Timestamp
 
     let xLabel (r: BloodPressureReading) =
@@ -246,5 +250,5 @@ module BpChart =
     |> Chart.combine
     |> finishTrends theme
 
-  let toHtml (theme: string) = renderIndividual theme
-  let toHtmlDashed (gran: Granularity) (theme: string) = renderDashed gran theme
+  let toHtml (theme: Theme) = renderIndividual theme
+  let toHtmlDashed (gran: Granularity) (theme: Theme) = renderDashed gran theme

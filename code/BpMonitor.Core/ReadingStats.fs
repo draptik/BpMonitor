@@ -42,16 +42,20 @@ module ReadingStats =
 
   // ── aggregation ──────────────────────────────────────────────────────────────
 
-  /// Groups readings by local calendar date and returns one averaged reading per day
-  /// together with the raw reading count, sorted ascending.
-  /// The returned reading's Timestamp is midnight of that local date.
+  /// Groups readings by `keyOf`, sorts by key, and produces one AggregatedReading per
+  /// group. The representative timestamp is `dateOf key` wrapped in the local UTC offset.
   /// Comments are dropped (not meaningful for averages).
-  let private dailyAveragesWithCount (readings: BloodPressureReading list) : AggregatedReading list =
+  let private buildAggregated
+    (keyOf: BloodPressureReading -> 'key)
+    (dateOf: 'key -> DateTime)
+    (readings: BloodPressureReading list)
+    : AggregatedReading list =
     readings
-    |> List.groupBy (fun r -> r.Timestamp.ToLocalTime().Date)
+    |> List.groupBy keyOf
     |> List.sortBy fst
-    |> List.map (fun (date, rs) ->
+    |> List.map (fun (key, rs) ->
       let n = List.length rs
+      let date = dateOf key
       let offset = TimeZoneInfo.Local.GetUtcOffset(date)
 
       { Reading =
@@ -70,81 +74,31 @@ module ReadingStats =
         MinDiastolic = rs |> List.minBy _.Diastolic |> _.Diastolic
         MaxDiastolic = rs |> List.maxBy _.Diastolic |> _.Diastolic })
 
-  /// Groups readings by local calendar date and returns one averaged reading per day,
-  /// sorted ascending. The returned reading's Timestamp is midnight of that local date.
-  /// Comments are dropped (not meaningful for averages).
+  let private dailyAveragesWithCount =
+    buildAggregated (fun r -> r.Timestamp.ToLocalTime().Date) id
+
+  /// Groups readings by local calendar date, sorted ascending.
+  /// The returned reading's Timestamp is midnight of that local date. Comments are dropped.
   let dailyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
     dailyAveragesWithCount readings |> List.map _.Reading
 
-  /// Groups readings by ISO week and returns one averaged reading per week
-  /// together with the raw reading count, sorted ascending.
-  /// The returned reading's Timestamp is Monday midnight of that week.
-  /// Comments are dropped.
-  let private weeklyAveragesWithCount (readings: BloodPressureReading list) : AggregatedReading list =
-    readings
-    |> List.groupBy (fun r -> IsoWeek.ofDate (r.Timestamp.ToLocalTime().Date))
-    |> List.sortBy fst
-    |> List.map (fun (w, rs) ->
-      let n = List.length rs
-      let monday = IsoWeek.monday w
-      let offset = TimeZoneInfo.Local.GetUtcOffset(monday)
+  let private weeklyAveragesWithCount =
+    buildAggregated (fun r -> IsoWeek.ofDate (r.Timestamp.ToLocalTime().Date)) IsoWeek.monday
 
-      { Reading =
-          { Id = 0
-            MemberId = 0
-            Systolic = rs |> List.sumBy _.Systolic |> (fun s -> s / n)
-            Diastolic = rs |> List.sumBy _.Diastolic |> (fun s -> s / n)
-            HeartRate = rs |> List.sumBy _.HeartRate |> (fun s -> s / n)
-            Timestamp = DateTimeOffset(monday, offset)
-            Comments = None
-            CreatedAt = DateTimeOffset.MinValue
-            ModifiedAt = DateTimeOffset.MinValue }
-        Count = n
-        MinSystolic = rs |> List.minBy _.Systolic |> _.Systolic
-        MaxSystolic = rs |> List.maxBy _.Systolic |> _.Systolic
-        MinDiastolic = rs |> List.minBy _.Diastolic |> _.Diastolic
-        MaxDiastolic = rs |> List.maxBy _.Diastolic |> _.Diastolic })
-
-  /// Groups readings by ISO week and returns one averaged reading per week,
-  /// sorted ascending. The returned reading's Timestamp is Monday midnight of that week.
-  /// Comments are dropped.
+  /// Groups readings by ISO week, sorted ascending.
+  /// The returned reading's Timestamp is Monday midnight of that week. Comments are dropped.
   let weeklyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
     weeklyAveragesWithCount readings |> List.map _.Reading
 
-  /// Groups readings by calendar month and returns one averaged reading per month
-  /// together with the raw reading count, sorted ascending.
-  /// The returned reading's Timestamp is the 1st of that month midnight.
-  /// Comments are dropped.
-  let private monthlyAveragesWithCount (readings: BloodPressureReading list) : AggregatedReading list =
-    readings
-    |> List.groupBy (fun r ->
-      let d = r.Timestamp.ToLocalTime().Date
-      { Year = d.Year; Month = d.Month })
-    |> List.sortBy fst
-    |> List.map (fun (ym, rs) ->
-      let n = List.length rs
-      let firstOfMonth = DateTime(ym.Year, ym.Month, 1)
-      let offset = TimeZoneInfo.Local.GetUtcOffset(firstOfMonth)
+  let private monthlyAveragesWithCount =
+    buildAggregated
+      (fun r ->
+        let d = r.Timestamp.ToLocalTime().Date
+        { Year = d.Year; Month = d.Month })
+      (fun ym -> DateTime(ym.Year, ym.Month, 1))
 
-      { Reading =
-          { Id = 0
-            MemberId = 0
-            Systolic = rs |> List.sumBy _.Systolic |> (fun s -> s / n)
-            Diastolic = rs |> List.sumBy _.Diastolic |> (fun s -> s / n)
-            HeartRate = rs |> List.sumBy _.HeartRate |> (fun s -> s / n)
-            Timestamp = DateTimeOffset(firstOfMonth, offset)
-            Comments = None
-            CreatedAt = DateTimeOffset.MinValue
-            ModifiedAt = DateTimeOffset.MinValue }
-        Count = n
-        MinSystolic = rs |> List.minBy _.Systolic |> _.Systolic
-        MaxSystolic = rs |> List.maxBy _.Systolic |> _.Systolic
-        MinDiastolic = rs |> List.minBy _.Diastolic |> _.Diastolic
-        MaxDiastolic = rs |> List.maxBy _.Diastolic |> _.Diastolic })
-
-  /// Groups readings by calendar month and returns one averaged reading per month,
-  /// sorted ascending. The returned reading's Timestamp is the 1st of that month midnight.
-  /// Comments are dropped.
+  /// Groups readings by calendar month, sorted ascending.
+  /// The returned reading's Timestamp is the 1st of that month midnight. Comments are dropped.
   let monthlyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
     monthlyAveragesWithCount readings |> List.map _.Reading
 
