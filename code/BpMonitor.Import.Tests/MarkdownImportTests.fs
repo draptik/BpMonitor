@@ -1,4 +1,4 @@
-module BpMonitor.Import.Tests.MarkdownImportTests
+module MarkdownImportTests
 
 open System
 open BpMonitor.Core

@@ -1,4 +1,4 @@
-module BpMonitor.Core.Tests.Generators
+module Generators
 
 open System
 open FsCheck

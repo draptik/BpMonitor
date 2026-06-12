@@ -1,4 +1,4 @@
-module BpMonitor.Import.Tests.Generators
+module Generators
 
 open System
 open FsCheck

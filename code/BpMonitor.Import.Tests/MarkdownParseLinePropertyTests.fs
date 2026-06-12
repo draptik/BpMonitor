@@ -1,10 +1,10 @@
-module BpMonitor.Import.Tests.MarkdownParseLinePropertyTests
+module MarkdownParseLinePropertyTests
 
 open FsCheck.FSharp
 open FsCheck.Xunit
 open BpMonitor.Core
 open BpMonitor.Import.MarkdownImport
-open BpMonitor.Import.Tests.Generators
+open Generators
 
 let private renderLine (c: MarkdownLineCase) =
   let suffix =
