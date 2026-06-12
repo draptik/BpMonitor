@@ -29,7 +29,7 @@ let private sample =
 
 [<Fact>]
 let ``landing renders links to add and history`` () =
-  let html = renderHtml (Views.landing defaultMember)
+  let html = renderHtml (ReadingViews.landing defaultMember)
 
   test <@ html.Contains "href=\"/add\"" @>
   test <@ html.Contains "href=\"/history\"" @>
@@ -39,21 +39,21 @@ let ``landing renders links to add and history`` () =
 [<Fact>]
 let ``admin sees Members nav link`` () =
   let admin = { defaultMember with IsAdmin = true }
-  let html = renderHtml (Views.landing admin)
+  let html = renderHtml (ReadingViews.landing admin)
   test <@ html.Contains "href=\"/members\"" @>
 
 [<Fact>]
 let ``non-admin does not see Members nav link`` () =
   let nonAdmin = { defaultMember with IsAdmin = false }
-  let html = renderHtml (Views.landing nonAdmin)
+  let html = renderHtml (ReadingViews.landing nonAdmin)
   test <@ not (html.Contains "href=\"/members\"") @>
 
 [<Fact>]
 let ``every page has a BpMonitor footer`` () =
   let pages =
-    [ renderHtml (Views.landing defaultMember)
-      renderHtml (Views.history defaultMember [ sample ])
-      renderHtml (Views.readingForm "/add" "Me" true "Add reading" "/readings" [] Binding.empty) ]
+    [ renderHtml (ReadingViews.landing defaultMember)
+      renderHtml (ReadingViews.history defaultMember [ sample ])
+      renderHtml (ReadingViews.readingForm "/add" "Me" true "Add reading" "/readings" [] Binding.empty) ]
 
   for html in pages do
     test <@ html.Contains "<footer" @>
@@ -62,9 +62,9 @@ let ``every page has a BpMonitor footer`` () =
 [<Fact>]
 let ``every authenticated page shows the logout button`` () =
   let pages =
-    [ renderHtml (Views.landing defaultMember)
-      renderHtml (Views.history defaultMember [ sample ])
-      renderHtml (Views.readingForm "/add" "Me" true "Add reading" "/readings" [] Binding.empty) ]
+    [ renderHtml (ReadingViews.landing defaultMember)
+      renderHtml (ReadingViews.history defaultMember [ sample ])
+      renderHtml (ReadingViews.readingForm "/add" "Me" true "Add reading" "/readings" [] Binding.empty) ]
 
   for html in pages do
     test <@ html.Contains "action=\"/logout\"" @>
@@ -72,12 +72,12 @@ let ``every authenticated page shows the logout button`` () =
 
 [<Fact>]
 let ``every authenticated page shows the member name`` () =
-  let html = renderHtml (Views.landing defaultMember)
+  let html = renderHtml (ReadingViews.landing defaultMember)
   test <@ html.Contains "Me" @>
 
 [<Fact>]
 let ``history renders reading values, chart iframe and nav links`` () =
-  let html = renderHtml (Views.history defaultMember [ sample ])
+  let html = renderHtml (ReadingViews.history defaultMember [ sample ])
 
   test <@ html.Contains "123" @>
   test <@ html.Contains "after walk" @>
@@ -90,7 +90,7 @@ let ``history renders reading values, chart iframe and nav links`` () =
 [<Fact>]
 let ``edit form is prefilled from the reading`` () =
   let html =
-    renderHtml (Views.readingForm "" "Me" true "Edit reading" "/readings/7" [] (Binding.ofReading sample))
+    renderHtml (ReadingViews.readingForm "" "Me" true "Edit reading" "/readings/7" [] (Binding.ofReading sample))
 
   test <@ html.Contains "name=\"Systolic\" value=\"123\"" @>
   test <@ html.Contains "action=\"/readings/7\"" @>
@@ -101,7 +101,7 @@ let ``form renders the validation errors it is given`` () =
   let errors = [ "Systolic 999 is out of range (1–300)" ]
 
   let html =
-    renderHtml (Views.readingForm "/add" "Me" true "Add reading" "/readings" errors Binding.empty)
+    renderHtml (ReadingViews.readingForm "/add" "Me" true "Add reading" "/readings" errors Binding.empty)
 
   test <@ html.Contains "errors" @>
   test <@ html.Contains "out of range" @>
@@ -112,7 +112,7 @@ let ``view encodes user-supplied content`` () =
     { sample with
         Comments = Some "<script>x</script>" }
 
-  let html = renderHtml (Views.history defaultMember [ nasty ])
+  let html = renderHtml (ReadingViews.history defaultMember [ nasty ])
 
   test <@ not (html.Contains "<script>x</script>") @>
   test <@ html.Contains "&lt;script&gt;" @>
@@ -128,7 +128,8 @@ let ``members page renders Admin and Active columns and Edit link`` () =
       CreatedAt = DateTimeOffset.MinValue
       ModifiedAt = DateTimeOffset.MinValue }
 
-  let html = renderHtml (Views.members [ defaultMember; otherMember ] defaultMember)
+  let html =
+    renderHtml (MemberViews.members [ defaultMember; otherMember ] defaultMember)
 
   test <@ html.Contains "Admin" @>
   test <@ html.Contains "Active" @>
@@ -150,19 +151,19 @@ let ``members page shows claimed/unclaimed badge`` () =
       CreatedAt = DateTimeOffset.MinValue
       ModifiedAt = DateTimeOffset.MinValue }
 
-  let html = renderHtml (Views.members [ claimed; unclaimed ] claimed)
+  let html = renderHtml (MemberViews.members [ claimed; unclaimed ] claimed)
 
   test <@ html.Contains "Claimed" @>
   test <@ html.Contains "Unclaimed" @>
 
 [<Fact>]
 let ``members page shows reset-password button`` () =
-  let html = renderHtml (Views.members [ defaultMember ] defaultMember)
+  let html = renderHtml (MemberViews.members [ defaultMember ] defaultMember)
   test <@ html.Contains "reset-password" @>
 
 [<Fact>]
 let ``members page does NOT show Switch button`` () =
-  let html = renderHtml (Views.members [ defaultMember ] defaultMember)
+  let html = renderHtml (MemberViews.members [ defaultMember ] defaultMember)
   test <@ not (html.Contains "/members/switch") @>
 
 [<Fact>]
@@ -177,7 +178,7 @@ let ``memberForm prefills name and reflects IsAdmin and IsActive`` () =
       ModifiedAt = DateTimeOffset.MinValue }
 
   let html =
-    renderHtml (Views.memberForm "/members" "Me" true "Edit member" "/members/3" [] m)
+    renderHtml (MemberViews.memberForm "/members" "Me" true "Edit member" "/members/3" [] m)
 
   test <@ html.Contains "value=\"Bob\"" @>
   test <@ html.Contains "action=\"/members/3\"" @>
@@ -188,7 +189,7 @@ let ``memberForm prefills name and reflects IsAdmin and IsActive`` () =
 let ``memberForm renders errors`` () =
   let html =
     renderHtml (
-      Views.memberForm
+      MemberViews.memberForm
         "/members"
         "Me"
         true
@@ -202,7 +203,7 @@ let ``memberForm renders errors`` () =
 
 [<Fact>]
 let ``loginPage renders sign-in form with username and password fields`` () =
-  let html = renderHtml (Views.loginPage [])
+  let html = renderHtml (LoginViews.loginPage [])
 
   test <@ html.Contains "Sign in" @>
   test <@ html.Contains "Username" @>
@@ -210,13 +211,13 @@ let ``loginPage renders sign-in form with username and password fields`` () =
 
 [<Fact>]
 let ``loginPage renders errors when provided`` () =
-  let html = renderHtml (Views.loginPage [ "Invalid name or password" ])
+  let html = renderHtml (LoginViews.loginPage [ "Invalid name or password" ])
 
   test <@ html.Contains "Invalid name or password" @>
 
 [<Fact>]
 let ``loginMember shows claim form for unclaimed member`` () =
-  let html = renderHtml (Views.loginMember defaultMember [])
+  let html = renderHtml (LoginViews.loginMember defaultMember [])
 
   test <@ html.Contains "PasswordConfirm" @>
   test <@ html.Contains "Claim account" @>
@@ -227,12 +228,14 @@ let ``loginMember shows password form for claimed member`` () =
     { defaultMember with
         PasswordHash = Some "x" }
 
-  let html = renderHtml (Views.loginMember claimed [])
+  let html = renderHtml (LoginViews.loginMember claimed [])
 
   test <@ not (html.Contains "PasswordConfirm") @>
   test <@ html.Contains "Login" @>
 
 [<Fact>]
 let ``loginMember renders errors`` () =
-  let html = renderHtml (Views.loginMember defaultMember [ "Passwords do not match" ])
+  let html =
+    renderHtml (LoginViews.loginMember defaultMember [ "Passwords do not match" ])
+
   test <@ html.Contains "Passwords do not match" @>

@@ -1,0 +1,135 @@
+namespace BpMonitor.Web
+
+open Falco.Markup
+open BpMonitor.Core
+
+/// Server-rendered HTML views for family-member management pages.
+module MemberViews =
+  let private membersList
+    (allMembers: FamilyMember list)
+    (active: FamilyMember)
+    (errorMsg: string option)
+    : XmlNode list =
+    let badge (text: string) (cls: string) =
+      Elem.span [ Attr.class' cls ] [ Text.raw text ]
+
+    let memberRow (m: FamilyMember) =
+      let isCurrent = m.Id = active.Id
+
+      Elem.tr
+        []
+        [ Elem.td [] [ Text.enc m.Name ]
+          Elem.td [] [ if m.IsAdmin then badge "Admin" "badge" else Text.raw "—" ]
+          Elem.td [] [ if m.IsActive then badge "Active" "badge" else Text.raw "—" ]
+          Elem.td
+            []
+            [ if FamilyMember.isClaimed m then
+                badge "Claimed" "badge badge-claimed"
+              else
+                badge "Unclaimed" "badge badge-unclaimed" ]
+          Elem.td
+            [ Attr.style "display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap" ]
+            [ if isCurrent then
+                Elem.span [ Attr.class' "current-member" ] [ Text.raw "You" ]
+              Elem.a [ Attr.href $"/members/{m.Id}/edit"; Attr.class' "outline" ] [ Text.raw "Edit" ]
+              Elem.form
+                [ Attr.method "post"
+                  Attr.action $"/members/{m.Id}/reset-password"
+                  Attr.class' "inline" ]
+                [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw "Reset password" ] ] ] ]
+
+    [ match errorMsg with
+      | Some msg -> yield ViewLayout.errorBox [ msg ]
+      | None -> ()
+      yield
+        Elem.table
+          []
+          [ Elem.thead
+              []
+              [ Elem.tr
+                  []
+                  [ Elem.th [] [ Text.raw "Name" ]
+                    Elem.th [] [ Text.raw "Admin" ]
+                    Elem.th [] [ Text.raw "Active" ]
+                    Elem.th [] [ Text.raw "Password" ]
+                    Elem.th [] [ Text.raw "" ] ] ]
+            Elem.tbody [] (allMembers |> List.map memberRow) ]
+      yield Elem.h2 [] [ Text.raw "Add family member" ]
+      yield
+        Elem.form
+          [ Attr.method "post"; Attr.action Routes.members; Attr.class' "stacked" ]
+          [ Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label [ Attr.for' "Name" ] [ Text.raw "Name" ]
+                Elem.input [ Attr.type' "text"; Attr.id "Name"; Attr.name "Name" ] ]
+            Elem.label
+              [ Attr.for' "IsAdmin" ]
+              [ Elem.input [ Attr.type' "checkbox"; Attr.id "IsAdmin"; Attr.name "IsAdmin" ]
+                Text.raw " Admin" ]
+            Elem.button [ Attr.type' "submit" ] [ Text.raw "Add member" ] ] ]
+
+  /// Shared add/edit form for family members. `action` is the POST target; `errors`
+  /// are rendered above the fields when re-displaying after a failed submit.
+  let memberForm
+    (active: string)
+    (memberName: string)
+    (isAdmin: bool)
+    (title: string)
+    (action: string)
+    (errors: string list)
+    (m: FamilyMember)
+    : XmlNode =
+    let checkedAttr isChecked =
+      if isChecked then
+        [ Attr.type' "checkbox"; Attr.create "checked" "checked" ]
+      else
+        [ Attr.type' "checkbox" ]
+
+    ViewLayout.layout
+      active
+      memberName
+      isAdmin
+      title
+      [ Elem.h1 [] [ Text.raw title ]
+        ViewLayout.errorBox errors
+        Elem.form
+          [ Attr.method "post"; Attr.action action ]
+          [ Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label [ Attr.for' "Name" ] [ Text.raw "Name" ]
+                Elem.input [ Attr.type' "text"; Attr.id "Name"; Attr.name "Name"; Attr.value m.Name ] ]
+            Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label
+                  [ Attr.for' "IsAdmin" ]
+                  [ Elem.input (checkedAttr m.IsAdmin @ [ Attr.id "IsAdmin"; Attr.name "IsAdmin" ])
+                    Text.raw " Admin" ] ]
+            Elem.div
+              [ Attr.class' "field" ]
+              [ Elem.label
+                  [ Attr.for' "IsActive" ]
+                  [ Elem.input (checkedAttr m.IsActive @ [ Attr.id "IsActive"; Attr.name "IsActive" ])
+                    Text.raw " Active" ] ]
+            Elem.div
+              [ Attr.class' "actions" ]
+              [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
+                Elem.a [ Attr.href Routes.members; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
+
+  /// Members page: list of family members with Edit/Reset-password buttons and an add form.
+  let members (allMembers: FamilyMember list) (active: FamilyMember) : XmlNode =
+    ViewLayout.layout
+      Routes.members
+      active.Name
+      active.IsAdmin
+      "Family Members"
+      (Elem.h1 [] [ Text.raw "Family Members" ] :: membersList allMembers active None)
+
+  /// Members page rendered with a validation error message.
+  let membersWithError (allMembers: FamilyMember list) (active: FamilyMember) (error: string) : XmlNode =
+    ViewLayout.layout
+      Routes.members
+      active.Name
+      active.IsAdmin
+      "Family Members"
+      (Elem.h1 [] [ Text.raw "Family Members" ]
+       :: membersList allMembers active (Some error))
