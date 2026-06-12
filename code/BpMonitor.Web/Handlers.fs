@@ -156,7 +156,7 @@ module Handlers =
   /// Renders the add/edit form after a failed submit (status 422).
   let private renderFormErrors (ctx: HttpContext) active memberName isAdmin title action errors model : Task =
     ctx.Response.StatusCode <- 422
-    htmlResponse (Views.readingForm active memberName isAdmin title action errors model) ctx
+    htmlResponse (ReadingViews.readingForm active memberName isAdmin title action errors model) ctx
 
   /// Validates a submitted form and persists via `save`; on any error re-renders
   /// the form with messages. Shared by create and update.
@@ -204,12 +204,53 @@ module Handlers =
   // ---------------------------------------------------------------------------
 
   let loginPage: HttpContext -> Task =
-    fun ctx -> htmlResponse (Views.loginPage []) ctx
+    fun ctx -> htmlResponse (LoginViews.loginPage []) ctx
+
+  // `onFailure` lets callers choose what to render on a bad password (loginPage vs loginMember).
+  let private claimedLogin
+    (m: FamilyMember)
+    (password: string)
+    (hash: string)
+    (onFailure: XmlNode)
+    (ctx: HttpContext)
+    : Task =
+    task {
+      let log = logger ctx
+
+      if PasswordHashing.verify password hash then
+        log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
+        do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal m)
+        ctx.Response.Redirect "/"
+      else
+        log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
+        ctx.Response.StatusCode <- 401
+        do! htmlResponse onFailure ctx
+    }
+    :> Task
+
+  let private unclaimedLogin (m: FamilyMember) (password: string) (confirm: string) (ctx: HttpContext) : Task =
+    task {
+      let log = logger ctx
+
+      if String.IsNullOrWhiteSpace(password) then
+        ctx.Response.StatusCode <- 422
+        do! htmlResponse (LoginViews.loginMember m [ "Password cannot be empty" ]) ctx
+      elif password <> confirm then
+        ctx.Response.StatusCode <- 422
+        do! htmlResponse (LoginViews.loginMember m [ "Passwords do not match" ]) ctx
+      else
+        let hashed = PasswordHashing.hash password
+        let claimed = { m with PasswordHash = Some hashed }
+        (memberRepo ctx).Update(claimed)
+        log.LogInformation("Member {Name} (Id={Id}) claimed their account", m.Name, m.Id)
+        do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal claimed)
+        ctx.Response.Redirect "/"
+    }
+    :> Task
 
   let loginWithCredentials: HttpContext -> Task =
     fun ctx ->
       task {
-        let log = logger ctx
         let! form = ctx.Request.ReadFormAsync()
         let username = form["Username"].ToString().Trim()
         let password = form["Password"].ToString()
@@ -221,19 +262,10 @@ module Handlers =
         match found with
         | None ->
           ctx.Response.StatusCode <- 401
-          do! htmlResponse (Views.loginPage [ "Invalid name or password" ]) ctx
+          do! htmlResponse (LoginViews.loginPage [ "Invalid name or password" ]) ctx
         | Some m ->
           match m.PasswordHash with
-          | Some hash ->
-            // Claimed: verify the password
-            if PasswordHashing.verify password hash then
-              log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
-              do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal m)
-              ctx.Response.Redirect "/"
-            else
-              log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
-              ctx.Response.StatusCode <- 401
-              do! htmlResponse (Views.loginPage [ "Invalid name or password" ]) ctx
+          | Some hash -> do! claimedLogin m password hash (LoginViews.loginPage [ "Invalid name or password" ]) ctx
           | None ->
             // Unclaimed: redirect to per-member claim page
             ctx.Response.Redirect $"{Routes.login}/{m.Id}"
@@ -252,13 +284,11 @@ module Handlers =
             ctx.Response.StatusCode <- 403
             ctx.Response.WriteAsync("This account is inactive")
           else
-            htmlResponse (Views.loginMember m []) ctx
+            htmlResponse (LoginViews.loginMember m []) ctx
 
   let loginSubmit: HttpContext -> Task =
     fun ctx ->
       task {
-        let log = logger ctx
-
         match routeInt ctx "id" with
         | None -> do! badRequest ctx
         | Some id ->
@@ -272,33 +302,8 @@ module Handlers =
             let password = form["Password"].ToString()
 
             match m.PasswordHash with
-            | Some hash ->
-              // Claimed: verify the password
-              if PasswordHashing.verify password hash then
-                log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
-                do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal m)
-                ctx.Response.Redirect "/"
-              else
-                log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
-                ctx.Response.StatusCode <- 401
-                do! htmlResponse (Views.loginMember m [ "Incorrect password" ]) ctx
-            | None ->
-              // Unclaimed: set the password (claim the account)
-              let confirm = form["PasswordConfirm"].ToString()
-
-              if String.IsNullOrWhiteSpace(password) then
-                ctx.Response.StatusCode <- 422
-                do! htmlResponse (Views.loginMember m [ "Password cannot be empty" ]) ctx
-              elif password <> confirm then
-                ctx.Response.StatusCode <- 422
-                do! htmlResponse (Views.loginMember m [ "Passwords do not match" ]) ctx
-              else
-                let hashed = PasswordHashing.hash password
-                let claimed = { m with PasswordHash = Some hashed }
-                (memberRepo ctx).Update(claimed)
-                log.LogInformation("Member {Name} (Id={Id}) claimed their account", m.Name, m.Id)
-                do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal claimed)
-                ctx.Response.Redirect "/"
+            | Some hash -> do! claimedLogin m password hash (LoginViews.loginMember m [ "Incorrect password" ]) ctx
+            | None -> do! unclaimedLogin m password (form["PasswordConfirm"].ToString()) ctx
       }
       :> Task
 
@@ -315,10 +320,10 @@ module Handlers =
   // ---------------------------------------------------------------------------
 
   let landing: HttpContext -> Task =
-    withMember (fun m ctx -> htmlResponse (Views.landing m) ctx)
+    withMember (fun m ctx -> htmlResponse (ReadingViews.landing m) ctx)
 
   let history: HttpContext -> Task =
-    withMember (fun m ctx -> htmlResponse (Views.history m (sortedReadings m.Id ctx)) ctx)
+    withMember (fun m ctx -> htmlResponse (ReadingViews.history m (sortedReadings m.Id ctx)) ctx)
 
   let chart: HttpContext -> Task =
     withMember (fun m ctx ->
@@ -364,7 +369,7 @@ module Handlers =
       let summary = ReadingStats.summarizeRange period windowed
       let periods = TrendPeriod.available Weekly now
       let tableReadings = windowed |> List.sortByDescending _.Timestamp
-      htmlResponse (Views.trends m summary periods tableReadings) ctx)
+      htmlResponse (TrendViews.trends m summary periods tableReadings) ctx)
 
   let trendsPanel: HttpContext -> Task =
     withMember (fun m ctx ->
@@ -384,24 +389,21 @@ module Handlers =
         let periods = TrendPeriod.available gran now
         let tableReadings = windowed |> List.sortByDescending _.Timestamp
 
-        htmlResponse (Views.trendsPanel summary periods tableReadings) ctx)
+        htmlResponse (TrendViews.trendsPanel summary periods tableReadings) ctx)
 
   let newReading: HttpContext -> Task =
     fun ctx ->
-      let memberName =
-        match authenticatedMember ctx with
-        | Some m -> m.Name
-        | None -> ""
+      let m = authenticatedMember ctx
 
       let prefill =
         { Binding.empty with
             Binding.Timestamp = (timeProvider ctx).GetLocalNow().ToString(Formats.timestamp) }
 
       htmlResponse
-        (Views.readingForm
+        (ReadingViews.readingForm
           "/add"
-          memberName
-          (authenticatedMember ctx |> Option.exists _.IsAdmin)
+          (m |> Option.map _.Name |> Option.defaultValue "")
+          (m |> Option.exists _.IsAdmin)
           "Add reading"
           "/readings"
           []
@@ -423,7 +425,7 @@ module Handlers =
         match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
         | Some r ->
           htmlResponse
-            (Views.readingForm "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" [] (Binding.ofReading r))
+            (ReadingViews.readingForm "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" [] (Binding.ofReading r))
             ctx
         | None ->
           log.LogWarning("editReading: reading {Id} not found for member {MemberId}", id, m.Id)
@@ -448,7 +450,7 @@ module Handlers =
   let members: HttpContext -> Task =
     withMember (fun active ctx ->
       let allMembers = (memberRepo ctx).GetAll()
-      htmlResponse (Views.members allMembers active) ctx)
+      htmlResponse (MemberViews.members allMembers active) ctx)
 
   let createMember: HttpContext -> Task =
     withMember (fun active ctx ->
@@ -461,7 +463,7 @@ module Handlers =
         | Error NameIsEmpty ->
           let allMembers = (memberRepo ctx).GetAll()
           ctx.Response.StatusCode <- 422
-          do! htmlResponse (Views.membersWithError allMembers active "Name cannot be empty") ctx
+          do! htmlResponse (MemberViews.membersWithError allMembers active "Name cannot be empty") ctx
         | Ok m ->
           (memberRepo ctx).Add(m) |> ignore
           ctx.Response.Redirect Routes.members
@@ -482,10 +484,58 @@ module Handlers =
       | Some id ->
         match (memberRepo ctx).GetById(id) with
         | Some m ->
-          htmlResponse (Views.memberForm Routes.members adminName true "Edit member" $"/members/{id}" [] m) ctx
+          htmlResponse (MemberViews.memberForm Routes.members adminName true "Edit member" $"/members/{id}" [] m) ctx
         | None ->
           log.LogWarning("editMember: member {Id} not found", id)
           notFound ctx
+
+  let private renderMemberEditError
+    (id: int)
+    (adminName: string)
+    (errors: string list)
+    (m: FamilyMember)
+    (ctx: HttpContext)
+    : Task =
+    ctx.Response.StatusCode <- 422
+    htmlResponse (MemberViews.memberForm Routes.members adminName true "Edit member" $"/members/{id}" errors m) ctx
+
+  let private applyMemberEdit
+    (id: int)
+    (adminName: string)
+    (existing: FamilyMember)
+    (name: string)
+    (isAdmin: bool)
+    (isActive: bool)
+    (ctx: HttpContext)
+    : Task =
+    task {
+      match FamilyMember.create name isAdmin with
+      | Error NameIsEmpty ->
+        let m =
+          { existing with
+              Name = ""
+              IsAdmin = isAdmin
+              IsActive = isActive }
+
+        do! renderMemberEditError id adminName [ "Name cannot be empty" ] m ctx
+      | Ok _ ->
+        let updated =
+          { existing with
+              Name = name.Trim()
+              IsAdmin = isAdmin
+              IsActive = isActive }
+        // Compute what the member list would look like after the edit.
+        let postEditList =
+          (memberRepo ctx).GetAll()
+          |> List.map (fun m -> if m.Id = id then updated else m)
+
+        if not (FamilyMember.hasActiveAdmin postEditList) then
+          do! renderMemberEditError id adminName [ "At least one member must be an active admin" ] updated ctx
+        else
+          (memberRepo ctx).Update(updated)
+          ctx.Response.Redirect Routes.members
+    }
+    :> Task
 
   let updateMember: HttpContext -> Task =
     fun ctx ->
@@ -506,60 +556,16 @@ module Handlers =
             do! notFound ctx
           | Some existing ->
             let! form = ctx.Request.ReadFormAsync()
-            let name = form["Name"].ToString()
-            let isAdmin = form.ContainsKey("IsAdmin")
-            let isActive = form.ContainsKey("IsActive")
 
-            match FamilyMember.create name isAdmin with
-            | Error NameIsEmpty ->
-              let updated =
-                { existing with
-                    Name = ""
-                    IsAdmin = isAdmin
-                    IsActive = isActive }
-
-              ctx.Response.StatusCode <- 422
-
-              do!
-                htmlResponse
-                  (Views.memberForm
-                    Routes.members
-                    adminName
-                    true
-                    "Edit member"
-                    $"/members/{id}"
-                    [ "Name cannot be empty" ]
-                    updated)
-                  ctx
-            | Ok _ ->
-              let updated =
-                { existing with
-                    Name = name.Trim()
-                    IsAdmin = isAdmin
-                    IsActive = isActive }
-              // Compute what the member list would look like after the edit.
-              let allMembers = (memberRepo ctx).GetAll()
-
-              let postEditList =
-                allMembers |> List.map (fun m -> if m.Id = id then updated else m)
-
-              if not (FamilyMember.hasActiveAdmin postEditList) then
-                ctx.Response.StatusCode <- 422
-
-                do!
-                  htmlResponse
-                    (Views.memberForm
-                      Routes.members
-                      adminName
-                      true
-                      "Edit member"
-                      $"/members/{id}"
-                      [ "At least one member must be an active admin" ]
-                      updated)
-                    ctx
-              else
-                (memberRepo ctx).Update(updated)
-                ctx.Response.Redirect Routes.members
+            do!
+              applyMemberEdit
+                id
+                adminName
+                existing
+                (form["Name"].ToString())
+                (form.ContainsKey("IsAdmin"))
+                (form.ContainsKey("IsActive"))
+                ctx
       }
       :> Task
 

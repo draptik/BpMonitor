@@ -9,7 +9,11 @@
     <Compile Include="Binding.fs" />
     <Compile Include="Version.fs" />
     <Compile Include="Routes.fs" />
-    <Compile Include="Views.fs" />
+    <Compile Include="ViewLayout.fs" />
+    <Compile Include="LoginViews.fs" />
+    <Compile Include="ReadingViews.fs" />
+    <Compile Include="MemberViews.fs" />
+    <Compile Include="TrendViews.fs" />
     <Compile Include="Handlers.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
