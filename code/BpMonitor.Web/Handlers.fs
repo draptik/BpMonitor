@@ -35,6 +35,18 @@ module Handlers =
     ctx.Response.ContentType <- "text/html; charset=utf-8"
     ctx.Response.WriteAsync(renderHtml node)
 
+  let private badRequest (ctx: HttpContext) : Task =
+    ctx.Response.StatusCode <- 400
+    ctx.Response.WriteAsync("Bad request")
+
+  let private notFound (ctx: HttpContext) : Task =
+    ctx.Response.StatusCode <- 404
+    ctx.Response.WriteAsync("Not found")
+
+  let private forbidden (ctx: HttpContext) : Task =
+    ctx.Response.StatusCode <- 403
+    ctx.Response.WriteAsync("Forbidden")
+
   let private routeInt (ctx: HttpContext) (key: string) : int option =
     match ctx.Request.RouteValues.TryGetValue key with
     | true, v ->
@@ -108,7 +120,7 @@ module Handlers =
       if ctx.User.Identity <> null && ctx.User.Identity.IsAuthenticated then
         handler ctx
       else
-        ctx.Response.Redirect("/login")
+        ctx.Response.Redirect(Routes.login)
         Task.CompletedTask
 
   /// Like `protect` but additionally requires the Admin role. Non-admin
@@ -116,13 +128,23 @@ module Handlers =
   let protectAdmin (handler: HttpContext -> Task) : HttpContext -> Task =
     fun ctx ->
       if ctx.User.Identity = null || not ctx.User.Identity.IsAuthenticated then
-        ctx.Response.Redirect("/login")
+        ctx.Response.Redirect(Routes.login)
         Task.CompletedTask
       elif not (ctx.User.IsInRole("Admin")) then
-        ctx.Response.StatusCode <- 403
-        ctx.Response.WriteAsync("Forbidden")
+        forbidden ctx
       else
         handler ctx
+
+  /// Resolves the authenticated member and passes it to `handler`. If the member
+  /// cannot be resolved (e.g. stale principal after account removal) redirects to
+  /// /login instead of throwing. Mirrors `protect` but hands the member to the handler.
+  let private withMember (handler: FamilyMember -> HttpContext -> Task) : HttpContext -> Task =
+    fun ctx ->
+      match authenticatedMember ctx with
+      | None ->
+        ctx.Response.Redirect(Routes.login)
+        Task.CompletedTask
+      | Some m -> handler m ctx
 
   // ---------------------------------------------------------------------------
   // Reading helpers
@@ -169,7 +191,7 @@ module Handlers =
             reading.Timestamp
           )
 
-          ctx.Response.Redirect "/history"
+          ctx.Response.Redirect Routes.history
         | Error errors ->
           let messages = Config.formatValidationErrors rg errors
           log.LogWarning("Reading form validation failed (domain): {Errors}", messages)
@@ -201,8 +223,10 @@ module Handlers =
           ctx.Response.StatusCode <- 401
           do! htmlResponse (Views.loginPage [ "Invalid name or password" ]) ctx
         | Some m ->
-          if FamilyMember.isClaimed m then
-            if PasswordHashing.verify password (m.PasswordHash |> Option.get) then
+          match m.PasswordHash with
+          | Some hash ->
+            // Claimed: verify the password
+            if PasswordHashing.verify password hash then
               log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
               do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal m)
               ctx.Response.Redirect "/"
@@ -210,22 +234,19 @@ module Handlers =
               log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
               ctx.Response.StatusCode <- 401
               do! htmlResponse (Views.loginPage [ "Invalid name or password" ]) ctx
-          else
-            ctx.Response.Redirect $"/login/{m.Id}"
+          | None ->
+            // Unclaimed: redirect to per-member claim page
+            ctx.Response.Redirect $"{Routes.login}/{m.Id}"
       }
       :> Task
 
   let loginMember: HttpContext -> Task =
     fun ctx ->
       match routeInt ctx "id" with
-      | None ->
-        ctx.Response.StatusCode <- 400
-        ctx.Response.WriteAsync("Bad request")
+      | None -> badRequest ctx
       | Some id ->
         match (memberRepo ctx).GetById(id) with
-        | None ->
-          ctx.Response.StatusCode <- 404
-          ctx.Response.WriteAsync("Not found")
+        | None -> notFound ctx
         | Some m ->
           if not m.IsActive then
             ctx.Response.StatusCode <- 403
@@ -239,14 +260,10 @@ module Handlers =
         let log = logger ctx
 
         match routeInt ctx "id" with
-        | None ->
-          ctx.Response.StatusCode <- 400
-          do! ctx.Response.WriteAsync("Bad request")
+        | None -> do! badRequest ctx
         | Some id ->
           match (memberRepo ctx).GetById(id) with
-          | None ->
-            ctx.Response.StatusCode <- 404
-            do! ctx.Response.WriteAsync("Not found")
+          | None -> do! notFound ctx
           | Some m when not m.IsActive ->
             ctx.Response.StatusCode <- 403
             do! ctx.Response.WriteAsync("This account is inactive")
@@ -254,9 +271,10 @@ module Handlers =
             let! form = ctx.Request.ReadFormAsync()
             let password = form["Password"].ToString()
 
-            if FamilyMember.isClaimed m then
+            match m.PasswordHash with
+            | Some hash ->
               // Claimed: verify the password
-              if PasswordHashing.verify password (m.PasswordHash |> Option.get) then
+              if PasswordHashing.verify password hash then
                 log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
                 do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal m)
                 ctx.Response.Redirect "/"
@@ -264,7 +282,7 @@ module Handlers =
                 log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
                 ctx.Response.StatusCode <- 401
                 do! htmlResponse (Views.loginMember m [ "Incorrect password" ]) ctx
-            else
+            | None ->
               // Unclaimed: set the password (claim the account)
               let confirm = form["PasswordConfirm"].ToString()
 
@@ -288,7 +306,7 @@ module Handlers =
     fun ctx ->
       task {
         do! ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme)
-        ctx.Response.Redirect "/login"
+        ctx.Response.Redirect Routes.login
       }
       :> Task
 
@@ -297,105 +315,76 @@ module Handlers =
   // ---------------------------------------------------------------------------
 
   let landing: HttpContext -> Task =
-    fun ctx ->
-      match authenticatedMember ctx with
-      | None ->
-        ctx.Response.Redirect "/login"
-        Task.CompletedTask
-      | Some m -> htmlResponse (Views.landing m) ctx
+    withMember (fun m ctx -> htmlResponse (Views.landing m) ctx)
 
   let history: HttpContext -> Task =
-    fun ctx ->
-      match authenticatedMember ctx with
-      | None ->
-        ctx.Response.Redirect "/login"
-        Task.CompletedTask
-      | Some m -> htmlResponse (Views.history m (sortedReadings m.Id ctx)) ctx
+    withMember (fun m ctx -> htmlResponse (Views.history m (sortedReadings m.Id ctx)) ctx)
 
   let chart: HttpContext -> Task =
-    fun ctx ->
-      match authenticatedMember ctx with
-      | None ->
-        ctx.Response.Redirect "/login"
-        Task.CompletedTask
-      | Some m ->
-        let allReadings = (repo ctx).GetAll(m.Id)
+    withMember (fun m ctx ->
+      let allReadings = (repo ctx).GetAll(m.Id)
 
-        let theme =
-          match ctx.Request.Query.TryGetValue "theme" with
-          | true, v when string v = "dark" -> Dark
-          | _ -> Light
+      let theme =
+        match ctx.Request.Query.TryGetValue "theme" with
+        | true, v when string v = "dark" -> Dark
+        | _ -> Light
 
-        let granStr =
-          match ctx.Request.Query.TryGetValue "gran" with
-          | true, v -> string v
-          | _ -> ""
+      let granStr =
+        match ctx.Request.Query.TryGetValue "gran" with
+        | true, v -> string v
+        | _ -> ""
 
-        let periodStr =
-          match ctx.Request.Query.TryGetValue "period" with
-          | true, v -> string v
-          | _ -> ""
+      let periodStr =
+        match ctx.Request.Query.TryGetValue "period" with
+        | true, v -> string v
+        | _ -> ""
 
-        let html =
-          match TrendPeriod.parseGranularity granStr with
-          | Some gran ->
-            let now = (timeProvider ctx).GetUtcNow()
-
-            let period =
-              TrendPeriod.ofKey gran periodStr now
-              |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
-
-            let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
-            BpChart.toHtmlDashed gran theme (ReadingStats.aggregate gran windowed)
-          | None -> BpChart.toHtml theme allReadings
-
-        ctx.Response.ContentType <- "text/html; charset=utf-8"
-        ctx.Response.WriteAsync html
-
-  let trends: HttpContext -> Task =
-    fun ctx ->
-      match authenticatedMember ctx with
-      | None ->
-        ctx.Response.Redirect "/login"
-        Task.CompletedTask
-      | Some m ->
-        let now = (timeProvider ctx).GetUtcNow()
-        let allReadings = (repo ctx).GetAll(m.Id)
-        let period = TrendPeriod.current Weekly now
-        let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
-        let summary = ReadingStats.summarizeRange period windowed
-        let periods = TrendPeriod.available Weekly now
-
-        let tableReadings = windowed |> List.sortByDescending _.Timestamp
-
-        htmlResponse (Views.trends m summary periods tableReadings) ctx
-
-  let trendsPanel: HttpContext -> Task =
-    fun ctx ->
-      match authenticatedMember ctx with
-      | None ->
-        ctx.Response.Redirect "/login"
-        Task.CompletedTask
-      | Some m ->
-        match routeStr ctx "gran" |> Option.bind TrendPeriod.parseGranularity with
-        | None ->
-          ctx.Response.StatusCode <- 400
-          ctx.Response.WriteAsync("Bad request")
+      let html =
+        match TrendPeriod.parseGranularity granStr with
         | Some gran ->
           let now = (timeProvider ctx).GetUtcNow()
-          let allReadings = (repo ctx).GetAll(m.Id)
 
           let period =
-            routeStr ctx "key"
-            |> Option.bind (fun k -> TrendPeriod.ofKey gran k now)
+            TrendPeriod.ofKey gran periodStr now
             |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
 
           let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
-          let summary = ReadingStats.summarizeRange period windowed
-          let periods = TrendPeriod.available gran now
-          let tableReadings = windowed |> List.sortByDescending _.Timestamp
+          BpChart.toHtmlDashed gran theme (ReadingStats.aggregate gran windowed)
+        | None -> BpChart.toHtml theme allReadings
 
-          htmlResponse (Views.trendsPanel summary periods tableReadings) ctx
+      ctx.Response.ContentType <- "text/html; charset=utf-8"
+      ctx.Response.WriteAsync html)
+
+  let trends: HttpContext -> Task =
+    withMember (fun m ctx ->
+      let now = (timeProvider ctx).GetUtcNow()
+      let allReadings = (repo ctx).GetAll(m.Id)
+      let period = TrendPeriod.current Weekly now
+      let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
+      let summary = ReadingStats.summarizeRange period windowed
+      let periods = TrendPeriod.available Weekly now
+      let tableReadings = windowed |> List.sortByDescending _.Timestamp
+      htmlResponse (Views.trends m summary periods tableReadings) ctx)
+
+  let trendsPanel: HttpContext -> Task =
+    withMember (fun m ctx ->
+      match routeStr ctx "gran" |> Option.bind TrendPeriod.parseGranularity with
+      | None -> badRequest ctx
+      | Some gran ->
+        let now = (timeProvider ctx).GetUtcNow()
+        let allReadings = (repo ctx).GetAll(m.Id)
+
+        let period =
+          routeStr ctx "key"
+          |> Option.bind (fun k -> TrendPeriod.ofKey gran k now)
+          |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
+
+        let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
+        let summary = ReadingStats.summarizeRange period windowed
+        let periods = TrendPeriod.available gran now
+        let tableReadings = windowed |> List.sortByDescending _.Timestamp
+
+        htmlResponse (Views.trendsPanel summary periods tableReadings) ctx)
 
   let newReading: HttpContext -> Task =
     fun ctx ->
@@ -420,71 +409,49 @@ module Handlers =
         ctx
 
   let createReading: HttpContext -> Task =
-    fun ctx ->
-      match authenticatedMember ctx with
-      | None ->
-        ctx.Response.Redirect "/login"
-        Task.CompletedTask
-      | Some m -> submit ctx "/add" m.Name m.IsAdmin "Add reading" "/readings" ((repo ctx).Add m.Id)
+    withMember (fun m ctx -> submit ctx "/add" m.Name m.IsAdmin "Add reading" "/readings" ((repo ctx).Add m.Id))
 
   let editReading: HttpContext -> Task =
-    fun ctx ->
+    withMember (fun m ctx ->
       let log = logger ctx
 
-      match authenticatedMember ctx with
+      match routeInt ctx "id" with
       | None ->
-        ctx.Response.Redirect "/login"
-        Task.CompletedTask
-      | Some m ->
-        match routeInt ctx "id" with
+        log.LogWarning("editReading: bad route value for {id}")
+        badRequest ctx
+      | Some id ->
+        match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
+        | Some r ->
+          htmlResponse
+            (Views.readingForm "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" [] (Binding.ofReading r))
+            ctx
         | None ->
-          log.LogWarning("editReading: bad route value for {{id}}")
-          ctx.Response.StatusCode <- 400
-          ctx.Response.WriteAsync("Bad request")
-        | Some id ->
-          match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
-          | Some r ->
-            htmlResponse
-              (Views.readingForm "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" [] (Binding.ofReading r))
-              ctx
-          | None ->
-            log.LogWarning("editReading: reading {Id} not found for member {MemberId}", id, m.Id)
-            ctx.Response.StatusCode <- 404
-            ctx.Response.WriteAsync("Not found")
+          log.LogWarning("editReading: reading {Id} not found for member {MemberId}", id, m.Id)
+          notFound ctx)
 
   let updateReading: HttpContext -> Task =
-    fun ctx ->
+    withMember (fun m ctx ->
       let log = logger ctx
 
-      match authenticatedMember ctx with
+      match routeInt ctx "id" with
       | None ->
-        ctx.Response.Redirect "/login"
-        Task.CompletedTask
-      | Some m ->
-        match routeInt ctx "id" with
-        | None ->
-          log.LogWarning("updateReading: bad route value for {{id}}")
-          ctx.Response.StatusCode <- 400
-          ctx.Response.WriteAsync("Bad request")
-        | Some id ->
-          submit ctx "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" (fun r ->
-            (repo ctx).Update { r with Id = id; MemberId = m.Id })
+        log.LogWarning("updateReading: bad route value for {id}")
+        badRequest ctx
+      | Some id ->
+        submit ctx "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" (fun r ->
+          (repo ctx).Update { r with Id = id; MemberId = m.Id }))
 
   // ---------------------------------------------------------------------------
   // Member management (all protectAdmin — must be admin)
   // ---------------------------------------------------------------------------
 
   let members: HttpContext -> Task =
-    fun ctx ->
+    withMember (fun active ctx ->
       let allMembers = (memberRepo ctx).GetAll()
-
-      let active =
-        authenticatedMember ctx |> Option.defaultWith (fun () -> failwith "No member")
-
-      htmlResponse (Views.members allMembers active) ctx
+      htmlResponse (Views.members allMembers active) ctx)
 
   let createMember: HttpContext -> Task =
-    fun ctx ->
+    withMember (fun active ctx ->
       task {
         let! form = ctx.Request.ReadFormAsync()
         let name = form["Name"].ToString()
@@ -493,17 +460,13 @@ module Handlers =
         match FamilyMember.create name isAdmin with
         | Error NameIsEmpty ->
           let allMembers = (memberRepo ctx).GetAll()
-
-          let active =
-            authenticatedMember ctx |> Option.defaultWith (fun () -> failwith "No member")
-
           ctx.Response.StatusCode <- 422
           do! htmlResponse (Views.membersWithError allMembers active "Name cannot be empty") ctx
         | Ok m ->
           (memberRepo ctx).Add(m) |> ignore
-          ctx.Response.Redirect "/members"
+          ctx.Response.Redirect Routes.members
       }
-      :> Task
+      :> Task)
 
   let editMember: HttpContext -> Task =
     fun ctx ->
@@ -514,16 +477,15 @@ module Handlers =
 
       match routeInt ctx "id" with
       | None ->
-        log.LogWarning("editMember: bad route value for {{id}}")
-        ctx.Response.StatusCode <- 400
-        ctx.Response.WriteAsync("Bad request")
+        log.LogWarning("editMember: bad route value for {id}")
+        badRequest ctx
       | Some id ->
         match (memberRepo ctx).GetById(id) with
-        | Some m -> htmlResponse (Views.memberForm "/members" adminName true "Edit member" $"/members/{id}" [] m) ctx
+        | Some m ->
+          htmlResponse (Views.memberForm Routes.members adminName true "Edit member" $"/members/{id}" [] m) ctx
         | None ->
           log.LogWarning("editMember: member {Id} not found", id)
-          ctx.Response.StatusCode <- 404
-          ctx.Response.WriteAsync("Not found")
+          notFound ctx
 
   let updateMember: HttpContext -> Task =
     fun ctx ->
@@ -535,15 +497,13 @@ module Handlers =
 
         match routeInt ctx "id" with
         | None ->
-          log.LogWarning("updateMember: bad route value for {{id}}")
-          ctx.Response.StatusCode <- 400
-          do! ctx.Response.WriteAsync("Bad request")
+          log.LogWarning("updateMember: bad route value for {id}")
+          do! badRequest ctx
         | Some id ->
           match (memberRepo ctx).GetById(id) with
           | None ->
             log.LogWarning("updateMember: member {Id} not found", id)
-            ctx.Response.StatusCode <- 404
-            do! ctx.Response.WriteAsync("Not found")
+            do! notFound ctx
           | Some existing ->
             let! form = ctx.Request.ReadFormAsync()
             let name = form["Name"].ToString()
@@ -563,7 +523,7 @@ module Handlers =
               do!
                 htmlResponse
                   (Views.memberForm
-                    "/members"
+                    Routes.members
                     adminName
                     true
                     "Edit member"
@@ -589,7 +549,7 @@ module Handlers =
                 do!
                   htmlResponse
                     (Views.memberForm
-                      "/members"
+                      Routes.members
                       adminName
                       true
                       "Edit member"
@@ -599,7 +559,7 @@ module Handlers =
                     ctx
               else
                 (memberRepo ctx).Update(updated)
-                ctx.Response.Redirect "/members"
+                ctx.Response.Redirect Routes.members
       }
       :> Task
 
@@ -611,18 +571,16 @@ module Handlers =
 
         match routeInt ctx "id" with
         | None ->
-          log.LogWarning("resetPassword: bad route value for {{id}}")
-          ctx.Response.StatusCode <- 400
-          do! ctx.Response.WriteAsync("Bad request")
+          log.LogWarning("resetPassword: bad route value for {id}")
+          do! badRequest ctx
         | Some id ->
           match (memberRepo ctx).GetById(id) with
           | None ->
             log.LogWarning("resetPassword: member {Id} not found", id)
-            ctx.Response.StatusCode <- 404
-            do! ctx.Response.WriteAsync("Not found")
+            do! notFound ctx
           | Some m ->
             (memberRepo ctx).Update({ m with PasswordHash = None })
             log.LogInformation("Admin reset password for member {Name} (Id={Id})", m.Name, m.Id)
-            ctx.Response.Redirect "/members"
+            ctx.Response.Redirect Routes.members
       }
       :> Task
