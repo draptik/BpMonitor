@@ -326,17 +326,17 @@ module Handlers =
           | true, v when string v = "dark" -> "dark"
           | _ -> "light"
 
-        let readings, chartFn =
-          let granStr =
-            match ctx.Request.Query.TryGetValue "gran" with
-            | true, v -> string v
-            | _ -> ""
+        let granStr =
+          match ctx.Request.Query.TryGetValue "gran" with
+          | true, v -> string v
+          | _ -> ""
 
-          let periodStr =
-            match ctx.Request.Query.TryGetValue "period" with
-            | true, v -> string v
-            | _ -> ""
+        let periodStr =
+          match ctx.Request.Query.TryGetValue "period" with
+          | true, v -> string v
+          | _ -> ""
 
+        let html =
           match TrendPeriod.parseGranularity granStr with
           | Some gran ->
             let now = (timeProvider ctx).GetUtcNow()
@@ -346,12 +346,11 @@ module Handlers =
               |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
 
             let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
-            let aggregated = ReadingStats.aggregate gran windowed
-            aggregated, BpChart.toHtmlDashed gran theme
-          | None -> allReadings, BpChart.toHtml theme
+            BpChart.toHtmlDashed gran theme (ReadingStats.aggregate gran windowed)
+          | None -> BpChart.toHtml theme allReadings
 
         ctx.Response.ContentType <- "text/html; charset=utf-8"
-        ctx.Response.WriteAsync(chartFn readings)
+        ctx.Response.WriteAsync html
 
   let trends: HttpContext -> Task =
     fun ctx ->
