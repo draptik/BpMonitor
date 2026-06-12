@@ -12,6 +12,9 @@ obj/
 .vs/
 *.DotSettings.user
 
+# Junie
+.junie/
+
 # OS
 .DS_Store
 Thumbs.db

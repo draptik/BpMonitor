@@ -53,58 +53,57 @@ let private readings =
     reading 29 122 80 71 29 9 None
     reading 30 128 84 74 30 8 None ]
 
-type ChartTests() =
-  [<Fact>]
-  member _.``toHtml renders timestamps in ascending order regardless of input order``() =
-    let reversed = List.rev readings
-    let html = BpChart.toHtml "light" reversed
-    let pos1 = html.IndexOf("2026-01-01")
-    let pos30 = html.IndexOf("2026-01-30")
-    test <@ pos1 < pos30 @>
+[<Fact>]
+let ``toHtml renders timestamps in ascending order regardless of input order`` () =
+  let reversed = List.rev readings
+  let html = BpChart.toHtml "light" reversed
+  let pos1 = html.IndexOf("2026-01-01")
+  let pos30 = html.IndexOf("2026-01-30")
+  test <@ pos1 < pos30 @>
 
-  [<Fact>]
-  member _.``toHtml includes comment text as hover info for commented readings``() =
-    let html = BpChart.toHtml "light" readings
-    test <@ html.Contains("After coffee") @>
-    test <@ html.Contains("Stressful day") @>
-    test <@ html.Contains("After walk") @>
-    test <@ html.Contains("Work deadline") @>
+[<Fact>]
+let ``toHtml includes comment text as hover info for commented readings`` () =
+  let html = BpChart.toHtml "light" readings
+  test <@ html.Contains("After coffee") @>
+  test <@ html.Contains("Stressful day") @>
+  test <@ html.Contains("After walk") @>
+  test <@ html.Contains("Work deadline") @>
 
-  [<Fact>]
-  member _.``toHtml does not include None comment readings in comments trace``() =
-    let noCommentOnly = [ reading 1 120 80 70 1 9 None ]
-    let html = BpChart.toHtml "light" noCommentOnly
-    test <@ not (html.Contains("Comments")) @>
+[<Fact>]
+let ``toHtml does not include None comment readings in comments trace`` () =
+  let noCommentOnly = [ reading 1 120 80 70 1 9 None ]
+  let html = BpChart.toHtml "light" noCommentOnly
+  test <@ not (html.Contains("Comments")) @>
 
-  [<Fact>]
-  member _.``toHtml dark theme output contains dark background color``() =
-    let html = BpChart.toHtml "dark" readings
-    test <@ html.Contains("#11191f") @>
+[<Fact>]
+let ``toHtml dark theme output contains dark background color`` () =
+  let html = BpChart.toHtml "dark" readings
+  test <@ html.Contains("#11191f") @>
 
-  [<Fact>]
-  member _.``toHtml matches snapshot``() : Task =
-    let html: string = BpChart.toHtml "light" readings
-    let settings = VerifyTests.VerifySettings()
-    settings.ScrubInlineGuids()
+[<Fact>]
+let ``toHtml matches snapshot`` () : Task =
+  let html: string = BpChart.toHtml "light" readings
+  let settings = VerifyTests.VerifySettings()
+  settings.ScrubInlineGuids()
 
-    settings.AddScrubber(fun sb ->
-      let scrubbed =
-        Regex.Replace(string sb, @"renderPlotly_[0-9a-f]{32}", "renderPlotly_GUID")
+  settings.AddScrubber(fun sb ->
+    let scrubbed =
+      Regex.Replace(string sb, @"renderPlotly_[0-9a-f]{32}", "renderPlotly_GUID")
 
-      sb.Clear().Append(scrubbed) |> ignore)
+    sb.Clear().Append(scrubbed) |> ignore)
 
-    Verifier.Verify(html, settings).ToTask()
+  Verifier.Verify(html, settings).ToTask()
 
-  [<Fact>]
-  member _.``toHtmlDashed matches snapshot``() : Task =
-    let html: string = BpChart.toHtmlDashed Weekly "light" readings
-    let settings = VerifyTests.VerifySettings()
-    settings.ScrubInlineGuids()
+[<Fact>]
+let ``toHtmlDashed matches snapshot`` () : Task =
+  let html: string = BpChart.toHtmlDashed Weekly "light" readings
+  let settings = VerifyTests.VerifySettings()
+  settings.ScrubInlineGuids()
 
-    settings.AddScrubber(fun sb ->
-      let scrubbed =
-        Regex.Replace(string sb, @"renderPlotly_[0-9a-f]{32}", "renderPlotly_GUID")
+  settings.AddScrubber(fun sb ->
+    let scrubbed =
+      Regex.Replace(string sb, @"renderPlotly_[0-9a-f]{32}", "renderPlotly_GUID")
 
-      sb.Clear().Append(scrubbed) |> ignore)
+    sb.Clear().Append(scrubbed) |> ignore)
 
-    Verifier.Verify(html, settings).ToTask()
+  Verifier.Verify(html, settings).ToTask()
