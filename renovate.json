@@ -2,5 +2,15 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
   "schedule": ["every weekend"],
-  "commitMessagePrefix": "⬆️ chore:"
+  "commitMessagePrefix": "⬆️ chore:",
+  "packageRules": [
+    {
+      "matchPackageNames": [
+        "Microsoft.NET.Test.Sdk",
+        "Microsoft.Testing.Extensions.CodeCoverage"
+      ],
+      "groupName": "Microsoft Testing Platform",
+      "description": "CodeCoverage and Test.Sdk must update together — they share a Microsoft.Testing.Platform transitive dep that must version-match"
+    }
+  ]
 }
