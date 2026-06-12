@@ -24,9 +24,6 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9" />
   </ItemGroup>
-  <ItemGroup Label="Configuration">
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.9" />
-  </ItemGroup>
   <ItemGroup Label="Test">
     <PackageVersion Include="Unquote" Version="7.0.1" />
     <PackageVersion Include="TngTech.ArchUnitNET.xUnit" Version="0.13.3" />
