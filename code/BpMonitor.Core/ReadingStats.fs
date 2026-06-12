@@ -5,7 +5,11 @@ namespace BpMonitor.Core
 /// (circle marker) from multi-reading averages (diamond marker).
 type AggregatedReading =
   { Reading: BloodPressureReading
-    Count: int }
+    Count: int
+    MinSystolic: int
+    MaxSystolic: int
+    MinDiastolic: int
+    MaxDiastolic: int }
 
 type WindowSummary =
   { Granularity: Granularity
@@ -61,7 +65,11 @@ module ReadingStats =
             Comments = None
             CreatedAt = DateTimeOffset.MinValue
             ModifiedAt = DateTimeOffset.MinValue }
-        Count = n })
+        Count = n
+        MinSystolic = rs |> List.minBy _.Systolic |> _.Systolic
+        MaxSystolic = rs |> List.maxBy _.Systolic |> _.Systolic
+        MinDiastolic = rs |> List.minBy _.Diastolic |> _.Diastolic
+        MaxDiastolic = rs |> List.maxBy _.Diastolic |> _.Diastolic })
 
   /// Groups readings by local calendar date and returns one averaged reading per day,
   /// sorted ascending. The returned reading's Timestamp is midnight of that local date.
@@ -94,7 +102,11 @@ module ReadingStats =
             Comments = None
             CreatedAt = DateTimeOffset.MinValue
             ModifiedAt = DateTimeOffset.MinValue }
-        Count = n })
+        Count = n
+        MinSystolic = rs |> List.minBy _.Systolic |> _.Systolic
+        MaxSystolic = rs |> List.maxBy _.Systolic |> _.Systolic
+        MinDiastolic = rs |> List.minBy _.Diastolic |> _.Diastolic
+        MaxDiastolic = rs |> List.maxBy _.Diastolic |> _.Diastolic })
 
   /// Groups readings by ISO week and returns one averaged reading per week,
   /// sorted ascending. The returned reading's Timestamp is Monday midnight of that week.
@@ -127,7 +139,11 @@ module ReadingStats =
             Comments = None
             CreatedAt = DateTimeOffset.MinValue
             ModifiedAt = DateTimeOffset.MinValue }
-        Count = n })
+        Count = n
+        MinSystolic = rs |> List.minBy _.Systolic |> _.Systolic
+        MaxSystolic = rs |> List.maxBy _.Systolic |> _.Systolic
+        MinDiastolic = rs |> List.minBy _.Diastolic |> _.Diastolic
+        MaxDiastolic = rs |> List.maxBy _.Diastolic |> _.Diastolic })
 
   /// Groups readings by calendar month and returns one averaged reading per month,
   /// sorted ascending. The returned reading's Timestamp is the 1st of that month midnight.

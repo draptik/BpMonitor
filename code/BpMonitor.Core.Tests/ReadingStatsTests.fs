@@ -227,6 +227,42 @@ let ``aggregate Yearly: two readings in same calendar month yields Count=2`` () 
   let result = ReadingStats.aggregate Yearly [ r1; r2 ]
   test <@ result[0].Count = 2 @>
 
+// ── aggregate: min/max fields ─────────────────────────────────────────────────
+
+[<Fact>]
+let ``aggregate Weekly: multi-reading period carries correct MinSystolic and MaxSystolic`` () =
+  let day = DateTimeOffset(2026, 6, 8, 0, 0, 0, TimeSpan.Zero)
+  let r1 = mkReading 1 110 75 60 (day.AddHours(8.0))
+  let r2 = mkReading 2 130 85 70 (day.AddHours(12.0))
+  let r3 = mkReading 3 150 95 80 (day.AddHours(20.0))
+  let a = ReadingStats.aggregate Weekly [ r1; r2; r3 ] |> List.exactlyOne
+  test <@ a.MinSystolic = 110 @>
+  test <@ a.MaxSystolic = 150 @>
+
+[<Fact>]
+let ``aggregate Weekly: multi-reading period carries correct MinDiastolic and MaxDiastolic`` () =
+  let day = DateTimeOffset(2026, 6, 8, 0, 0, 0, TimeSpan.Zero)
+  let r1 = mkReading 1 110 75 60 (day.AddHours(8.0))
+  let r2 = mkReading 2 130 85 70 (day.AddHours(12.0))
+  let r3 = mkReading 3 150 95 80 (day.AddHours(20.0))
+  let a = ReadingStats.aggregate Weekly [ r1; r2; r3 ] |> List.exactlyOne
+  test <@ a.MinDiastolic = 75 @>
+  test <@ a.MaxDiastolic = 95 @>
+
+[<Fact>]
+let ``aggregate Weekly: single-reading period has MinSystolic = MaxSystolic = Reading.Systolic`` () =
+  let r = mkReading 1 130 85 70 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
+  let a = ReadingStats.aggregate Weekly [ r ] |> List.exactlyOne
+  test <@ a.MinSystolic = a.Reading.Systolic @>
+  test <@ a.MaxSystolic = a.Reading.Systolic @>
+
+[<Fact>]
+let ``aggregate Weekly: single-reading period has MinDiastolic = MaxDiastolic = Reading.Diastolic`` () =
+  let r = mkReading 1 130 85 70 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
+  let a = ReadingStats.aggregate Weekly [ r ] |> List.exactlyOne
+  test <@ a.MinDiastolic = a.Reading.Diastolic @>
+  test <@ a.MaxDiastolic = a.Reading.Diastolic @>
+
 // ── summarizeRange ────────────────────────────────────────────────────────────
 
 [<Fact>]
