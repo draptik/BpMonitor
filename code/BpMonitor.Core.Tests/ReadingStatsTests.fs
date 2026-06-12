@@ -60,7 +60,7 @@ let ``dailyAverages: single reading returns one entry with same values`` () =
   let r = mkReading 1 130 85 68 (now.AddDays(-1.0))
   let result = ReadingStats.dailyAverages [ r ]
   test <@ result.Length = 1 @>
-  let day = result.[0]
+  let day = result[0]
   test <@ day.Systolic = 130 @>
   test <@ day.Diastolic = 85 @>
   test <@ day.HeartRate = 68 @>
@@ -133,7 +133,7 @@ let ``weeklyAverages: result is sorted ascending`` () =
 let ``weeklyAverages: timestamp is Monday midnight of the ISO week`` () =
   let r = mkReading 1 120 80 60 (DateTimeOffset(2026, 6, 10, 15, 0, 0, TimeSpan.Zero)) // W24 (Wednesday)
   let result = ReadingStats.weeklyAverages [ r ]
-  let ts = result.[0].Timestamp.ToLocalTime()
+  let ts = result[0].Timestamp.ToLocalTime()
   let y, mo, d = ts.Year, ts.Month, ts.Day
   // 2026-W24 starts on 2026-06-08 (Monday)
   test <@ y = 2026 && mo = 6 && d = 8 @>
@@ -170,7 +170,7 @@ let ``monthlyAverages: result is sorted ascending`` () =
 let ``monthlyAverages: timestamp is first of month midnight`` () =
   let r = mkReading 1 120 80 60 (DateTimeOffset(2026, 6, 15, 12, 0, 0, TimeSpan.Zero))
   let result = ReadingStats.monthlyAverages [ r ]
-  let ts = result.[0].Timestamp.ToLocalTime()
+  let ts = result[0].Timestamp.ToLocalTime()
   let y, mo, d = ts.Year, ts.Month, ts.Day
   test <@ y = 2026 && mo = 6 && d = 1 @>
 

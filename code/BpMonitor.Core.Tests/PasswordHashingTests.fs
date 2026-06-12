@@ -40,12 +40,12 @@ let ``verify returns false when hash section is tampered`` () =
   // Base64 uses A-Z a-z 0-9 + /; rotating the first char by +1 in that alphabet always differs.
   let hashPart = parts[2]
   let base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-  let firstChar = hashPart.[0]
+  let firstChar = hashPart[0]
 
   let nextChar =
-    base64Chars.[(base64Chars.IndexOf(firstChar) + 1) % base64Chars.Length]
+    base64Chars[(base64Chars.IndexOf(firstChar) + 1) % base64Chars.Length]
 
-  let tampered = $"{parts[0]}.{parts[1]}.{nextChar}{hashPart.[1..]}"
+  let tampered = $"{parts[0]}.{parts[1]}.{nextChar}{hashPart[1..]}"
   test <@ not (PasswordHashing.verify "secret" tampered) @>
 
 [<Fact>]

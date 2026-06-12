@@ -34,7 +34,7 @@ code/
 | Validation | `FsToolkit.ErrorHandling` — applicative validation with `Validation<'ok, 'err>` |
 | Architecture | Clean Architecture (Core has zero dependencies on other projects) |
 | Architecture tests | ArchUnit (via `BpMonitor.Arch.Tests`) |
-| Test runner | xUnit v3 on Microsoft.Testing.Platform (MTP) — all 8 test projects run in parallel via `dotnet test` (default `--max-parallel-test-modules` = CPU count) |
+| Test runner | xUnit v3 on Microsoft.Testing.Platform (MTP) — all 7 test projects run in parallel via `dotnet test` (default `--max-parallel-test-modules` = CPU count) |
 | Test coverage | `Microsoft.Testing.Extensions.CodeCoverage` (18.0.6); run with `dotnet test -- --coverage --coverage-output-format cobertura`; outputs one GUID-named `.cobertura.xml` per project into `TestResults/` |
 
 ## Data Model
@@ -97,6 +97,10 @@ graph TD
     Web --> Charts
 ```
 
+> **Note:** `Import` and `Export` are standalone reusable libraries. They depend only
+> on `Core` and are not referenced by `Web` — they are kept for potential future wiring
+> or external tooling use after the TUI was removed (PR #151).
+
 ## Project Responsibilities
 
 ### BpMonitor.Core
@@ -123,6 +127,7 @@ graph TD
 
 ### BpMonitor.Import
 
+- Standalone reusable library — **not referenced by `BpMonitor.Web`**
 - Parses blood pressure readings from Markdown files (`parseMarkdown`, `parseLine`)
 - Upsert import logic with summary (`ImportSummary`: added, updated, failed counts)
 - Imports `BloodPressureReading` lists from JSON (`JsonImport.parse`, `JsonImport.tryReadFromFile`, `JsonImport.import`)
@@ -136,6 +141,7 @@ graph TD
 
 ### BpMonitor.Export
 
+- Standalone reusable library — **not referenced by `BpMonitor.Web`**
 - JSON serialisation of `BloodPressureReading` lists (`serialize`, `tryWriteToFile`)
 - Depends on Core only
 

@@ -2,7 +2,13 @@
 
 ## Status
 
-Accepted
+Accepted  
+**Note:** The "single-user application" framing in the Context section was superseded
+by [ADR-0005](0005-multi-user-family-support.md) (multi-user family support) and
+[ADR-0006](0006-per-member-authentication.md) (per-member authentication). SQLite
+remains the correct choice — the WAL + scoped-DbContext arguments still hold for a
+small family group — but the single-writer assumption no longer applies. The TUI
+referenced here was also removed in PR #151.
 
 ## Context
 

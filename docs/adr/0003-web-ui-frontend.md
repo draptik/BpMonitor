@@ -2,7 +2,10 @@
 
 ## Status
 
-Accepted
+Accepted  
+**Note:** The TUI mentioned throughout this ADR was removed in PR #151. `BpMonitor.Web`
+is now the sole interface. References to "alongside the TUI" and "Two UIs" in the
+Consequences section are historical; the current architecture has one UI only.
 
 ## Context
 
