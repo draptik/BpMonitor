@@ -199,18 +199,17 @@ module TrendPeriod =
 
   /// Fixed-window list of periods ending at the current one, in chronological order
   /// (oldest first, newest/current last). Window sizes: Weekly = 12, Monthly = 12, Yearly = 5.
-  let available (gran: Granularity) (now: DateTimeOffset) (_readings: BloodPressureReading list) : TrendPeriod list =
+  let available (gran: Granularity) (now: DateTimeOffset) : TrendPeriod list =
     let windowSize =
       match gran with
       | Weekly -> 12
       | Monthly -> 12
       | Yearly -> 5
 
-    // Collect periods going backwards from current, then reverse for chronological order.
-    // acc head is always the most recently collected period (starts at current).
+    // Walk backwards from current, prepending each older period; result is oldest-first.
     let rec collect (p: TrendPeriod) (remaining: int) (acc: TrendPeriod list) =
       if remaining = 0 then
-        acc // acc = [curr, prev, prev-1, ..., oldest] — reverse below
+        acc
       else
         let prevKey = (current gran (p.Start.AddDays(-1.0))).Key
 
@@ -219,7 +218,4 @@ module TrendPeriod =
         | Some prev -> collect prev (remaining - 1) (prev :: acc)
 
     let curr = current gran now
-    // Build [oldest, ..., prev, curr] — collect walks backwards then we get oldest-first naturally
-    // because each older period is prepended.
-    // acc = [oldest, ..., prev, curr] because each older period is prepended
     collect curr (windowSize - 1) [ curr ]

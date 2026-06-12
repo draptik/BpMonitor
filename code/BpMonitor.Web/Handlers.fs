@@ -323,8 +323,8 @@ module Handlers =
 
         let theme =
           match ctx.Request.Query.TryGetValue "theme" with
-          | true, v when string v = "dark" -> "dark"
-          | _ -> "light"
+          | true, v when string v = "dark" -> Dark
+          | _ -> Light
 
         let granStr =
           match ctx.Request.Query.TryGetValue "gran" with
@@ -364,7 +364,7 @@ module Handlers =
         let period = TrendPeriod.current Weekly now
         let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
         let summary = ReadingStats.summarizeRange period windowed
-        let periods = TrendPeriod.available Weekly now allReadings
+        let periods = TrendPeriod.available Weekly now
 
         let tableReadings = windowed |> List.sortByDescending _.Timestamp
 
@@ -392,7 +392,7 @@ module Handlers =
 
           let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
           let summary = ReadingStats.summarizeRange period windowed
-          let periods = TrendPeriod.available gran now allReadings
+          let periods = TrendPeriod.available gran now
           let tableReadings = windowed |> List.sortByDescending _.Timestamp
 
           htmlResponse (Views.trendsPanel summary periods tableReadings) ctx
