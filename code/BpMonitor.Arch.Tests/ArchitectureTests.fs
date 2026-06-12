@@ -25,23 +25,24 @@ let private architecture =
     )
     .Build()
 
-let private coreTypes =
-  ArchRuleDefinition.Types().That().ResideInAssembly(typeof<BloodPressureReading>.Assembly)
+// When running under MTP code coverage, a StaticManagedTrackerTemplate type gets
+// injected into every instrumented assembly. ArchUnitNET sees the same tracker type
+// across multiple assemblies and incorrectly reports cross-assembly dependencies.
+// Filter out Microsoft.CodeCoverage types to prevent these false positives.
+let private appTypes (assembly: System.Reflection.Assembly) =
+  ArchRuleDefinition
+    .Types()
+    .That()
+    .ResideInAssembly(assembly)
+    .And()
+    .DoNotResideInNamespaceMatching("Microsoft\\.CodeCoverage.*")
 
-let private dataTypes =
-  ArchRuleDefinition.Types().That().ResideInAssembly(typeof<EfReadingRepository>.Assembly)
-
-let private importTypes =
-  ArchRuleDefinition.Types().That().ResideInAssembly(typeof<ImportSummary>.Assembly)
-
-let private chartsTypes =
-  ArchRuleDefinition.Types().That().ResideInAssembly(chartsAssembly)
-
-let private exportTypes =
-  ArchRuleDefinition.Types().That().ResideInAssembly(exportAssembly)
-
-let private webTypes =
-  ArchRuleDefinition.Types().That().ResideInAssembly(webAssembly)
+let private coreTypes = appTypes typeof<BloodPressureReading>.Assembly
+let private dataTypes = appTypes typeof<EfReadingRepository>.Assembly
+let private importTypes = appTypes typeof<ImportSummary>.Assembly
+let private chartsTypes = appTypes chartsAssembly
+let private exportTypes = appTypes exportAssembly
+let private webTypes = appTypes webAssembly
 
 [<Fact>]
 let ``Core should not depend on Data`` () =

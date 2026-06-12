@@ -34,6 +34,8 @@ code/
 | Validation | `FsToolkit.ErrorHandling` — applicative validation with `Validation<'ok, 'err>` |
 | Architecture | Clean Architecture (Core has zero dependencies on other projects) |
 | Architecture tests | ArchUnit (via `BpMonitor.Arch.Tests`) |
+| Test runner | xUnit v3 on Microsoft.Testing.Platform (MTP) — all 8 test projects run in parallel via `dotnet test` (default `--max-parallel-test-modules` = CPU count) |
+| Test coverage | `Microsoft.Testing.Extensions.CodeCoverage` (18.0.6); run with `dotnet test -- --coverage --coverage-output-format cobertura`; outputs one GUID-named `.cobertura.xml` per project into `TestResults/` |
 
 ## Data Model
 

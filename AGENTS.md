@@ -96,6 +96,24 @@ Never start work on `main`. Creating the branch is the first step, not an aftert
 - `CONTRIBUTING.md` — developer setup, linting, testing, release process
 - `.claude/skills/` — skill definitions (git-workflow, review-tests, setup-tooling, model-advisor, status-bar)
 
+## Testing
+
+Tests run on **Microsoft.Testing.Platform (MTP)** — all 8 test projects execute in parallel (default: CPU count concurrent modules):
+
+```bash
+# Run all tests in parallel (local dev)
+dotnet test --configuration Release
+
+# Run with coverage (matches CI)
+dotnet test --configuration Release --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
+# → produces one GUID-named *.cobertura.xml per project under TestResults/
+
+# Limit parallelism (e.g. on a 2-core machine)
+dotnet test --configuration Release --max-parallel-test-modules 2
+```
+
+`BpMonitor.Arch.Tests` uses `DoNotResideInNamespaceMatching("Microsoft\\.CodeCoverage.*")` in its type filters to exclude coverage-injected tracker types from ArchUnitNET dependency checks.
+
 ## Dev Tooling
 
 All non-dotnet linter versions are pinned in `mise.toml` (repo root). Run `mise install` once after cloning.
