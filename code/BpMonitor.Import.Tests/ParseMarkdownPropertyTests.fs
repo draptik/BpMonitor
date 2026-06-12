@@ -49,4 +49,4 @@ let ``parseMarkdown triples reference their source line`` () =
     let lines = items |> List.map renderDocLine
 
     parseMarkdown (String.concat "\n" lines)
-    |> List.forall (fun (n, line, _) -> n >= 1 && n <= lines.Length && lines.[n - 1] = line))
+    |> List.forall (fun (n, line, _) -> n >= 1 && n <= lines.Length && lines[n - 1] = line))

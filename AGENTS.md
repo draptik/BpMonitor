@@ -51,14 +51,20 @@ The following are available as slash commands (defined in `.claude/skills/`):
 ```text
 code/
 ├── BpMonitor.slnx
-├── BpMonitor.Core        # Domain models (BloodPressureReading + FamilyMember), interfaces, PasswordHashing, business logic
-├── BpMonitor.Data        # EF Core + SQLite, member-scoped repository implementations
-├── BpMonitor.Import      # Markdown and JSON importers (take memberId param)
-├── BpMonitor.Export      # JSON serialisation and file write
-├── BpMonitor.Charts      # Plotly.NET chart generation → HTML output
-├── BpMonitor.Web         # Falco web app (login + per-member auth, landing, add, history, members pages); Serilog structured stdout logging
-└── BpMonitor.Arch.Tests  # ArchUnit Clean Architecture rules
-docs/                     # Product vision, architecture, ADRs
+├── BpMonitor.Core              # Domain models (BloodPressureReading + FamilyMember), interfaces, PasswordHashing, business logic
+├── BpMonitor.Core.Tests
+├── BpMonitor.Data              # EF Core + SQLite, member-scoped repository implementations
+├── BpMonitor.Data.Tests
+├── BpMonitor.Import            # Markdown and JSON importers (standalone reusable library; not wired into Web)
+├── BpMonitor.Import.Tests
+├── BpMonitor.Export            # JSON serialisation and file write (standalone reusable library; not wired into Web)
+├── BpMonitor.Export.Tests
+├── BpMonitor.Charts            # Plotly.NET chart generation → HTML output
+├── BpMonitor.Charts.Tests
+├── BpMonitor.Web               # Falco web app (login + per-member auth, landing, add, history, members pages); Serilog structured stdout logging
+├── BpMonitor.Web.Tests
+└── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules
+docs/                           # Product vision, architecture, ADRs
 ```
 
 ## Documentation
@@ -98,7 +104,7 @@ Never start work on `main`. Creating the branch is the first step, not an aftert
 
 ## Testing
 
-Tests run on **Microsoft.Testing.Platform (MTP)** — all 8 test projects execute in parallel (default: CPU count concurrent modules):
+Tests run on **Microsoft.Testing.Platform (MTP)** — all 7 test projects execute in parallel (default: CPU count concurrent modules):
 
 ```bash
 # Run all tests in parallel (local dev)
