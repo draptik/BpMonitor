@@ -12,6 +12,7 @@ open Microsoft.Extensions.Logging
 open Falco.Markup
 open BpMonitor.Core
 open BpMonitor.Charts
+open BpMonitor.Export
 
 /// Falco HttpHandlers. Each resolves the per-request scoped repository from DI,
 /// reuses Core validation, and renders Falco.Markup views.
@@ -220,7 +221,7 @@ module Handlers =
       if PasswordHashing.verify password hash then
         log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
         do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal m)
-        ctx.Response.Redirect "/"
+        ctx.Response.Redirect Routes.home
       else
         log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
         ctx.Response.StatusCode <- 401
@@ -244,7 +245,7 @@ module Handlers =
         (memberRepo ctx).Update(claimed)
         log.LogInformation("Member {Name} (Id={Id}) claimed their account", m.Name, m.Id)
         do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal claimed)
-        ctx.Response.Redirect "/"
+        ctx.Response.Redirect Routes.home
     }
     :> Task
 
@@ -401,17 +402,17 @@ module Handlers =
 
       htmlResponse
         (ReadingViews.readingForm
-          "/add"
+          Routes.add
           (m |> Option.map _.Name |> Option.defaultValue "")
           (m |> Option.exists _.IsAdmin)
           "Add reading"
-          "/readings"
+          Routes.readings
           []
           prefill)
         ctx
 
   let createReading: HttpContext -> Task =
-    withMember (fun m ctx -> submit ctx "/add" m.Name m.IsAdmin "Add reading" "/readings" ((repo ctx).Add m.Id))
+    withMember (fun m ctx -> submit ctx Routes.add m.Name m.IsAdmin "Add reading" Routes.readings ((repo ctx).Add m.Id))
 
   let editReading: HttpContext -> Task =
     withMember (fun m ctx ->
@@ -442,6 +443,13 @@ module Handlers =
       | Some id ->
         submit ctx "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" (fun r ->
           (repo ctx).Update { r with Id = id; MemberId = m.Id }))
+
+  let exportJson: HttpContext -> Task =
+    withMember (fun m ctx ->
+      let json = JsonExport.serialize ((repo ctx).GetAll(m.Id))
+      ctx.Response.ContentType <- "application/json; charset=utf-8"
+      ctx.Response.Headers.Append("Content-Disposition", "attachment; filename=\"bpmonitor-export.json\"")
+      ctx.Response.WriteAsync json)
 
   // ---------------------------------------------------------------------------
   // Member management (all protectAdmin — must be admin)

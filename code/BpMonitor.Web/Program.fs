@@ -16,25 +16,26 @@ open BpMonitor.Web
 
 let private endpoints =
   [ // Anonymous: login/logout
-    get "/login" Handlers.loginPage
-    post "/login" Handlers.loginWithCredentials
+    get Routes.login Handlers.loginPage
+    post Routes.login Handlers.loginWithCredentials
     get "/login/{id:int}" Handlers.loginMember
     post "/login/{id:int}" Handlers.loginSubmit
-    post "/logout" Handlers.logout
+    post Routes.logout Handlers.logout
     // Authenticated: reading CRUD + app pages
-    get "/" (Handlers.protect Handlers.landing)
-    get "/add" (Handlers.protect Handlers.newReading)
-    get "/history" (Handlers.protect Handlers.history)
-    get "/chart" (Handlers.protect Handlers.chart)
-    get "/trends" (Handlers.protect Handlers.trends)
+    get Routes.home (Handlers.protect Handlers.landing)
+    get Routes.add (Handlers.protect Handlers.newReading)
+    get Routes.history (Handlers.protect Handlers.history)
+    get Routes.chart (Handlers.protect Handlers.chart)
+    get Routes.trends (Handlers.protect Handlers.trends)
     get "/trends/{gran}" (Handlers.protect Handlers.trendsPanel)
     get "/trends/{gran}/{key}" (Handlers.protect Handlers.trendsPanel)
-    post "/readings" (Handlers.protect Handlers.createReading)
+    get Routes.export (Handlers.protect Handlers.exportJson)
+    post Routes.readings (Handlers.protect Handlers.createReading)
     get "/readings/{id:int}/edit" (Handlers.protect Handlers.editReading)
     post "/readings/{id:int}" (Handlers.protect Handlers.updateReading)
     // Admin-only: member management
-    get "/members" (Handlers.protectAdmin Handlers.members)
-    post "/members" (Handlers.protectAdmin Handlers.createMember)
+    get Routes.members (Handlers.protectAdmin Handlers.members)
+    post Routes.members (Handlers.protectAdmin Handlers.createMember)
     get "/members/{id:int}/edit" (Handlers.protectAdmin Handlers.editMember)
     post "/members/{id:int}" (Handlers.protectAdmin Handlers.updateMember)
     post "/members/{id:int}/reset-password" (Handlers.protectAdmin Handlers.resetPassword) ]

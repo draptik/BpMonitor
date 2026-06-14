@@ -42,10 +42,14 @@ module ViewLayout =
               [ Elem.ul
                   []
                   [ Elem.li [] [ Elem.strong [] [ Text.raw "BpMonitor" ] ]
-                    navLink active "/" "Home"
-                    navLink active "/add" "Add"
+                    navLink active Routes.home "Home"
+                    navLink active Routes.add "Add"
                     navLink active Routes.history "History"
-                    navLink active "/trends" "Trends"
+                    navLink active Routes.trends "Trends"
+                    // hx-boost="false" prevents htmx from AJAX-swapping the download response.
+                    Elem.li
+                      []
+                      [ Elem.a [ Attr.href Routes.export; Attr.create "hx-boost" "false" ] [ Text.raw "Export" ] ]
                     if isAdmin then
                       navLink active Routes.members "Members" ]
                 Elem.ul
