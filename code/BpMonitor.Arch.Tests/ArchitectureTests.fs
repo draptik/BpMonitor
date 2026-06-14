@@ -6,7 +6,6 @@ open ArchUnitNET.Fluent
 open ArchUnitNET.xUnit
 open BpMonitor.Core
 open BpMonitor.Data
-open BpMonitor.Import.MarkdownImport
 open Xunit
 
 let private chartsAssembly = Assembly.Load("BpMonitor.Charts")
@@ -18,7 +17,6 @@ let private architecture =
     .LoadAssemblies(
       typeof<BloodPressureReading>.Assembly,
       typeof<EfReadingRepository>.Assembly,
-      typeof<ImportSummary>.Assembly,
       chartsAssembly,
       exportAssembly,
       webAssembly
@@ -39,7 +37,6 @@ let private appTypes (assembly: System.Reflection.Assembly) =
 
 let private coreTypes = appTypes typeof<BloodPressureReading>.Assembly
 let private dataTypes = appTypes typeof<EfReadingRepository>.Assembly
-let private importTypes = appTypes typeof<ImportSummary>.Assembly
 let private chartsTypes = appTypes chartsAssembly
 let private exportTypes = appTypes exportAssembly
 let private webTypes = appTypes webAssembly
@@ -47,21 +44,6 @@ let private webTypes = appTypes webAssembly
 [<Fact>]
 let ``Core should not depend on Data`` () =
   let rule = coreTypes.Should().NotDependOnAny(dataTypes)
-  ArchRuleAssert.CheckRule(architecture, rule)
-
-[<Fact>]
-let ``Import should not depend on Data`` () =
-  let rule = importTypes.Should().NotDependOnAny(dataTypes)
-  ArchRuleAssert.CheckRule(architecture, rule)
-
-[<Fact>]
-let ``Import should not depend on Charts`` () =
-  let rule = importTypes.Should().NotDependOnAny(chartsTypes)
-  ArchRuleAssert.CheckRule(architecture, rule)
-
-[<Fact>]
-let ``Import should not depend on Export`` () =
-  let rule = importTypes.Should().NotDependOnAny(exportTypes)
   ArchRuleAssert.CheckRule(architecture, rule)
 
 [<Fact>]
@@ -80,11 +62,6 @@ let ``Export should not depend on Charts`` () =
   ArchRuleAssert.CheckRule(architecture, rule)
 
 [<Fact>]
-let ``Export should not depend on Import`` () =
-  let rule = exportTypes.Should().NotDependOnAny(importTypes)
-  ArchRuleAssert.CheckRule(architecture, rule)
-
-[<Fact>]
 let ``Core should not depend on Web`` () =
   let rule = coreTypes.Should().NotDependOnAny(webTypes)
   ArchRuleAssert.CheckRule(architecture, rule)
@@ -100,28 +77,13 @@ let ``Charts should not depend on Web`` () =
   ArchRuleAssert.CheckRule(architecture, rule)
 
 [<Fact>]
-let ``Import should not depend on Web`` () =
-  let rule = importTypes.Should().NotDependOnAny(webTypes)
-  ArchRuleAssert.CheckRule(architecture, rule)
-
-[<Fact>]
 let ``Export should not depend on Web`` () =
   let rule = exportTypes.Should().NotDependOnAny(webTypes)
   ArchRuleAssert.CheckRule(architecture, rule)
 
 [<Fact>]
-let ``Web should not depend on Import`` () =
-  let rule = webTypes.Should().NotDependOnAny(importTypes)
-  ArchRuleAssert.CheckRule(architecture, rule)
-
-[<Fact>]
 let ``Core should not depend on Charts`` () =
   let rule = coreTypes.Should().NotDependOnAny(chartsTypes)
-  ArchRuleAssert.CheckRule(architecture, rule)
-
-[<Fact>]
-let ``Core should not depend on Import`` () =
-  let rule = coreTypes.Should().NotDependOnAny(importTypes)
   ArchRuleAssert.CheckRule(architecture, rule)
 
 [<Fact>]

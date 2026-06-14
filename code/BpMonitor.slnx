@@ -12,8 +12,6 @@
   <Project Path="BpMonitor.Core/BpMonitor.Core.fsproj" />
   <Project Path="BpMonitor.Data/BpMonitor.Data.fsproj" />
   <Project Path="BpMonitor.Data.Tests/BpMonitor.Data.Tests.fsproj" />
-  <Project Path="BpMonitor.Import.Tests/BpMonitor.Import.Tests.fsproj" />
-  <Project Path="BpMonitor.Import/BpMonitor.Import.fsproj" />
   <Project Path="BpMonitor.Export/BpMonitor.Export.fsproj" />
   <Project Path="BpMonitor.Export.Tests/BpMonitor.Export.Tests.fsproj" />
   <Project Path="BpMonitor.Web/BpMonitor.Web.fsproj" />
