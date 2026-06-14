@@ -451,6 +451,13 @@ module Handlers =
       ctx.Response.Headers.Append("Content-Disposition", "attachment; filename=\"bpmonitor-export.json\"")
       ctx.Response.WriteAsync json)
 
+  let exportCsv: HttpContext -> Task =
+    withMember (fun m ctx ->
+      let csv = CsvExport.serialize ((repo ctx).GetAll(m.Id))
+      ctx.Response.ContentType <- "text/csv; charset=utf-8"
+      ctx.Response.Headers.Append("Content-Disposition", "attachment; filename=\"bpmonitor-export.csv\"")
+      ctx.Response.WriteAsync csv)
+
   // ---------------------------------------------------------------------------
   // Member management (all protectAdmin — must be admin)
   // ---------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <Compile Include="JsonExport.fs" />
+    <Compile Include="CsvExport.fs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="JsonExportTests.fs" />
+    <Compile Include="CsvExportTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
