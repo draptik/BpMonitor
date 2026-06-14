@@ -52,19 +52,3 @@ docker compose -f deploy/docker-compose.yml up -d
 ```
 
 See [deploy/README.md](../deploy/README.md) for container configuration, Podman, and systemd Quadlet instructions.
-
-## Helper scripts
-
-`docs/scripts/` contains convenience scripts for managing a local installation:
-
-- **Install and configure:** patches `appsettings.json` with a custom `MarkdownDirectory`:
-
-  ```bash
-  IMPORT_FILE_LOCATION=~/documents/health bash docs/scripts/install.sh
-  ```
-
-- **Remove local installation:**
-
-  ```bash
-  bash docs/scripts/clean.sh
-  ```

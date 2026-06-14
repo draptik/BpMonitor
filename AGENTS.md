@@ -57,7 +57,7 @@ code/
 ├── BpMonitor.Data.Tests
 ├── BpMonitor.Import            # Markdown and JSON importers (standalone reusable library; not wired into Web)
 ├── BpMonitor.Import.Tests
-├── BpMonitor.Export            # JSON serialisation and file write (standalone reusable library; not wired into Web)
+├── BpMonitor.Export            # JSON and CSV serialisation and file write (wired into Web for /export and /export.csv endpoints)
 ├── BpMonitor.Export.Tests
 ├── BpMonitor.Charts            # Plotly.NET chart generation → HTML output
 ├── BpMonitor.Charts.Tests
