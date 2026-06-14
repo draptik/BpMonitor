@@ -33,8 +33,6 @@ module IsoWeek =
 
 module TrendPeriod =
   open System
-  open System.Globalization
-
   // ── private helpers ─────────────────────────────────────────────────────────
 
   let private localMidnight (date: DateTime) : DateTimeOffset =

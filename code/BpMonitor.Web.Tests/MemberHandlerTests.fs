@@ -5,7 +5,6 @@ open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.DependencyInjection
 open BpMonitor.Core
-open BpMonitor.Data
 open BpMonitor.Web
 open HandlerTestHelpers
 

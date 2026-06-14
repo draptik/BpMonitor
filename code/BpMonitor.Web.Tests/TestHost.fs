@@ -8,9 +8,7 @@ open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
-open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Primitives
-open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
 open BpMonitor.Data
 

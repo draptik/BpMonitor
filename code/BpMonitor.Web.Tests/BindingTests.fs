@@ -1,7 +1,6 @@
 module BindingTests
 
 open Xunit
-open FsCheck
 open FsCheck.Xunit
 open Swensen.Unquote
 open BpMonitor.Web
