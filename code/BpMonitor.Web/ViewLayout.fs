@@ -49,7 +49,13 @@ module ViewLayout =
                     // hx-boost="false" prevents htmx from AJAX-swapping the download response.
                     Elem.li
                       []
-                      [ Elem.a [ Attr.href Routes.export; Attr.create "hx-boost" "false" ] [ Text.raw "Export" ] ]
+                      [ Elem.a
+                          [ Attr.href Routes.exportJson; Attr.create "hx-boost" "false" ]
+                          [ Text.raw "Export JSON" ] ]
+                    // hx-boost="false" prevents htmx from AJAX-swapping the download response.
+                    Elem.li
+                      []
+                      [ Elem.a [ Attr.href Routes.exportCsv; Attr.create "hx-boost" "false" ] [ Text.raw "Export CSV" ] ]
                     if isAdmin then
                       navLink active Routes.members "Members" ]
                 Elem.ul

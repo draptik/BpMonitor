@@ -1,0 +1,2 @@
+﻿Id,MemberId,Systolic,Diastolic,HeartRate,Timestamp,Comments,CreatedAt,ModifiedAt
+1,1,120,80,70,2024-10-15T09:00:00.0000000+00:00,morning,2024-10-15T09:00:00.0000000+00:00,2024-10-15T09:00:00.0000000+00:00
