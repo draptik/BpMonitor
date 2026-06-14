@@ -39,7 +39,7 @@ module BpChart =
   // The chart is rendered inside an iframe (separate document), so the iframe body
   // background must be set explicitly — it does not inherit the parent page theme.
   // `height` is passed in from the caller (read from the ?height= query param set by theme.js,
-  // which reads --chart-h from the page CSS) so the value is defined only in app.css.
+  // which reads --chart-height from the page CSS) so the value is defined only in app.css.
   let private injectBodyStyle (theme: Theme) (height: string) (html: string) =
     let heightStyle = $"html,body{{height:100%%;margin:0}}body>div{{height:{height}}}"
 
