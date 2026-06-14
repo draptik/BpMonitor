@@ -44,21 +44,25 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.Time
       MemberMapping.toDomain entry.Entity
 
     member _.Update(m) =
-      let now = timeProvider.GetUtcNow()
+      // Guard: only update if the member exists (prevents DbUpdateConcurrencyException on missing rows).
+      let exists = ctx.Members.AsNoTracking() |> Seq.exists (fun r -> r.Id = m.Id)
 
-      // Detach any tracked entity with the same Id to avoid EF tracking conflicts.
-      ctx.ChangeTracker.Entries<MemberRecord>()
-      |> Seq.tryFind (fun e -> e.Entity.Id = m.Id)
-      |> Option.iter (fun e -> e.State <- Microsoft.EntityFrameworkCore.EntityState.Detached)
+      if exists then
+        let now = timeProvider.GetUtcNow()
 
-      let entity: MemberRecord =
-        { Id = m.Id
-          Name = m.Name
-          IsAdmin = m.IsAdmin
-          IsActive = m.IsActive
-          PasswordHash = m.PasswordHash |> Option.defaultValue ""
-          CreatedAt = m.CreatedAt
-          ModifiedAt = now }
+        // Detach any tracked entity with the same Id to avoid EF tracking conflicts.
+        ctx.ChangeTracker.Entries<MemberRecord>()
+        |> Seq.tryFind (fun e -> e.Entity.Id = m.Id)
+        |> Option.iter (fun e -> e.State <- Microsoft.EntityFrameworkCore.EntityState.Detached)
 
-      ctx.Members.Update(entity) |> ignore
-      ctx.SaveChanges() |> ignore
+        let entity: MemberRecord =
+          { Id = m.Id
+            Name = m.Name
+            IsAdmin = m.IsAdmin
+            IsActive = m.IsActive
+            PasswordHash = m.PasswordHash |> Option.defaultValue ""
+            CreatedAt = m.CreatedAt
+            ModifiedAt = now }
+
+        ctx.Members.Update(entity) |> ignore
+        ctx.SaveChanges() |> ignore

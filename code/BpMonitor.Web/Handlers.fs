@@ -420,7 +420,11 @@ module Handlers =
 
       match routeInt ctx "id" with
       | None ->
-        log.LogWarning("editReading: bad route value for {id}")
+        log.LogWarning(
+          "editReading: bad route value for {RouteId}",
+          routeStr ctx "id" |> Option.defaultValue "<missing>"
+        )
+
         badRequest ctx
       | Some id ->
         match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
@@ -438,7 +442,11 @@ module Handlers =
 
       match routeInt ctx "id" with
       | None ->
-        log.LogWarning("updateReading: bad route value for {id}")
+        log.LogWarning(
+          "updateReading: bad route value for {RouteId}",
+          routeStr ctx "id" |> Option.defaultValue "<missing>"
+        )
+
         badRequest ctx
       | Some id ->
         submit ctx "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" (fun r ->
@@ -494,7 +502,11 @@ module Handlers =
 
       match routeInt ctx "id" with
       | None ->
-        log.LogWarning("editMember: bad route value for {id}")
+        log.LogWarning(
+          "editMember: bad route value for {RouteId}",
+          routeStr ctx "id" |> Option.defaultValue "<missing>"
+        )
+
         badRequest ctx
       | Some id ->
         match (memberRepo ctx).GetById(id) with
@@ -562,7 +574,11 @@ module Handlers =
 
         match routeInt ctx "id" with
         | None ->
-          log.LogWarning("updateMember: bad route value for {id}")
+          log.LogWarning(
+            "updateMember: bad route value for {RouteId}",
+            routeStr ctx "id" |> Option.defaultValue "<missing>"
+          )
+
           do! badRequest ctx
         | Some id ->
           match (memberRepo ctx).GetById(id) with
@@ -592,7 +608,11 @@ module Handlers =
 
         match routeInt ctx "id" with
         | None ->
-          log.LogWarning("resetPassword: bad route value for {id}")
+          log.LogWarning(
+            "resetPassword: bad route value for {RouteId}",
+            routeStr ctx "id" |> Option.defaultValue "<missing>"
+          )
+
           do! badRequest ctx
         | Some id ->
           match (memberRepo ctx).GetById(id) with

@@ -132,3 +132,15 @@ let ``Update sets ModifiedAt to current time and preserves CreatedAt`` () =
   let result = (repo.GetById added.Id).Value
   test <@ result.CreatedAt = createdAt @>
   test <@ result.ModifiedAt = updatedAt @>
+
+[<Fact>]
+let ``Update of a non-existent member is a no-op`` () =
+  use ctx = createContext ()
+
+  let repo =
+    EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
+
+  let ghost = newMember "Ghost" false
+  let ghostWithId = { ghost with Id = 999 }
+  repo.Update(ghostWithId)
+  test <@ repo.GetAll() = [] @>
