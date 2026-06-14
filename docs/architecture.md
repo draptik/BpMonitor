@@ -9,8 +9,6 @@ code/
 ├── BpMonitor.Core.Tests     # Unit tests for Core
 ├── BpMonitor.Data           # EF Core + SQLite, repository implementations
 ├── BpMonitor.Data.Tests     # Integration tests for Data
-├── BpMonitor.Import         # Markdown and JSON importers
-├── BpMonitor.Import.Tests   # Unit tests for Import
 ├── BpMonitor.Charts         # Plotly.NET chart generation
 ├── BpMonitor.Charts.Tests   # Snapshot tests for Charts
 ├── BpMonitor.Export         # JSON and CSV serialisation and file write
@@ -83,13 +81,11 @@ type ValidationError =
 graph TD
     Core[BpMonitor.Core]
     Data[BpMonitor.Data]
-    Import[BpMonitor.Import]
     Export[BpMonitor.Export]
     Charts[BpMonitor.Charts]
     Web[BpMonitor.Web]
 
     Data --> Core
-    Import --> Core
     Charts --> Core
     Export --> Core
     Web --> Core
@@ -98,9 +94,8 @@ graph TD
     Web --> Export
 ```
 
-> **Note:** `Import` is a standalone reusable library that depends only on `Core` and is
-> not referenced by `Web`. `Export` is also a Core-only dependency but is wired into `Web`
-> to serve the `/export` (JSON) and `/export.csv` endpoints.
+> **Note:** `Export` depends only on `Core` and is wired into `Web` to serve the `/export`
+> (JSON) and `/export.csv` endpoints.
 
 ## Project Responsibilities
 
@@ -127,14 +122,6 @@ graph TD
 - Manual schema migrations via `SchemaMigrations.apply` (EF Core migrations do not support F#); handles `Members` table creation, default-member seeding, `MemberId` backfill for existing rows, `IsAdmin`/`IsActive` column additions, and `PasswordHash TEXT DEFAULT ''` column addition; `ensureActiveAdmin` promotes the lowest-Id member when no active admin exists (upgrade path for pre-PR#157 DBs)
 - `DemoSeeder.seedIfEmpty` — seeds the Simpson-family demo dataset (from `DemoData` in Core) when `BpMonitor:SeedDemoData=true` and the store is empty; called once at startup in `Program.fs` after `SchemaMigrations.apply`; repurposes the auto-seeded "Me" member as Marge so the family count is exactly 5; members are seeded unclaimed (no password) so the normal first-login claim flow applies; idempotent (no-op if readings already exist)
 - `ReadingRepositoryFactory` / `FamilyMemberRepository` factory wiring
-
-### BpMonitor.Import
-
-- Standalone reusable library — **not referenced by `BpMonitor.Web`**
-- Parses blood pressure readings from Markdown files (`parseMarkdown`, `parseLine`)
-- Upsert import logic with summary (`ImportSummary`: added, updated, failed counts)
-- Imports `BloodPressureReading` lists from JSON (`JsonImport.parse`, `JsonImport.tryReadFromFile`, `JsonImport.import`)
-- Depends on Core only
 
 ### BpMonitor.Charts
 
@@ -180,9 +167,8 @@ graph TD
 - ArchUnit rules enforcing Clean Architecture layer boundaries
 - Core must not depend on Data, Web
 - Data must not depend on Web
-- Import must not depend on Data, Charts, Export, Web
 - Charts must not depend on Data, Web
-- Export must not depend on Data, Charts, Import, Web
+- Export must not depend on Data, Charts, Web
 
 ## Design Principles
 
