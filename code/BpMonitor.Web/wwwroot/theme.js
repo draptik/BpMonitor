@@ -5,9 +5,10 @@
 })();
 
 function updateChartIframes(theme) {
+  var chartHeight = getComputedStyle(document.documentElement).getPropertyValue('--chart-height').trim() || '620px';
   document.querySelectorAll('[data-chart-src]').forEach(function(el) {
     var base = el.getAttribute('data-chart-src');
-    el.src = base + (base.includes('?') ? '&' : '?') + 'theme=' + theme;
+    el.src = base + (base.includes('?') ? '&' : '?') + 'theme=' + theme + '&height=' + chartHeight;
   });
 }
 
