@@ -153,39 +153,28 @@ module AuthHandlers =
       :> Task
 
   let loginMember: HttpContext -> Task =
-    fun ctx ->
-      match routeInt ctx "id" with
-      | None -> badRequest ctx
-      | Some id ->
-        match (memberRepo ctx).GetById(id) with
-        | None -> notFound ctx
-        | Some m ->
-          if not m.IsActive then
-            ctx.Response.StatusCode <- 403
-            ctx.Response.WriteAsync("This account is inactive")
-          else
-            htmlResponse (LoginViews.loginMember m []) ctx
+    withRouteMember "loginMember" (fun m ctx ->
+      if not m.IsActive then
+        ctx.Response.StatusCode <- 403
+        ctx.Response.WriteAsync("This account is inactive")
+      else
+        htmlResponse (LoginViews.loginMember m []) ctx)
 
   let loginSubmit: HttpContext -> Task =
-    fun ctx ->
+    withRouteMember "loginSubmit" (fun m ctx ->
       task {
-        match routeInt ctx "id" with
-        | None -> do! badRequest ctx
-        | Some id ->
-          match (memberRepo ctx).GetById(id) with
-          | None -> do! notFound ctx
-          | Some m when not m.IsActive ->
-            ctx.Response.StatusCode <- 403
-            do! ctx.Response.WriteAsync("This account is inactive")
-          | Some m ->
-            let! form = ctx.Request.ReadFormAsync()
-            let password = form["Password"].ToString()
+        if not m.IsActive then
+          ctx.Response.StatusCode <- 403
+          do! ctx.Response.WriteAsync("This account is inactive")
+        else
+          let! form = ctx.Request.ReadFormAsync()
+          let password = form["Password"].ToString()
 
-            match m.PasswordHash with
-            | Some hash -> do! claimedLogin m password hash (LoginViews.loginMember m [ "Incorrect password" ]) ctx
-            | None -> do! unclaimedLogin m password (form["PasswordConfirm"].ToString()) ctx
+          match m.PasswordHash with
+          | Some hash -> do! claimedLogin m password hash (LoginViews.loginMember m [ "Incorrect password" ]) ctx
+          | None -> do! unclaimedLogin m password (form["PasswordConfirm"].ToString()) ctx
       }
-      :> Task
+      :> Task)
 
   let logout: HttpContext -> Task =
     fun ctx ->

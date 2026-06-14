@@ -33,27 +33,11 @@ module MemberHandlers =
       :> Task)
 
   let editMember: HttpContext -> Task =
-    fun ctx ->
-      let log = logger ctx
-
+    withRouteMember "editMember" (fun m ctx ->
       let adminName =
         authenticatedMember ctx |> Option.map _.Name |> Option.defaultValue ""
 
-      match routeInt ctx "id" with
-      | None ->
-        log.LogWarning(
-          "editMember: bad route value for {RouteId}",
-          routeStr ctx "id" |> Option.defaultValue "<missing>"
-        )
-
-        badRequest ctx
-      | Some id ->
-        match (memberRepo ctx).GetById(id) with
-        | Some m ->
-          htmlResponse (MemberViews.memberForm Routes.members adminName true "Edit member" $"/members/{id}" [] m) ctx
-        | None ->
-          log.LogWarning("editMember: member {Id} not found", id)
-          notFound ctx
+      htmlResponse (MemberViews.memberForm Routes.members adminName true "Edit member" $"/members/{m.Id}" [] m) ctx)
 
   let private renderMemberEditError
     (id: int)
@@ -104,63 +88,30 @@ module MemberHandlers =
     :> Task
 
   let updateMember: HttpContext -> Task =
-    fun ctx ->
+    withRouteMember "updateMember" (fun existing ctx ->
       task {
-        let log = logger ctx
-
         let adminName =
           authenticatedMember ctx |> Option.map _.Name |> Option.defaultValue ""
 
-        match routeInt ctx "id" with
-        | None ->
-          log.LogWarning(
-            "updateMember: bad route value for {RouteId}",
-            routeStr ctx "id" |> Option.defaultValue "<missing>"
-          )
+        let! form = ctx.Request.ReadFormAsync()
 
-          do! badRequest ctx
-        | Some id ->
-          match (memberRepo ctx).GetById(id) with
-          | None ->
-            log.LogWarning("updateMember: member {Id} not found", id)
-            do! notFound ctx
-          | Some existing ->
-            let! form = ctx.Request.ReadFormAsync()
-
-            do!
-              applyMemberEdit
-                id
-                adminName
-                existing
-                (form["Name"].ToString())
-                (form.ContainsKey("IsAdmin"))
-                (form.ContainsKey("IsActive"))
-                ctx
+        do!
+          applyMemberEdit
+            existing.Id
+            adminName
+            existing
+            (form["Name"].ToString())
+            (form.ContainsKey("IsAdmin"))
+            (form.ContainsKey("IsActive"))
+            ctx
       }
-      :> Task
+      :> Task)
 
   /// Resets a member's password to unclaimed (admin-only).
   let resetPassword: HttpContext -> Task =
-    fun ctx ->
-      task {
-        let log = logger ctx
-
-        match routeInt ctx "id" with
-        | None ->
-          log.LogWarning(
-            "resetPassword: bad route value for {RouteId}",
-            routeStr ctx "id" |> Option.defaultValue "<missing>"
-          )
-
-          do! badRequest ctx
-        | Some id ->
-          match (memberRepo ctx).GetById(id) with
-          | None ->
-            log.LogWarning("resetPassword: member {Id} not found", id)
-            do! notFound ctx
-          | Some m ->
-            (memberRepo ctx).Update({ m with PasswordHash = None })
-            log.LogInformation("Admin reset password for member {Name} (Id={Id})", m.Name, m.Id)
-            ctx.Response.Redirect Routes.members
-      }
-      :> Task
+    withRouteMember "resetPassword" (fun m ctx ->
+      let log = logger ctx
+      (memberRepo ctx).Update({ m with PasswordHash = None })
+      log.LogInformation("Admin reset password for member {Name} (Id={Id})", m.Name, m.Id)
+      ctx.Response.Redirect Routes.members
+      System.Threading.Tasks.Task.CompletedTask)
