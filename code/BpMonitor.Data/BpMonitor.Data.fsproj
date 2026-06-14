@@ -23,6 +23,7 @@
     <Compile Include="SchemaMigrations.fs" />
     <Compile Include="EfReadingRepository.fs" />
     <Compile Include="ReadingRepositoryFactory.fs" />
+    <Compile Include="DemoSeeder.fs" />
   </ItemGroup>
 
 </Project>

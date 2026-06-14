@@ -9,6 +9,7 @@
     <Compile Include="EfReadingRepositoryTests.fs" />
     <Compile Include="EfFamilyMemberRepositoryTests.fs" />
     <Compile Include="SchemaMigrationsTests.fs" />
+    <Compile Include="DemoSeederTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

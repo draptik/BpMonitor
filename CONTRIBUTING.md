@@ -28,6 +28,25 @@ dotnet test
 dotnet run --project code/BpMonitor.Web
 ```
 
+## Demo data (Simpson family)
+
+For developer onboarding and demos, a pre-built Simpson-family dataset can be
+seeded into a fresh database. It covers ~5 years of readings with per-member
+personalities so all features render richly out of the box:
+
+```bash
+# Remove any existing DB and start fresh with the Simpson family
+rm -f code/BpMonitor.Web/bpmonitor.db*
+BpMonitor__SeedDemoData=true dotnet run --project code/BpMonitor.Web
+```
+
+The flag is **off by default** — production databases are never touched. Seeding
+only runs when the database is empty, so a second run with the flag is a no-op.
+
+Members are seeded **unclaimed** (no password). Use the first-login flow at
+`http://localhost:5000/login` to claim a member and set a password. Marge
+Simpson is the admin.
+
 ## Project structure
 
 The solution is split into focused projects under `code/` — Core domain, Data

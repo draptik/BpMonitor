@@ -113,6 +113,7 @@ graph TD
 - `FamilyMember.isClaimed m` — true when `PasswordHash` is `Some`
 - `PasswordHashing` module — pure PBKDF2-SHA256 hashing via BCL (`Rfc2898DeriveBytes`); `hash password → encoded` (iterations.base64salt.base64hash), `verify password encoded → bool` (constant-time compare)
 - `ReadingStats` module — pure statistics/filtering helpers: `since now days readings` (date-window filter), `classify avgSys avgDia → BloodPressureCategory` (AHA 2017 thresholds: Normal/Elevated/Stage1/Stage2), `summarize now days readings → WindowSummary` (count + integer averages + category). Used by the `/trends` page and `/chart?window=` route.
+- `DemoData` module — pure, deterministic demo-data generator: `DemoData.simpsons ranges now` returns the Simpson family (5 members with personalities: Marge normal/admin, Homer hypertensive/frequent, Bart+Lisa kids/sparse, Abe elderly/irregular) plus ~5 years of realistic `BloodPressureReading` values anchored to `now`. Fixed `Random` seed makes output reproducible across calls. Used by `DemoSeeder` in Data and can be used directly in tests for realistic fixtures.
 - Business logic: applicative validation via `FsToolkit.ErrorHandling`
 - No dependencies on other projects
 
@@ -123,6 +124,7 @@ graph TD
 - `IReadingRepository` implementations: `EfReadingRepository` (filters by `MemberId`), `InMemoryReadingRepository`
 - `IFamilyMemberRepository` implementations: `EfFamilyMemberRepository`, `InMemoryFamilyMemberRepository`
 - Manual schema migrations via `SchemaMigrations.apply` (EF Core migrations do not support F#); handles `Members` table creation, default-member seeding, `MemberId` backfill for existing rows, `IsAdmin`/`IsActive` column additions, and `PasswordHash TEXT DEFAULT ''` column addition; `ensureActiveAdmin` promotes the lowest-Id member when no active admin exists (upgrade path for pre-PR#157 DBs)
+- `DemoSeeder.seedIfEmpty` — seeds the Simpson-family demo dataset (from `DemoData` in Core) when `BpMonitor:SeedDemoData=true` and the store is empty; called once at startup in `Program.fs` after `SchemaMigrations.apply`; repurposes the auto-seeded "Me" member as Marge so the family count is exactly 5; members are seeded unclaimed (no password) so the normal first-login claim flow applies; idempotent (no-op if readings already exist)
 - `ReadingRepositoryFactory` / `FamilyMemberRepository` factory wiring
 
 ### BpMonitor.Import
