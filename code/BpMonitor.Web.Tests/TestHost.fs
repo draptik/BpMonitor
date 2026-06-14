@@ -49,27 +49,30 @@ let private defaultMember: FamilyMember =
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
 
+let private newCtx (services: ServiceCollection) (user: ClaimsPrincipal option) : HttpContext =
+  let ctx = DefaultHttpContext()
+  ctx.RequestServices <- services.BuildServiceProvider()
+  ctx.Response.Body <- new MemoryStream()
+
+  match user with
+  | Some u -> ctx.User <- u
+  | None -> ()
+
+  ctx
+
 /// Builds a DefaultHttpContext wired with the given reading repository (and default
 /// ranges + a single in-memory family member) so the real Falco handlers can be
 /// invoked directly in tests. The default member has Id=1; the user principal is
 /// pre-set so authenticatedMember resolves to member 1 without needing a DB.
 let context (repo: IReadingRepository) : HttpContext =
   let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
-  let ctx = DefaultHttpContext()
-  ctx.RequestServices <- (buildServices repo memberRepo TimeProvider.System).BuildServiceProvider()
-  ctx.Response.Body <- new MemoryStream()
-  ctx.User <- buildPrincipal defaultMember
-  ctx
+  newCtx (buildServices repo memberRepo TimeProvider.System) (Some(buildPrincipal defaultMember))
 
 /// Variant of `context` that injects a custom TimeProvider — useful for testing
 /// handlers that read the current time (e.g. newReading timestamp prefill).
 let contextWithProvider (repo: IReadingRepository) (tp: TimeProvider) : HttpContext =
   let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
-  let ctx = DefaultHttpContext()
-  ctx.RequestServices <- (buildServices repo memberRepo tp).BuildServiceProvider()
-  ctx.Response.Body <- new MemoryStream()
-  ctx.User <- buildPrincipal defaultMember
-  ctx
+  newCtx (buildServices repo memberRepo tp) (Some(buildPrincipal defaultMember))
 
 /// Variant of `context` that uses a custom list of family members. The user
 /// principal is set to the first member in the list. Useful for multi-member
@@ -78,15 +81,8 @@ let contextWithMembers (repo: IReadingRepository) (members: FamilyMember list) :
   let memberRepo =
     InMemoryFamilyMemberRepository(Some members) :> IFamilyMemberRepository
 
-  let ctx = DefaultHttpContext()
-  ctx.RequestServices <- (buildServices repo memberRepo TimeProvider.System).BuildServiceProvider()
-  ctx.Response.Body <- new MemoryStream()
-
-  match members with
-  | first :: _ -> ctx.User <- buildPrincipal first
-  | [] -> ()
-
-  ctx
+  let user = members |> List.tryHead |> Option.map buildPrincipal
+  newCtx (buildServices repo memberRepo TimeProvider.System) user
 
 /// Variant of `context` that sets a specific authenticated user. Useful for
 /// testing protected handlers with a particular member identity.
@@ -94,15 +90,12 @@ let contextWithUser (repo: IReadingRepository) (members: FamilyMember list) (log
   let memberRepo =
     InMemoryFamilyMemberRepository(Some members) :> IFamilyMemberRepository
 
-  let ctx = DefaultHttpContext()
-  ctx.RequestServices <- (buildServices repo memberRepo TimeProvider.System).BuildServiceProvider()
-  ctx.Response.Body <- new MemoryStream()
+  let user =
+    members
+    |> List.tryFind (fun m -> m.Id = loggedInMemberId)
+    |> Option.map buildPrincipal
 
-  match members |> List.tryFind (fun m -> m.Id = loggedInMemberId) with
-  | Some m -> ctx.User <- buildPrincipal m
-  | None -> ()
-
-  ctx
+  newCtx (buildServices repo memberRepo TimeProvider.System) user
 
 /// Reads back whatever a handler wrote to the response body.
 let readBody (ctx: HttpContext) : string =

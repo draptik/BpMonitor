@@ -5,15 +5,15 @@ open FsCheck
 open FsCheck.FSharp
 open BpMonitor.Core
 
+let private wordGen: Gen<string> =
+  Gen.elements [ 'a' .. 'z' ]
+  |> Gen.nonEmptyListOf
+  |> Gen.map (List.toArray >> String)
+
 /// None, or Some string of one to three lowercase words joined by single spaces.
 /// Such a comment has no newlines, is non-empty, and equals its own Trim(),
 /// so it survives MarkdownImport.parseLine's `(.*)$` + Trim() round-trip.
 let commentGen: Gen<string option> =
-  let wordGen =
-    Gen.elements [ 'a' .. 'z' ]
-    |> Gen.nonEmptyListOf
-    |> Gen.map (List.toArray >> String)
-
   let someComment =
     Gen.choose (1, 3)
     |> Gen.bind (fun n -> Gen.listOfLength n wordGen)
@@ -163,11 +163,6 @@ let renderDocLine (item: DocItem) : string =
   | NoiseRow s -> s
 
 let private wordsGen: Gen<string> =
-  let wordGen =
-    Gen.elements [ 'a' .. 'z' ]
-    |> Gen.nonEmptyListOf
-    |> Gen.map (List.toArray >> String)
-
   Gen.choose (1, 3)
   |> Gen.bind (fun n -> Gen.listOfLength n wordGen)
   |> Gen.map (String.concat " ")
