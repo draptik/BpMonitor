@@ -23,25 +23,30 @@ module ViewLayout =
 
     Elem.li [] [ Elem.a attrs [ Text.raw label ] ]
 
+  /// Shared <head> element. `extras` allows callers to append additional nodes
+  /// (e.g. the htmx script that only the authenticated layout needs).
+  let private htmlHead (title: string) (extras: XmlNode list) : XmlNode =
+    Elem.head
+      []
+      ([ Elem.meta [ Attr.charset "utf-8" ]
+         Elem.meta [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]
+         Elem.title [] [ Text.raw title ]
+         Elem.link [ Attr.rel "icon"; Attr.href "/favicon.svg"; Attr.type' "image/svg+xml" ]
+         // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
+         // No defer/async — render-blocking prevents flash of wrong theme (FOUC).
+         Elem.script [ Attr.src "/theme.js" ] []
+         Elem.link
+           [ Attr.rel "stylesheet"
+             Attr.href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" ]
+         Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ] ]
+       @ extras)
+
   /// Page shell for authenticated pages: shared <head>, nav bar with logged-in member
   /// name + logout, and hx-boosted body.
   let layout (active: string) (memberName: string) (isAdmin: bool) (title: string) (content: XmlNode list) : XmlNode =
     Elem.html
       [ Attr.lang "en" ]
-      [ Elem.head
-          []
-          [ Elem.meta [ Attr.charset "utf-8" ]
-            Elem.meta [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]
-            Elem.title [] [ Text.raw title ]
-            Elem.link [ Attr.rel "icon"; Attr.href "/favicon.svg"; Attr.type' "image/svg+xml" ]
-            // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
-            // No defer/async — render-blocking prevents flash of wrong theme (FOUC).
-            Elem.script [ Attr.src "/theme.js" ] []
-            Elem.link
-              [ Attr.rel "stylesheet"
-                Attr.href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" ]
-            Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ]
-            Elem.script [ Attr.src "/htmx.min.js" ] [] ]
+      [ htmlHead title [ Elem.script [ Attr.src "/htmx.min.js" ] [] ]
         Elem.body
           [ Attr.create "hx-boost" "true" ]
           [ Elem.nav
@@ -89,17 +94,7 @@ module ViewLayout =
   let loginLayout (title: string) (content: XmlNode list) : XmlNode =
     Elem.html
       [ Attr.lang "en" ]
-      [ Elem.head
-          []
-          [ Elem.meta [ Attr.charset "utf-8" ]
-            Elem.meta [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]
-            Elem.title [] [ Text.raw title ]
-            Elem.link [ Attr.rel "icon"; Attr.href "/favicon.svg"; Attr.type' "image/svg+xml" ]
-            Elem.script [ Attr.src "/theme.js" ] []
-            Elem.link
-              [ Attr.rel "stylesheet"
-                Attr.href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" ]
-            Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ] ]
+      [ htmlHead title []
         Elem.body
           [ Attr.create "hx-boost" "false" ]
           [ Elem.nav
