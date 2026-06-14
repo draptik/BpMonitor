@@ -81,6 +81,8 @@ type InMemoryReadingRepository(initialReadings: BloodPressureReading list option
     member _.Update(reading) =
       let idx =
         readings
-        |> Seq.findIndex (fun r -> r.Id = reading.Id && r.MemberId = reading.MemberId)
+        |> Seq.tryFindIndex (fun r -> r.Id = reading.Id && r.MemberId = reading.MemberId)
 
-      readings[idx] <- reading
+      match idx with
+      | Some i -> readings[i] <- reading
+      | None -> ()

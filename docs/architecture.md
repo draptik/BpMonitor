@@ -13,7 +13,7 @@ code/
 ├── BpMonitor.Import.Tests   # Unit tests for Import
 ├── BpMonitor.Charts         # Plotly.NET chart generation
 ├── BpMonitor.Charts.Tests   # Snapshot tests for Charts
-├── BpMonitor.Export         # JSON serialisation and file write
+├── BpMonitor.Export         # JSON and CSV serialisation and file write
 ├── BpMonitor.Export.Tests   # Tests for Export
 ├── BpMonitor.Web            # Falco web app (dashboard, add, history pages)
 ├── BpMonitor.Web.Tests      # Tests for Web layer
@@ -95,11 +95,12 @@ graph TD
     Web --> Core
     Web --> Data
     Web --> Charts
+    Web --> Export
 ```
 
-> **Note:** `Import` and `Export` are standalone reusable libraries. They depend only
-> on `Core` and are not referenced by `Web` — they are kept for potential future wiring
-> or external tooling use after the TUI was removed (PR #151).
+> **Note:** `Import` is a standalone reusable library that depends only on `Core` and is
+> not referenced by `Web`. `Export` is also a Core-only dependency but is wired into `Web`
+> to serve the `/export` (JSON) and `/export.csv` endpoints.
 
 ## Project Responsibilities
 
@@ -143,8 +144,9 @@ graph TD
 
 ### BpMonitor.Export
 
-- Standalone reusable library — **not referenced by `BpMonitor.Web`**
-- JSON serialisation of `BloodPressureReading` lists (`serialize`, `tryWriteToFile`)
+- JSON serialisation of `BloodPressureReading` lists (`JsonExport.serialize`, `JsonExport.tryWriteToFile`)
+- CSV serialisation of `BloodPressureReading` lists (`CsvExport.serialize`, `CsvExport.tryWriteToFile`)
+- Referenced by `BpMonitor.Web` to serve the `/export` (JSON) and `/export.csv` endpoints
 - Depends on Core only
 
 ### BpMonitor.Web
@@ -162,7 +164,7 @@ graph TD
 - Server-rendered HTML via `Falco.Markup`; htmx for partial updates
 - Scoped `DbContext` per request (concurrency-safe)
 - Structured logging via Serilog: one CLEF JSON line per request + domain events; logs flow to stdout → container/journal
-- References Core + Data + Charts
+- References Core + Data + Charts + Export
 - **Version footer:** `Version.current` reads `AssemblyInformationalVersion` at runtime and maps it to a display string (see `BpMonitor.Web/Version.fs`). The version is stamped at publish time; the sentinel logic distinguishes three cases:
 
   | Context | `AssemblyInformationalVersion` | Footer |

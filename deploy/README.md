@@ -42,12 +42,13 @@ systemctl start bpmonitor-web
 
 ## Configuration
 
-- **Bind address / port** — defaults to `http://0.0.0.0:5000`; override with
-  `ASPNETCORE_URLS`.
+- **Bind address / port** — defaults to `http://0.0.0.0:5000`; configured via
+  `appsettings.json` `Urls` key (takes precedence over `ASPNETCORE_URLS`).
 - **Database location** — defaults to `Data Source=/data/bpmonitor.db`; override
   with `ConnectionStrings__DefaultConnection`.
 - **Validation ranges** — read from `appsettings.json`; override individual
   bounds with `ReadingRanges__*` environment variables.
 
-> Health data is served unauthenticated; keep it on a trusted LAN (or front it
-> with a reverse proxy / auth) rather than exposing it to the internet.
+> **Security:** access is protected by per-member cookie authentication (each
+> family member sets a password on first login). Avoid exposing port 5000 directly
+> to the internet — use a reverse proxy with TLS for internet-facing deployments.

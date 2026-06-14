@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Compile Include="FileHelpers.fs" />
     <Compile Include="JsonExport.fs" />
     <Compile Include="CsvExport.fs" />
   </ItemGroup>

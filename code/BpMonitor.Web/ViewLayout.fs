@@ -7,6 +7,13 @@ open BpMonitor.Core
 module ViewLayout =
   /// A single nav link, marked `aria-current="page"` (which Pico styles as active)
   /// when its href matches the page's `active` route.
+  let private versionFooter () : XmlNode list =
+    let v = Version.current
+
+    match Version.releaseUrl v with
+    | Some url -> [ Text.raw "BpMonitor "; Elem.a [ Attr.href url ] [ Text.raw $"v{v}" ] ]
+    | None -> [ Text.raw $"BpMonitor {v}" ]
+
   let private navLink (active: string) (href: string) (label: string) : XmlNode =
     let attrs =
       if href = active then
@@ -74,15 +81,7 @@ module ViewLayout =
                             Attr.create "onclick" "toggleTheme()" ]
                           [] ] ] ]
             Elem.main [ Attr.class' "container" ] content
-            Elem.footer
-              [ Attr.class' "container" ]
-              [ Elem.small
-                  []
-                  (let v = Version.current
-
-                   match Version.releaseUrl v with
-                   | Some url -> [ Text.raw "BpMonitor "; Elem.a [ Attr.href url ] [ Text.raw $"v{v}" ] ]
-                   | None -> [ Text.raw $"BpMonitor {v}" ]) ]
+            Elem.footer [ Attr.class' "container" ] [ Elem.small [] (versionFooter ()) ]
             // Re-runs on every body render (initial + hx-boost swaps) to sync the button label.
             Elem.script [ Attr.src "/theme-label.js" ] [] ] ]
 
@@ -122,15 +121,7 @@ module ViewLayout =
                    [ Elem.h1 [] [ Text.raw "BpMonitor" ]
                      Elem.p [] [ Text.raw "Blood pressure tracker" ] ] ]
                @ content)
-            Elem.footer
-              [ Attr.class' "container" ]
-              [ Elem.small
-                  []
-                  (let v = Version.current
-
-                   match Version.releaseUrl v with
-                   | Some url -> [ Text.raw "BpMonitor "; Elem.a [ Attr.href url ] [ Text.raw $"v{v}" ] ]
-                   | None -> [ Text.raw $"BpMonitor {v}" ]) ]
+            Elem.footer [ Attr.class' "container" ] [ Elem.small [] (versionFooter ()) ]
             Elem.script [ Attr.src "/theme-label.js" ] [] ] ]
 
   let errorBox (errors: string list) : XmlNode =

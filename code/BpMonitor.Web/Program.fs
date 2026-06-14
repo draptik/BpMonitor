@@ -16,30 +16,30 @@ open BpMonitor.Web
 
 let private endpoints =
   [ // Anonymous: login/logout
-    get Routes.login Handlers.loginPage
-    post Routes.login Handlers.loginWithCredentials
-    get "/login/{id:int}" Handlers.loginMember
-    post "/login/{id:int}" Handlers.loginSubmit
-    post Routes.logout Handlers.logout
+    get Routes.login AuthHandlers.loginPage
+    post Routes.login AuthHandlers.loginWithCredentials
+    get "/login/{id:int}" AuthHandlers.loginMember
+    post "/login/{id:int}" AuthHandlers.loginSubmit
+    post Routes.logout AuthHandlers.logout
     // Authenticated: reading CRUD + app pages
-    get Routes.home (Handlers.protect Handlers.landing)
-    get Routes.add (Handlers.protect Handlers.newReading)
-    get Routes.history (Handlers.protect Handlers.history)
-    get Routes.chart (Handlers.protect Handlers.chart)
-    get Routes.trends (Handlers.protect Handlers.trends)
-    get "/trends/{gran}" (Handlers.protect Handlers.trendsPanel)
-    get "/trends/{gran}/{key}" (Handlers.protect Handlers.trendsPanel)
-    get Routes.exportJson (Handlers.protect Handlers.exportJson)
-    get Routes.exportCsv (Handlers.protect Handlers.exportCsv)
-    post Routes.readings (Handlers.protect Handlers.createReading)
-    get "/readings/{id:int}/edit" (Handlers.protect Handlers.editReading)
-    post "/readings/{id:int}" (Handlers.protect Handlers.updateReading)
+    get Routes.home (AuthHandlers.protect ReadingHandlers.landing)
+    get Routes.add (AuthHandlers.protect ReadingHandlers.newReading)
+    get Routes.history (AuthHandlers.protect ReadingHandlers.history)
+    get Routes.chart (AuthHandlers.protect ReadingHandlers.chart)
+    get Routes.trends (AuthHandlers.protect ReadingHandlers.trends)
+    get "/trends/{gran}" (AuthHandlers.protect ReadingHandlers.trendsPanel)
+    get "/trends/{gran}/{key}" (AuthHandlers.protect ReadingHandlers.trendsPanel)
+    get Routes.exportJson (AuthHandlers.protect ReadingHandlers.exportJson)
+    get Routes.exportCsv (AuthHandlers.protect ReadingHandlers.exportCsv)
+    post Routes.readings (AuthHandlers.protect ReadingHandlers.createReading)
+    get "/readings/{id:int}/edit" (AuthHandlers.protect ReadingHandlers.editReading)
+    post "/readings/{id:int}" (AuthHandlers.protect ReadingHandlers.updateReading)
     // Admin-only: member management
-    get Routes.members (Handlers.protectAdmin Handlers.members)
-    post Routes.members (Handlers.protectAdmin Handlers.createMember)
-    get "/members/{id:int}/edit" (Handlers.protectAdmin Handlers.editMember)
-    post "/members/{id:int}" (Handlers.protectAdmin Handlers.updateMember)
-    post "/members/{id:int}/reset-password" (Handlers.protectAdmin Handlers.resetPassword) ]
+    get Routes.members (AuthHandlers.protectAdmin MemberHandlers.members)
+    post Routes.members (AuthHandlers.protectAdmin MemberHandlers.createMember)
+    get "/members/{id:int}/edit" (AuthHandlers.protectAdmin MemberHandlers.editMember)
+    post "/members/{id:int}" (AuthHandlers.protectAdmin MemberHandlers.updateMember)
+    post "/members/{id:int}/reset-password" (AuthHandlers.protectAdmin MemberHandlers.resetPassword) ]
 
 [<EntryPoint>]
 let main args =

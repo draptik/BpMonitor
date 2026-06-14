@@ -116,20 +116,11 @@ module MemberViews =
                 Elem.a [ Attr.href Routes.members; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
 
   /// Members page: list of family members with Edit/Reset-password buttons and an add form.
-  let members (allMembers: FamilyMember list) (active: FamilyMember) : XmlNode =
+  /// Pass `error = Some "msg"` to show a validation error above the add form.
+  let members (allMembers: FamilyMember list) (active: FamilyMember) (error: string option) : XmlNode =
     ViewLayout.layout
       Routes.members
       active.Name
       active.IsAdmin
       "Family Members"
-      (Elem.h1 [] [ Text.raw "Family Members" ] :: membersList allMembers active None)
-
-  /// Members page rendered with a validation error message.
-  let membersWithError (allMembers: FamilyMember list) (active: FamilyMember) (error: string) : XmlNode =
-    ViewLayout.layout
-      Routes.members
-      active.Name
-      active.IsAdmin
-      "Family Members"
-      (Elem.h1 [] [ Text.raw "Family Members" ]
-       :: membersList allMembers active (Some error))
+      (Elem.h1 [] [ Text.raw "Family Members" ] :: membersList allMembers active error)

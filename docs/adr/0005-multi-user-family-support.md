@@ -1,7 +1,10 @@
 # ADR 0005 — Multi-user (family) support
 
 **Date:** 2026-06-04  
-**Status:** Accepted
+**Status:** Accepted  
+**Note:** The "active member via `bp_member` cookie (deferred login)" stepping-stone
+decided here was superseded by [ADR-0006](0006-per-member-authentication.md)
+(per-member authentication). The data-model and SQLite decisions remain valid.
 
 ## Context
 

@@ -1,7 +1,6 @@
 module BpMonitor.Export.CsvExport
 
 open System
-open System.IO
 open System.Text
 open BpMonitor.Core
 
@@ -35,9 +34,4 @@ let serialize (readings: BloodPressureReading list) : string =
   sb.ToString()
 
 let tryWriteToFile (path: string) (readings: BloodPressureReading list) : Result<unit, string> =
-  try
-    File.WriteAllText(path, serialize readings)
-    Ok()
-  with
-  | :? IOException as ex -> Error ex.Message
-  | :? UnauthorizedAccessException as ex -> Error ex.Message
+  FileHelpers.tryWriteString path (serialize readings)

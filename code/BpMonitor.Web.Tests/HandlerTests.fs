@@ -30,7 +30,7 @@ let private repoWith readings : IReadingRepository =
 let ``landing renders links to add and history`` () =
   let repo = repoWith []
   let ctx = TestHost.context repo
-  TestHost.run Handlers.landing ctx
+  TestHost.run ReadingHandlers.landing ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
@@ -40,7 +40,7 @@ let ``landing renders links to add and history`` () =
 let ``history renders a row per reading`` () =
   let repo = repoWith [ sample ]
   let ctx = TestHost.context repo
-  TestHost.run Handlers.history ctx
+  TestHost.run ReadingHandlers.history ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   test <@ (TestHost.readBody ctx).Contains "/readings/1/edit" @>
@@ -50,7 +50,7 @@ let ``newReading returns 200 and prefills timestamp with local time`` () =
   let tp = FakeTimeProvider(Timestamp.utc 2026 6 9 8 0 0)
   let ctx = TestHost.contextWithProvider (repoWith []) tp
 
-  TestHost.run Handlers.newReading ctx
+  TestHost.run ReadingHandlers.newReading ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   let expected = tp.GetLocalNow().ToString(Formats.timestamp)
@@ -69,7 +69,7 @@ let ``createReading persists a valid reading and redirects`` () =
       "HeartRate", "66"
       "Comments", "x" ]
 
-  TestHost.run Handlers.createReading ctx
+  TestHost.run ReadingHandlers.createReading ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = "/history" @>
@@ -88,7 +88,7 @@ let ``createReading stamps reading with active member Id`` () =
       "HeartRate", "66"
       "Comments", "" ]
 
-  TestHost.run Handlers.createReading ctx
+  TestHost.run ReadingHandlers.createReading ctx
 
   test <@ repo.GetAll(defaultMemberId).[0].MemberId = defaultMemberId @>
 
@@ -105,7 +105,7 @@ let ``createReading rejects an out-of-range reading with 422 and does not persis
       "HeartRate", "66"
       "Comments", "" ]
 
-  TestHost.run Handlers.createReading ctx
+  TestHost.run ReadingHandlers.createReading ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "out of range" @>
@@ -124,7 +124,7 @@ let ``createReading rejects a non-numeric field with 422`` () =
       "HeartRate", "66"
       "Comments", "" ]
 
-  TestHost.run Handlers.createReading ctx
+  TestHost.run ReadingHandlers.createReading ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "not a valid integer" @>
@@ -135,7 +135,7 @@ let ``editReading prefills the form for an existing reading`` () =
   let repo = repoWith [ sample ]
   let ctx = TestHost.context repo
   TestHost.setRouteId ctx 1
-  TestHost.run Handlers.editReading ctx
+  TestHost.run ReadingHandlers.editReading ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   test <@ (TestHost.readBody ctx).Contains "value=\"120\"" @>
@@ -145,7 +145,7 @@ let ``editReading returns 404 for an unknown id`` () =
   let repo = repoWith [ sample ]
   let ctx = TestHost.context repo
   TestHost.setRouteId ctx 999
-  TestHost.run Handlers.editReading ctx
+  TestHost.run ReadingHandlers.editReading ctx
 
   test <@ ctx.Response.StatusCode = 404 @>
 
@@ -163,7 +163,7 @@ let ``updateReading saves changes and redirects`` () =
       "HeartRate", "60"
       "Comments", "updated" ]
 
-  TestHost.run Handlers.updateReading ctx
+  TestHost.run ReadingHandlers.updateReading ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = "/history" @>
@@ -187,7 +187,7 @@ let ``createMember with IsAdmin checkbox persists an admin member`` () =
   let ctx = TestHost.context repo
 
   TestHost.setForm ctx [ "Name", "Alice"; "IsAdmin", "on" ]
-  TestHost.run Handlers.createMember ctx
+  TestHost.run MemberHandlers.createMember ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
   // The newly added member should be accessible via the member repo; verify via editMember prefill.
@@ -203,7 +203,7 @@ let ``createMember without IsAdmin checkbox persists a non-admin member`` () =
   let ctx = TestHost.context repo
 
   TestHost.setForm ctx [ "Name", "Bob" ]
-  TestHost.run Handlers.createMember ctx
+  TestHost.run MemberHandlers.createMember ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
 
@@ -217,7 +217,7 @@ let ``editMember prefills the form for an existing member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Me" ]
   TestHost.setRouteId ctx 1
-  TestHost.run Handlers.editMember ctx
+  TestHost.run MemberHandlers.editMember ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   test <@ (TestHost.readBody ctx).Contains "value=\"Me\"" @>
@@ -227,7 +227,7 @@ let ``editMember returns 404 for an unknown id`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Me" ]
   TestHost.setRouteId ctx 999
-  TestHost.run Handlers.editMember ctx
+  TestHost.run MemberHandlers.editMember ctx
 
   test <@ ctx.Response.StatusCode = 404 @>
 
@@ -238,7 +238,7 @@ let ``updateMember saves changes and redirects to /members`` () =
   TestHost.setRouteId ctx 1
 
   TestHost.setForm ctx [ "Name", "Myself"; "IsAdmin", "on"; "IsActive", "on" ]
-  TestHost.run Handlers.updateMember ctx
+  TestHost.run MemberHandlers.updateMember ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = "/members" @>
@@ -256,7 +256,7 @@ let ``updateMember rejects demoting the last active admin with 422`` () =
 
   // Uncheck both IsAdmin and IsActive — would leave no active admin.
   TestHost.setForm ctx [ "Name", "Me" ]
-  TestHost.run Handlers.updateMember ctx
+  TestHost.run MemberHandlers.updateMember ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "active admin" @>
@@ -278,7 +278,7 @@ let ``updateMember allows demoting one admin when another active admin exists`` 
 
   // Demote member 1 to non-admin; member 2 remains active admin → invariant holds.
   TestHost.setForm ctx [ "Name", "Me"; "IsActive", "on" ]
-  TestHost.run Handlers.updateMember ctx
+  TestHost.run MemberHandlers.updateMember ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
 
@@ -300,7 +300,7 @@ let private claimedMember (hash: string) : FamilyMember =
 [<Fact>]
 let ``loginPage returns 200 with sign-in form`` () =
   let ctx = TestHost.context (repoWith [])
-  TestHost.run Handlers.loginPage ctx
+  TestHost.run AuthHandlers.loginPage ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   test <@ (TestHost.readBody ctx).Contains "Sign in" @>
@@ -314,7 +314,7 @@ let ``loginWithCredentials redirects to / for correct credentials`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ claimed ]
   TestHost.setForm ctx [ "Username", "Me"; "Password", "correct" ]
-  TestHost.run Handlers.loginWithCredentials ctx
+  TestHost.run AuthHandlers.loginWithCredentials ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = "/" @>
@@ -328,7 +328,7 @@ let ``loginWithCredentials returns 401 for wrong password`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ claimed ]
   TestHost.setForm ctx [ "Username", "Me"; "Password", "wrong" ]
-  TestHost.run Handlers.loginWithCredentials ctx
+  TestHost.run AuthHandlers.loginWithCredentials ctx
 
   test <@ ctx.Response.StatusCode = 401 @>
 
@@ -337,7 +337,7 @@ let ``loginWithCredentials returns 401 for unknown user`` () =
   let repo = repoWith []
   let ctx = TestHost.context repo
   TestHost.setForm ctx [ "Username", "Nobody"; "Password", "anything" ]
-  TestHost.run Handlers.loginWithCredentials ctx
+  TestHost.run AuthHandlers.loginWithCredentials ctx
 
   test <@ ctx.Response.StatusCode = 401 @>
 
@@ -346,7 +346,7 @@ let ``loginWithCredentials redirects to claim page for unclaimed member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
   TestHost.setForm ctx [ "Username", "Me"; "Password", "" ]
-  TestHost.run Handlers.loginWithCredentials ctx
+  TestHost.run AuthHandlers.loginWithCredentials ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = "/login/1" @>
@@ -356,7 +356,7 @@ let ``loginMember returns 200 for an existing active member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
   TestHost.setRouteId ctx 1
-  TestHost.run Handlers.loginMember ctx
+  TestHost.run AuthHandlers.loginMember ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
 
@@ -365,7 +365,7 @@ let ``loginMember returns 404 for unknown member`` () =
   let repo = repoWith []
   let ctx = TestHost.context repo
   TestHost.setRouteId ctx 999
-  TestHost.run Handlers.loginMember ctx
+  TestHost.run AuthHandlers.loginMember ctx
 
   test <@ ctx.Response.StatusCode = 404 @>
 
@@ -378,7 +378,7 @@ let ``loginMember returns 403 for inactive member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ inactive ]
   TestHost.setRouteId ctx 1
-  TestHost.run Handlers.loginMember ctx
+  TestHost.run AuthHandlers.loginMember ctx
 
   test <@ ctx.Response.StatusCode = 403 @>
 
@@ -388,7 +388,7 @@ let ``loginSubmit claims unclaimed member and sets password hash`` () =
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
   TestHost.setRouteId ctx 1
   TestHost.setForm ctx [ "Password", "correct-horse"; "PasswordConfirm", "correct-horse" ]
-  TestHost.run Handlers.loginSubmit ctx
+  TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
   // Verify the password hash was persisted
@@ -403,7 +403,7 @@ let ``loginSubmit rejects empty password for unclaimed member`` () =
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
   TestHost.setRouteId ctx 1
   TestHost.setForm ctx [ "Password", ""; "PasswordConfirm", "" ]
-  TestHost.run Handlers.loginSubmit ctx
+  TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "empty" @>
@@ -414,7 +414,7 @@ let ``loginSubmit rejects mismatched confirm for unclaimed member`` () =
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
   TestHost.setRouteId ctx 1
   TestHost.setForm ctx [ "Password", "abc"; "PasswordConfirm", "xyz" ]
-  TestHost.run Handlers.loginSubmit ctx
+  TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "do not match" @>
@@ -426,7 +426,7 @@ let ``loginSubmit accepts correct password for claimed member and redirects`` ()
   let ctx = TestHost.contextWithMembers repo [ claimedMember hash ]
   TestHost.setRouteId ctx 1
   TestHost.setForm ctx [ "Password", "letmein" ]
-  TestHost.run Handlers.loginSubmit ctx
+  TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = "/" @>
@@ -438,7 +438,7 @@ let ``loginSubmit rejects wrong password for claimed member with 401`` () =
   let ctx = TestHost.contextWithMembers repo [ claimedMember hash ]
   TestHost.setRouteId ctx 1
   TestHost.setForm ctx [ "Password", "wrongpassword" ]
-  TestHost.run Handlers.loginSubmit ctx
+  TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 401 @>
   test <@ (TestHost.readBody ctx).Contains "Incorrect password" @>
@@ -455,7 +455,7 @@ let ``loginSubmit returns 403 for inactive member`` () =
   let ctx = TestHost.contextWithMembers repo [ inactive ]
   TestHost.setRouteId ctx 1
   TestHost.setForm ctx [ "Password", "secret" ]
-  TestHost.run Handlers.loginSubmit ctx
+  TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 403 @>
 
@@ -465,7 +465,7 @@ let ``resetPassword sets member to unclaimed`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ claimedMember hash ]
   TestHost.setRouteId ctx 1
-  TestHost.run Handlers.resetPassword ctx
+  TestHost.run MemberHandlers.resetPassword ctx
 
   let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
   let saved = memberRepo.GetById(1) |> Option.get
@@ -496,7 +496,7 @@ let ``trends renders 200 with granularity buttons and current Weekly panel`` () 
         HeartRate = 70 }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
-  TestHost.run Handlers.trends ctx
+  TestHost.run ReadingHandlers.trends ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
@@ -522,7 +522,7 @@ let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and 
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
   setRouteGran ctx "weekly"
-  TestHost.run Handlers.trendsPanel ctx
+  TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
@@ -541,7 +541,7 @@ let ``trendsPanel with gran=monthly returns monthly sub-period buttons`` () =
   let tp = FakeTimeProvider(trendsNow)
   let ctx = TestHost.contextWithProvider (repoWith []) tp
   setRouteGran ctx "monthly"
-  TestHost.run Handlers.trendsPanel ctx
+  TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
@@ -562,7 +562,7 @@ let ``trendsPanel with gran + key uses that specific sub-period`` () =
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
   setRouteGranKey ctx "weekly" "2026-W23"
-  TestHost.run Handlers.trendsPanel ctx
+  TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
@@ -583,7 +583,7 @@ let ``trendsPanel includes readings table with in-period readings`` () =
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
   setRouteGran ctx "weekly"
-  TestHost.run Handlers.trendsPanel ctx
+  TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
@@ -607,7 +607,7 @@ let ``trendsPanel excludes readings outside the period from the table`` () =
 
   let ctx = TestHost.contextWithProvider (repoWith [ inside; outside ]) tp
   setRouteGran ctx "weekly"
-  TestHost.run Handlers.trendsPanel ctx
+  TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
@@ -625,7 +625,7 @@ let ``trendsPanel shows empty state when no readings in period`` () =
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
   setRouteGran ctx "weekly"
-  TestHost.run Handlers.trendsPanel ctx
+  TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
@@ -637,7 +637,7 @@ let ``trendsPanel returns 400 for unrecognised gran`` () =
   let tp = FakeTimeProvider(trendsNow)
   let ctx = TestHost.contextWithProvider (repoWith []) tp
   // No route value → gran = None → 400
-  TestHost.run Handlers.trendsPanel ctx
+  TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 400 @>
 
@@ -646,7 +646,7 @@ let ``trendsPanel with invalid gran string returns 400`` () =
   let tp = FakeTimeProvider(trendsNow)
   let ctx = TestHost.contextWithProvider (repoWith []) tp
   setRouteGran ctx "notvalid"
-  TestHost.run Handlers.trendsPanel ctx
+  TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 400 @>
 
@@ -655,7 +655,7 @@ let ``trendsPanel with invalid gran string returns 400`` () =
 [<Fact>]
 let ``exportJson returns 200 with application/json content type`` () =
   let ctx = TestHost.context (repoWith [ sample ])
-  TestHost.run Handlers.exportJson ctx
+  TestHost.run ReadingHandlers.exportJson ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   test <@ ctx.Response.ContentType = "application/json; charset=utf-8" @>
@@ -663,7 +663,7 @@ let ``exportJson returns 200 with application/json content type`` () =
 [<Fact>]
 let ``exportJson sets Content-Disposition to attachment with correct filename`` () =
   let ctx = TestHost.context (repoWith [ sample ])
-  TestHost.run Handlers.exportJson ctx
+  TestHost.run ReadingHandlers.exportJson ctx
 
   let disposition = ctx.Response.Headers["Content-Disposition"].ToString()
   test <@ disposition = "attachment; filename=\"bpmonitor-export.json\"" @>
@@ -671,7 +671,7 @@ let ``exportJson sets Content-Disposition to attachment with correct filename`` 
 [<Fact>]
 let ``exportJson body contains the seeded reading's fields`` () =
   let ctx = TestHost.context (repoWith [ sample ])
-  TestHost.run Handlers.exportJson ctx
+  TestHost.run ReadingHandlers.exportJson ctx
 
   let body = TestHost.readBody ctx
   test <@ body.Contains "\"systolic\":120" @>
@@ -684,7 +684,7 @@ let ``exportJson returns only the active member's readings`` () =
 
   let repo = repoWith [ sample; otherMemberReading ]
   let ctx = TestHost.context repo
-  TestHost.run Handlers.exportJson ctx
+  TestHost.run ReadingHandlers.exportJson ctx
 
   let body = TestHost.readBody ctx
   // Only one object in the array — the repo filters by memberId
@@ -693,7 +693,7 @@ let ``exportJson returns only the active member's readings`` () =
 [<Fact>]
 let ``exportCsv returns 200 with text/csv content type`` () =
   let ctx = TestHost.context (repoWith [ sample ])
-  TestHost.run Handlers.exportCsv ctx
+  TestHost.run ReadingHandlers.exportCsv ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   test <@ ctx.Response.ContentType = "text/csv; charset=utf-8" @>
@@ -701,7 +701,7 @@ let ``exportCsv returns 200 with text/csv content type`` () =
 [<Fact>]
 let ``exportCsv sets Content-Disposition to attachment with correct filename`` () =
   let ctx = TestHost.context (repoWith [ sample ])
-  TestHost.run Handlers.exportCsv ctx
+  TestHost.run ReadingHandlers.exportCsv ctx
 
   let disposition = ctx.Response.Headers["Content-Disposition"].ToString()
   test <@ disposition = "attachment; filename=\"bpmonitor-export.csv\"" @>
@@ -709,7 +709,7 @@ let ``exportCsv sets Content-Disposition to attachment with correct filename`` (
 [<Fact>]
 let ``exportCsv body contains header row and seeded reading's fields`` () =
   let ctx = TestHost.context (repoWith [ sample ])
-  TestHost.run Handlers.exportCsv ctx
+  TestHost.run ReadingHandlers.exportCsv ctx
 
   let body = TestHost.readBody ctx
   test <@ body.Contains "Id,MemberId,Systolic" @>
@@ -722,7 +722,7 @@ let ``exportCsv returns only the active member's readings`` () =
 
   let repo = repoWith [ sample; otherMemberReading ]
   let ctx = TestHost.context repo
-  TestHost.run Handlers.exportCsv ctx
+  TestHost.run ReadingHandlers.exportCsv ctx
 
   let body = TestHost.readBody ctx
   // Header + exactly one data row (member 1 only)

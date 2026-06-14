@@ -129,7 +129,7 @@ let ``members page renders Admin and Active columns and Edit link`` () =
       ModifiedAt = DateTimeOffset.MinValue }
 
   let html =
-    renderHtml (MemberViews.members [ defaultMember; otherMember ] defaultMember)
+    renderHtml (MemberViews.members [ defaultMember; otherMember ] defaultMember None)
 
   test <@ html.Contains "Admin" @>
   test <@ html.Contains "Active" @>
@@ -151,19 +151,19 @@ let ``members page shows claimed/unclaimed badge`` () =
       CreatedAt = DateTimeOffset.MinValue
       ModifiedAt = DateTimeOffset.MinValue }
 
-  let html = renderHtml (MemberViews.members [ claimed; unclaimed ] claimed)
+  let html = renderHtml (MemberViews.members [ claimed; unclaimed ] claimed None)
 
   test <@ html.Contains "Claimed" @>
   test <@ html.Contains "Unclaimed" @>
 
 [<Fact>]
 let ``members page shows reset-password button`` () =
-  let html = renderHtml (MemberViews.members [ defaultMember ] defaultMember)
+  let html = renderHtml (MemberViews.members [ defaultMember ] defaultMember None)
   test <@ html.Contains "reset-password" @>
 
 [<Fact>]
 let ``members page does NOT show Switch button`` () =
-  let html = renderHtml (MemberViews.members [ defaultMember ] defaultMember)
+  let html = renderHtml (MemberViews.members [ defaultMember ] defaultMember None)
   test <@ not (html.Contains "/members/switch") @>
 
 [<Fact>]

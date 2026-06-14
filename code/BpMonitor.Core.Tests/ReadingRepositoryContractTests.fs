@@ -20,9 +20,11 @@ type private StubRepository(initial: BloodPressureReading list) =
 
     member _.Update(r) =
       let idx =
-        readings |> Seq.findIndex (fun x -> x.Id = r.Id && x.MemberId = r.MemberId)
+        readings |> Seq.tryFindIndex (fun x -> x.Id = r.Id && x.MemberId = r.MemberId)
 
-      readings[idx] <- r
+      match idx with
+      | Some i -> readings[i] <- r
+      | None -> ()
 
 let private reading id memberId sys dia hr =
   { Id = id
@@ -92,9 +94,12 @@ let ``Add stamps the reading with the given memberId`` () =
 let ``Update does not affect a reading belonging to a different member`` () =
   let r = reading 1 1 120 80 70
   let repo = StubRepository([ r ]) :> IReadingRepository
-  // Attempt to update reading 1 as if it belonged to member 2 — should not find it
-  let crossMember = { reading 1 2 135 90 75 with Id = 1 }
+  // Attempt to update reading 1 as if it belonged to member 2 — should be a no-op
+  repo.Update({ reading 1 2 135 90 75 with Id = 1 })
+  test <@ repo.GetAll(1) |> List.exists (fun x -> x.Systolic = 120) @>
 
-  let act () = repo.Update(crossMember)
-
-  Assert.ThrowsAny<Exception>(act) |> ignore
+[<Fact>]
+let ``Update of a non-existent reading is a no-op`` () =
+  let repo = StubRepository([]) :> IReadingRepository
+  repo.Update(reading 99 1 120 80 70)
+  test <@ repo.GetAll(1) |> List.isEmpty @>
