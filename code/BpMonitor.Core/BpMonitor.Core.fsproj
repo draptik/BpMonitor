@@ -10,6 +10,7 @@
     <Compile Include="PasswordHashing.fs" />
     <Compile Include="IFamilyMemberRepository.fs" />
     <Compile Include="BloodPressureReading.fs" />
+    <Compile Include="DemoData.fs" />
     <Compile Include="TrendPeriod.fs" />
     <Compile Include="ReadingStats.fs" />
     <Compile Include="IReadingRepository.fs" />

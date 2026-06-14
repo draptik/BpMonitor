@@ -13,6 +13,7 @@
     <Compile Include="TrendPeriodTests.fs" />
     <Compile Include="ReadingStatsTests.fs" />
     <Compile Include="PasswordHashingTests.fs" />
+    <Compile Include="DemoDataTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

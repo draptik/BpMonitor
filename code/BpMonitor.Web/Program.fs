@@ -87,7 +87,22 @@ let main args =
     // Apply schema migrations once at startup against a transient scope.
     Log.Information("Applying schema migrations…")
     use scope = app.Services.CreateScope()
-    SchemaMigrations.apply (scope.ServiceProvider.GetRequiredService<BpMonitorDbContext>())
+    let sp = scope.ServiceProvider
+    SchemaMigrations.apply (sp.GetRequiredService<BpMonitorDbContext>())
+
+    // Optionally seed the Simpson-family demo dataset (off by default).
+    let seedDemo = builder.Configuration.GetValue<bool>("BpMonitor:SeedDemoData")
+
+    if seedDemo then
+      Log.Information("Seeding Simpson-family demo data…")
+      let ranges = Config.readRanges builder.Configuration
+
+      DemoSeeder.seedIfEmpty
+        (sp.GetRequiredService<IFamilyMemberRepository>())
+        (sp.GetRequiredService<IReadingRepository>())
+        ranges
+        TimeProvider.System
+        true
 
     // One structured log line per request (method, path, status, elapsed ms).
     app.UseSerilogRequestLogging() |> ignore
