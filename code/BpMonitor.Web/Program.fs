@@ -110,7 +110,10 @@ let main args =
     app.UseStaticFiles().UseRouting().UseAuthentication().UseAuthorization().UseFalco(endpoints)
     |> ignore
 
-    Log.Information("BpMonitor.Web {Version} starting on {Urls}", Version.current, app.Urls)
+    app.Lifetime.ApplicationStarted.Register(fun () ->
+      Log.Information("BpMonitor.Web {Version} starting on {Urls}", Version.current, app.Urls))
+    |> ignore
+
     app.Run()
     0
   with ex ->
