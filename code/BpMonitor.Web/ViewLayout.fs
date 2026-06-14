@@ -35,9 +35,7 @@ module ViewLayout =
          // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
          // No defer/async — render-blocking prevents flash of wrong theme (FOUC).
          Elem.script [ Attr.src "/theme.js" ] []
-         Elem.link
-           [ Attr.rel "stylesheet"
-             Attr.href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" ]
+         Elem.link [ Attr.rel "stylesheet"; Attr.href "/pico.min.css" ]
          Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ] ]
        @ extras)
 
