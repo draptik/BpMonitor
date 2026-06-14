@@ -9,8 +9,8 @@
         "Microsoft.NET.Test.Sdk",
         "Microsoft.Testing.Extensions.CodeCoverage"
       ],
-      "groupName": "Microsoft Testing Platform",
-      "description": "CodeCoverage and Test.Sdk must update together — they share a Microsoft.Testing.Platform transitive dep that must version-match"
+      "enabled": false,
+      "description": "Pinned: these share a Microsoft.Testing.Platform transitive dep that must version-match; update manually and together"
     }
   ]
 }
