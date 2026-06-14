@@ -1,6 +1,5 @@
 module ReadingHandlerTests
 
-open System
 open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing

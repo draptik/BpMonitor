@@ -1,6 +1,5 @@
 module BpMonitor.Export.CsvExport
 
-open System
 open System.Text
 open BpMonitor.Core
 

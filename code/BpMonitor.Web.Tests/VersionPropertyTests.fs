@@ -1,7 +1,6 @@
 module VersionPropertyTests
 
 open System
-open FsCheck
 open FsCheck.FSharp
 open FsCheck.Xunit
 open BpMonitor.Web

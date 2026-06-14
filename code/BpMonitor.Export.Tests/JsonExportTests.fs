@@ -1,6 +1,5 @@
 module JsonExportTests
 
-open System
 open System.IO
 open System.Text.Json
 open System.Threading.Tasks
