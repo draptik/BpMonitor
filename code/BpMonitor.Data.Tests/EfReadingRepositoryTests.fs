@@ -33,12 +33,14 @@ let private createContext () =
   ctx.Database.EnsureCreated() |> ignore
   ctx
 
+let private createRepo (ctx: BpMonitorDbContext) : IReadingRepository =
+  EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+
 [<Fact>]
 let ``GetAll returns empty list when database is empty`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+  let repo = createRepo ctx
 
   test <@ repo.GetAll(defaultMemberId) = [] @>
 
@@ -46,8 +48,7 @@ let ``GetAll returns empty list when database is empty`` () =
 let ``Add persists a reading`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+  let repo = createRepo ctx
 
   repo.Add defaultMemberId sample
   test <@ repo.GetAll(defaultMemberId).Length = 1 @>
@@ -56,8 +57,7 @@ let ``Add persists a reading`` () =
 let ``Add assigns a non-zero Id`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+  let repo = createRepo ctx
 
   repo.Add defaultMemberId sample
   test <@ repo.GetAll(defaultMemberId).[0].Id > 0 @>
@@ -66,8 +66,7 @@ let ``Add assigns a non-zero Id`` () =
 let ``Add stamps the reading with the given memberId`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+  let repo = createRepo ctx
 
   repo.Add defaultMemberId sample
   test <@ repo.GetAll(defaultMemberId).[0].MemberId = defaultMemberId @>
@@ -76,8 +75,7 @@ let ``Add stamps the reading with the given memberId`` () =
 let ``GetAll returns only readings for the requested member`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+  let repo = createRepo ctx
 
   repo.Add 1 sample
 
@@ -94,8 +92,7 @@ let ``GetAll returns only readings for the requested member`` () =
 let ``Add preserves Comments when present`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+  let repo = createRepo ctx
 
   repo.Add
     defaultMemberId
@@ -108,8 +105,7 @@ let ``Add preserves Comments when present`` () =
 let ``Add preserves Comments as None when absent`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+  let repo = createRepo ctx
 
   repo.Add defaultMemberId sample
   test <@ repo.GetAll(defaultMemberId).[0].Comments = None @>
@@ -129,8 +125,7 @@ let ``Add sets CreatedAt and ModifiedAt to current time`` () =
 let ``AddMany persists all readings`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+  let repo = createRepo ctx
 
   let second =
     { sample with
@@ -176,8 +171,7 @@ let ``Update preserves CreatedAt and sets ModifiedAt to current time`` () =
 let ``Update does not affect a reading belonging to a different member`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+  let repo = createRepo ctx
 
   repo.Add 1 sample
   let added = repo.GetAll(1)[0]

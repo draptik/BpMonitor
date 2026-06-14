@@ -20,6 +20,9 @@ let private createContext () =
   ctx.Database.EnsureCreated() |> ignore
   ctx
 
+let private createRepo (ctx: BpMonitorDbContext) : IFamilyMemberRepository =
+  EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
+
 let private newMember name isAdmin =
   FamilyMember.create name isAdmin
   |> Result.defaultWith (fun _ -> failwith "invalid member")
@@ -28,8 +31,7 @@ let private newMember name isAdmin =
 let ``GetAll returns empty list when database is empty`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
+  let repo = createRepo ctx
 
   test <@ repo.GetAll() = [] @>
 
@@ -37,8 +39,7 @@ let ``GetAll returns empty list when database is empty`` () =
 let ``GetAll returns all members`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
+  let repo = createRepo ctx
 
   repo.Add(newMember "Alice" true) |> ignore
   repo.Add(newMember "Bob" false) |> ignore
@@ -48,8 +49,7 @@ let ``GetAll returns all members`` () =
 let ``GetById returns Some when member exists`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
+  let repo = createRepo ctx
 
   let added = repo.Add(newMember "Alice" true)
   test <@ repo.GetById(added.Id) = Some added @>
@@ -58,8 +58,7 @@ let ``GetById returns Some when member exists`` () =
 let ``GetById returns None when member does not exist`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
+  let repo = createRepo ctx
 
   test <@ repo.GetById(999) = None @>
 
@@ -67,8 +66,7 @@ let ``GetById returns None when member does not exist`` () =
 let ``Add persists a member and assigns a non-zero Id`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
+  let repo = createRepo ctx
 
   let added = repo.Add(newMember "Alice" true)
   test <@ added.Id > 0 @>
@@ -78,8 +76,7 @@ let ``Add persists a member and assigns a non-zero Id`` () =
 let ``Add maps empty PasswordHash to None`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
+  let repo = createRepo ctx
 
   let added = repo.Add(newMember "Alice" true)
   test <@ added.PasswordHash = None @>
@@ -88,8 +85,7 @@ let ``Add maps empty PasswordHash to None`` () =
 let ``Add maps non-empty PasswordHash to Some`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
+  let repo = createRepo ctx
 
   let m =
     { newMember "Alice" true with
@@ -112,8 +108,7 @@ let ``Add sets CreatedAt and ModifiedAt to current time`` () =
 let ``Update modifies the stored member`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
+  let repo = createRepo ctx
 
   let added = repo.Add(newMember "Alice" true)
   repo.Update { added with Name = "Alicia" }
@@ -137,8 +132,7 @@ let ``Update sets ModifiedAt to current time and preserves CreatedAt`` () =
 let ``Update of a non-existent member is a no-op`` () =
   use ctx = createContext ()
 
-  let repo =
-    EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
+  let repo = createRepo ctx
 
   let ghost = newMember "Ghost" false
   let ghostWithId = { ghost with Id = 999 }
