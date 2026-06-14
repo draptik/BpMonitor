@@ -33,7 +33,7 @@ let ``simpsons admin is Marge Simpson`` () =
 let ``all generated readings are in range (no parse errors)`` () =
   let result = DemoData.simpsons ranges now
 
-  for (spec, readings) in result do
+  for (_, readings) in result do
     for r in readings do
       test
         <@
@@ -100,5 +100,5 @@ let ``Marge mean systolic is higher than Bart mean systolic`` () =
 let ``each member has enough readings for trend granularities`` () =
   let result = DemoData.simpsons ranges now
   // Minimum: expect at least 52 readings per member (roughly 1 per week for a year)
-  for (spec, readings) in result do
+  for (_, readings) in result do
     test <@ readings.Length >= 52 @>
