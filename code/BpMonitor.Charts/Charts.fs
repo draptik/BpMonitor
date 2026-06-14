@@ -38,20 +38,25 @@ module BpChart =
 
   // The chart is rendered inside an iframe (separate document), so the iframe body
   // background must be set explicitly — it does not inherit the parent page theme.
-  let private injectBodyStyle (theme: Theme) (html: string) =
-    if theme = Dark then
-      html.Replace("</head>", $"<style>body{{background:{darkBgHex};margin:0}}</style></head>")
-    else
-      html.Replace("</head>", "<style>body{margin:0}</style></head>")
+  // `height` is passed in from the caller (read from the ?height= query param set by theme.js,
+  // which reads --chart-height from the page CSS) so the value is defined only in app.css.
+  let private injectBodyStyle (theme: Theme) (height: string) (html: string) =
+    let heightStyle = $"html,body{{height:100%%;margin:0}}body>div{{height:{height}}}"
 
-  let private finish (theme: Theme) (chart: GenericChart) =
+    if theme = Dark then
+      html.Replace("</head>", $"<style>body{{background:{darkBgHex}}}{heightStyle}</style></head>")
+    else
+      html.Replace("</head>", $"<style>{heightStyle}</style></head>")
+
+  let private finish (theme: Theme) (height: string) (chart: GenericChart) =
     chart
     |> Chart.withLayout (layout theme)
     |> Chart.withXAxis xAxis
     |> Chart.withYAxis (yAxis theme)
     |> GenericChart.toEmbeddedHTML
     |> _.Replace("\"width\":600,", "")
-    |> injectBodyStyle theme
+    |> _.Replace("\"height\":600,", "")
+    |> injectBodyStyle theme height
 
   // Trends-specific tuning for mobile:
   // - Compact margins maximise the narrow plot area.
@@ -84,7 +89,7 @@ module BpChart =
   let private trendsConfig =
     Config.init (Responsive = true, DisplayModeBar = false, ScrollZoom = StyleParam.ScrollZoom.NoZoom)
 
-  let private finishTrends (theme: Theme) (chart: GenericChart) =
+  let private finishTrends (theme: Theme) (height: string) (chart: GenericChart) =
     chart
     |> Chart.withLayout (trendsLayout theme)
     |> Chart.withXAxis trendsXAxis
@@ -97,10 +102,11 @@ module BpChart =
     )
     |> GenericChart.toEmbeddedHTML
     |> _.Replace("\"width\":600,", "")
-    |> injectBodyStyle theme
+    |> _.Replace("\"height\":600,", "")
+    |> injectBodyStyle theme height
 
   /// Classic x/y plot — one point per reading. Used by /history.
-  let private renderIndividual (theme: Theme) (readings: BloodPressureReading list) : string =
+  let private renderIndividual (theme: Theme) (height: string) (readings: BloodPressureReading list) : string =
     let readings = readings |> List.sortBy _.Timestamp
     let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
     let systolic = readings |> List.map _.Systolic
@@ -123,7 +129,7 @@ module BpChart =
       yield! commentTraces ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
-    |> finish theme
+    |> finish theme height
 
   type private DailyPoint =
     { Label: string
@@ -142,7 +148,12 @@ module BpChart =
   /// Circle marker = single reading in that period; Diamond marker = average of multiple readings.
   /// X-axis labels adapt to granularity: Weekly → date, Monthly → ISO week, Yearly → month name.
   /// Used by /trends for all granularities.
-  let private renderDashed (gran: Granularity) (theme: Theme) (aggregated: AggregatedReading list) : string =
+  let private renderDashed
+    (gran: Granularity)
+    (theme: Theme)
+    (height: string)
+    (aggregated: AggregatedReading list)
+    : string =
     let aggregated = aggregated |> List.sortBy _.Reading.Timestamp
 
     let xLabel (r: BloodPressureReading) =
@@ -248,7 +259,7 @@ module BpChart =
       line "Diastolic" diastolic diaHover diaUpper diaLower diaErrorColor
       yield! commentTraces ]
     |> Chart.combine
-    |> finishTrends theme
+    |> finishTrends theme height
 
-  let toHtml (theme: Theme) = renderIndividual theme
-  let toHtmlDashed (gran: Granularity) (theme: Theme) = renderDashed gran theme
+  let toHtml (theme: Theme) (height: string) = renderIndividual theme height
+  let toHtmlDashed (gran: Granularity) (theme: Theme) (height: string) = renderDashed gran theme height

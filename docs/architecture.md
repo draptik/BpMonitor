@@ -125,8 +125,9 @@ graph TD
 
 ### BpMonitor.Charts
 
-- Plotly.NET chart generation (`BpChart.toHtml`)
-- Produces a self-contained interactive HTML file opened in the default browser
+- Plotly.NET chart generation — `BpChart.toHtml theme height readings` (history line chart) and `BpChart.toHtmlDashed gran theme height aggregated` (trends dashed chart)
+- Produces a self-contained HTML document served by the `/chart` route and embedded via `<iframe>` in the web UI
+- `height` (e.g. `"620px"`) is passed in by the caller; `theme.js` reads it from the `--chart-height` CSS custom property so the value is defined only in `app.css`
 - Depends on Core only
 
 ### BpMonitor.Export
@@ -142,7 +143,7 @@ graph TD
 - **Authentication:** ASP.NET Core cookie authentication (`AddAuthentication().AddCookie()`); `LoginPath=/login`. Per-member password via PBKDF2-SHA256 (`PasswordHashing` in Core). Members with no password are "unclaimed" and set their password on first login (claim flow). After claiming/verifying, `SignInAsync` issues a cookie carrying `NameIdentifier`, `Name`, and `Role=Admin` claims.
 - **Auth model — strict per-member isolation:** every member sees and records only their own readings. No on-behalf-of, no profile switching. Admin members can manage other members via `/members` but still see only their own readings.
 - Pages: `/login` username + password form (unauthenticated); unclaimed members are redirected to `/login/{id}` where they set their password on first login (claim flow). `/` landing hub, `/add` entry form, `/history` table + chart iframe, `/trends` windowed overview (see below), `/members` family-member management (admin only), `/members/{id}/edit` member edit, `/members/{id}/reset-password` password reset (admin only), `POST /logout`
-- **`/trends` (windowed overview):** full page with 7/14/30/90-day window toggle buttons. Each button swaps a fragment (`GET /trends/{days:int}`) via htmx that shows average systolic/diastolic/heart rate, a color-coded AHA-2017 blood pressure category badge (`Normal`/`Elevated`/`Stage 1`/`Stage 2`), and a filtered Plotly chart iframe (`/chart?window={days}`). Default window is 7 days. Empty state shown (no iframe) when no readings exist in the window. `TimeProvider` is injected so the "now" cutoff is testable with `FakeTimeProvider`. Stats/classification live in `ReadingStats` (Core); CSS classes `bp-normal/bp-elevated/bp-stage1/bp-stage2` in `wwwroot/app.css`.
+- **`/trends` (windowed overview):** full page with granularity selector (Weekly/Monthly/Yearly) and a horizontally-scrollable sub-period pill row. Selecting a pill swaps a fragment via htmx showing a stats table (avg/min/max systolic, diastolic, heart rate), a Plotly dashed chart iframe (`/chart?gran=weekly&period=2026-W14&theme=…&height=…`), and a readings table. Empty state shown when no readings exist in the selected period. `TimeProvider` injected for testable "now". Stats live in `ReadingStats` (Core); chart height driven by `--chart-height` CSS custom property read by `theme.js`.
 - `protect` combinator wraps all app routes; `protectAdmin` wraps `/members*` routes; `/login*` and `/logout` are anonymous
 - Active member resolved via `ClaimTypes.NameIdentifier` from the authenticated principal (`authenticatedMember` in Handlers.fs)
 - `POST /members` creates a new unclaimed member (no cookie set; member claims on first login). `POST /members/switch` removed.

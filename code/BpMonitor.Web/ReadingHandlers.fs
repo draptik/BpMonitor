@@ -90,6 +90,13 @@ module ReadingHandlers =
         | true, v -> string v
         | _ -> ""
 
+      // Height is passed by theme.js reading --chart-h from app.css, so the value
+      // is defined only in CSS. Fallback covers direct URL access without JS.
+      let height =
+        match ctx.Request.Query.TryGetValue "height" with
+        | true, v when string v <> "" -> string v
+        | _ -> "620px"
+
       let html =
         match TrendPeriod.parseGranularity granStr with
         | Some gran ->
@@ -100,8 +107,8 @@ module ReadingHandlers =
             |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
 
           let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
-          BpChart.toHtmlDashed gran theme (ReadingStats.aggregate gran windowed)
-        | None -> BpChart.toHtml theme allReadings
+          BpChart.toHtmlDashed gran theme height (ReadingStats.aggregate gran windowed)
+        | None -> BpChart.toHtml theme height allReadings
 
       ctx.Response.ContentType <- "text/html; charset=utf-8"
       ctx.Response.WriteAsync html)

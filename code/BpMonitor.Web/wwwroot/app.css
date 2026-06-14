@@ -26,9 +26,13 @@ nav a[aria-current="page"] {
   user-select: none;
 }
 
+:root {
+  --chart-height: 620px;
+}
+
 .chart {
   width: 100%;
-  height: 620px;
+  height: var(--chart-height);
   border: 1px solid var(--pico-muted-border-color);
   border-radius: var(--pico-border-radius);
 }
@@ -70,9 +74,8 @@ nav a[aria-current="page"] {
     flex: 1 1 100%;
   }
 
-  /* Reduce chart height on phones — 620px is disproportionately tall on a narrow viewport */
-  .chart {
-    height: 420px;
+  :root {
+    --chart-height: 420px;
   }
 
   /* Stats table: full width, tighter column padding */
