@@ -37,7 +37,7 @@ The server binds `http://0.0.0.0:5000`.
 To run as a container instead (pulls the prebuilt image from GitHub Container Registry):
 
 ```bash
-docker compose -f deploy/docker-compose.yml up -d
+docker compose -f docs/example-deploy/docker-compose.yml up -d
 ```
 
-See [deploy/README.md](../deploy/README.md) for container configuration, Podman, and systemd Quadlet instructions.
+See [docs/example-deploy/README.md](example-deploy/README.md) for container configuration, Podman, and systemd Quadlet instructions.

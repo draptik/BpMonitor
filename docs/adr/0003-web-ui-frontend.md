@@ -50,7 +50,7 @@ Key choices:
   which — unlike the TUI's single-context factory — is safe under concurrent
   web requests; schema migrations run once at startup.
 - **Deployment: Podman on the homelab VM.** A multi-stage `Containerfile` plus
-  systemd **Quadlet** units (`deploy/`). The container binds `0.0.0.0:5000` and
+  systemd **Quadlet** units (`docs/example-deploy/`). The container binds `0.0.0.0:5000` and
   keeps SQLite on a mounted volume, so it is reachable on the LAN (incl. phones)
   and survives redeploys.
 
