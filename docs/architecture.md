@@ -101,27 +101,23 @@ graph TD
 
 ### BpMonitor.Core
 
-- Domain models (`BloodPressureReading`, `BloodPressureReadingUnvalidated`, `FamilyMember`)
-- Repository interfaces (`IReadingRepository`, `IFamilyMemberRepository`)
-- `IReadingRepository` is member-scoped: `GetAll memberId`, `Add memberId`, `AddMany memberId`, `Update` (uses `reading.MemberId` as the guard)
-- `IFamilyMemberRepository`: `GetAll`, `GetById`, `Add`, `Update`
-- `FamilyMember.hasActiveAdmin` enforces the invariant: at least one member must have `IsAdmin = true` and `IsActive = true`; checked before every `Update`
-- `FamilyMember.isClaimed m` — true when `PasswordHash` is `Some`
-- `PasswordHashing` module — pure PBKDF2-SHA256 hashing via BCL (`Rfc2898DeriveBytes`); `hash password → encoded` (iterations.base64salt.base64hash), `verify password encoded → bool` (constant-time compare)
-- `ReadingStats` module — pure statistics/filtering helpers: `since now days readings` (date-window filter), `classify avgSys avgDia → BloodPressureCategory` (AHA 2017 thresholds: Normal/Elevated/Stage1/Stage2), `summarize now days readings → WindowSummary` (count + integer averages + category). Used by the `/trends` page and `/chart?window=` route.
-- `DemoData` module — pure, deterministic demo-data generator: `DemoData.simpsons ranges now` returns the Simpson family (5 members with personalities: Marge normal/admin, Homer hypertensive/frequent, Bart+Lisa kids/sparse, Abe elderly/irregular) plus ~5 years of realistic `BloodPressureReading` values anchored to `now`. Fixed `Random` seed makes output reproducible across calls. Used by `DemoSeeder` in Data and can be used directly in tests for realistic fixtures.
-- Business logic: applicative validation via `FsToolkit.ErrorHandling`
-- No dependencies on other projects
+- Domain models: `BloodPressureReading`, `BloodPressureReadingUnvalidated`, `FamilyMember`
+- Repository interfaces: `IReadingRepository` (member-scoped), `IFamilyMemberRepository`
+- `FamilyMember.hasActiveAdmin` — invariant: ≥1 member with `IsAdmin = true` and `IsActive = true`
+- `FamilyMember.isClaimed` — true when `PasswordHash` is `Some`
+- `PasswordHashing` — PBKDF2-SHA256 hash/verify
+- `ReadingStats` — date-window filter, AHA 2017 BP classification, windowed summary
+- `DemoData` — deterministic Simpson-family fixture generator (fixed seed, ~5 years of readings)
+- Applicative validation via `FsToolkit.ErrorHandling`; no dependencies on other projects
 
 ### BpMonitor.Data
 
-- EF Core `DbContext` with two `DbSet`s: `Readings` (`ReadingRecord`) and `Members` (`MemberRecord`)
-- SQLite with WAL mode + 5 s busy timeout (applied at startup)
-- `IReadingRepository` implementations: `EfReadingRepository` (filters by `MemberId`), `InMemoryReadingRepository`
-- `IFamilyMemberRepository` implementations: `EfFamilyMemberRepository`, `InMemoryFamilyMemberRepository`
-- Manual schema migrations via `SchemaMigrations.apply` (EF Core migrations do not support F#); handles `Members` table creation, default-member seeding, `MemberId` backfill for existing rows, `IsAdmin`/`IsActive` column additions, and `PasswordHash TEXT DEFAULT ''` column addition; `ensureActiveAdmin` promotes the lowest-Id member when no active admin exists (upgrade path for pre-PR#157 DBs)
-- `DemoSeeder.seedIfEmpty` — seeds the Simpson-family demo dataset (from `DemoData` in Core) when `BpMonitor:SeedDemoData=true` and the store is empty; called once at startup in `Program.fs` after `SchemaMigrations.apply`; repurposes the auto-seeded "Me" member as Marge so the family count is exactly 5; members are seeded unclaimed (no password) so the normal first-login claim flow applies; idempotent (no-op if readings already exist)
-- `ReadingRepositoryFactory` / `FamilyMemberRepository` factory wiring
+- EF Core `DbContext`: `Readings` (`ReadingRecord`) and `Members` (`MemberRecord`)
+- SQLite with WAL mode + 5 s busy timeout
+- `IReadingRepository`: `EfReadingRepository` (filters by `MemberId`), `InMemoryReadingRepository`
+- `IFamilyMemberRepository`: `EfFamilyMemberRepository`, `InMemoryFamilyMemberRepository`
+- `SchemaMigrations.apply` — manual migrations (EF Core migrations don't support F#); `ensureActiveAdmin` promotes lowest-Id member when no active admin exists
+- `DemoSeeder.seedIfEmpty` — seeds Simpson-family data (from `DemoData` in Core) when `BpMonitor:SeedDemoData=true` and the store is empty; idempotent
 
 ### BpMonitor.Charts
 
@@ -139,37 +135,19 @@ graph TD
 
 ### BpMonitor.Web
 
-- Falco web application serving on `0.0.0.0:5000`
-- **Authentication:** ASP.NET Core cookie authentication (`AddAuthentication().AddCookie()`); `LoginPath=/login`. Per-member password via PBKDF2-SHA256 (`PasswordHashing` in Core). Members with no password are "unclaimed" and set their password on first login (claim flow). After claiming/verifying, `SignInAsync` issues a cookie carrying `NameIdentifier`, `Name`, and `Role=Admin` claims.
-- **Auth model — strict per-member isolation:** every member sees and records only their own readings. No on-behalf-of, no profile switching. Admin members can manage other members via `/members` but still see only their own readings.
-- Pages: `/login` username + password form (unauthenticated); unclaimed members are redirected to `/login/{id}` where they set their password on first login (claim flow). `/` landing hub, `/add` entry form, `/history` table + chart iframe, `/trends` windowed overview (see below), `/members` family-member management (admin only), `/members/{id}/edit` member edit, `/members/{id}/reset-password` password reset (admin only), `POST /logout`
-- **`/trends` (windowed overview):** full page with granularity selector (Weekly/Monthly/Yearly) and a horizontally-scrollable sub-period pill row. Selecting a pill swaps a fragment via htmx showing a stats table (avg/min/max systolic, diastolic, heart rate), a Plotly dashed chart iframe (`/chart?gran=weekly&period=2026-W14&theme=…&height=…`), and a readings table. Empty state shown when no readings exist in the selected period. `TimeProvider` injected for testable "now". Stats live in `ReadingStats` (Core); chart height driven by `--chart-height` CSS custom property read by `theme.js`.
-- `protect` combinator wraps all app routes; `protectAdmin` wraps `/members*` routes; `/login*` and `/logout` are anonymous
-- Active member resolved via `ClaimTypes.NameIdentifier` from the authenticated principal (`authenticatedMember` in Handlers.fs)
-- `POST /members` creates a new unclaimed member (no cookie set; member claims on first login). `POST /members/switch` removed.
-- `IsAdmin`/`IsActive` stored on each member; invariant (≥1 admin+active) enforced on `updateMember`. Admin flag also determines role claim and `protectAdmin` access.
-- Every reading handler resolves the active member first; `IReadingRepository` calls are all member-scoped
-- Server-rendered HTML via `Falco.Markup`; htmx for partial updates
-- Scoped `DbContext` per request (concurrency-safe)
-- Structured logging via Serilog: one CLEF JSON line per request + domain events; logs flow to stdout → container/journal
-- References Core + Data + Charts + Export
-- **Version footer:** `Version.current` reads `AssemblyInformationalVersion` at runtime and maps it to a display string (see `BpMonitor.Web/Version.fs`). The version is stamped at publish time; the sentinel logic distinguishes three cases:
-
-  | Context | `AssemblyInformationalVersion` | Footer |
-  | --- | --- | --- |
-  | `dotnet run` locally (no `-p:Version`) | `1.0.0+<git-sha>` (SDK default in a git repo) | `dev` |
-  | Container built without `VERSION` build-arg | `dev` (Containerfile default) | `dev` |
-  | Tagged release (tarball or container) | `1.2.3` (no `+` suffix) | `v1.2.3` (linked to GitHub release) |
-
-  The key invariant: a stamped version never carries a `+` suffix, while the SDK default always does. The sentinel therefore checks for `base == "1.0.0" && contains '+'` — not bare `"1.0.0"` — so that `v1.0.0` (and any future patch built on it) displays correctly.
+- Falco web application on `0.0.0.0:5000`; references Core + Data + Charts + Export
+- **Auth:** ASP.NET Core cookie auth; per-member PBKDF2-SHA256 password; unclaimed members set password on first login; cookie carries `NameIdentifier`/`Name`/`Role` claims
+- **Isolation:** each member sees only their own readings; admins manage members via `/members` but not their readings
+- **Routes:** `/` hub, `/add`, `/history`, `/trends`, `/members`, `/members/{id}/edit`, `/members/{id}/reset-password`, `/login`, `/login/{id}`, `POST /logout`
+- **`/trends`:** granularity selector (Weekly/Monthly/Yearly) + htmx-swapped period fragments; stats from `ReadingStats` (Core); `TimeProvider` injected for testability
+- `protect` / `protectAdmin` combinators; active member resolved from `ClaimsPrincipal`
+- Server-rendered HTML via `Falco.Markup`; htmx for partial updates; scoped `DbContext` per request
+- Structured logging via Serilog (stdout → container/journal)
+- **Version footer:** `Version.current` reads `AssemblyInformationalVersion`; shows `dev` when the value contains a `+` suffix (SDK default), `v1.2.3` for stamped releases
 
 ### BpMonitor.Arch.Tests
 
-- ArchUnit rules enforcing Clean Architecture layer boundaries
-- Core must not depend on Data, Web
-- Data must not depend on Web
-- Charts must not depend on Data, Web
-- Export must not depend on Data, Charts, Web
+- ArchUnit rules enforcing Clean Architecture layer boundaries: Core ↛ Data/Web; Data ↛ Web; Charts ↛ Data/Web; Export ↛ Data/Charts/Web
 
 ## Design Principles
 
