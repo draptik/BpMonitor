@@ -76,6 +76,7 @@ Follow the `git-workflow` skill (`.claude/skills/git-workflow/SKILL.md`). Key ru
 - Feature branches only, never commit to `main`
 - Squash merge via PR
 - Keep PRs small and focused
+- **NEVER add `Co-Authored-By:` trailers to commits** — no Claude attribution, no exceptions
 
 **Before making any code changes**, always create a feature branch first:
 
