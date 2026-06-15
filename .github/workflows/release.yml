@@ -14,6 +14,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -41,11 +44,21 @@ jobs:
           tar -czf code/bpmonitor-web-linux-x64.tar.gz
           -C code/publish-web bpmonitor-web appsettings.json wwwroot
 
+      - name: Read tag annotation
+        id: notes
+        run: |
+          {
+            echo 'body<<RELEASE_EOF'
+            git tag -l --format='%(contents)' "${GITHUB_REF_NAME}"
+            echo 'RELEASE_EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v3
         with:
           files: |
             code/bpmonitor-web-linux-x64.tar.gz
+          body: ${{ steps.notes.outputs.body }}
           generate_release_notes: true
           # Treat tags carrying a pre-release suffix (e.g. v0.1.11-rc1) as
           # prereleases so the /releases/latest API keeps pointing at the last
