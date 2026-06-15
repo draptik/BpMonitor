@@ -93,10 +93,62 @@ operator items with `**Deployment:**` (omit if nothing actionable):
 
 Keep it short. Two or three bullet points is better than an essay.
 
+This same set of bullets will populate `CHANGELOG.md` in Step 5a — author them
+once, reuse for both.
+
 ## Step 5 — Confirm
 
 Present the proposed **version** and **summary** to the user. Wait for explicit
 approval or edits. Do **not** proceed to tagging until confirmed.
+
+## Step 5a — Update CHANGELOG.md
+
+Direct commits to `main` are blocked, so the changelog update must go through a
+branch + PR. Do this **before** creating the tag.
+
+```bash
+git switch -c chore/changelog-vX.Y.Z
+```
+
+Edit `CHANGELOG.md`:
+
+1. Leave `## [Unreleased]` at the top but clear its contents (keep the heading,
+   leave the body empty).
+2. Insert a new version section immediately after it, using the approved summary
+   bullets grouped under `### Added`, `### Changed`, or `### Fixed` as
+   appropriate. Use today's date in ISO format (`YYYY-MM-DD`):
+
+   ```markdown
+   ## [X.Y.Z] - YYYY-MM-DD
+
+   ### Added
+
+   - <bullet from approved summary>
+   ```
+
+3. Update the link-reference block at the bottom of the file:
+   - Change `[Unreleased]` to compare the new tag to `HEAD`:
+     `[Unreleased]: https://github.com/draptik/BpMonitor/compare/vX.Y.Z...HEAD`
+   - Add a new compare line for the new version above the previous latest:
+     `[X.Y.Z]: https://github.com/draptik/BpMonitor/compare/vPREV...vX.Y.Z`
+
+Commit, push, open a PR, and **merge it to `main`** before proceeding:
+
+```bash
+git add CHANGELOG.md
+git commit -m "📝 docs: update changelog for vX.Y.Z"
+git push -u origin chore/changelog-vX.Y.Z
+gh pr create --title "📝 docs: update changelog for vX.Y.Z" --body "Changelog entry for the upcoming vX.Y.Z release."
+# wait for CI to pass, then merge
+gh pr merge --squash
+```
+
+After the PR is merged, pull `main` so the tag lands on the changelog commit:
+
+```bash
+git switch main
+git pull
+```
 
 ## Step 6 — Create annotated tag and push
 
@@ -138,3 +190,5 @@ not become `/releases/latest` — correct behaviour for RCs.
   operators are the audience.
 - NEVER create a release from a branch other than `main`.
 - NEVER skip the preflight; failing CI on `main` means the release isn't ready.
+- NEVER tag before the `CHANGELOG.md` PR (Step 5a) is merged; the tag annotation
+  and the `CHANGELOG.md` version section must match.

@@ -97,7 +97,8 @@ Never start work on `main`. Creating the branch is the first step, not an aftert
 - `docs/vision.md` — product vision and requirements
 - `docs/architecture.md` — tech stack, architectural decisions, and dev tooling (mise, Biome)
 - `docs/install.md` — end-user install guide (Web app)
-- `CONTRIBUTING.md` — developer setup, linting, testing, release process
+- `CONTRIBUTING.md` — developer setup, linting, testing, changelog convention, release process
+- `CHANGELOG.md` — version history in Keep a Changelog format; add `[Unreleased]` bullets in each PR for user-facing changes
 - `.claude/skills/` — skill definitions (git-workflow, review-tests, setup-tooling, model-advisor, status-bar)
 
 ## Testing
