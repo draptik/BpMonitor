@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Install guide now documents manual tarball download and Docker Compose; the `install.sh` script has been removed.
+
 ## [1.4.2] - 2026-06-15
 
 ### Added
