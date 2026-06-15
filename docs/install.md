@@ -2,41 +2,30 @@
 
 BpMonitor Web ships as a self-contained Linux binary — no .NET runtime required.
 
-## Quick install
+## Manual install (tarball)
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash
-```
+1. Download the latest release tarball from the [GitHub Releases](https://github.com/draptik/BpMonitor/releases/latest) page:
 
-This installs the latest release to `~/.local/bin/bpweb/bpmonitor-web`. Run it
-**from its install directory** so the bundled `wwwroot/` static assets resolve:
+   ```bash
+   curl -fsSL -o bpmonitor-web-linux-x64.tar.gz \
+     https://github.com/draptik/BpMonitor/releases/latest/download/bpmonitor-web-linux-x64.tar.gz
+   ```
 
-```bash
-cd ~/.local/bin/bpweb && ./bpmonitor-web
-```
+2. Extract to your install directory:
+
+   ```bash
+   mkdir -p ~/.local/bin/bpweb
+   tar -xzf bpmonitor-web-linux-x64.tar.gz -C ~/.local/bin/bpweb
+   chmod +x ~/.local/bin/bpweb/bpmonitor-web
+   ```
+
+3. Run **from the install directory** so the bundled `wwwroot/` static assets resolve:
+
+   ```bash
+   cd ~/.local/bin/bpweb && ./bpmonitor-web
+   ```
 
 The server binds `http://0.0.0.0:5000`.
-
-## Custom install location
-
-Use flags to override defaults:
-
-| Flag | Default | Description |
-| ---- | ------- | ----------- |
-| `-b PATH` | `~/.local/bin` | Base directory |
-| `-d NAME` | `bpweb` | Subdirectory under base path |
-| `-n NAME` | `bpmonitor-web` | Executable name |
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash -s -- -b /usr/local/bin -d bpweb
-```
-
-Or via environment variables:
-
-```bash
-BASE_PATH=/usr/local/bin INSTALL_DIR_NAME=bpweb \
-  curl -fsSL https://raw.githubusercontent.com/draptik/BpMonitor/main/install.sh | bash
-```
 
 ## Configuration
 
