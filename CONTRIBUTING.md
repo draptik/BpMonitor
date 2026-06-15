@@ -111,10 +111,32 @@ See [AGENTS.md](AGENTS.md) for the full git workflow rules.
 
 ## Creating a release
 
-Push a version tag on `main` to trigger the release workflow:
+Use the `/cut-release` skill, which walks through the full flow (preflight, change
+summary, confirmation, tag, push). The quickest path is:
 
 ```bash
-git tag v1.2.3
+# inside Claude Code
+/cut-release v1.2.3
+```
+
+The skill creates an **annotated** tag whose message becomes the end-user summary
+displayed above the auto-generated changelog on the GitHub release page. It pauses
+for confirmation before pushing anything.
+
+If you prefer to tag manually, create an annotated tag — the message will appear
+as the release summary:
+
+```bash
+git tag -a v1.2.3 -m "$(cat <<'EOF'
+### Highlights
+
+- <new feature>
+
+### Deployment notes
+
+- <anything the operator must know — omit if nothing actionable>
+EOF
+)"
 git push origin v1.2.3
 ```
 
