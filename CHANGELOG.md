@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-06-15
+
+### Added
+
+- Added `CHANGELOG.md` — version history is now tracked in the repository.
+
 ## [1.4.1] - 2026-06-15
 
 ### Changed
@@ -163,7 +169,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.4.2...HEAD
+[1.4.2]: https://github.com/draptik/BpMonitor/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/draptik/BpMonitor/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/draptik/BpMonitor/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/draptik/BpMonitor/compare/v1.2.1...v1.3.0
