@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.3] - 2026-06-15
+
 ### Changed
 
-- Install guide now documents manual tarball download and Docker Compose; the `install.sh` script has been removed.
+- **Deployment:** `install.sh` has been removed. Install by downloading and extracting the release tarball manually, or use Docker Compose — see the updated [install guide](https://github.com/draptik/BpMonitor/blob/main/docs/install.md).
 
 ## [1.4.2] - 2026-06-15
 
@@ -173,7 +175,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.4.3...HEAD
+[1.4.3]: https://github.com/draptik/BpMonitor/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/draptik/BpMonitor/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/draptik/BpMonitor/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/draptik/BpMonitor/compare/v1.3.0...v1.4.0
