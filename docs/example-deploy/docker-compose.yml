@@ -1,6 +1,6 @@
 # Example Docker Compose for running BpMonitor.Web.
 #
-#   docker compose -f deploy/docker-compose.yml up -d
+#   docker compose -f docs/example-deploy/docker-compose.yml up -d
 #
 # Pulls the prebuilt image from GitHub Container Registry and serves the UI on
 # http://localhost:5000. The SQLite database is kept in ./data so it survives
