@@ -80,17 +80,15 @@ Write concise markdown covering **only what matters to end users and operators**
 **Exclude:** refactors, test-only changes, internal chores, CI tweaks, doc fixes,
 dependency bumps (unless they change runtime behaviour).
 
-Suggested shape (omit "Deployment notes" if there is nothing actionable):
+Suggested shape — a single flat list so bullets render without gaps. Prefix
+operator items with `**Deployment:**` (omit if nothing actionable):
 
 ```markdown
-### Highlights
+### What's new
 
 - <new feature visible to the user>
 - <another feature>
-
-### Deployment notes
-
-- <something the operator must do or know before upgrading — only if applicable>
+- **Deployment:** <something the operator must do or know — only if applicable>
 ```
 
 Keep it short. Two or three bullet points is better than an essay.
