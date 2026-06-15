@@ -109,6 +109,17 @@ the "F# Style Conventions" section of [AGENTS.md](AGENTS.md).
 
 See [AGENTS.md](AGENTS.md) for the full git workflow rules.
 
+## Changelog
+
+User-facing changes belong in [`CHANGELOG.md`](CHANGELOG.md) under the
+`## [Unreleased]` section. Add a bullet there as part of every PR that introduces
+a user-visible change — group it under `### Added`, `### Changed`, or `### Fixed`
+as appropriate. Internal-only changes (refactors, test-only, CI tweaks) do not
+need a changelog entry.
+
+When a release is cut (see below), `/cut-release` promotes the `[Unreleased]`
+entries into the new version section automatically.
+
 ## Creating a release
 
 Use the `/cut-release` skill, which walks through the full flow (preflight, change
