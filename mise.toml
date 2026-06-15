@@ -12,7 +12,7 @@ run = "biome check"
 
 [tasks."lint:shell"]
 # mirror the CI/hook exclusion of Husky's generated wrapper scripts
-run = 'find . -name "*.sh" -not -path "./.husky/_/*" | xargs shellcheck'
+run = 'find . -name "*.sh" -not -path "./.husky/_/*" | xargs -r shellcheck'
 
 [tasks.lint]
 depends = ["lint:md", "lint:js", "lint:shell"]
