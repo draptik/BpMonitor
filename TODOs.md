@@ -11,7 +11,6 @@ The mobile layout has room for improvement...
   - use "cards" instead of row (not practical for yearly view)
   - or: shorten time stamp string
   - or: hide comment
-- The `iframe` contains an SVG. The SVG height should match the `iframe` height.
 - The colors used in chart traces with the dark theme can be improved: Currently the traces are difficult to see.
 - Error bars
   - The error bars should be dimmed even more.
