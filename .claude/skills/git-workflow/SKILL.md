@@ -59,9 +59,10 @@ Examples:
 
 1. Push feature branch
 2. Open PR against `main`
-3. All feedback must be resolved before merge
-4. Merge strategy: **Squash and merge** (one clean commit per PR on `main`)
-5. After merge: run `git fetch --prune` and delete the local branch (`git branch -D <branch>`)
+3. **Wait for CI to pass** — run `gh pr checks <number> --watch` and do not merge until all checks are green
+4. All feedback must be resolved before merge
+5. Merge strategy: **Squash and merge** (one clean commit per PR on `main`)
+6. After merge: run `git fetch --prune` and delete the local branch (`git branch -D <branch>`)
 
 ### PR Title and Description Format
 
@@ -81,6 +82,7 @@ PR body:
 ## Rules
 
 - NEVER commit directly to `main`
+- NEVER merge before CI passes — always wait for all checks to go green (`gh pr checks <number> --watch`)
 - NEVER merge if any CI step is failing — fix the build first
 - NEVER use `git push --force` on `main`
 - NEVER add `Co-Authored-By: Claude` trailers to commits
