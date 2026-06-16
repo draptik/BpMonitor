@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-06-16
+
+### Added
+
+- Trends chart is now rendered inline — no iframe, no fixed-height clipping, smoother on all screen sizes
+- Trends chart colours improved: systolic trace in green, error bars dimmed, hovered point highlighted
+- Period pills with no readings are now visibly grayed out and unclickable
+
 ## [1.4.3] - 2026-06-15
 
 ### Changed
@@ -175,7 +183,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.4.3...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/draptik/BpMonitor/compare/v1.4.3...v1.5.0
 [1.4.3]: https://github.com/draptik/BpMonitor/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/draptik/BpMonitor/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/draptik/BpMonitor/compare/v1.4.0...v1.4.1
