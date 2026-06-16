@@ -17,7 +17,8 @@ module BpChart =
   let private darkFont = Color.fromString "#c2cfd6"
   let private darkGridLine = Color.fromString "rgba(194,207,214,0.12)"
   let private lightGridLine = Color.fromString "rgba(0,0,0,0.08)"
-  let private systolicColor = Color.fromString "rgba(99,110,250,1)"
+  let private systolicColor = Color.fromString "#16A34A"
+  let private diastolicColor = Color.fromString "#EF553B"
 
   let private layout (theme: Theme) =
     let bg = if theme = Dark then darkBg else transparent
@@ -124,7 +125,9 @@ module BpChart =
         [ Chart.Point(x = cTimestamps, y = cSystolic, Name = "Comments", MultiText = cTexts) ]
 
     [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic")
+      |> Chart.withLineStyle (Color = systolicColor)
       Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic")
+      |> Chart.withLineStyle (Color = diastolicColor)
       Chart.Line(x = timestamps, y = heartRate, Name = "Heart Rate")
       yield! commentTraces ]
     |> Chart.combine
@@ -231,7 +234,7 @@ module BpChart =
             MarkerColor = systolicColor
           ) ]
 
-    let line name y text upper lower errorColor =
+    let line name lineColor y text upper lower errorColor =
       Chart.Line(
         x = timestamps,
         y = y,
@@ -242,7 +245,8 @@ module BpChart =
         MultiText = text,
         LineWidth = 1.0
       )
-      |> Chart.withMarkerStyle (MultiSize = sizes)
+      |> Chart.withLineStyle (Color = lineColor)
+      |> Chart.withMarkerStyle (MultiSize = sizes, Color = lineColor)
       |> Chart.withYErrorStyle (
         Visible = true,
         Type = StyleParam.ErrorType.Data,
@@ -252,11 +256,11 @@ module BpChart =
         Color = errorColor
       )
 
-    let sysErrorColor = Color.fromString "rgba(99,110,250,0.35)"
+    let sysErrorColor = Color.fromString "rgba(22,163,74,0.35)"
     let diaErrorColor = Color.fromString "rgba(239,85,59,0.35)"
 
-    [ line "Systolic" systolic sysHover sysUpper sysLower sysErrorColor
-      line "Diastolic" diastolic diaHover diaUpper diaLower diaErrorColor
+    [ line "Systolic" systolicColor systolic sysHover sysUpper sysLower sysErrorColor
+      line "Diastolic" diastolicColor diastolic diaHover diaUpper diaLower diaErrorColor
       yield! commentTraces ]
     |> Chart.combine
     |> finishTrends theme height
