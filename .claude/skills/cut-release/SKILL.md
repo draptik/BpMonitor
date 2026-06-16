@@ -135,7 +135,7 @@ Edit `CHANGELOG.md`:
 Commit, push, open a PR, and **merge it to `main`** before proceeding:
 
 ```bash
-git add CHANGELOG.md
+git add "$(git rev-parse --show-toplevel)/CHANGELOG.md"
 git commit -m "📝 docs: update changelog for vX.Y.Z"
 git push -u origin chore/changelog-vX.Y.Z
 gh pr create --title "📝 docs: update changelog for vX.Y.Z" --body "Changelog entry for the upcoming vX.Y.Z release."
