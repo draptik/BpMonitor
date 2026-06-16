@@ -29,6 +29,10 @@ module AuthHandlers =
       | true, id -> (memberRepo ctx).GetById(id)
       | _ -> None
 
+  /// Returns the authenticated member's name, or "" if unauthenticated.
+  let authenticatedMemberName (ctx: HttpContext) : string =
+    authenticatedMember ctx |> Option.map _.Name |> Option.defaultValue ""
+
   /// Builds the auth claims principal for a member.
   let claimsPrincipal (m: FamilyMember) : ClaimsPrincipal =
     let claims =
