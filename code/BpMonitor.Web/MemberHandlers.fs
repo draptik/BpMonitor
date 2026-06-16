@@ -34,10 +34,9 @@ module MemberHandlers =
 
   let editMember: HttpContext -> Task =
     withRouteMember "editMember" (fun m ctx ->
-      let adminName =
-        authenticatedMember ctx |> Option.map _.Name |> Option.defaultValue ""
-
-      htmlResponse (MemberViews.memberForm Routes.members adminName true "Edit member" $"/members/{m.Id}" [] m) ctx)
+      htmlResponse
+        (MemberViews.memberForm Routes.members (authenticatedMemberName ctx) true "Edit member" $"/members/{m.Id}" [] m)
+        ctx)
 
   let private renderMemberEditError
     (id: int)
@@ -90,15 +89,12 @@ module MemberHandlers =
   let updateMember: HttpContext -> Task =
     withRouteMember "updateMember" (fun existing ctx ->
       task {
-        let adminName =
-          authenticatedMember ctx |> Option.map _.Name |> Option.defaultValue ""
-
         let! form = ctx.Request.ReadFormAsync()
 
         do!
           applyMemberEdit
             existing.Id
-            adminName
+            (authenticatedMemberName ctx)
             existing
             (form["Name"].ToString())
             (form.ContainsKey("IsAdmin"))
