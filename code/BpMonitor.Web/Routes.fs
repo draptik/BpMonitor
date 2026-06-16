@@ -7,7 +7,6 @@ module Routes =
   let logout = "/logout"
   let add = "/add"
   let history = "/history"
-  let chart = "/chart"
   let trends = "/trends"
   let readings = "/readings"
   let members = "/members"

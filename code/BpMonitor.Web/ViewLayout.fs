@@ -36,7 +36,10 @@ module ViewLayout =
          // No defer/async — render-blocking prevents flash of wrong theme (FOUC).
          Elem.script [ Attr.src "/theme.js" ] []
          Elem.link [ Attr.rel "stylesheet"; Attr.href "/pico.min.css" ]
-         Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ] ]
+         Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ]
+         // Plotly CDN — must be blocking (no defer/async) so chart render scripts in the
+         // body can call Plotly.newPlot synchronously when parsed.
+         Elem.script [ Attr.src "https://cdn.plot.ly/plotly-2.27.1.min.js"; Attr.charset "utf-8" ] [] ]
        @ extras)
 
   /// Page shell for authenticated pages: shared <head>, nav bar with logged-in member

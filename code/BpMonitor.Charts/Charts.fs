@@ -5,92 +5,59 @@ open Plotly.NET
 open Plotly.NET.LayoutObjects
 open BpMonitor.Core
 
-type Theme =
-  | Dark
-  | Light
-
 module BpChart =
   // ── palette ──────────────────────────────────────────────────────────────
-  let private darkBgHex = "#11191f"
-  let private darkBg = Color.fromString darkBgHex
   let private transparent = Color.fromString "rgba(0,0,0,0)"
-  let private darkFont = Color.fromString "#c2cfd6"
-  let private darkGridLine = Color.fromString "rgba(194,207,214,0.12)"
   let private lightGridLine = Color.fromString "rgba(0,0,0,0.08)"
   let private systolicColor = Color.fromString "#16A34A"
   let private diastolicColor = Color.fromString "#EF553B"
 
-  let private layout (theme: Theme) =
-    let bg = if theme = Dark then darkBg else transparent
-
-    let font =
-      if theme = Dark then
-        Font.init (Color = darkFont)
-      else
-        Font.init ()
-
-    Layout.init (PaperBGColor = bg, PlotBGColor = bg, Font = font)
+  let private layout () =
+    Layout.init (PaperBGColor = transparent, PlotBGColor = transparent)
 
   let private xAxis = LinearAxis.init (ShowGrid = false)
 
-  let private yAxis (theme: Theme) =
-    let gridColor = if theme = Dark then darkGridLine else lightGridLine
-    LinearAxis.init (GridColor = gridColor)
+  let private yAxis () =
+    LinearAxis.init (GridColor = lightGridLine)
 
-  // The chart is rendered inside an iframe (separate document), so the iframe body
-  // background must be set explicitly — it does not inherit the parent page theme.
-  // `height` is passed in from the caller (read from the ?height= query param set by theme.js,
-  // which reads --chart-height from the page CSS) so the value is defined only in app.css.
-  let private injectBodyStyle (theme: Theme) (height: string) (html: string) =
-    let heightStyle = $"html,body{{height:100%%;margin:0}}body>div{{height:{height}}}"
-    // Plotly's stroke helper sets stroke-opacity as an inline style on every path.yerror
-    // (value = alpha of the trace color; for our solid colors that is 1). Normal inline styles
-    // beat CSS rules, so a plain CSS dim is always overridden. CSS !important beats normal inline
-    // styles, so `stroke-opacity:.1!important` in a stylesheet wins. On hover we need to win
-    // over the CSS !important, which requires setProperty(...,'important') to write an inline
-    // !important that takes precedence; removeProperty on unhover falls back to the CSS rule.
-    // g.errorbar (singular, per point) lives inside g.errorbars (plural, per trace).
-    let errorBarStyle =
-      "g.errorbars path.yerror{stroke-opacity:.1!important;transition:stroke-opacity .15s}"
+  // Plotly's stroke helper sets stroke-opacity as an inline style on every path.yerror
+  // (value = alpha of the trace color; for our solid colors that is 1). Normal inline styles
+  // beat CSS rules, so a plain CSS dim is always overridden. CSS !important beats normal inline
+  // styles, so `stroke-opacity:.1!important` in app.css wins. On hover we need to win
+  // over the CSS !important, which requires setProperty(...,'important') to write an inline
+  // !important that takes precedence; removeProperty on unhover falls back to the CSS rule.
+  // g.errorbar (singular, per point) lives inside g.errorbars (plural, per trace).
+  let private errorBarScript =
+    "<script>(function(){"
+    + "function setup(){"
+    + "var d=document.querySelector('.js-plotly-plot');"
+    + "if(!d||!d.on){setTimeout(setup,50);return;}"
+    + "d.on('plotly_hover',function(e){"
+    + "var p=e.points[0];"
+    + "var gs=d.querySelectorAll('g.errorbars')[p.curveNumber];"
+    + "if(!gs)return;"
+    + "var bar=gs.querySelectorAll('g.errorbar')[p.pointIndex];"
+    + "if(!bar)return;"
+    + "var path=bar.querySelector('path.yerror');"
+    + "if(path)path.style.setProperty('stroke-opacity','1','important');"
+    + "});"
+    + "d.on('plotly_unhover',function(){"
+    + "d.querySelectorAll('g.errorbars path.yerror').forEach(function(p){p.style.removeProperty('stroke-opacity');});"
+    + "});"
+    + "}"
+    + "setTimeout(setup,0);"
+    + "})()</script>"
 
-    let errorBarScript =
-      "<script>(function(){"
-      + "function setup(){"
-      + "var d=document.querySelector('.js-plotly-plot');"
-      + "if(!d||!d.on){setTimeout(setup,50);return;}"
-      + "d.on('plotly_hover',function(e){"
-      + "var p=e.points[0];"
-      + "var gs=d.querySelectorAll('g.errorbars')[p.curveNumber];"
-      + "if(!gs)return;"
-      + "var bar=gs.querySelectorAll('g.errorbar')[p.pointIndex];"
-      + "if(!bar)return;"
-      + "var path=bar.querySelector('path.yerror');"
-      + "if(path)path.style.setProperty('stroke-opacity','1','important');"
-      + "});"
-      + "d.on('plotly_unhover',function(){"
-      + "d.querySelectorAll('g.errorbars path.yerror').forEach(function(p){p.style.removeProperty('stroke-opacity');});"
-      + "});"
-      + "}"
-      + "setTimeout(setup,0);"
-      + "})()</script>"
-
-    let withStyle =
-      if theme = Dark then
-        html.Replace("</head>", $"<style>body{{background:{darkBgHex}}}{heightStyle}{errorBarStyle}</style></head>")
-      else
-        html.Replace("</head>", $"<style>{heightStyle}{errorBarStyle}</style></head>")
-
-    withStyle.Replace("</body>", errorBarScript + "</body>")
-
-  let private finish (theme: Theme) (height: string) (chart: GenericChart) =
+  let private finish (chart: GenericChart) =
     chart
-    |> Chart.withLayout (layout theme)
+    |> Chart.withLayout (layout ())
     |> Chart.withXAxis xAxis
-    |> Chart.withYAxis (yAxis theme)
-    |> GenericChart.toEmbeddedHTML
+    |> Chart.withYAxis (yAxis ())
+    |> Chart.withConfig (Config.init (Responsive = true))
+    |> GenericChart.toChartHTML
     |> _.Replace("\"width\":600,", "")
     |> _.Replace("\"height\":600,", "")
-    |> injectBodyStyle theme height
+    |> fun html -> html + errorBarScript
 
   // Trends-specific tuning for mobile:
   // - Compact margins maximise the narrow plot area.
@@ -99,21 +66,12 @@ module BpChart =
   // - Horizontal centred legend avoids stealing horizontal width.
   // - DisplayModeBar=false: no floating toolbar (awkward on touch).
   // - ScrollZoom=NoZoom: wheel/pinch won't fight page scroll.
-  let private trendsLayout (theme: Theme) =
-    let bg = if theme = Dark then darkBg else transparent
-
-    let font =
-      if theme = Dark then
-        Font.init (Color = darkFont)
-      else
-        Font.init ()
-
+  let private trendsLayout () =
     let margin = Margin.init (Left = 48, Right = 16, Top = 24, Bottom = 56)
 
     Layout.init (
-      PaperBGColor = bg,
-      PlotBGColor = bg,
-      Font = font,
+      PaperBGColor = transparent,
+      PlotBGColor = transparent,
       Margin = margin,
       DragMode = StyleParam.DragMode.False
     )
@@ -123,24 +81,24 @@ module BpChart =
   let private trendsConfig =
     Config.init (Responsive = true, DisplayModeBar = false, ScrollZoom = StyleParam.ScrollZoom.NoZoom)
 
-  let private finishTrends (theme: Theme) (height: string) (chart: GenericChart) =
+  let private finishTrends (chart: GenericChart) =
     chart
-    |> Chart.withLayout (trendsLayout theme)
+    |> Chart.withLayout (trendsLayout ())
     |> Chart.withXAxis trendsXAxis
-    |> Chart.withYAxis (yAxis theme)
+    |> Chart.withYAxis (yAxis ())
     |> Chart.withConfig trendsConfig
     |> Chart.withLegendStyle (
       Orientation = StyleParam.Orientation.Horizontal,
       X = 0.5,
       XAnchor = StyleParam.XAnchorPosition.Center
     )
-    |> GenericChart.toEmbeddedHTML
+    |> GenericChart.toChartHTML
     |> _.Replace("\"width\":600,", "")
     |> _.Replace("\"height\":600,", "")
-    |> injectBodyStyle theme height
+    |> fun html -> html + errorBarScript
 
   /// Classic x/y plot — one point per reading. Used by /history.
-  let private renderIndividual (theme: Theme) (height: string) (readings: BloodPressureReading list) : string =
+  let private renderIndividual (readings: BloodPressureReading list) : string =
     let readings = readings |> List.sortBy _.Timestamp
     let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
     let systolic = readings |> List.map _.Systolic
@@ -165,7 +123,7 @@ module BpChart =
       yield! commentTraces ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
-    |> finish theme height
+    |> finish
 
   type private DailyPoint =
     { Label: string
@@ -184,12 +142,7 @@ module BpChart =
   /// Circle marker = single reading in that period; Diamond marker = average of multiple readings.
   /// X-axis labels adapt to granularity: Weekly → date, Monthly → ISO week, Yearly → month name.
   /// Used by /trends for all granularities.
-  let private renderDashed
-    (gran: Granularity)
-    (theme: Theme)
-    (height: string)
-    (aggregated: AggregatedReading list)
-    : string =
+  let private renderDashed (gran: Granularity) (aggregated: AggregatedReading list) : string =
     let aggregated = aggregated |> List.sortBy _.Reading.Timestamp
 
     let xLabel (r: BloodPressureReading) =
@@ -296,7 +249,7 @@ module BpChart =
       line "Diastolic" diastolicColor diastolic diaHover diaUpper diaLower diaErrorColor
       yield! commentTraces ]
     |> Chart.combine
-    |> finishTrends theme height
+    |> finishTrends
 
-  let toHtml (theme: Theme) (height: string) = renderIndividual theme height
-  let toHtmlDashed (gran: Granularity) (theme: Theme) (height: string) = renderDashed gran theme height
+  let toHtml = renderIndividual
+  let toHtmlDashed (gran: Granularity) = renderDashed gran

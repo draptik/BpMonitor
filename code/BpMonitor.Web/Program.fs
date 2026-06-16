@@ -25,7 +25,6 @@ let private endpoints =
     get Routes.home (AuthHandlers.protect ReadingHandlers.landing)
     get Routes.add (AuthHandlers.protect ReadingHandlers.newReading)
     get Routes.history (AuthHandlers.protect ReadingHandlers.history)
-    get Routes.chart (AuthHandlers.protect ReadingHandlers.chart)
     get Routes.trends (AuthHandlers.protect ReadingHandlers.trends)
     get "/trends/{gran}" (AuthHandlers.protect ReadingHandlers.trendsPanel)
     get "/trends/{gran}/{key}" (AuthHandlers.protect ReadingHandlers.trendsPanel)

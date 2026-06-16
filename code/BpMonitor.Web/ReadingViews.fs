@@ -19,8 +19,8 @@ module ReadingViews =
           [ Elem.a [ Attr.href "/add"; Attr.role "button" ] [ Text.raw "Add reading" ]
             Elem.a [ Attr.href Routes.history; Attr.role "button" ] [ Text.raw "History" ] ] ]
 
-  /// History: chart (isolated in an iframe) above the readings table.
-  let history (activeMember: FamilyMember) (readings: BloodPressureReading list) : XmlNode =
+  /// History: chart above the readings table.
+  let history (activeMember: FamilyMember) (chartHtml: string) (readings: BloodPressureReading list) : XmlNode =
     ViewLayout.layout
       Routes.history
       activeMember.Name
@@ -30,11 +30,7 @@ module ReadingViews =
         Elem.details
           []
           [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw "Blood Pressure Graph" ]
-            Elem.iframe
-              [ Attr.create "data-chart-src" "/chart"
-                Attr.class' "chart"
-                Attr.title "Blood Pressure History" ]
-              [] ]
+            Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ]
         ViewLayout.readingsTable readings ]
 
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
