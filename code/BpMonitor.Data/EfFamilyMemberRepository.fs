@@ -17,14 +17,14 @@ module private MemberMapping =
       CreatedAt = r.CreatedAt
       ModifiedAt = r.ModifiedAt }
 
-  let toEntity (now: System.DateTimeOffset) (m: FamilyMember) : MemberRecord =
+  let toEntity (createdAt: System.DateTimeOffset) (modifiedAt: System.DateTimeOffset) (m: FamilyMember) : MemberRecord =
     { Id = m.Id
       Name = m.Name
       IsAdmin = m.IsAdmin
       IsActive = m.IsActive
       PasswordHash = m.PasswordHash |> Option.defaultValue ""
-      CreatedAt = now
-      ModifiedAt = now }
+      CreatedAt = createdAt
+      ModifiedAt = modifiedAt }
 
 type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvider) =
   interface IFamilyMemberRepository with
@@ -38,7 +38,7 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.Time
 
     member _.Add(m) =
       let now = timeProvider.GetUtcNow()
-      let entity = MemberMapping.toEntity now m
+      let entity = MemberMapping.toEntity now now m
       let entry = ctx.Members.Add(entity)
       ctx.SaveChanges() |> ignore
       MemberMapping.toDomain entry.Entity
@@ -55,14 +55,5 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.Time
         |> Seq.tryFind (fun e -> e.Entity.Id = m.Id)
         |> Option.iter (fun e -> e.State <- Microsoft.EntityFrameworkCore.EntityState.Detached)
 
-        let entity: MemberRecord =
-          { Id = m.Id
-            Name = m.Name
-            IsAdmin = m.IsAdmin
-            IsActive = m.IsActive
-            PasswordHash = m.PasswordHash |> Option.defaultValue ""
-            CreatedAt = m.CreatedAt
-            ModifiedAt = now }
-
-        ctx.Members.Update(entity) |> ignore
+        ctx.Members.Update(MemberMapping.toEntity m.CreatedAt now m) |> ignore
         ctx.SaveChanges() |> ignore
