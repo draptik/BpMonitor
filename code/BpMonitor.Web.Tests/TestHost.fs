@@ -11,6 +11,7 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Primitives
 open BpMonitor.Core
 open BpMonitor.Data
+open BpMonitor.Web
 
 let private buildServices (repo: IReadingRepository) (memberRepo: IFamilyMemberRepository) (tp: TimeProvider) =
   let services = ServiceCollection()
@@ -25,18 +26,7 @@ let private buildServices (repo: IReadingRepository) (memberRepo: IFamilyMemberR
 
   services
 
-/// Builds a ClaimsPrincipal for the given member, matching the scheme used by the web app.
-let buildPrincipal (m: FamilyMember) : ClaimsPrincipal =
-  let claims =
-    [ yield Claim(ClaimTypes.NameIdentifier, string m.Id)
-      yield Claim(ClaimTypes.Name, m.Name)
-      if m.IsAdmin then
-        yield Claim(ClaimTypes.Role, "Admin") ]
-
-  let identity =
-    ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)
-
-  ClaimsPrincipal(identity)
+let buildPrincipal (m: FamilyMember) : ClaimsPrincipal = AuthHandlers.claimsPrincipal m
 
 let private defaultMember: FamilyMember =
   { Id = 1
