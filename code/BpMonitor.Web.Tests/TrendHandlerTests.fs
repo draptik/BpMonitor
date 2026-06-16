@@ -185,3 +185,25 @@ let ``trendsPanel with invalid gran string returns 400`` () =
   TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 400 @>
+
+[<Fact>]
+let ``trendsPanel period pills without data are aria-disabled and have no href`` () =
+  let tp = FakeTimeProvider(trendsNow)
+
+  // Only a reading in current week (W24) — Last Week (W23) has no data
+  let r =
+    { sample with
+        Timestamp = trendsNow.AddDays(-1.0) // W24
+        Systolic = 130 }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  setRouteGran ctx "weekly"
+  TestHost.run ReadingHandlers.trendsPanel ctx
+
+  test <@ ctx.Response.StatusCode = 200 @>
+  let body = TestHost.readBody ctx
+  // W24 (This Week) pill should be a normal link
+  test <@ body.Contains "href=\"/trends/weekly/2026-W24\"" @>
+  // W23 (Last Week) pill should be disabled — no href, has aria-disabled
+  test <@ body.Contains "href=\"/trends/weekly/2026-W23\"" |> not @>
+  test <@ body.Contains "aria-disabled=\"true\"" @>

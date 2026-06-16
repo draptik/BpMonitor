@@ -11,6 +11,7 @@ module TrendViews =
   let trendsPanel
     (summary: WindowSummary)
     (periods: TrendPeriod list)
+    (periodsWithData: Set<string>)
     (readings: BloodPressureReading list)
     (chartHtml: string)
     : XmlNode =
@@ -44,22 +45,32 @@ module TrendViews =
 
     // ── Level 2: sub-period pills ────────────────────────────────────────────
     let periodButton (p: TrendPeriod) =
-      let href = $"/trends/{granSlug}/{p.Key}"
+      let isActive = p.Key = summary.PeriodKey
+      let hasData = periodsWithData |> Set.contains p.Key
 
-      let baseAttrs =
-        [ Attr.href href
-          Attr.role "button"
-          Attr.create "hx-get" href
-          Attr.create "hx-target" "#trends-panel"
-          Attr.create "hx-swap" "outerHTML" ]
+      if not hasData && not isActive then
+        Elem.a
+          [ Attr.role "button"
+            Attr.class' "outline"
+            Attr.create "aria-disabled" "true" ]
+          [ Text.raw p.Label ]
+      else
+        let href = $"/trends/{granSlug}/{p.Key}"
 
-      let attrs =
-        if p.Key = summary.PeriodKey then
-          baseAttrs @ [ Attr.create "aria-current" "page" ]
-        else
-          baseAttrs @ [ Attr.class' "outline" ]
+        let baseAttrs =
+          [ Attr.href href
+            Attr.role "button"
+            Attr.create "hx-get" href
+            Attr.create "hx-target" "#trends-panel"
+            Attr.create "hx-swap" "outerHTML" ]
 
-      Elem.a attrs [ Text.raw p.Label ]
+        let attrs =
+          if isActive then
+            baseAttrs @ [ Attr.create "aria-current" "page" ]
+          else
+            baseAttrs @ [ Attr.class' "outline" ]
+
+        Elem.a attrs [ Text.raw p.Label ]
 
     // ── Content ──────────────────────────────────────────────────────────────
     let content =
@@ -102,6 +113,7 @@ module TrendViews =
     (m: FamilyMember)
     (summary: WindowSummary)
     (periods: TrendPeriod list)
+    (periodsWithData: Set<string>)
     (readings: BloodPressureReading list)
     (chartHtml: string)
     : XmlNode =
@@ -111,4 +123,4 @@ module TrendViews =
       m.IsAdmin
       "Trends"
       [ Elem.h1 [] [ Text.raw "Trends" ]
-        trendsPanel summary periods readings chartHtml ]
+        trendsPanel summary periods periodsWithData readings chartHtml ]
