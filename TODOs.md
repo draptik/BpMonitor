@@ -11,9 +11,7 @@ The mobile layout has room for improvement...
   - use "cards" instead of row (not practical for yearly view)
   - or: shorten time stamp string
   - or: hide comment
-- Error bars
-  - The error bars should be dimmed even more.
-  - Hovering over the error bars should reduce the dimming.
+- check if we can drop the iframe around the chart
 
 ## Features
 
