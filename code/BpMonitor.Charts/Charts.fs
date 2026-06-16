@@ -43,11 +43,44 @@ module BpChart =
   // which reads --chart-height from the page CSS) so the value is defined only in app.css.
   let private injectBodyStyle (theme: Theme) (height: string) (html: string) =
     let heightStyle = $"html,body{{height:100%%;margin:0}}body>div{{height:{height}}}"
+    // Plotly's stroke helper sets stroke-opacity as an inline style on every path.yerror
+    // (value = alpha of the trace color; for our solid colors that is 1). Normal inline styles
+    // beat CSS rules, so a plain CSS dim is always overridden. CSS !important beats normal inline
+    // styles, so `stroke-opacity:.1!important` in a stylesheet wins. On hover we need to win
+    // over the CSS !important, which requires setProperty(...,'important') to write an inline
+    // !important that takes precedence; removeProperty on unhover falls back to the CSS rule.
+    // g.errorbar (singular, per point) lives inside g.errorbars (plural, per trace).
+    let errorBarStyle =
+      "g.errorbars path.yerror{stroke-opacity:.1!important;transition:stroke-opacity .15s}"
 
-    if theme = Dark then
-      html.Replace("</head>", $"<style>body{{background:{darkBgHex}}}{heightStyle}</style></head>")
-    else
-      html.Replace("</head>", $"<style>{heightStyle}</style></head>")
+    let errorBarScript =
+      "<script>(function(){"
+      + "function setup(){"
+      + "var d=document.querySelector('.js-plotly-plot');"
+      + "if(!d||!d.on){setTimeout(setup,50);return;}"
+      + "d.on('plotly_hover',function(e){"
+      + "var p=e.points[0];"
+      + "var gs=d.querySelectorAll('g.errorbars')[p.curveNumber];"
+      + "if(!gs)return;"
+      + "var bar=gs.querySelectorAll('g.errorbar')[p.pointIndex];"
+      + "if(!bar)return;"
+      + "var path=bar.querySelector('path.yerror');"
+      + "if(path)path.style.setProperty('stroke-opacity','1','important');"
+      + "});"
+      + "d.on('plotly_unhover',function(){"
+      + "d.querySelectorAll('g.errorbars path.yerror').forEach(function(p){p.style.removeProperty('stroke-opacity');});"
+      + "});"
+      + "}"
+      + "setTimeout(setup,0);"
+      + "})()</script>"
+
+    let withStyle =
+      if theme = Dark then
+        html.Replace("</head>", $"<style>body{{background:{darkBgHex}}}{heightStyle}{errorBarStyle}</style></head>")
+      else
+        html.Replace("</head>", $"<style>{heightStyle}{errorBarStyle}</style></head>")
+
+    withStyle.Replace("</body>", errorBarScript + "</body>")
 
   let private finish (theme: Theme) (height: string) (chart: GenericChart) =
     chart
@@ -256,8 +289,8 @@ module BpChart =
         Color = errorColor
       )
 
-    let sysErrorColor = Color.fromString "rgba(22,163,74,0.35)"
-    let diaErrorColor = Color.fromString "rgba(239,85,59,0.35)"
+    let sysErrorColor = systolicColor
+    let diaErrorColor = diastolicColor
 
     [ line "Systolic" systolicColor systolic sysHover sysUpper sysLower sysErrorColor
       line "Diastolic" diastolicColor diastolic diaHover diaUpper diaLower diaErrorColor
