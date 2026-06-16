@@ -286,6 +286,13 @@ form.inline button {
   border-color: var(--pico-primary);
 }
 
+/* Disabled sub-period pill (no data in that period) */
+.trends-subperiod-buttons a[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
 /* Stats table inside the panel */
 .trends-stats {
   width: auto;

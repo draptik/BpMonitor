@@ -82,9 +82,20 @@ module ReadingHandlers =
       let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
       let summary = ReadingStats.summarizeRange period windowed
       let periods = TrendPeriod.available Weekly now
+
+      let periodsWithData =
+        periods
+        |> List.filter (fun p ->
+          allReadings
+          |> ReadingStats.between p.Start p.EndExclusive
+          |> List.isEmpty
+          |> not)
+        |> List.map _.Key
+        |> Set.ofList
+
       let tableReadings = windowed |> List.sortByDescending _.Timestamp
       let chartHtml = BpChart.toHtmlDashed Weekly (ReadingStats.aggregate Weekly windowed)
-      htmlResponse (TrendViews.trends m summary periods tableReadings chartHtml) ctx)
+      htmlResponse (TrendViews.trends m summary periods periodsWithData tableReadings chartHtml) ctx)
 
   let trendsPanel: HttpContext -> Task =
     withMember (fun m ctx ->
@@ -102,10 +113,21 @@ module ReadingHandlers =
         let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
         let summary = ReadingStats.summarizeRange period windowed
         let periods = TrendPeriod.available gran now
+
+        let periodsWithData =
+          periods
+          |> List.filter (fun p ->
+            allReadings
+            |> ReadingStats.between p.Start p.EndExclusive
+            |> List.isEmpty
+            |> not)
+          |> List.map _.Key
+          |> Set.ofList
+
         let tableReadings = windowed |> List.sortByDescending _.Timestamp
         let chartHtml = BpChart.toHtmlDashed gran (ReadingStats.aggregate gran windowed)
 
-        htmlResponse (TrendViews.trendsPanel summary periods tableReadings chartHtml) ctx)
+        htmlResponse (TrendViews.trendsPanel summary periods periodsWithData tableReadings chartHtml) ctx)
 
   // ---------------------------------------------------------------------------
   // Reading CRUD
