@@ -157,41 +157,24 @@ module ReadingHandlers =
 
   let editReading: HttpContext -> Task =
     withMember (fun m ctx ->
-      let log = logger ctx
-
-      match routeInt ctx "id" with
-      | None ->
-        log.LogWarning(
-          "editReading: bad route value for {RouteId}",
-          routeStr ctx "id" |> Option.defaultValue "<missing>"
-        )
-
-        badRequest ctx
-      | Some id ->
+      (withRouteId "editReading" (fun id ctx ->
         match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
         | Some r ->
           htmlResponse
             (ReadingViews.readingForm "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" [] (Binding.ofReading r))
             ctx
         | None ->
+          let log = logger ctx
           log.LogWarning("editReading: reading {Id} not found for member {MemberId}", id, m.Id)
-          notFound ctx)
+          notFound ctx))
+        ctx)
 
   let updateReading: HttpContext -> Task =
     withMember (fun m ctx ->
-      let log = logger ctx
-
-      match routeInt ctx "id" with
-      | None ->
-        log.LogWarning(
-          "updateReading: bad route value for {RouteId}",
-          routeStr ctx "id" |> Option.defaultValue "<missing>"
-        )
-
-        badRequest ctx
-      | Some id ->
+      (withRouteId "updateReading" (fun id ctx ->
         submit ctx "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" (fun r ->
-          (repo ctx).Update { r with Id = id; MemberId = m.Id }))
+          (repo ctx).Update { r with Id = id; MemberId = m.Id })))
+        ctx)
 
   // ---------------------------------------------------------------------------
   // Export

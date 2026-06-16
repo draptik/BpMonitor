@@ -78,6 +78,22 @@ module HandlerHelpers =
   let sortedReadings (memberId: int) (ctx: HttpContext) =
     (repo ctx).GetAll(memberId) |> List.sortByDescending _.Timestamp
 
+  /// Resolves the "id" route segment to an int, logging and returning 400 for a non-integer id.
+  let withRouteId (handlerName: string) (handler: int -> HttpContext -> Task) : HttpContext -> Task =
+    fun ctx ->
+      let log = logger ctx
+
+      match routeInt ctx "id" with
+      | None ->
+        log.LogWarning(
+          "{Handler}: bad route value for {RouteId}",
+          handlerName,
+          routeStr ctx "id" |> Option.defaultValue "<missing>"
+        )
+
+        badRequest ctx
+      | Some id -> handler id ctx
+
   /// Resolves the "id" route segment to a FamilyMember, logging and returning
   /// 400 for a non-integer id or 404 when no member with that id exists.
   let withRouteMember (handlerName: string) (handler: FamilyMember -> HttpContext -> Task) : HttpContext -> Task =
