@@ -52,7 +52,7 @@ let ``non-admin does not see Members nav link`` () =
 let ``every page has a BpMonitor footer`` () =
   let pages =
     [ renderHtml (ReadingViews.landing defaultMember)
-      renderHtml (ReadingViews.history defaultMember [ sample ])
+      renderHtml (ReadingViews.history defaultMember "" [ sample ])
       renderHtml (ReadingViews.readingForm "/add" "Me" true "Add reading" "/readings" [] Binding.empty) ]
 
   for html in pages do
@@ -63,7 +63,7 @@ let ``every page has a BpMonitor footer`` () =
 let ``every authenticated page shows the logout button`` () =
   let pages =
     [ renderHtml (ReadingViews.landing defaultMember)
-      renderHtml (ReadingViews.history defaultMember [ sample ])
+      renderHtml (ReadingViews.history defaultMember "" [ sample ])
       renderHtml (ReadingViews.readingForm "/add" "Me" true "Add reading" "/readings" [] Binding.empty) ]
 
   for html in pages do
@@ -76,12 +76,12 @@ let ``every authenticated page shows the member name`` () =
   test <@ html.Contains "Me" @>
 
 [<Fact>]
-let ``history renders reading values, chart iframe and nav links`` () =
-  let html = renderHtml (ReadingViews.history defaultMember [ sample ])
+let ``history renders reading values, chart div and nav links`` () =
+  let html = renderHtml (ReadingViews.history defaultMember "" [ sample ])
 
   test <@ html.Contains "123" @>
   test <@ html.Contains "after walk" @>
-  test <@ html.Contains "<iframe" && html.Contains "src=\"/chart\"" @>
+  test <@ html.Contains "class=\"chart\"" @>
   test <@ html.Contains "href=\"/add\"" @>
   test <@ html.Contains "/readings/7/edit" @>
   // the History nav link is marked active on the history page
@@ -112,7 +112,7 @@ let ``view encodes user-supplied content`` () =
     { sample with
         Comments = Some "<script>x</script>" }
 
-  let html = renderHtml (ReadingViews.history defaultMember [ nasty ])
+  let html = renderHtml (ReadingViews.history defaultMember "" [ nasty ])
 
   test <@ not (html.Contains "<script>x</script>") @>
   test <@ html.Contains "&lt;script&gt;" @>

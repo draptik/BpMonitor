@@ -11,7 +11,6 @@ The mobile layout has room for improvement...
   - use "cards" instead of row (not practical for yearly view)
   - or: shorten time stamp string
   - or: hide comment
-- check if we can drop the iframe around the chart
 
 ## Features
 

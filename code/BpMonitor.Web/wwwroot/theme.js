@@ -4,11 +4,16 @@
   document.documentElement.setAttribute('data-theme',t);
 })();
 
-function updateChartIframes(theme) {
-  var chartHeight = getComputedStyle(document.documentElement).getPropertyValue('--chart-height').trim() || '620px';
-  document.querySelectorAll('[data-chart-src]').forEach(function(el) {
-    var base = el.getAttribute('data-chart-src');
-    el.src = base + (base.includes('?') ? '&' : '?') + 'theme=' + theme + '&height=' + chartHeight;
+function applyChartTheme(theme) {
+  if (typeof Plotly === 'undefined') return;
+  var isDark = theme === 'dark';
+  document.querySelectorAll('.js-plotly-plot').forEach((d) => {
+    Plotly.relayout(d, {
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { color: isDark ? '#c2cfd6' : '#444' },
+      'yaxis.gridcolor': isDark ? 'rgba(194,207,214,0.12)' : 'rgba(0,0,0,0.08)'
+    });
   });
 }
 
@@ -18,12 +23,12 @@ window.toggleTheme=()=> {
   localStorage.setItem('theme',n);
   var b=document.getElementById('theme-toggle');
   if(b)b.textContent=n==='dark'?'Light':'Dark';
-  updateChartIframes(n);
+  applyChartTheme(n);
 };
 
-document.addEventListener('DOMContentLoaded',function() {
-  updateChartIframes(document.documentElement.getAttribute('data-theme')||'light');
+document.addEventListener('DOMContentLoaded',() => {
+  applyChartTheme(document.documentElement.getAttribute('data-theme')||'light');
 });
-document.addEventListener('htmx:afterSettle',function() {
-  updateChartIframes(document.documentElement.getAttribute('data-theme')||'light');
+document.addEventListener('htmx:afterSettle',() => {
+  applyChartTheme(document.documentElement.getAttribute('data-theme')||'light');
 });

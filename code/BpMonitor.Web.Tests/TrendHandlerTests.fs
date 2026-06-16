@@ -41,8 +41,8 @@ let ``trends renders 200 with granularity buttons and current Weekly panel`` () 
   test <@ body.Contains "href=\"/trends/yearly\"" @>
   // Weekly is active
   test <@ body.Contains "aria-current=\"page\"" @>
-  // Chart iframe uses new gran/period params
-  test <@ body.Contains "gran=weekly" @>
+  // Inline chart rendered
+  test <@ body.Contains "js-plotly-plot" @>
 
 [<Fact>]
 let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and stats`` () =
@@ -68,8 +68,8 @@ let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and 
   // Sub-period buttons present (This Week, Last Week)
   test <@ body.Contains "This Week" @>
   test <@ body.Contains "Last Week" @>
-  // Chart iframe uses gran + period params
-  test <@ body.Contains "gran=weekly" @>
+  // Inline chart rendered
+  test <@ body.Contains "js-plotly-plot" @>
 
 [<Fact>]
 let ``trendsPanel with gran=monthly returns monthly sub-period buttons`` () =
@@ -104,8 +104,8 @@ let ``trendsPanel with gran + key uses that specific sub-period`` () =
   // Stats for the W23 reading
   test <@ body.Contains "118" @>
   test <@ body.Contains "77" @>
-  // Period key is in the chart URL
-  test <@ body.Contains "period=2026-W23" @>
+  // Inline chart rendered
+  test <@ body.Contains "js-plotly-plot" @>
 
 [<Fact>]
 let ``trendsPanel includes readings table with in-period readings`` () =
@@ -165,7 +165,8 @@ let ``trendsPanel shows empty state when no readings in period`` () =
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
   test <@ body.Contains "No readings in" @>
-  test <@ body.Contains "gran=weekly" |> not @>
+  // No chart rendered when there are no readings in the period
+  test <@ body.Contains "js-plotly-plot" |> not @>
 
 [<Fact>]
 let ``trendsPanel returns 400 for unrecognised gran`` () =

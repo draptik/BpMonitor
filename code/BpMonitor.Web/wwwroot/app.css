@@ -35,6 +35,15 @@ nav a[aria-current="page"] {
   height: var(--chart-height);
   border: 1px solid var(--pico-muted-border-color);
   border-radius: var(--pico-border-radius);
+  overflow: hidden;
+}
+
+/* Plotly's stroke helper sets stroke-opacity as an inline style (value = 1 for solid colors).
+   CSS !important beats normal inline styles; JS setProperty(...,'important') beats this CSS
+   rule on hover; removeProperty on unhover falls back to this rule. */
+g.errorbars path.yerror {
+  stroke-opacity: .1 !important;
+  transition: stroke-opacity .15s;
 }
 
 .errors {

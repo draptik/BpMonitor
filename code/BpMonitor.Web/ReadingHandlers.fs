@@ -69,49 +69,10 @@ module ReadingHandlers =
     withMember (fun m ctx -> htmlResponse (ReadingViews.landing m) ctx)
 
   let history: HttpContext -> Task =
-    withMember (fun m ctx -> htmlResponse (ReadingViews.history m (sortedReadings m.Id ctx)) ctx)
-
-  let chart: HttpContext -> Task =
     withMember (fun m ctx ->
-      let allReadings = (repo ctx).GetAll(m.Id)
-
-      let theme =
-        match ctx.Request.Query.TryGetValue "theme" with
-        | true, v when string v = "dark" -> Dark
-        | _ -> Light
-
-      let granStr =
-        match ctx.Request.Query.TryGetValue "gran" with
-        | true, v -> string v
-        | _ -> ""
-
-      let periodStr =
-        match ctx.Request.Query.TryGetValue "period" with
-        | true, v -> string v
-        | _ -> ""
-
-      // Height is passed by theme.js reading --chart-h from app.css, so the value
-      // is defined only in CSS. Fallback covers direct URL access without JS.
-      let height =
-        match ctx.Request.Query.TryGetValue "height" with
-        | true, v when string v <> "" -> string v
-        | _ -> "620px"
-
-      let html =
-        match TrendPeriod.parseGranularity granStr with
-        | Some gran ->
-          let now = (timeProvider ctx).GetUtcNow()
-
-          let period =
-            TrendPeriod.ofKey gran periodStr now
-            |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
-
-          let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
-          BpChart.toHtmlDashed gran theme height (ReadingStats.aggregate gran windowed)
-        | None -> BpChart.toHtml theme height allReadings
-
-      ctx.Response.ContentType <- "text/html; charset=utf-8"
-      ctx.Response.WriteAsync html)
+      let readings = sortedReadings m.Id ctx
+      let chartHtml = BpChart.toHtml readings
+      htmlResponse (ReadingViews.history m chartHtml readings) ctx)
 
   let trends: HttpContext -> Task =
     withMember (fun m ctx ->
@@ -122,7 +83,8 @@ module ReadingHandlers =
       let summary = ReadingStats.summarizeRange period windowed
       let periods = TrendPeriod.available Weekly now
       let tableReadings = windowed |> List.sortByDescending _.Timestamp
-      htmlResponse (TrendViews.trends m summary periods tableReadings) ctx)
+      let chartHtml = BpChart.toHtmlDashed Weekly (ReadingStats.aggregate Weekly windowed)
+      htmlResponse (TrendViews.trends m summary periods tableReadings chartHtml) ctx)
 
   let trendsPanel: HttpContext -> Task =
     withMember (fun m ctx ->
@@ -141,8 +103,9 @@ module ReadingHandlers =
         let summary = ReadingStats.summarizeRange period windowed
         let periods = TrendPeriod.available gran now
         let tableReadings = windowed |> List.sortByDescending _.Timestamp
+        let chartHtml = BpChart.toHtmlDashed gran (ReadingStats.aggregate gran windowed)
 
-        htmlResponse (TrendViews.trendsPanel summary periods tableReadings) ctx)
+        htmlResponse (TrendViews.trendsPanel summary periods tableReadings chartHtml) ctx)
 
   // ---------------------------------------------------------------------------
   // Reading CRUD
