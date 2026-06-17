@@ -22,7 +22,7 @@ window.toggleTheme=()=> {
   h.setAttribute('data-theme',n);
   localStorage.setItem('theme',n);
   var b=document.getElementById('theme-toggle');
-  if(b)b.textContent=n==='dark'?'Light':'Dark';
+  if(b)b.textContent=n==='dark'?'☀️':'🌙';
   applyChartTheme(n);
 };
 

@@ -50,11 +50,37 @@ module ViewLayout =
       [ htmlHead title [ Elem.script [ Attr.src "/htmx.min.js" ] [] ]
         Elem.body
           [ Attr.create "hx-boost" "true" ]
-          [ Elem.nav
-              [ Attr.class' "container" ]
+          [ // Checkbox drives the mobile off-canvas drawer via pure CSS sibling selectors.
+            // hx-boost re-renders <body> on every navigation, so the checkbox resets to
+            // unchecked automatically — the drawer auto-closes after tapping a link.
+            Elem.input
+              [ Attr.type' "checkbox"
+                Attr.id "nav-toggle"
+                Attr.create "aria-hidden" "true" ]
+            Elem.label
+              [ Attr.create "for" "nav-toggle"
+                Attr.class' "nav-burger"
+                Attr.create "aria-label" "Menu" ]
+              [ Text.raw "☰" ]
+            // Second label for same checkbox: acts as the backdrop — clicking it unchecks
+            // the checkbox and closes the drawer.
+            Elem.label [ Attr.create "for" "nav-toggle"; Attr.class' "nav-backdrop" ] []
+            Elem.button
+              [ Attr.id "theme-toggle"
+                Attr.class' "outline secondary"
+                Attr.create "onclick" "toggleTheme()" ]
+              []
+            Elem.nav
+              [ Attr.class' "sidebar" ]
               [ Elem.ul
                   []
-                  [ Elem.li [] [ Elem.strong [] [ Text.raw "BpMonitor" ] ]
+                  [ Elem.li
+                      []
+                      [ Elem.label
+                          [ Attr.create "for" "nav-toggle"
+                            Attr.class' "sidebar-collapse"
+                            Attr.create "aria-label" "Collapse sidebar" ]
+                          [ Text.raw "◀" ] ]
                     navLink active Routes.home "Home"
                     navLink active Routes.add "Add"
                     navLink active Routes.history "History"
@@ -71,23 +97,17 @@ module ViewLayout =
                       [ Elem.a [ Attr.href Routes.exportCsv; Attr.create "hx-boost" "false" ] [ Text.raw "Export CSV" ] ]
                     if isAdmin then
                       navLink active Routes.members "Members" ]
-                Elem.ul
-                  []
-                  [ Elem.li [] [ Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ] ]
-                    Elem.li
-                      []
-                      [ Elem.form
-                          [ Attr.method "post"; Attr.action "/logout"; Attr.class' "inline" ]
-                          [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw "Logout" ] ] ]
-                    Elem.li
-                      []
-                      [ Elem.button
-                          [ Attr.id "theme-toggle"
-                            Attr.class' "outline secondary"
-                            Attr.create "onclick" "toggleTheme()" ]
-                          [] ] ] ]
-            Elem.main [ Attr.class' "container" ] content
-            Elem.footer [ Attr.class' "container" ] [ Elem.small [] (versionFooter ()) ]
+                // Member name and logout pinned to the bottom of the sidebar.
+                Elem.div
+                  [ Attr.class' "sidebar-user" ]
+                  [ Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ]
+                    Elem.form
+                      [ Attr.method "post"; Attr.action "/logout"; Attr.class' "inline" ]
+                      [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw "Logout" ] ] ] ]
+            Elem.div
+              [ Attr.class' "content" ]
+              [ Elem.main [ Attr.class' "container" ] content
+                Elem.footer [ Attr.class' "container" ] [ Elem.small [] (versionFooter ()) ] ]
             // Re-runs on every body render (initial + hx-boost swaps) to sync the button label.
             Elem.script [ Attr.src "/theme-label.js" ] [] ] ]
 
@@ -98,18 +118,11 @@ module ViewLayout =
       [ htmlHead title []
         Elem.body
           [ Attr.create "hx-boost" "false" ]
-          [ Elem.nav
-              [ Attr.class' "container" ]
-              [ Elem.ul [] []
-                Elem.ul
-                  []
-                  [ Elem.li
-                      []
-                      [ Elem.button
-                          [ Attr.id "theme-toggle"
-                            Attr.class' "outline secondary"
-                            Attr.create "onclick" "toggleTheme()" ]
-                          [] ] ] ]
+          [ Elem.button
+              [ Attr.id "theme-toggle"
+                Attr.class' "outline secondary"
+                Attr.create "onclick" "toggleTheme()" ]
+              []
             Elem.main
               [ Attr.class' "container login-container" ]
               ([ Elem.header
