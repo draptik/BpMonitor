@@ -75,9 +75,8 @@ module ViewLayout =
               [ Elem.ul
                   []
                   [ Elem.li
-                      [ Attr.class' "sidebar-header-item" ]
-                      [ Elem.strong [] [ Text.raw "BpMonitor" ]
-                        Elem.label
+                      []
+                      [ Elem.label
                           [ Attr.create "for" "nav-toggle"
                             Attr.class' "sidebar-collapse"
                             Attr.create "aria-label" "Collapse sidebar" ]

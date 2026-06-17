@@ -56,16 +56,6 @@ nav.sidebar ul li {
   margin: 0;
 }
 
-/* Sidebar header row: title + collapse button */
-.sidebar-header-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.sidebar-header-item strong {
-  flex: 1;
-}
 
 /* Collapse button (◀) — desktop only; hidden on mobile */
 .sidebar-collapse {
