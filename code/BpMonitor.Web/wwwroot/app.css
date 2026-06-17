@@ -1,18 +1,116 @@
-main,
-nav.container {
+/* ── Layout: sidebar + content area ─────────────────────────────────────── */
+
+body {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Checkbox that drives the mobile off-canvas drawer — visually hidden */
+#nav-toggle {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Hamburger button — hidden on desktop, shown on mobile.
+   Specificity needs to be (0,1,1) to beat Pico's
+   [type="checkbox"] ~ label { display: inline-block } rule (also 0,1,1),
+   relying on app.css loading after pico.min.css for the tie-break. */
+label.nav-burger {
+  display: none;
+}
+
+/* Backdrop overlay — hidden until drawer is open on mobile. Same specificity
+   reasoning as .nav-burger above. */
+label.nav-backdrop {
+  display: none;
+}
+
+nav.sidebar {
+  width: 14rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--pico-muted-border-color);
+  padding: 1rem 0.75rem;
+  /* Reset Pico's horizontal-flex nav layout */
+  justify-content: flex-start;
+  gap: 0;
+}
+
+/* Override Pico's horizontal <ul> inside nav */
+nav.sidebar ul {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  margin: 0;
+  gap: 0;
+}
+
+nav.sidebar ul li {
+  padding: 0;
+  margin: 0;
+}
+
+/* Sidebar header row: title + collapse button */
+.sidebar-header-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar-header-item strong {
+  flex: 1;
+}
+
+/* Collapse button (◀) — desktop only; hidden on mobile */
+.sidebar-collapse {
+  display: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.1rem 0.3rem;
+  line-height: 1;
+  user-select: none;
+}
+
+/* Member name / logout / theme toggle pinned to the sidebar bottom */
+.sidebar-user {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--pico-muted-border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-left: 1rem;
+}
+
+main {
   max-width: 700px;
 }
 
 nav a[aria-current="page"] {
-  background: var(--pico-primary);
-  color: var(--pico-primary-inverse);
   font-weight: 600;
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--pico-border-radius);
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 #theme-toggle {
+  position: fixed;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 200;
   padding: 0.25rem 0.75rem;
   font-size: 0.875rem;
   margin: 0;
@@ -102,6 +200,98 @@ g.errorbars path.yerror {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+  }
+
+  /* ── Mobile sidebar / off-canvas drawer ─────────────────────────────────── */
+
+  /* Hamburger button — fixed top-left, above all content.
+     label.nav-burger for (0,1,1) specificity to beat Pico's checkbox~label rule. */
+  label.nav-burger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 200;
+    cursor: pointer;
+    font-size: 1.25rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: var(--pico-background-color);
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    line-height: 1;
+    user-select: none;
+  }
+
+  /* Sidebar slides off-screen by default; slides in when checkbox is checked */
+  nav.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    min-height: 100vh;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    background: var(--pico-background-color);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  }
+
+  #nav-toggle:checked ~ nav.sidebar {
+    transform: translateX(0);
+  }
+
+  /* Backdrop shown when drawer is open; starts after the sidebar so
+     it only covers the content area — avoids z-index interception. */
+  #nav-toggle:checked ~ label.nav-backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 14rem;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  /* Push content down to clear the hamburger button */
+  .content {
+    padding-top: 3rem;
+  }
+}
+
+/* ── Desktop sidebar collapse ───────────────────────────────────────────── */
+@media (min-width: 601px) {
+  /* Show the collapse button (◀) inside the sidebar header */
+  .sidebar-collapse {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Hide sidebar and show hamburger as the restore button */
+  #nav-toggle:checked ~ nav.sidebar {
+    display: none;
+  }
+
+  #nav-toggle:checked ~ label.nav-burger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 200;
+    cursor: pointer;
+    font-size: 1.25rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: var(--pico-background-color);
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    line-height: 1;
+    user-select: none;
   }
 }
 
