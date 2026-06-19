@@ -36,9 +36,12 @@ module BpChart =
   let private layout () =
     Layout.init (PaperBGColor = transparent, PlotBGColor = transparent)
 
-  let private xAxis = LinearAxis.init (ShowGrid = false)
+  // Light-theme default; theme.js relayouts this to the dark-theme font color
+  // ("#c2cfd6") on load and on toggle, so it's never stuck unreadable in dark mode.
+  let private axisLineColor = Color.fromString "#444"
 
-  let private blackLine = Color.fromString "black"
+  let private xAxis =
+    LinearAxis.init (ShowGrid = false, ShowLine = true, LineColor = axisLineColor)
 
   let private yAxis () =
     let defaultYMin = 0
@@ -49,7 +52,8 @@ module BpChart =
       Range = StyleParam.Range.MinMax(defaultYMin, defaultYMax),
       DTick = 20,
       ShowLine = true,
-      LineColor = blackLine
+      LineColor = axisLineColor,
+      Title = Title.init (Text = "mmHg")
     )
 
   // Plotly's stroke helper sets stroke-opacity as an inline style on every path.yerror
@@ -108,7 +112,8 @@ module BpChart =
       DragMode = StyleParam.DragMode.False
     )
 
-  let private trendsXAxis = LinearAxis.init (ShowGrid = false, TickAngle = -45)
+  let private trendsXAxis =
+    LinearAxis.init (ShowGrid = false, TickAngle = -45, ShowLine = true, LineColor = axisLineColor)
 
   let private trendsConfig =
     Config.init (Responsive = true, DisplayModeBar = false, ScrollZoom = StyleParam.ScrollZoom.NoZoom)
