@@ -61,6 +61,7 @@ code/
 ├── BpMonitor.Charts.Tests
 ├── BpMonitor.Web               # Falco web app (login + per-member auth, landing, add, history, recent, trends, members pages); Serilog structured stdout logging
 ├── BpMonitor.Web.Tests
+├── BpMonitor.Web.E2E.Tests     # Playwright .NET browser smoke tests against a real out-of-process BpMonitor.Web instance
 └── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules
 docs/                           # Product vision, architecture, ADRs
 scripts/                        # Dev tooling scripts (e.g. extract-plotly-js.fsx)
@@ -105,7 +106,7 @@ Never start work on `main`. Creating the branch is the first step, not an aftert
 
 ## Testing
 
-Tests run on **Microsoft.Testing.Platform (MTP)** — all 7 test projects execute in parallel (default: CPU count concurrent modules):
+Tests run on **Microsoft.Testing.Platform (MTP)** — all 8 test projects execute in parallel (default: CPU count concurrent modules):
 
 ```bash
 # Run all tests in parallel (local dev)
@@ -120,6 +121,8 @@ dotnet test --configuration Release --max-parallel-test-modules 2
 ```
 
 `BpMonitor.Arch.Tests` uses `DoNotResideInNamespaceMatching("Microsoft\\.CodeCoverage.*")` in its type filters to exclude coverage-injected tracker types from ArchUnitNET dependency checks.
+
+`BpMonitor.Web.E2E.Tests` boots a real `BpMonitor.Web` instance out-of-process (`dotnet run`, fresh temp SQLite file, demo seeding off) on a free port, then drives it with a real Playwright Chromium browser. First run needs Chromium installed locally — `playwright.ps1 install chromium` from the build output dir if `pwsh` is available, otherwise via `dotnet fsi` calling `Microsoft.Playwright.Program.Main([| "install"; "chromium" |])`.
 
 ## Dev Tooling
 

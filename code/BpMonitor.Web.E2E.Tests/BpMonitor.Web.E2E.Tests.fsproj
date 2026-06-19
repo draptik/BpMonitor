@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="WebAppFixture.fs" />
+    <Compile Include="SmokeTests.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="Unquote" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.Playwright" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Referenced only so `dotnet test` builds the web app before the suite runs;
+         the app itself is launched out-of-process via `dotnet run`, not in-process. -->
+    <ProjectReference Include="..\BpMonitor.Web\BpMonitor.Web.fsproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>
