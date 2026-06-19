@@ -1,4 +1,28 @@
 <Solution>
+  <Folder Name="/Documentation/">
+    <File Path="..\docs\architecture.md" />
+    <File Path="..\docs\badges-branch.md" />
+    <File Path="..\docs\install.md" />
+    <File Path="..\docs\vision.md" />
+  </Folder>
+  <Folder Name="/Documentation/adr/">
+    <File Path="..\docs\adr\0001-pwa-phone-client-spike.md" />
+    <File Path="..\docs\adr\0002-mutation-testing-stryker-net.md" />
+    <File Path="..\docs\adr\0003-web-ui-frontend.md" />
+    <File Path="..\docs\adr\0004-sqlite-persistence.md" />
+    <File Path="..\docs\adr\0005-multi-user-family-support.md" />
+    <File Path="..\docs\adr\0006-per-member-authentication.md" />
+  </Folder>
+  <Folder Name="/Documentation/example-deploy/">
+    <File Path="..\docs\example-deploy\bpmonitor-data.volume" />
+    <File Path="..\docs\example-deploy\bpmonitor-web.container" />
+    <File Path="..\docs\example-deploy\docker-compose.yml" />
+    <File Path="..\docs\example-deploy\README.md" />
+  </Folder>
+  <Folder Name="/Documentation/resources/">
+    <File Path="..\docs\resources\12911_2021_Article_1598.pdf" />
+    <File Path="..\docs\resources\literature.md" />
+  </Folder>
   <Folder Name="/SolutionFolder/">
     <File Path="BpMonitor.slnx" />
     <File Path="Directory.Build.props" />
