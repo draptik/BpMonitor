@@ -16,6 +16,7 @@ let private defaultMember: FamilyMember =
     IsAdmin = true
     IsActive = true
     PasswordHash = None
+    Goal = GoalRange.defaults
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
 

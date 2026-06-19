@@ -29,7 +29,9 @@ module Binding =
       Timestamp = Formats.formatLocal r.Timestamp
       Comments = r.Comments |> Option.defaultValue "" }
 
-  let private tryInt (label: string) (s: string) : Result<int, string> =
+  /// Parses `s` as an int, or `Error "{label}: '{s}' is not a valid integer"`.
+  /// Shared by reading and goal-range form parsing.
+  let tryInt (label: string) (s: string) : Result<int, string> =
     match Int32.TryParse(s) with
     | true, v -> Ok v
     | _ -> Error $"{label}: '{s}' is not a valid integer"

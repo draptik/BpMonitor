@@ -6,6 +6,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="GoalRange.fs" />
     <Compile Include="FamilyMember.fs" />
     <Compile Include="PasswordHashing.fs" />
     <Compile Include="IFamilyMemberRepository.fs" />

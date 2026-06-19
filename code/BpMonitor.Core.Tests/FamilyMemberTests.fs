@@ -5,6 +5,12 @@ open Swensen.Unquote
 open BpMonitor.Core
 
 [<Fact>]
+let ``create seeds default goal range`` () =
+  match FamilyMember.create "Alice" true with
+  | Error _ -> failwith "unexpected error"
+  | Ok m -> test <@ m.Goal = GoalRange.defaults @>
+
+[<Fact>]
 let ``create with isAdmin=true yields admin active member`` () =
   match FamilyMember.create "Alice" true with
   | Error _ -> failwith "unexpected error"
@@ -42,6 +48,7 @@ let ``hasActiveAdmin is false when no member is admin`` () =
         IsAdmin = false
         IsActive = true
         PasswordHash = None
+        Goal = GoalRange.defaults
         CreatedAt = System.DateTimeOffset.MinValue
         ModifiedAt = System.DateTimeOffset.MinValue } ]
 
@@ -55,6 +62,7 @@ let ``hasActiveAdmin is false when admin member is inactive`` () =
         IsAdmin = true
         IsActive = false
         PasswordHash = None
+        Goal = GoalRange.defaults
         CreatedAt = System.DateTimeOffset.MinValue
         ModifiedAt = System.DateTimeOffset.MinValue } ]
 
@@ -68,6 +76,7 @@ let ``hasActiveAdmin is true when at least one member is admin and active`` () =
         IsAdmin = false
         IsActive = true
         PasswordHash = None
+        Goal = GoalRange.defaults
         CreatedAt = System.DateTimeOffset.MinValue
         ModifiedAt = System.DateTimeOffset.MinValue }
       { Id = 2
@@ -75,6 +84,7 @@ let ``hasActiveAdmin is true when at least one member is admin and active`` () =
         IsAdmin = true
         IsActive = true
         PasswordHash = None
+        Goal = GoalRange.defaults
         CreatedAt = System.DateTimeOffset.MinValue
         ModifiedAt = System.DateTimeOffset.MinValue } ]
 

@@ -47,9 +47,19 @@ type FamilyMember = {
     IsAdmin:      bool
     IsActive:     bool
     PasswordHash: string option   // None = unclaimed (no password set yet)
+    Goal:         GoalRange       // per-member systolic/diastolic chart goal range
     CreatedAt:    DateTimeOffset
     ModifiedAt:   DateTimeOffset
 }
+
+type GoalRange = {
+    SystolicMin:  int
+    SystolicMax:  int
+    DiastolicMin: int
+    DiastolicMax: int
+}
+// GoalRange.defaults = { 90; 140; 60; 90 } — preset from Wegier et al. 2021
+// (docs/resources/12911_2021_Article_1598.pdf, Fig. 3)
 
 type BloodPressureReadingUnvalidated = {
     Systolic:  int
@@ -107,6 +117,7 @@ graph TD
 - Repository interfaces: `IReadingRepository` (member-scoped), `IFamilyMemberRepository`
 - `FamilyMember.hasActiveAdmin` — invariant: ≥1 member with `IsAdmin = true` and `IsActive = true`
 - `FamilyMember.isClaimed` — true when `PasswordHash` is `Some`
+- `GoalRange` — per-member systolic/diastolic chart goal range; `GoalRange.defaults` (90–140 / 60–90) and `GoalRange.create` (enforces min < max for each pair)
 - `PasswordHashing` — PBKDF2-SHA256 hash/verify
 - `ReadingStats` — date-window filter, AHA 2017 BP classification, windowed summary
 - `DemoData` — deterministic Simpson-family fixture generator (fixed seed, ~5 years of readings)
@@ -123,9 +134,9 @@ graph TD
 
 ### BpMonitor.Charts
 
-- Plotly.NET chart generation — `BpChart.toHtml theme height readings` (history line chart) and `BpChart.toHtmlDashed gran theme height aggregated` (trends dashed chart)
-- Produces a self-contained HTML document served by the `/chart` route and embedded via `<iframe>` in the web UI
-- `height` (e.g. `"620px"`) is passed in by the caller; `theme.js` reads it from the `--chart-height` CSS custom property so the value is defined only in `app.css`
+- Plotly.NET chart generation — `BpChart.toHtml goal readings` (history/recent line chart) and `BpChart.toHtmlDashed goal gran aggregated` (trends dashed chart)
+- Returns a chart HTML fragment embedded directly into the page by the calling handler (`ReadingHandlers.fs`)
+- `goal: GoalRange` renders a translucent horizontal background band per series (systolic mint `#008471`, diastolic cocoa `#9C652B`) behind the data, matching each series' line color — the "like-with-like" goal-range design from Wegier et al. 2021 (`docs/resources/12911_2021_Article_1598.pdf`, Fig. 3)
 - Depends on Core only
 
 ### BpMonitor.Export
@@ -140,7 +151,8 @@ graph TD
 - Falco web application on `0.0.0.0:5000`; references Core + Data + Charts + Export
 - **Auth:** ASP.NET Core cookie auth; per-member PBKDF2-SHA256 password; unclaimed members set password on first login; cookie carries `NameIdentifier`/`Name`/`Role` claims
 - **Isolation:** each member sees only their own readings; admins manage members via `/members` but not their readings
-- **Routes:** `/` hub, `/add`, `/history`, `/recent`, `/trends`, `/members`, `/members/{id}/edit`, `/members/{id}/reset-password`, `/login`, `/login/{id}`, `POST /logout`
+- **Routes:** `/` hub, `/add`, `/history`, `/recent`, `/trends`, `/settings`, `/members`, `/members/{id}/edit`, `/members/{id}/reset-password`, `/login`, `/login/{id}`, `POST /logout`
+- **`/settings`:** self-service page where the logged-in member edits their own chart goal range (`GoalRange`); validated via `GoalRange.create` (min < max per pair)
 - **`/recent`:** three rolling windows (last 7 / 14 / 30 days) of raw readings plus a 30-day chart — no aggregation
 - **`/trends`:** granularity selector (Weekly/Monthly/Yearly) + htmx-swapped period fragments; stats from `ReadingStats` (Core); `TimeProvider` injected for testability
 - `protect` / `protectAdmin` combinators; active member resolved from `ClaimsPrincipal`

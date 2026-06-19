@@ -13,3 +13,4 @@ module Routes =
   let recent = "/recent"
   let exportJson = "/export"
   let exportCsv = "/export.csv"
+  let settings = "/settings"

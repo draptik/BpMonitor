@@ -87,6 +87,7 @@ module ViewLayout =
                     navLink active Routes.history "History"
                     navLink active Routes.recent "Recent"
                     navLink active Routes.trends "Trends"
+                    navLink active Routes.settings "Settings"
                     // hx-boost="false" prevents htmx from AJAX-swapping the download response.
                     Elem.li
                       []
@@ -142,6 +143,14 @@ module ViewLayout =
       Elem.div
         [ Attr.class' "errors"; Attr.role "alert" ]
         [ Elem.ul [] (errors |> List.map (fun e -> Elem.li [] [ Text.enc e ])) ]
+
+  /// A single labeled form field: `<div class="field"><label/><input/></div>`.
+  /// Shared by readingForm, memberForm, and settingsForm.
+  let field (labelText: string) (name: string) (value: string) (inputType: string) : XmlNode =
+    Elem.div
+      [ Attr.class' "field" ]
+      [ Elem.label [ Attr.for' name ] [ Text.raw labelText ]
+        Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ] ]
 
   /// The readings table; wrapped in an id'd container so it can be targeted for
   /// partial swaps later.

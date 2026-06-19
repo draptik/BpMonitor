@@ -126,6 +126,32 @@ let ``recent chart is open by default`` () =
   test <@ body.Contains "<details open" @>
 
 [<Fact>]
+let ``recent renders the chart with the authenticated member's goal range`` () =
+  let goal: GoalRange =
+    { SystolicMin = 100
+      SystolicMax = 135
+      DiastolicMin = 65
+      DiastolicMax = 88 }
+
+  let m =
+    FamilyMember.create "Me" true
+    |> Result.defaultWith (fun _ -> failwith "invalid member")
+    |> fun m ->
+        { m with
+            Id = defaultMemberId
+            Goal = goal }
+
+  let tp = FakeTimeProvider(now)
+  let ctx = TestHost.contextWithMembersAndProvider (repoWith simpsonReadings) [ m ] tp
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "\"y0\":100" @>
+  test <@ body.Contains "\"y1\":135" @>
+  test <@ body.Contains "\"y0\":65" @>
+  test <@ body.Contains "\"y1\":88" @>
+
+[<Fact>]
 let ``recent chart toggle label matches the history page's`` () =
   let tp = FakeTimeProvider(now)
   let ctx = TestHost.contextWithProvider (repoWith []) tp

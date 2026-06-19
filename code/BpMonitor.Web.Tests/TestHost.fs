@@ -34,6 +34,7 @@ let private defaultMember: FamilyMember =
     IsAdmin = true
     IsActive = true
     PasswordHash = None
+    Goal = GoalRange.defaults
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
 
@@ -71,6 +72,20 @@ let contextWithMembers (repo: IReadingRepository) (members: FamilyMember list) :
 
   let user = members |> List.tryHead |> Option.map buildPrincipal
   newCtx (buildServices repo memberRepo TimeProvider.System) user
+
+/// Variant of `contextWithMembers` that also injects a custom TimeProvider —
+/// useful for testing handlers that need both a non-default member (e.g. a
+/// custom goal range) and control over the current time (e.g. trends windows).
+let contextWithMembersAndProvider
+  (repo: IReadingRepository)
+  (members: FamilyMember list)
+  (tp: TimeProvider)
+  : HttpContext =
+  let memberRepo =
+    InMemoryFamilyMemberRepository(Some members) :> IFamilyMemberRepository
+
+  let user = members |> List.tryHead |> Option.map buildPrincipal
+  newCtx (buildServices repo memberRepo tp) user
 
 /// Variant of `context` that sets a specific authenticated user. Useful for
 /// testing protected handlers with a particular member identity.

@@ -138,3 +138,32 @@ let ``Update of a non-existent member is a no-op`` () =
   let ghostWithId = { ghost with Id = 999 }
   repo.Update(ghostWithId)
   test <@ repo.GetAll() = [] @>
+
+[<Fact>]
+let ``Add persists a custom goal range and Update round-trips changes to it`` () =
+  use ctx = createContext ()
+
+  let repo = createRepo ctx
+
+  let goal =
+    { SystolicMin = 100
+      SystolicMax = 130
+      DiastolicMin = 65
+      DiastolicMax = 85 }
+
+  let added =
+    repo.Add
+      { newMember "Alice" true with
+          Goal = goal }
+
+  test <@ added.Goal = goal @>
+  test <@ (repo.GetById added.Id).Value.Goal = goal @>
+
+  let newGoal =
+    { SystolicMin = 95
+      SystolicMax = 135
+      DiastolicMin = 62
+      DiastolicMax = 88 }
+
+  repo.Update { added with Goal = newGoal }
+  test <@ (repo.GetById added.Id).Value.Goal = newGoal @>

@@ -14,6 +14,11 @@ module private MemberMapping =
           None
         else
           Some r.PasswordHash
+      Goal =
+        { SystolicMin = r.SystolicGoalMin
+          SystolicMax = r.SystolicGoalMax
+          DiastolicMin = r.DiastolicGoalMin
+          DiastolicMax = r.DiastolicGoalMax }
       CreatedAt = r.CreatedAt
       ModifiedAt = r.ModifiedAt }
 
@@ -23,6 +28,10 @@ module private MemberMapping =
       IsAdmin = m.IsAdmin
       IsActive = m.IsActive
       PasswordHash = m.PasswordHash |> Option.defaultValue ""
+      SystolicGoalMin = m.Goal.SystolicMin
+      SystolicGoalMax = m.Goal.SystolicMax
+      DiastolicGoalMin = m.Goal.DiastolicMin
+      DiastolicGoalMax = m.Goal.DiastolicMax
       CreatedAt = createdAt
       ModifiedAt = modifiedAt }
 

@@ -13,6 +13,7 @@ let private defaultMember: FamilyMember =
     IsAdmin = true
     IsActive = true
     PasswordHash = None
+    Goal = GoalRange.defaults
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
 
@@ -125,6 +126,7 @@ let ``members page renders Admin and Active columns and Edit link`` () =
       IsAdmin = false
       IsActive = true
       PasswordHash = None
+      Goal = GoalRange.defaults
       CreatedAt = DateTimeOffset.MinValue
       ModifiedAt = DateTimeOffset.MinValue }
 
@@ -148,6 +150,7 @@ let ``members page shows claimed/unclaimed badge`` () =
       IsAdmin = false
       IsActive = true
       PasswordHash = None
+      Goal = GoalRange.defaults
       CreatedAt = DateTimeOffset.MinValue
       ModifiedAt = DateTimeOffset.MinValue }
 
@@ -174,6 +177,7 @@ let ``memberForm prefills name and reflects IsAdmin and IsActive`` () =
       IsAdmin = true
       IsActive = false
       PasswordHash = None
+      Goal = GoalRange.defaults
       CreatedAt = DateTimeOffset.MinValue
       ModifiedAt = DateTimeOffset.MinValue }
 
