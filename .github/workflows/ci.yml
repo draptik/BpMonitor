@@ -86,6 +86,10 @@ jobs:
         run: dotnet build --no-restore --configuration Release
         working-directory: code
 
+      - name: Install Playwright browsers
+        run: pwsh bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+        working-directory: code/BpMonitor.Web.E2E.Tests
+
       - name: Test
         run: dotnet test --no-build --configuration Release --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
         working-directory: code

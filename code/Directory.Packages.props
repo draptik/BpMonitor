@@ -39,4 +39,7 @@
     <PackageVersion Include="FsCheck" Version="3.3.3" />
     <PackageVersion Include="FsCheck.Xunit.v3" Version="3.3.3" />
   </ItemGroup>
+  <ItemGroup Label="Test - E2E">
+    <PackageVersion Include="Microsoft.Playwright" Version="1.60.0" />
+  </ItemGroup>
 </Project>
