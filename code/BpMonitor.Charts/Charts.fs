@@ -118,13 +118,17 @@ module BpChart =
     |> _.Replace("\"height\":600,", "")
     |> fun html -> html + errorBarScript
 
-  /// Classic x/y plot — one point per reading. Used by /history.
-  let private renderIndividual (goal: GoalRange) (readings: BloodPressureReading list) : string =
+  /// Classic x/y plot — one point per reading. Used by /history and /recent.
+  /// `includeHeartRate` is false for /recent, which omits the Heart Rate trace.
+  let private renderIndividual
+    (includeHeartRate: bool)
+    (goal: GoalRange)
+    (readings: BloodPressureReading list)
+    : string =
     let readings = readings |> List.sortBy _.Timestamp
     let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
     let systolic = readings |> List.map _.Systolic
     let diastolic = readings |> List.map _.Diastolic
-    let heartRate = readings |> List.map _.HeartRate
     let commented = readings |> List.filter _.Comments.IsSome
 
     let commentTraces =
@@ -134,13 +138,28 @@ module BpChart =
         let cTimestamps = commented |> List.map (_.Timestamp >> Formats.formatLocal)
         let cSystolic = commented |> List.map _.Systolic
         let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
-        [ Chart.Point(x = cTimestamps, y = cSystolic, Name = "Comments", MultiText = cTexts) ]
+
+        [ Chart.Point(
+            x = cTimestamps,
+            y = cSystolic,
+            Name = "Comments",
+            MultiText = cTexts,
+            MarkerColor = systolicColor
+          )
+          |> Chart.withMarkerStyle (Size = 10) ]
+
+    let heartRateTrace =
+      if includeHeartRate then
+        let heartRate = readings |> List.map _.HeartRate
+        [ Chart.Line(x = timestamps, y = heartRate, Name = "Heart Rate") ]
+      else
+        []
 
     [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic")
       |> Chart.withLineStyle (Color = systolicColor)
       Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic")
       |> Chart.withLineStyle (Color = diastolicColor)
-      Chart.Line(x = timestamps, y = heartRate, Name = "Heart Rate")
+      yield! heartRateTrace
       yield! commentTraces ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
@@ -274,5 +293,5 @@ module BpChart =
     |> Chart.withShapes (goalBands goal)
     |> finishTrends
 
-  let toHtml (goal: GoalRange) = renderIndividual goal
+  let toHtml (goal: GoalRange) = renderIndividual false goal
   let toHtmlDashed (goal: GoalRange) (gran: Granularity) = renderDashed goal gran
