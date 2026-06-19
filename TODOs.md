@@ -6,10 +6,6 @@ A loose collection of TODOs I want to tackle at some point in time.
 
 The mobile layout has room for improvement...
 
-- The sidebar
-  - is too wide
-  - should be pinned, so when it's expanded the entries should stay visible when scrolling down in the main window
-- all charts have the wrong width when they are initially opened (they are too narrow)
 - all charts heights are too large, they height can be smaller
 - recent page: 7/14/30 buttons should be smaller (similar height as on page trends)
 - The trend readings table is too wide on mobile

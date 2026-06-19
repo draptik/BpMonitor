@@ -1,7 +1,14 @@
 /* ── Layout: sidebar + content area ─────────────────────────────────────── */
 
+:root {
+  /* Single source of truth for the sidebar's width — referenced by nav.sidebar,
+     the mobile backdrop's offset, and .content's margin-left, so they can't
+     drift out of sync. Same value on mobile and desktop (desktop used to be
+     14rem, which felt oversized for a nav-only column). */
+  --sidebar-width: 11rem;
+}
+
 body {
-  display: flex;
   min-height: 100vh;
 }
 
@@ -26,20 +33,28 @@ label.nav-backdrop {
   display: none;
 }
 
+/* `position: fixed` (not `sticky`) — sticky broke once the sidebar's own box
+   was stretched (via the body's flex layout) to match the height of the
+   page's tallest content, leaving it no shorter containing block to stick
+   within, so it scrolled away with the rest of the page on long pages like
+   History. Fixed takes it out of flow entirely; .content's margin-left
+   below reserves the space it would otherwise have occupied. */
 nav.sidebar {
-  width: 14rem;
-  flex-shrink: 0;
+  width: var(--sidebar-width);
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 10;
   overflow-y: auto;
   border-right: 1px solid var(--pico-muted-border-color);
   padding: 1rem 0.75rem;
   /* Reset Pico's horizontal-flex nav layout */
   justify-content: flex-start;
   gap: 0;
+  background: var(--pico-background-color);
 }
 
 /* Override Pico's horizontal <ul> inside nav */
@@ -85,10 +100,10 @@ li:has(.sidebar-collapse) {
 }
 
 .content {
-  flex: 1;
-  min-width: 0;
+  margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
   padding-left: 1rem;
 }
 
@@ -221,17 +236,14 @@ g.errorbars path.yerror {
     user-select: none;
   }
 
-  /* Sidebar slides off-screen by default; slides in when checkbox is checked */
+  /* Sidebar is an off-canvas drawer on mobile: slides off-screen by default
+     (translateX), slides in when the checkbox is checked. Position/size
+     come from the shared baseline rule above — only the slide behavior and
+     stacking (above the backdrop) are mobile-specific. */
   nav.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    min-height: 100vh;
     z-index: 100;
     transform: translateX(-100%);
     transition: transform 0.25s ease;
-    background: var(--pico-background-color);
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
   }
 
@@ -245,15 +257,18 @@ g.errorbars path.yerror {
     display: block;
     position: fixed;
     top: 0;
-    left: 14rem;
+    left: var(--sidebar-width);
     right: 0;
     bottom: 0;
     z-index: 99;
     background: rgba(0, 0, 0, 0.4);
   }
 
-  /* Push content down to clear the hamburger button */
+  /* On mobile the sidebar overlays as a drawer rather than pushing content
+     over, so content shouldn't reserve space for it. Also push content down
+     to clear the fixed hamburger button. */
   .content {
+    margin-left: 0;
     padding-top: 3rem;
   }
 }
@@ -269,6 +284,12 @@ g.errorbars path.yerror {
   /* Hide sidebar and show hamburger as the restore button */
   #nav-toggle:checked ~ nav.sidebar {
     display: none;
+  }
+
+  /* Sidebar is fixed (out of flow), so .content's margin-left above only
+     reserves its space while it's visible — release it when collapsed. */
+  #nav-toggle:checked ~ .content {
+    margin-left: 0;
   }
 
   #nav-toggle:checked ~ label.nav-burger {
