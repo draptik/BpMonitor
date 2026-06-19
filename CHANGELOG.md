@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Charts now show denser y-axis gridlines, visible x/y axis lines that adapt to the light/dark theme, and a "mmHg" y-axis label
+- Charts now show denser y-axis gridlines, visible x/y axis lines and tick marks that adapt to the light/dark theme, and a "blood pressure [mmHg]" y-axis label
 
 ## [1.6.0-rc1] - 2026-06-20
 
