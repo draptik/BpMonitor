@@ -136,7 +136,9 @@ nav a[aria-current="page"] {
 }
 
 :root {
-  --chart-height: 620px;
+  /* Was 620px — left a lot of empty space below the plotted data on both
+     chart types (history's line chart, trends' dashed/error-bar chart). */
+  --chart-height: 420px;
 }
 
 .chart {
@@ -192,8 +194,11 @@ g.errorbars path.yerror {
     flex: 1 1 100%;
   }
 
+  /* Was 420px. Can't go much shorter than this on mobile — both chart types
+     use the default (non-compact) top/bottom margins at this width, and a
+     shorter box starts clipping the x-axis labels and bottom legend row. */
   :root {
-    --chart-height: 420px;
+    --chart-height: 380px;
   }
 
   /* Stats table: full width, tighter column padding */

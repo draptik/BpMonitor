@@ -6,7 +6,6 @@ A loose collection of TODOs I want to tackle at some point in time.
 
 The mobile layout has room for improvement...
 
-- all charts heights are too large, they height can be smaller
 - recent page: 7/14/30 buttons should be smaller (similar height as on page trends)
 - The trend readings table is too wide on mobile
   - use "cards" instead of row (not practical for yearly view)
