@@ -9,5 +9,9 @@ type MemberRecord =
     IsAdmin: bool
     IsActive: bool
     PasswordHash: string
+    SystolicGoalMin: int
+    SystolicGoalMax: int
+    DiastolicGoalMin: int
+    DiastolicGoalMax: int
     CreatedAt: DateTimeOffset
     ModifiedAt: DateTimeOffset }

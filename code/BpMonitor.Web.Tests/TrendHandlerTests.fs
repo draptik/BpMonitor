@@ -45,6 +45,73 @@ let ``trends renders 200 with granularity buttons and current Weekly panel`` () 
   test <@ body.Contains "js-plotly-plot" @>
 
 [<Fact>]
+let ``trends renders the chart with the authenticated member's goal range`` () =
+  let goal: GoalRange =
+    { SystolicMin = 100
+      SystolicMax = 135
+      DiastolicMin = 65
+      DiastolicMax = 88 }
+
+  let m =
+    FamilyMember.create "Me" true
+    |> Result.defaultWith (fun _ -> failwith "invalid member")
+    |> fun m ->
+        { m with
+            Id = defaultMemberId
+            Goal = goal }
+
+  let r =
+    { sample with
+        Timestamp = trendsNow.AddDays(-1.0)
+        Systolic = 130
+        Diastolic = 85
+        HeartRate = 70 }
+
+  let tp = FakeTimeProvider(trendsNow)
+  let ctx = TestHost.contextWithMembersAndProvider (repoWith [ r ]) [ m ] tp
+  TestHost.run ReadingHandlers.trends ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "\"y0\":100" @>
+  test <@ body.Contains "\"y1\":135" @>
+  test <@ body.Contains "\"y0\":65" @>
+  test <@ body.Contains "\"y1\":88" @>
+
+[<Fact>]
+let ``trendsPanel renders the chart with the authenticated member's goal range`` () =
+  let goal: GoalRange =
+    { SystolicMin = 100
+      SystolicMax = 135
+      DiastolicMin = 65
+      DiastolicMax = 88 }
+
+  let m =
+    FamilyMember.create "Me" true
+    |> Result.defaultWith (fun _ -> failwith "invalid member")
+    |> fun m ->
+        { m with
+            Id = defaultMemberId
+            Goal = goal }
+
+  let r =
+    { sample with
+        Timestamp = trendsNow.AddDays(-1.0)
+        Systolic = 130
+        Diastolic = 85
+        HeartRate = 70 }
+
+  let tp = FakeTimeProvider(trendsNow)
+  let ctx = TestHost.contextWithMembersAndProvider (repoWith [ r ]) [ m ] tp
+  setRouteGran ctx "weekly"
+  TestHost.run ReadingHandlers.trendsPanel ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "\"y0\":100" @>
+  test <@ body.Contains "\"y1\":135" @>
+  test <@ body.Contains "\"y0\":65" @>
+  test <@ body.Contains "\"y1\":88" @>
+
+[<Fact>]
 let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and stats`` () =
   let tp = FakeTimeProvider(trendsNow)
 

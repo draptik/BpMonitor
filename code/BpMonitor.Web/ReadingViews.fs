@@ -77,12 +77,6 @@ module ReadingViews =
     (errors: string list)
     (m: Binding.FormModel)
     : XmlNode =
-    let field (labelText: string) (name: string) (value: string) (inputType: string) =
-      Elem.div
-        [ Attr.class' "field" ]
-        [ Elem.label [ Attr.for' name ] [ Text.raw labelText ]
-          Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ] ]
-
     let fieldWithHint (labelText: string) (hint: string) (name: string) (value: string) (inputType: string) =
       Elem.div
         [ Attr.class' "field" ]
@@ -103,7 +97,7 @@ module ReadingViews =
             fieldWithHint "Systolic" "mmHg" "Systolic" m.Systolic "number"
             fieldWithHint "Diastolic" "mmHg" "Diastolic" m.Diastolic "number"
             fieldWithHint "Heart Rate" "bpm" "HeartRate" m.HeartRate "number"
-            field "Comment" "Comments" m.Comments "text"
+            ViewLayout.field "Comment" "Comments" m.Comments "text"
             Elem.div
               [ Attr.class' "actions" ]
               [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]

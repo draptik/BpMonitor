@@ -3,6 +3,7 @@ namespace BpMonitor.Web
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Logging
+open FsToolkit.ErrorHandling
 open BpMonitor.Core
 open BpMonitor.Charts
 open BpMonitor.Export
@@ -71,7 +72,7 @@ module ReadingHandlers =
   let history: HttpContext -> Task =
     withMember (fun m ctx ->
       let readings = sortedReadings m.Id ctx
-      let chartHtml = BpChart.toHtml readings
+      let chartHtml = BpChart.toHtml m.Goal readings
       htmlResponse (ReadingViews.history m chartHtml readings) ctx)
 
   let recent: HttpContext -> Task =
@@ -85,7 +86,7 @@ module ReadingHandlers =
         |> List.sortByDescending _.Timestamp
 
       let days30 = window 30
-      let chartHtml = BpChart.toHtml days30
+      let chartHtml = BpChart.toHtml m.Goal days30
       htmlResponse (ReadingViews.recent m chartHtml (window 7) (window 14) days30) ctx)
 
   let trends: HttpContext -> Task =
@@ -108,7 +109,10 @@ module ReadingHandlers =
         |> Set.ofList
 
       let tableReadings = windowed |> List.sortByDescending _.Timestamp
-      let chartHtml = BpChart.toHtmlDashed Weekly (ReadingStats.aggregate Weekly windowed)
+
+      let chartHtml =
+        BpChart.toHtmlDashed m.Goal Weekly (ReadingStats.aggregate Weekly windowed)
+
       htmlResponse (TrendViews.trends m summary periods periodsWithData tableReadings chartHtml) ctx)
 
   let trendsPanel: HttpContext -> Task =
@@ -139,9 +143,64 @@ module ReadingHandlers =
           |> Set.ofList
 
         let tableReadings = windowed |> List.sortByDescending _.Timestamp
-        let chartHtml = BpChart.toHtmlDashed gran (ReadingStats.aggregate gran windowed)
+
+        let chartHtml =
+          BpChart.toHtmlDashed m.Goal gran (ReadingStats.aggregate gran windowed)
 
         htmlResponse (TrendViews.trendsPanel summary periods periodsWithData tableReadings chartHtml) ctx)
+
+  // ---------------------------------------------------------------------------
+  // Settings: self-service goal range
+  // ---------------------------------------------------------------------------
+
+  let settings: HttpContext -> Task =
+    withMember (fun m ctx ->
+      htmlResponse
+        (MemberViews.settingsForm
+          m.Name
+          m.IsAdmin
+          []
+          (string m.Goal.SystolicMin)
+          (string m.Goal.SystolicMax)
+          (string m.Goal.DiastolicMin)
+          (string m.Goal.DiastolicMax))
+        ctx)
+
+  let updateSettings: HttpContext -> Task =
+    withMember (fun m ctx ->
+      task {
+        let! form = ctx.Request.ReadFormAsync()
+        let raw key = form[key].ToString()
+
+        let sysMinRaw, sysMaxRaw, diaMinRaw, diaMaxRaw =
+          raw "SystolicGoalMin", raw "SystolicGoalMax", raw "DiastolicGoalMin", raw "DiastolicGoalMax"
+
+        let renderErrors errors =
+          ctx.Response.StatusCode <- 422
+          htmlResponse (MemberViews.settingsForm m.Name m.IsAdmin errors sysMinRaw sysMaxRaw diaMinRaw diaMaxRaw) ctx
+
+        // Parse-level errors accumulate across all four fields (Binding.tryInt is the
+        // same parser used for the reading form), mirroring Binding.toUnvalidated.
+        let parsed =
+          validation {
+            let! sysMin = Binding.tryInt "Systolic min" sysMinRaw |> Validation.ofResult
+            and! sysMax = Binding.tryInt "Systolic max" sysMaxRaw |> Validation.ofResult
+            and! diaMin = Binding.tryInt "Diastolic min" diaMinRaw |> Validation.ofResult
+            and! diaMax = Binding.tryInt "Diastolic max" diaMaxRaw |> Validation.ofResult
+            return sysMin, sysMax, diaMin, diaMax
+          }
+
+        match parsed with
+        | Error parseErrors -> do! renderErrors parseErrors
+        | Ok(sysMin, sysMax, diaMin, diaMax) ->
+          match GoalRange.create sysMin sysMax diaMin diaMax with
+          | Ok goal ->
+            (memberRepo ctx).Update { m with Goal = goal }
+            ctx.Response.Redirect Routes.history
+          | Error SystolicRangeInvalid -> do! renderErrors [ "Systolic min must be less than systolic max" ]
+          | Error DiastolicRangeInvalid -> do! renderErrors [ "Diastolic min must be less than diastolic max" ]
+      }
+      :> Task)
 
   // ---------------------------------------------------------------------------
   // Reading CRUD

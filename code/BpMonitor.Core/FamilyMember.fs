@@ -8,6 +8,7 @@ type FamilyMember =
     IsAdmin: bool
     IsActive: bool
     PasswordHash: string option
+    Goal: GoalRange
     CreatedAt: DateTimeOffset
     ModifiedAt: DateTimeOffset }
 
@@ -24,6 +25,7 @@ module FamilyMember =
           IsAdmin = isAdmin
           IsActive = true
           PasswordHash = None
+          Goal = GoalRange.defaults
           CreatedAt = DateTimeOffset.MinValue
           ModifiedAt = DateTimeOffset.MinValue }
 

@@ -94,10 +94,7 @@ module MemberViews =
         ViewLayout.errorBox errors
         Elem.form
           [ Attr.method "post"; Attr.action action ]
-          [ Elem.div
-              [ Attr.class' "field" ]
-              [ Elem.label [ Attr.for' "Name" ] [ Text.raw "Name" ]
-                Elem.input [ Attr.type' "text"; Attr.id "Name"; Attr.name "Name"; Attr.value m.Name ] ]
+          [ ViewLayout.field "Name" "Name" m.Name "text"
             Elem.div
               [ Attr.class' "field" ]
               [ Elem.label
@@ -114,6 +111,38 @@ module MemberViews =
               [ Attr.class' "actions" ]
               [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
                 Elem.a [ Attr.href Routes.members; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
+
+  /// Self-service goal-range settings page: lets the logged-in member edit their own
+  /// systolic/diastolic goal range, rendered as color-coded bands on their charts.
+  /// Field values are raw strings (not a validated GoalRange) so that a failed submit
+  /// redisplays exactly what the user typed — mirroring ReadingViews.readingForm's
+  /// Binding.FormModel redisplay — instead of falling back to the stale persisted goal.
+  let settingsForm
+    (memberName: string)
+    (isAdmin: bool)
+    (errors: string list)
+    (sysMin: string)
+    (sysMax: string)
+    (diaMin: string)
+    (diaMax: string)
+    : XmlNode =
+    ViewLayout.layout
+      Routes.settings
+      memberName
+      isAdmin
+      "Goal Range"
+      [ Elem.h1 [] [ Text.raw "Goal Range" ]
+        ViewLayout.errorBox errors
+        Elem.form
+          [ Attr.method "post"; Attr.action Routes.settings ]
+          [ ViewLayout.field "Systolic min" "SystolicGoalMin" sysMin "number"
+            ViewLayout.field "Systolic max" "SystolicGoalMax" sysMax "number"
+            ViewLayout.field "Diastolic min" "DiastolicGoalMin" diaMin "number"
+            ViewLayout.field "Diastolic max" "DiastolicGoalMax" diaMax "number"
+            Elem.div
+              [ Attr.class' "actions" ]
+              [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
+                Elem.a [ Attr.href Routes.history; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
 
   /// Members page: list of family members with Edit/Reset-password buttons and an add form.
   /// Pass `error = Some "msg"` to show a validation error above the add form.

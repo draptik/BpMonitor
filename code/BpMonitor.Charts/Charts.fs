@@ -9,8 +9,29 @@ module BpChart =
   // ── palette ──────────────────────────────────────────────────────────────
   let private transparent = Color.fromString "rgba(0,0,0,0)"
   let private lightGridLine = Color.fromString "rgba(0,0,0,0.08)"
-  let private systolicColor = Color.fromString "#16A34A"
-  let private diastolicColor = Color.fromString "#EF553B"
+  let private systolicColor = Color.fromString "#008471"
+  let private diastolicColor = Color.fromString "#9C652B"
+  let private systolicBandColor = Color.fromString "rgba(0,132,113,0.12)"
+  let private diastolicBandColor = Color.fromString "rgba(156,101,43,0.12)"
+
+  /// Full-width horizontal background bands behind the data, one per series, matching
+  /// the series' color (the "like-with-like" goal-range design from Wegier et al. 2021).
+  let private goalBands (goal: GoalRange) : Shape seq =
+    let band y0 y1 fillColor =
+      Shape.init (
+        ShapeType = StyleParam.ShapeType.Rectangle,
+        Xref = "paper",
+        X0 = 0.,
+        X1 = 1.,
+        Y0 = float y0,
+        Y1 = float y1,
+        FillColor = fillColor,
+        Line = Line.init (Width = 0.),
+        Layer = StyleParam.Layer.Below
+      )
+
+    [ band goal.SystolicMin goal.SystolicMax systolicBandColor
+      band goal.DiastolicMin goal.DiastolicMax diastolicBandColor ]
 
   let private layout () =
     Layout.init (PaperBGColor = transparent, PlotBGColor = transparent)
@@ -98,7 +119,7 @@ module BpChart =
     |> fun html -> html + errorBarScript
 
   /// Classic x/y plot — one point per reading. Used by /history.
-  let private renderIndividual (readings: BloodPressureReading list) : string =
+  let private renderIndividual (goal: GoalRange) (readings: BloodPressureReading list) : string =
     let readings = readings |> List.sortBy _.Timestamp
     let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
     let systolic = readings |> List.map _.Systolic
@@ -123,6 +144,7 @@ module BpChart =
       yield! commentTraces ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
+    |> Chart.withShapes (goalBands goal)
     |> finish
 
   type private DailyPoint =
@@ -142,7 +164,7 @@ module BpChart =
   /// Circle marker = single reading in that period; Diamond marker = average of multiple readings.
   /// X-axis labels adapt to granularity: Weekly → date, Monthly → ISO week, Yearly → month name.
   /// Used by /trends for all granularities.
-  let private renderDashed (gran: Granularity) (aggregated: AggregatedReading list) : string =
+  let private renderDashed (goal: GoalRange) (gran: Granularity) (aggregated: AggregatedReading list) : string =
     let aggregated = aggregated |> List.sortBy _.Reading.Timestamp
 
     let xLabel (r: BloodPressureReading) =
@@ -249,7 +271,8 @@ module BpChart =
       line "Diastolic" diastolicColor diastolic diaHover diaUpper diaLower diaErrorColor
       yield! commentTraces ]
     |> Chart.combine
+    |> Chart.withShapes (goalBands goal)
     |> finishTrends
 
-  let toHtml = renderIndividual
-  let toHtmlDashed (gran: Granularity) = renderDashed gran
+  let toHtml (goal: GoalRange) = renderIndividual goal
+  let toHtmlDashed (goal: GoalRange) (gran: Granularity) = renderDashed goal gran

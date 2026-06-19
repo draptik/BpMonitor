@@ -1,6 +1,7 @@
 namespace BpMonitor.Data
 
 open Microsoft.EntityFrameworkCore
+open BpMonitor.Core
 
 module SchemaMigrations =
   let private withConn (ctx: BpMonitorDbContext) (f: System.Data.IDbConnection -> 'a) : 'a =
@@ -45,13 +46,19 @@ module SchemaMigrations =
   /// EnsureCreated() handles fresh databases, but existing databases that predate
   /// the Members entity need this explicit DDL.
   let private createMembersTableIfMissing (ctx: BpMonitorDbContext) =
+    let goal = GoalRange.defaults
+
     ctx.Database.ExecuteSqlRaw(
-      """CREATE TABLE IF NOT EXISTS "Members" (
+      $"""CREATE TABLE IF NOT EXISTS "Members" (
         "Id" INTEGER NOT NULL CONSTRAINT "PK_Members" PRIMARY KEY AUTOINCREMENT,
         "Name" TEXT NOT NULL,
         "IsAdmin" INTEGER NOT NULL DEFAULT 0,
         "IsActive" INTEGER NOT NULL DEFAULT 1,
         "PasswordHash" TEXT NOT NULL DEFAULT '',
+        "SystolicGoalMin" INTEGER NOT NULL DEFAULT {goal.SystolicMin},
+        "SystolicGoalMax" INTEGER NOT NULL DEFAULT {goal.SystolicMax},
+        "DiastolicGoalMin" INTEGER NOT NULL DEFAULT {goal.DiastolicMin},
+        "DiastolicGoalMax" INTEGER NOT NULL DEFAULT {goal.DiastolicMax},
         "CreatedAt" TEXT NOT NULL,
         "ModifiedAt" TEXT NOT NULL
       )"""
@@ -66,9 +73,10 @@ module SchemaMigrations =
 
     if count = 0L then
       let now = System.DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss zzz")
+      let goal = GoalRange.defaults
 
       ctx.Database.ExecuteSqlRaw(
-        $"INSERT INTO \"Members\" (\"Name\", \"IsAdmin\", \"IsActive\", \"PasswordHash\", \"CreatedAt\", \"ModifiedAt\") VALUES ('Me', 1, 1, '', '{now}', '{now}')"
+        $"INSERT INTO \"Members\" (\"Name\", \"IsAdmin\", \"IsActive\", \"PasswordHash\", \"SystolicGoalMin\", \"SystolicGoalMax\", \"DiastolicGoalMin\", \"DiastolicGoalMax\", \"CreatedAt\", \"ModifiedAt\") VALUES ('Me', 1, 1, '', {goal.SystolicMin}, {goal.SystolicMax}, {goal.DiastolicMin}, {goal.DiastolicMax}, '{now}', '{now}')"
       )
       |> ignore
 
@@ -110,6 +118,12 @@ module SchemaMigrations =
     addColumnIfMissing ctx "Members" "IsActive" "INTEGER" "1"
     // Add PasswordHash for per-member login (empty string = unclaimed account).
     addColumnIfMissing ctx "Members" "PasswordHash" "TEXT" ""
+    // Add goal-range columns, preset to the paper's recommended range (GoalRange.defaults).
+    let goal = GoalRange.defaults
+    addColumnIfMissing ctx "Members" "SystolicGoalMin" "INTEGER" (string goal.SystolicMin)
+    addColumnIfMissing ctx "Members" "SystolicGoalMax" "INTEGER" (string goal.SystolicMax)
+    addColumnIfMissing ctx "Members" "DiastolicGoalMin" "INTEGER" (string goal.DiastolicMin)
+    addColumnIfMissing ctx "Members" "DiastolicGoalMax" "INTEGER" (string goal.DiastolicMax)
 
     // Ensure at least one default member exists and get its Id.
     let defaultMemberId = ensureDefaultMember ctx

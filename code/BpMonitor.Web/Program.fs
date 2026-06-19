@@ -31,6 +31,8 @@ let private endpoints =
     get "/trends/{gran}/{key}" (AuthHandlers.protect ReadingHandlers.trendsPanel)
     get Routes.exportJson (AuthHandlers.protect ReadingHandlers.exportJson)
     get Routes.exportCsv (AuthHandlers.protect ReadingHandlers.exportCsv)
+    get Routes.settings (AuthHandlers.protect ReadingHandlers.settings)
+    post Routes.settings (AuthHandlers.protect ReadingHandlers.updateSettings)
     post Routes.readings (AuthHandlers.protect ReadingHandlers.createReading)
     get "/readings/{id:int}/edit" (AuthHandlers.protect ReadingHandlers.editReading)
     post "/readings/{id:int}" (AuthHandlers.protect ReadingHandlers.updateReading)

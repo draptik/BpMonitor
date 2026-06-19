@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - New **Recent** page (`/recent`) showing raw readings from the last 7, 14, and 30 days as three separate tables, plus a 30-day chart — no aggregates
+- Charts now show a color-coded goal range band for systolic and diastolic readings, personalizable per family member at the new **Settings** page (`/settings`); defaults to 90–140 (systolic) and 60–90 (diastolic)
 
 ### Changed
 
 - Charts now load plotly.js from a locally vendored copy instead of the `cdn.plot.ly` CDN — no third-party request needed to view charts
+- Systolic/diastolic chart colors changed to a colorblind-safe mint/cocoa palette to match the new goal-range bands
 
 ## [1.5.1] - 2026-06-16
 

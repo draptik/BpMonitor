@@ -14,6 +14,7 @@ let private adminMember (id: int) (name: string) : FamilyMember =
     IsAdmin = true
     IsActive = true
     PasswordHash = None
+    Goal = GoalRange.defaults
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
 
@@ -104,6 +105,7 @@ let ``updateMember allows demoting one admin when another active admin exists`` 
       IsAdmin = true
       IsActive = true
       PasswordHash = None
+      Goal = GoalRange.defaults
       CreatedAt = DateTimeOffset.MinValue
       ModifiedAt = DateTimeOffset.MinValue }
 

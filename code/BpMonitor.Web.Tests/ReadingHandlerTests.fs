@@ -27,6 +27,32 @@ let ``history renders a row per reading`` () =
   test <@ (TestHost.readBody ctx).Contains "/readings/1/edit" @>
 
 [<Fact>]
+let ``history renders the chart with the authenticated member's goal range`` () =
+  let goal =
+    { SystolicMin = 100
+      SystolicMax = 135
+      DiastolicMin = 65
+      DiastolicMax = 88 }
+
+  let m =
+    FamilyMember.create "Me" true
+    |> Result.defaultWith (fun _ -> failwith "invalid member")
+    |> fun m ->
+        { m with
+            Id = defaultMemberId
+            Goal = goal }
+
+  let repo = repoWith [ sample ]
+  let ctx = TestHost.contextWithMembers repo [ m ]
+  TestHost.run ReadingHandlers.history ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "\"y0\":100" @>
+  test <@ body.Contains "\"y1\":135" @>
+  test <@ body.Contains "\"y0\":65" @>
+  test <@ body.Contains "\"y1\":88" @>
+
+[<Fact>]
 let ``newReading returns 200 and prefills timestamp with local time`` () =
   let tp = FakeTimeProvider(Timestamp.utc 2026 6 9 8 0 0)
   let ctx = TestHost.contextWithProvider (repoWith []) tp
