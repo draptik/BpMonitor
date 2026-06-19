@@ -85,12 +85,18 @@ let ``toHtml renders a visible y-axis line with a theme-neutral default color`` 
 [<Fact>]
 let ``toHtml renders a visible x-axis line`` () =
   let html = BpChart.toHtml GoalRange.defaults readings
-  test <@ html.Contains("\"xaxis\":{\"showline\":true") @>
+  test <@ Regex.IsMatch(html, "\"xaxis\":\\{[^}]*\"showline\":true") @>
 
 [<Fact>]
-let ``toHtml labels the y-axis with the mmHg unit`` () =
+let ``toHtml labels the y-axis with blood pressure and the mmHg unit`` () =
   let html = BpChart.toHtml GoalRange.defaults readings
-  test <@ html.Contains("\"title\":{\"text\":\"mmHg\"}") @>
+  test <@ html.Contains("\"title\":{\"text\":\"blood pressure [mmHg]\"}") @>
+
+[<Fact>]
+let ``toHtml renders tick marks on both axes`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  let tickCount = Regex.Matches(html, "\"ticks\":\"outside\"").Count
+  test <@ tickCount = 2 @>
 
 [<Fact>]
 let ``toHtml renders timestamps in ascending order regardless of input order`` () =

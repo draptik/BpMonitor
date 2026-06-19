@@ -41,7 +41,12 @@ module BpChart =
   let private axisLineColor = Color.fromString "#444"
 
   let private xAxis =
-    LinearAxis.init (ShowGrid = false, ShowLine = true, LineColor = axisLineColor)
+    LinearAxis.init (
+      ShowGrid = false,
+      ShowLine = true,
+      LineColor = axisLineColor,
+      Ticks = StyleParam.TickOptions.Outside
+    )
 
   let private yAxis () =
     let defaultYMin = 0
@@ -53,7 +58,8 @@ module BpChart =
       DTick = 20,
       ShowLine = true,
       LineColor = axisLineColor,
-      Title = Title.init (Text = "mmHg")
+      Ticks = StyleParam.TickOptions.Outside,
+      Title = Title.init (Text = "blood pressure [mmHg]")
     )
 
   // Plotly's stroke helper sets stroke-opacity as an inline style on every path.yerror
@@ -113,7 +119,13 @@ module BpChart =
     )
 
   let private trendsXAxis =
-    LinearAxis.init (ShowGrid = false, TickAngle = -45, ShowLine = true, LineColor = axisLineColor)
+    LinearAxis.init (
+      ShowGrid = false,
+      TickAngle = -45,
+      ShowLine = true,
+      LineColor = axisLineColor,
+      Ticks = StyleParam.TickOptions.Outside
+    )
 
   let private trendsConfig =
     Config.init (Responsive = true, DisplayModeBar = false, ScrollZoom = StyleParam.ScrollZoom.NoZoom)
