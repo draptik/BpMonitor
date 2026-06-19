@@ -39,7 +39,9 @@ module BpChart =
   let private xAxis = LinearAxis.init (ShowGrid = false)
 
   let private yAxis () =
-    LinearAxis.init (GridColor = lightGridLine)
+    let defaultYMin = 0
+    let defaultYMax = 200
+    LinearAxis.init (GridColor = lightGridLine, Range = StyleParam.Range.MinMax(defaultYMin, defaultYMax))
 
   // Plotly's stroke helper sets stroke-opacity as an inline style on every path.yerror
   // (value = alpha of the trace color; for our solid colors that is 1). Normal inline styles
@@ -154,6 +156,7 @@ module BpChart =
         [ Chart.Line(x = timestamps, y = heartRate, Name = "Heart Rate") ]
       else
         []
+
 
     [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic")
       |> Chart.withLineStyle (Color = systolicColor)
