@@ -9,6 +9,12 @@ model: claude-haiku-4-5-20251001
 
 Enforce a clean, consistent git workflow. Every change is traceable, reviewable, and revertable. No shortcuts, no exceptions.
 
+A standalone script mirroring the commit → PR → CI → merge flow lives at
+`scripts/ship-pr.sh` — use it directly (no Claude needed): stage your files
+with `git add`, then run `scripts/ship-pr.sh "<gitmoji + conventional title>"`.
+It opens `$EDITOR` for the PR summary, watches CI, and only merges after
+explicit confirmation. Keep it in sync with this skill when the process changes.
+
 ## Branching Strategy
 
 ```text
