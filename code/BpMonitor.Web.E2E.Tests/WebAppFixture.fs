@@ -9,6 +9,28 @@ open System.Threading.Tasks
 open Microsoft.Playwright
 open Xunit
 
+/// Shared test member used to log in against a fresh BpMonitor.Web instance.
+/// `SchemaMigrations` auto-seeds a single unclaimed member named "Me" on an
+/// empty database, so every E2E test that needs to be logged in claims it
+/// with the same password.
+module TestAccount =
+  let username = "Me"
+  let password = "correct-horse-battery-staple"
+
+  /// Claims the default "Me" account (sets its password) and signs in,
+  /// leaving `page` on the app's landing page.
+  let claimAndLogin (baseUrl: string) (page: IPage) : Task =
+    task {
+      let! _ = page.GotoAsync($"{baseUrl}/login")
+      do! page.FillAsync("#Username", username)
+      do! page.ClickAsync("button[type=submit]")
+
+      do! page.FillAsync("#Password", password)
+      do! page.FillAsync("#PasswordConfirm", password)
+      do! page.ClickAsync("button[type=submit]")
+      do! page.WaitForURLAsync($"{baseUrl}/")
+    }
+
 /// Locates the repository's `code/` directory (the one containing BpMonitor.slnx)
 /// by walking up from the test assembly's own output directory.
 module private RepoLayout =

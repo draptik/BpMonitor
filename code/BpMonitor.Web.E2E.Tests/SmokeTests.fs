@@ -1,7 +1,7 @@
 module BpMonitor.Web.E2E.SmokeTests
 
 open System.Threading.Tasks
-open Microsoft.Playwright
+open BpMonitor.Web.E2E
 open Xunit
 
 /// End-to-end smoke test: claim the default account, add a reading, and
@@ -15,15 +15,7 @@ type LoginAddHistoryTests(fixture: WebAppFixture) =
     task {
       let! page = fixture.Browser.NewPageAsync()
 
-      // Log in: claim the default "Me" account.
-      let! _ = page.GotoAsync($"{fixture.BaseUrl}/login")
-      do! page.FillAsync("#Username", "Me")
-      do! page.ClickAsync("button[type=submit]")
-
-      do! page.FillAsync("#Password", "correct-horse-battery-staple")
-      do! page.FillAsync("#PasswordConfirm", "correct-horse-battery-staple")
-      do! page.ClickAsync("button[type=submit]")
-      do! page.WaitForURLAsync($"{fixture.BaseUrl}/")
+      do! TestAccount.claimAndLogin fixture.BaseUrl page
 
       // Add a reading.
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
