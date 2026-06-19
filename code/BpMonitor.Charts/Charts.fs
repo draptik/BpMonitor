@@ -44,7 +44,7 @@ module BpChart =
   // Plotly's stroke helper sets stroke-opacity as an inline style on every path.yerror
   // (value = alpha of the trace color; for our solid colors that is 1). Normal inline styles
   // beat CSS rules, so a plain CSS dim is always overridden. CSS !important beats normal inline
-  // styles, so `stroke-opacity:.1!important` in app.css wins. On hover we need to win
+  // styles, so `stroke-opacity:.1!important` in app.css wins. On hover, we need to win
   // over the CSS !important, which requires setProperty(...,'important') to write an inline
   // !important that takes precedence; removeProperty on unhover falls back to the CSS rule.
   // g.errorbar (singular, per point) lives inside g.errorbars (plural, per trace).
@@ -81,7 +81,7 @@ module BpChart =
     |> fun html -> html + errorBarScript
 
   // Trends-specific tuning for mobile:
-  // - Compact margins maximise the narrow plot area.
+  // - Compact margins maximize the narrow plot area.
   // - DragMode.False: touch is a tap (tooltip), not a scroll-hijacking pan.
   // - TickAngle=-45: rotated date labels don't overlap on narrow viewports.
   // - Horizontal centred legend avoids stealing horizontal width.
