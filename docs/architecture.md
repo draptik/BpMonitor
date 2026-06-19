@@ -138,7 +138,8 @@ graph TD
 - Falco web application on `0.0.0.0:5000`; references Core + Data + Charts + Export
 - **Auth:** ASP.NET Core cookie auth; per-member PBKDF2-SHA256 password; unclaimed members set password on first login; cookie carries `NameIdentifier`/`Name`/`Role` claims
 - **Isolation:** each member sees only their own readings; admins manage members via `/members` but not their readings
-- **Routes:** `/` hub, `/add`, `/history`, `/trends`, `/members`, `/members/{id}/edit`, `/members/{id}/reset-password`, `/login`, `/login/{id}`, `POST /logout`
+- **Routes:** `/` hub, `/add`, `/history`, `/recent`, `/trends`, `/members`, `/members/{id}/edit`, `/members/{id}/reset-password`, `/login`, `/login/{id}`, `POST /logout`
+- **`/recent`:** three rolling windows (last 7 / 14 / 30 days) of raw readings plus a 30-day chart — no aggregation
 - **`/trends`:** granularity selector (Weekly/Monthly/Yearly) + htmx-swapped period fragments; stats from `ReadingStats` (Core); `TimeProvider` injected for testability
 - `protect` / `protectAdmin` combinators; active member resolved from `ClaimsPrincipal`
 - Server-rendered HTML via `Falco.Markup`; htmx for partial updates; scoped `DbContext` per request

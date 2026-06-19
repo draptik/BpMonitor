@@ -20,6 +20,7 @@
     <Compile Include="LoginHandlerTests.fs" />
     <Compile Include="TrendHandlerTests.fs" />
     <Compile Include="ExportHandlerTests.fs" />
+    <Compile Include="RecentHandlerTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

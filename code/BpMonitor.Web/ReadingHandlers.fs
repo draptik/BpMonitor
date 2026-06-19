@@ -74,6 +74,20 @@ module ReadingHandlers =
       let chartHtml = BpChart.toHtml readings
       htmlResponse (ReadingViews.history m chartHtml readings) ctx)
 
+  let recent: HttpContext -> Task =
+    withMember (fun m ctx ->
+      let now = (timeProvider ctx).GetUtcNow()
+      let allReadings = (repo ctx).GetAll(m.Id)
+
+      let window days =
+        allReadings
+        |> ReadingStats.between (now.AddDays(-float days)) now
+        |> List.sortByDescending _.Timestamp
+
+      let days30 = window 30
+      let chartHtml = BpChart.toHtml days30
+      htmlResponse (ReadingViews.recent m chartHtml (window 7) (window 14) days30) ctx)
+
   let trends: HttpContext -> Task =
     withMember (fun m ctx ->
       let now = (timeProvider ctx).GetUtcNow()
