@@ -74,10 +74,23 @@ let ``toHtml sets a denser y-axis tick interval than plotly's default`` () =
   test <@ html.Contains("\"dtick\":20") @>
 
 [<Fact>]
-let ``toHtml renders a visible black y-axis line`` () =
+let ``toHtml renders a visible y-axis line with a theme-neutral default color`` () =
+  // "#444" is the same neutral gray used as the light-theme font color in theme.js;
+  // the client overrides it per-theme on load via Plotly.relayout, so the server-rendered
+  // default only needs to be readable, not theme-aware.
   let html = BpChart.toHtml GoalRange.defaults readings
   test <@ html.Contains("\"showline\":true") @>
-  test <@ html.Contains("\"linecolor\":\"black\"") @>
+  test <@ html.Contains("\"linecolor\":\"#444\"") @>
+
+[<Fact>]
+let ``toHtml renders a visible x-axis line`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ html.Contains("\"xaxis\":{\"showline\":true") @>
+
+[<Fact>]
+let ``toHtml labels the y-axis with the mmHg unit`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ html.Contains("\"title\":{\"text\":\"mmHg\"}") @>
 
 [<Fact>]
 let ``toHtml renders timestamps in ascending order regardless of input order`` () =

@@ -7,11 +7,14 @@
 function applyChartTheme(theme) {
   if (typeof Plotly === 'undefined') return;
   var isDark = theme === 'dark';
+  var axisLineColor = isDark ? '#c2cfd6' : '#444';
   document.querySelectorAll('.js-plotly-plot').forEach((d) => {
     Plotly.relayout(d, {
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
-      font: { color: isDark ? '#c2cfd6' : '#444' },
+      font: { color: axisLineColor },
+      'xaxis.linecolor': axisLineColor,
+      'yaxis.linecolor': axisLineColor,
       'yaxis.gridcolor': isDark ? 'rgba(194,207,214,0.12)' : 'rgba(0,0,0,0.08)'
     });
   });
