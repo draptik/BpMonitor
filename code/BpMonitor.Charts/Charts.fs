@@ -38,10 +38,19 @@ module BpChart =
 
   let private xAxis = LinearAxis.init (ShowGrid = false)
 
+  let private blackLine = Color.fromString "black"
+
   let private yAxis () =
     let defaultYMin = 0
     let defaultYMax = 200
-    LinearAxis.init (GridColor = lightGridLine, Range = StyleParam.Range.MinMax(defaultYMin, defaultYMax))
+
+    LinearAxis.init (
+      GridColor = lightGridLine,
+      Range = StyleParam.Range.MinMax(defaultYMin, defaultYMax),
+      DTick = 20,
+      ShowLine = true,
+      LineColor = blackLine
+    )
 
   // Plotly's stroke helper sets stroke-opacity as an inline style on every path.yerror
   // (value = alpha of the trace color; for our solid colors that is 1). Normal inline styles

@@ -69,6 +69,17 @@ let ``toHtml renders a goal-range band shaped rectangle for systolic and diastol
   test <@ html.Contains("\"y1\":90") @>
 
 [<Fact>]
+let ``toHtml sets a denser y-axis tick interval than plotly's default`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ html.Contains("\"dtick\":20") @>
+
+[<Fact>]
+let ``toHtml renders a visible black y-axis line`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ html.Contains("\"showline\":true") @>
+  test <@ html.Contains("\"linecolor\":\"black\"") @>
+
+[<Fact>]
 let ``toHtml renders timestamps in ascending order regardless of input order`` () =
   let reversed = List.rev readings
   let html = BpChart.toHtml GoalRange.defaults reversed

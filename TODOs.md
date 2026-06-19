@@ -2,11 +2,6 @@
 
 A loose collection of TODOs I want to tackle at some point in time.
 
-## Charting
-
-- Increase the y-tick density
-- Add an actual yAxis line (color: black)
-
 ## Features
 
 - some science behind the visualization:
