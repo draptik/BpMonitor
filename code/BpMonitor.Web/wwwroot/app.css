@@ -22,9 +22,26 @@ body {
 /* Hamburger button — hidden on desktop, shown on mobile.
    Specificity needs to be (0,1,1) to beat Pico's
    [type="checkbox"] ~ label { display: inline-block } rule (also 0,1,1),
-   relying on app.css loading after pico.min.css for the tie-break. */
+   relying on app.css loading after pico.min.css for the tie-break.
+   Appearance lives here so the mobile and desktop-collapsed trigger
+   rules below only need to flip `display` — same look in both states. */
 label.nav-burger {
   display: none;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 200;
+  cursor: pointer;
+  font-size: 1.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--pico-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  line-height: 1;
+  user-select: none;
 }
 
 /* Backdrop overlay — hidden until drawer is open on mobile. Same specificity
@@ -221,25 +238,11 @@ g.errorbars path.yerror {
 
   /* ── Mobile sidebar / off-canvas drawer ─────────────────────────────────── */
 
-  /* Hamburger button — fixed top-left, above all content.
-     label.nav-burger for (0,1,1) specificity to beat Pico's checkbox~label rule. */
+  /* Hamburger button shown above all content on mobile.
+     label.nav-burger for (0,1,1) specificity to beat Pico's checkbox~label rule.
+     Appearance comes from the base label.nav-burger rule above. */
   label.nav-burger {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    top: 0.5rem;
-    left: 0.5rem;
-    z-index: 200;
-    cursor: pointer;
-    font-size: 1.25rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    background: var(--pico-background-color);
-    border: 1px solid var(--pico-muted-border-color);
-    border-radius: var(--pico-border-radius);
-    line-height: 1;
-    user-select: none;
   }
 
   /* Sidebar is an off-canvas drawer on mobile: slides off-screen by default
@@ -298,23 +301,9 @@ g.errorbars path.yerror {
     margin-left: 0;
   }
 
+  /* Appearance comes from the base label.nav-burger rule above. */
   #nav-toggle:checked ~ label.nav-burger {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    top: 0.5rem;
-    left: 0.5rem;
-    z-index: 200;
-    cursor: pointer;
-    font-size: 1.25rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    background: var(--pico-background-color);
-    border: 1px solid var(--pico-muted-border-color);
-    border-radius: var(--pico-border-radius);
-    line-height: 1;
-    user-select: none;
   }
 }
 
