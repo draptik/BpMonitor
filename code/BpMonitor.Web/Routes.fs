@@ -10,5 +10,6 @@ module Routes =
   let trends = "/trends"
   let readings = "/readings"
   let members = "/members"
+  let recent = "/recent"
   let exportJson = "/export"
   let exportCsv = "/export.csv"

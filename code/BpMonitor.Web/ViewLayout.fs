@@ -84,6 +84,7 @@ module ViewLayout =
                     navLink active Routes.home "Home"
                     navLink active Routes.add "Add"
                     navLink active Routes.history "History"
+                    navLink active Routes.recent "Recent"
                     navLink active Routes.trends "Trends"
                     // hx-boost="false" prevents htmx from AJAX-swapping the download response.
                     Elem.li

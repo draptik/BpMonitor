@@ -33,6 +33,39 @@ module ReadingViews =
             Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ]
         ViewLayout.readingsTable readings ]
 
+  /// Recent: chart of the last 30 days plus three rolling window tables (7/14/30 days).
+  let recent
+    (activeMember: FamilyMember)
+    (chartHtml: string)
+    (days7: BloodPressureReading list)
+    (days14: BloodPressureReading list)
+    (days30: BloodPressureReading list)
+    : XmlNode =
+    let pill (label: string) (anchor: string) =
+      Elem.a [ Attr.href $"#{anchor}"; Attr.role "button"; Attr.class' "outline" ] [ Text.raw label ]
+
+    let section (heading: string) (anchor: string) (readings: BloodPressureReading list) =
+      Elem.section [ Attr.id anchor ] [ Elem.h2 [] [ Text.raw heading ]; ViewLayout.readingsTable readings ]
+
+    ViewLayout.layout
+      Routes.recent
+      activeMember.Name
+      activeMember.IsAdmin
+      "Recent"
+      [ Elem.h1 [] [ Text.raw $"Recent — {activeMember.Name}" ]
+        Elem.div
+          [ Attr.class' "recent-window-buttons" ]
+          [ pill "Last 7 days" "days-7"
+            pill "Last 14 days" "days-14"
+            pill "Last 30 days" "days-30" ]
+        Elem.details
+          [ Attr.create "open" "" ]
+          [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw "Blood Pressure Graph" ]
+            Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ]
+        section "Last 7 days" "days-7" days7
+        section "Last 14 days" "days-14" days14
+        section "Last 30 days" "days-30" days30 ]
+
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
   /// above the fields when re-displaying after a failed submit.
   let readingForm

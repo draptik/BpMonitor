@@ -59,7 +59,7 @@ code/
 ├── BpMonitor.Export.Tests
 ├── BpMonitor.Charts            # Plotly.NET chart generation → HTML output
 ├── BpMonitor.Charts.Tests
-├── BpMonitor.Web               # Falco web app (login + per-member auth, landing, add, history, members pages); Serilog structured stdout logging
+├── BpMonitor.Web               # Falco web app (login + per-member auth, landing, add, history, recent, trends, members pages); Serilog structured stdout logging
 ├── BpMonitor.Web.Tests
 └── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules
 docs/                           # Product vision, architecture, ADRs
