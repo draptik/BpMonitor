@@ -2,14 +2,10 @@
 
 A loose collection of TODOs I want to tackle at some point in time.
 
-## Layout/Design, especially mobile
+## Charting
 
-Double-check if this is still relevant:
-
-- The trend readings table is too wide on mobile. Some ideas
-  - use "cards" instead of row (not practical for yearly view)
-  - or: shorten time stamp string
-  - or: hide comment
+- Increase the y-tick density
+- Add an actual yAxis line (color: black)
 
 ## Features
 
