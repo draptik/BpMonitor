@@ -211,7 +211,8 @@ g.errorbars path.yerror {
   }
 
   /* Slightly taller tap targets for the window-selector buttons */
-  .trends-window-buttons a {
+  .trends-window-buttons a,
+  .recent-window-buttons a {
     min-height: 2.75rem;
     display: inline-flex;
     align-items: center;
@@ -450,14 +451,16 @@ form.inline button {
 /* ── Trends page ────────────────────────────────────────────────────────── */
 
 /* Granularity selector row (Weekly / Monthly / Yearly) */
-.trends-window-buttons {
+.trends-window-buttons,
+.recent-window-buttons {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
   margin-bottom: 0.75rem;
 }
 
-.trends-window-buttons a[role="button"] {
+.trends-window-buttons a[role="button"],
+.recent-window-buttons a[role="button"] {
   padding: 0.25rem 0.9rem;
   font-size: 0.9rem;
   margin: 0;
