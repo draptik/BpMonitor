@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New **Recent** page (`/recent`) showing raw readings from the last 7, 14, and 30 days as three separate tables, plus a 30-day chart — no aggregates
 
+### Changed
+
+- Charts now load plotly.js from a locally vendored copy instead of the `cdn.plot.ly` CDN — no third-party request needed to view charts
+
 ## [1.5.1] - 2026-06-16
 
 ### Changed

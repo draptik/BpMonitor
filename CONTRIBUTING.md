@@ -54,6 +54,21 @@ The solution is split into focused projects under `code/` — Core domain, Data
 Architecture. See [docs/architecture.md](docs/architecture.md) for the full
 structure, dependency diagram, and tech stack.
 
+### Vendored plotly.js
+
+`code/BpMonitor.Web/wwwroot/plotly-*.min.js` is extracted from the embedded
+resource inside the Plotly.NET NuGet package (not downloaded from a CDN), so
+the chart version always matches what Plotly.NET ships. After bumping the
+`Plotly.NET` package version, re-run:
+
+```bash
+dotnet restore code
+dotnet fsi scripts/extract-plotly-js.fsx
+```
+
+A test in `BpMonitor.Web.Tests` (`PlotlyVendoringTests`) fails CI if the
+vendored file ever drifts from the package's embedded resource.
+
 ## Linting and formatting
 
 These mirror the jobs in `.github/workflows/ci.yml`. [Husky](https://alirezanet.github.io/Husky.Net/)

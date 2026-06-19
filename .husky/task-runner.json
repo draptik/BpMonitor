@@ -34,7 +34,7 @@
          "command": "mise",
          "args": ["exec", "--", "biome", "lint", "${staged}"],
          "include": ["code/BpMonitor.Web/wwwroot/*.js"],
-         "exclude": ["**/htmx.min.js"],
+         "exclude": ["**/*.min.js"],
          "staged": true
       }
    ]

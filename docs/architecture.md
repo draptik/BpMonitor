@@ -28,7 +28,7 @@ code/
 | Web interactivity | htmx (vendored, no build step) |
 | Logging | Serilog.AspNetCore — structured CLEF JSON to stdout; `UseSerilogRequestLogging` for per-request lines; configured via `appsettings.json` `Serilog` section; captured by `docker logs` / `podman logs` / journald |
 | Database | SQLite + EF Core |
-| Charting | Plotly.NET — generates interactive HTML, opens in default browser |
+| Charting | Plotly.NET — generates interactive HTML; plotly.js vendored locally (extracted from Plotly.NET's embedded resource via `scripts/extract-plotly-js.fsx`, no CDN) |
 | Validation | `FsToolkit.ErrorHandling` — applicative validation with `Validation<'ok, 'err>` |
 | Architecture | Clean Architecture (Core has zero dependencies on other projects) |
 | Architecture tests | ArchUnit (via `BpMonitor.Arch.Tests`) |
