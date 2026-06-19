@@ -21,6 +21,7 @@
     <Compile Include="TrendHandlerTests.fs" />
     <Compile Include="ExportHandlerTests.fs" />
     <Compile Include="RecentHandlerTests.fs" />
+    <Compile Include="PlotlyVendoringTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

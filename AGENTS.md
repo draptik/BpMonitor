@@ -63,6 +63,7 @@ code/
 ├── BpMonitor.Web.Tests
 └── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules
 docs/                           # Product vision, architecture, ADRs
+scripts/                        # Dev tooling scripts (e.g. extract-plotly-js.fsx)
 ```
 
 ## Documentation
