@@ -11,6 +11,10 @@ Guide the user through a safe, repeatable BpMonitor release. The tag annotation
 message becomes the end-user summary displayed **above** the auto-generated
 changelog on the GitHub release page.
 
+A standalone script mirroring this flow lives at `scripts/cut-release.sh` —
+use it directly (no Claude needed) via `scripts/cut-release.sh prepare` /
+`scripts/cut-release.sh tag vX.Y.Z`. Keep both in sync when changing the process.
+
 ## Step 1 — Preflight
 
 Run these checks and **abort if any fails**:
