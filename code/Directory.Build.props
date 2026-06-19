@@ -13,4 +13,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <!-- SQLitePCLRaw.lib.e_sqlite3 (transitive via EFCore.Sqlite): no patched NuGet package
+         exists yet, only an upstream SQLite source fix. Revisit when a fixed package ships. -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q" />
+  </ItemGroup>
 </Project>
