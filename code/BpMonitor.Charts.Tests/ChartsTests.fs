@@ -99,6 +99,21 @@ let ``toHtml renders tick marks on both axes`` () =
   test <@ tickCount = 2 @>
 
 [<Fact>]
+let ``toHtml renders a marker at every systolic and diastolic data point`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  let modeCount = Regex.Matches(html, "\"mode\":\"lines\\+markers\"").Count
+  test <@ modeCount = 2 @> // Systolic + Diastolic; heart rate is never included via toHtml
+
+[<Fact>]
+let ``toHtml plots comment markers on the x-axis baseline (y=0), not at the reading's value`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  let m = Regex.Match(html, "\"name\":\"Comments\".*?\"y\":\\[([^\\]]*)\\]")
+  test <@ m.Success @>
+  let yValues = m.Groups[1].Value.Split(',') |> Array.map int
+  test <@ yValues.Length > 0 @>
+  test <@ yValues |> Array.forall (fun y -> y = 0) @>
+
+[<Fact>]
 let ``toHtml renders timestamps in ascending order regardless of input order`` () =
   let reversed = List.rev readings
   let html = BpChart.toHtml GoalRange.defaults reversed

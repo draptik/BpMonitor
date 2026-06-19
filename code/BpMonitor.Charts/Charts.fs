@@ -164,12 +164,12 @@ module BpChart =
         []
       else
         let cTimestamps = commented |> List.map (_.Timestamp >> Formats.formatLocal)
-        let cSystolic = commented |> List.map _.Systolic
+        let cBaseline = commented |> List.map (fun _ -> 0)
         let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
 
         [ Chart.Point(
             x = cTimestamps,
-            y = cSystolic,
+            y = cBaseline,
             Name = "Comments",
             MultiText = cTexts,
             MarkerColor = systolicColor
@@ -184,9 +184,9 @@ module BpChart =
         []
 
 
-    [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic")
+    [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic", ShowMarkers = true)
       |> Chart.withLineStyle (Color = systolicColor)
-      Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic")
+      Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic", ShowMarkers = true)
       |> Chart.withLineStyle (Color = diastolicColor)
       yield! heartRateTrace
       yield! commentTraces ]
