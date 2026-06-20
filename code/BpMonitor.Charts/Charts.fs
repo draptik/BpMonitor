@@ -146,6 +146,29 @@ module BpChart =
     |> _.Replace("\"height\":600,", "")
     |> fun html -> html + errorBarScript
 
+  /// Sorts readings chronologically and extracts the parallel label/value series
+  /// shared by every per-reading chart (/history and /recent).
+  let private seriesOf (readings: BloodPressureReading list) =
+    let sorted = readings |> List.sortBy _.Timestamp
+    let labels = sorted |> List.map (_.Timestamp >> Formats.formatLocal)
+    let systolic = sorted |> List.map _.Systolic
+    let diastolic = sorted |> List.map _.Diastolic
+    sorted, labels, systolic, diastolic
+
+  /// Comment markers plotted on the x-axis baseline (y=0), one per commented reading.
+  let private commentTraces (sorted: BloodPressureReading list) : GenericChart list =
+    let commented = sorted |> List.filter _.Comments.IsSome
+
+    if commented.IsEmpty then
+      []
+    else
+      let cTimestamps = commented |> List.map (_.Timestamp >> Formats.formatLocal)
+      let cBaseline = commented |> List.map (fun _ -> 0)
+      let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
+
+      [ Chart.Point(x = cTimestamps, y = cBaseline, Name = "Comments", MultiText = cTexts, MarkerColor = systolicColor)
+        |> Chart.withMarkerStyle (Size = 10) ]
+
   /// Classic x/y plot — one point per reading. Used by /history.
   /// `includeHeartRate` is currently always false (no caller passes true).
   let private renderIndividual
@@ -153,28 +176,7 @@ module BpChart =
     (goal: GoalRange)
     (readings: BloodPressureReading list)
     : string =
-    let readings = readings |> List.sortBy _.Timestamp
-    let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
-    let systolic = readings |> List.map _.Systolic
-    let diastolic = readings |> List.map _.Diastolic
-    let commented = readings |> List.filter _.Comments.IsSome
-
-    let commentTraces =
-      if commented.IsEmpty then
-        []
-      else
-        let cTimestamps = commented |> List.map (_.Timestamp >> Formats.formatLocal)
-        let cBaseline = commented |> List.map (fun _ -> 0)
-        let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
-
-        [ Chart.Point(
-            x = cTimestamps,
-            y = cBaseline,
-            Name = "Comments",
-            MultiText = cTexts,
-            MarkerColor = systolicColor
-          )
-          |> Chart.withMarkerStyle (Size = 10) ]
+    let readings, timestamps, systolic, diastolic = seriesOf readings
 
     let heartRateTrace =
       if includeHeartRate then
@@ -189,7 +191,7 @@ module BpChart =
       Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic", ShowMarkers = true)
       |> Chart.withLineStyle (Color = diastolicColor)
       yield! heartRateTrace
-      yield! commentTraces ]
+      yield! commentTraces readings ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
     |> Chart.withShapes (goalBands goal)
@@ -328,9 +330,9 @@ module BpChart =
   // ── /recent: missing-data-aware solid/dashed line styling ──────────────────
   // Wegier et al. 2021 (docs/resources/12911_2021_Article_1598.pdf, "Missing data"):
   // a gap is "missing data" once the days it skips exceed 10% of the displayed window;
-  // such gaps render dashed, ordinary gaps render solid. Connecting lines are split into
-  // per-gap segments (legend-hidden) so each gap can carry its own dash style, with a
-  // separate markers-only trace per series carrying the legend entry.
+  // such gaps render dashed, ordinary gaps render solid. Consecutive same-style gaps are
+  // merged into a single multi-point trace (a "run") instead of one trace per gap, keeping
+  // the trace count proportional to the number of dash/solid transitions rather than to N.
   let private isGapDashed (windowDays: int) (gapDays: int) =
     let missingDays = gapDays - 1
     float missingDays > 0.10 * float windowDays
@@ -351,51 +353,56 @@ module BpChart =
       else
         StyleParam.DrawingStyle.Solid)
 
-  let private lineSegments
+  // Groups consecutive equal-style gaps into (startPointIdx, endPointIdxInclusive, style)
+  // ranges. Adjacent runs share their boundary point, so the connecting line stays unbroken
+  // where the style changes.
+  let private dashRuns (dashes: StyleParam.DrawingStyle list) : (int * int * StyleParam.DrawingStyle) list =
+    dashes
+    |> List.indexed
+    |> List.fold
+      (fun acc (gapIdx, style) ->
+        match acc with
+        | (s, start, _) :: rest when s = style -> (s, start, gapIdx) :: rest
+        | _ -> (style, gapIdx, gapIdx) :: acc)
+      []
+    |> List.rev
+    |> List.map (fun (style, startGap, endGap) -> startGap, endGap + 1, style)
+
+  /// One trace per dash/solid run for a series; only the first run carries the legend
+  /// entry, all runs show markers so every reading still gets a point. Falls back to a
+  /// single trace when there's nothing to split (0 or 1 readings).
+  let private seriesTraces
     (color: Color)
     (name: string)
     (dashes: StyleParam.DrawingStyle list)
     (labels: string list)
     (values: int list)
     : GenericChart list =
-    List.zip3 (List.pairwise labels) (List.pairwise values) dashes
-    |> List.map (fun ((l0, l1), (v0, v1), dash) ->
-      Chart.Line(x = [ l0; l1 ], y = [ v0; v1 ], Name = name, ShowLegend = false, LineDash = dash)
-      |> Chart.withLineStyle (Color = color))
-
-  let private markerTrace (color: Color) (name: string) (labels: string list) (values: int list) =
-    Chart.Point(x = labels, y = values, Name = name, MarkerColor = color)
+    match labels, values with
+    | [], [] ->
+      [ Chart.Line(x = ([]: string list), y = ([]: int list), Name = name)
+        |> Chart.withLineStyle (Color = color) ]
+    | [ _ ], [ _ ] -> [ Chart.Point(x = labels, y = values, Name = name, MarkerColor = color) ]
+    | _ ->
+      dashRuns dashes
+      |> List.mapi (fun idx (startIdx, endIdx, style) ->
+        Chart.Line(
+          x = labels[startIdx..endIdx],
+          y = values[startIdx..endIdx],
+          Name = name,
+          ShowLegend = (idx = 0),
+          ShowMarkers = true,
+          LineDash = style
+        )
+        |> Chart.withLineStyle (Color = color))
 
   let private renderRecent (goal: GoalRange) (windowDays: int) (readings: BloodPressureReading list) : string =
-    let readings = readings |> List.sortBy _.Timestamp
-    let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
-    let systolic = readings |> List.map _.Systolic
-    let diastolic = readings |> List.map _.Diastolic
-    let commented = readings |> List.filter _.Comments.IsSome
+    let readings, timestamps, systolic, diastolic = seriesOf readings
     let dashes = dashPattern windowDays readings
 
-    let commentTraces =
-      if commented.IsEmpty then
-        []
-      else
-        let cTimestamps = commented |> List.map (_.Timestamp >> Formats.formatLocal)
-        let cBaseline = commented |> List.map (fun _ -> 0)
-        let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
-
-        [ Chart.Point(
-            x = cTimestamps,
-            y = cBaseline,
-            Name = "Comments",
-            MultiText = cTexts,
-            MarkerColor = systolicColor
-          )
-          |> Chart.withMarkerStyle (Size = 10) ]
-
-    [ markerTrace systolicColor "Systolic" timestamps systolic
-      yield! lineSegments systolicColor "Systolic" dashes timestamps systolic
-      markerTrace diastolicColor "Diastolic" timestamps diastolic
-      yield! lineSegments diastolicColor "Diastolic" dashes timestamps diastolic
-      yield! commentTraces ]
+    [ yield! seriesTraces systolicColor "Systolic" dashes timestamps systolic
+      yield! seriesTraces diastolicColor "Diastolic" dashes timestamps diastolic
+      yield! commentTraces readings ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
     |> Chart.withShapes (goalBands goal)

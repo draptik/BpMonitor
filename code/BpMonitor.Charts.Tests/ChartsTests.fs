@@ -184,22 +184,59 @@ let ``toHtmlRecent judges gaps by calendar days, not raw elapsed time`` () =
   test <@ not (html.Contains("\"dash\":\"dash\"")) @>
 
 [<Fact>]
-let ``toHtmlRecent names each line segment after its series for hover text`` () =
+let ``toHtmlRecent names each line trace after its series for hover text`` () =
   let html = BpChart.toHtmlRecent GoalRange.defaults 10 readings
 
   let lineNameCount =
-    Regex.Matches(html, "\"name\":\"(Systolic|Diastolic)\",\"showlegend\":false,\"mode\":\"lines\"").Count
+    Regex.Matches(html, "\"name\":\"(Systolic|Diastolic)\",\"showlegend\":[a-z]*,\"mode\":\"lines\\+markers\"").Count
 
   test <@ lineNameCount > 0 @>
 
 [<Fact>]
-let ``toHtmlRecent renders one marker per reading for each series, regardless of gap count`` () =
+let ``toHtmlRecent does not drop any reading, even when split across dash/solid runs`` () =
+  // Window = 30 days; threshold = 3 missing days. Days 1-2-3 (solid), a 7-day gap to day 10
+  // (6 missing days, dashed), then days 10-11-12 (solid) — 3 runs sharing 2 boundary points.
+  let readings =
+    [ reading 1 120 80 70 1 9 None
+      reading 2 121 80 70 2 9 None
+      reading 3 122 80 70 3 9 None
+      reading 4 123 80 70 10 9 None
+      reading 5 124 80 70 11 9 None
+      reading 6 125 80 70 12 9 None ]
+
   let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
-  let sysMarkers = Regex.Match(html, "\"name\":\"Systolic\".*?\"y\":\\[([^\\]]*)\\]")
-  let diaMarkers = Regex.Match(html, "\"name\":\"Diastolic\".*?\"y\":\\[([^\\]]*)\\]")
-  test <@ sysMarkers.Success && diaMarkers.Success @>
-  test <@ sysMarkers.Groups[1].Value.Split(',').Length = readings.Length @>
-  test <@ diaMarkers.Groups[1].Value.Split(',').Length = readings.Length @>
+
+  let coveredLabels (name: string) =
+    Regex.Matches(html, $"\"name\":\"{name}\".*?\"x\":\\[([^\\]]*)\\]")
+    |> Seq.collect (fun m -> m.Groups[1].Value.Split(','))
+    |> Set.ofSeq
+
+  test <@ (coveredLabels "Systolic").Count = readings.Length @>
+  test <@ (coveredLabels "Diastolic").Count = readings.Length @>
+  test <@ html.Contains("\"dash\":\"dash\"") @>
+  test <@ html.Contains("\"dash\":\"solid\"") @>
+
+[<Fact>]
+let ``toHtmlRecent shows exactly one legend entry per series, even when split across multiple dash/solid runs`` () =
+  let readings =
+    [ reading 1 120 80 70 1 9 None
+      reading 2 121 80 70 2 9 None
+      reading 3 122 80 70 3 9 None
+      reading 4 123 80 70 10 9 None
+      reading 5 124 80 70 11 9 None
+      reading 6 125 80 70 12 9 None ]
+
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+
+  // Each trace object ends at the first "}}" (closing its "line" object then itself), so
+  // bounding the match there keeps "name"/"showlegend" from leaking into the next trace.
+  let legendCount (name: string) =
+    Regex.Matches(html, $"\"name\":\"{name}\".*?}}}}")
+    |> Seq.filter (fun m -> m.Value.Contains("\"showlegend\":true"))
+    |> Seq.length
+
+  test <@ legendCount "Systolic" = 1 @>
+  test <@ legendCount "Diastolic" = 1 @>
 
 [<Fact>]
 let ``toHtmlDashed matches snapshot`` () : Task =
