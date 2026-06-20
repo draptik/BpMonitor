@@ -7,12 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0-rc2] - 2026-06-20
+
 ### Changed
 
 - Charts now show denser y-axis gridlines, visible x/y axis lines and tick marks that adapt to the light/dark theme, and a "blood pressure [mmHg]" y-axis label
 - History and Recent charts now mark every reading with a circle, and comment markers sit on the x-axis baseline instead of overlapping the systolic line
-- Recent chart now dashes the connecting line across gaps where missing readings exceed 10% of the 30-day window, matching the rest of the chart's solid styling elsewhere
-- Recent chart's Systolic/Diastolic legend swatches now match History's line+marker style instead of showing a marker-only dot
+- Recent chart now shows a dashed connecting line across gaps where data is missing (more than 10% of the displayed 30-day window), with its legend styling matching the History chart
 
 ## [1.6.0-rc1] - 2026-06-20
 
@@ -208,7 +209,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.6.0-rc1...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.6.0-rc2...HEAD
+[1.6.0-rc2]: https://github.com/draptik/BpMonitor/compare/v1.6.0-rc1...v1.6.0-rc2
 [1.6.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.5.1...v1.6.0-rc1
 [1.5.1]: https://github.com/draptik/BpMonitor/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/draptik/BpMonitor/compare/v1.4.3...v1.5.0
