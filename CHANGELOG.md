@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Charts now show denser y-axis gridlines, visible x/y axis lines and tick marks that adapt to the light/dark theme, and a "blood pressure [mmHg]" y-axis label
 - History and Recent charts now mark every reading with a circle, and comment markers sit on the x-axis baseline instead of overlapping the systolic line
+- Recent chart now dashes the connecting line across gaps where missing readings exceed 10% of the 30-day window, matching the rest of the chart's solid styling elsewhere
 
 ## [1.6.0-rc1] - 2026-06-20
 

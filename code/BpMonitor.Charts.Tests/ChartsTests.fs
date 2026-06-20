@@ -161,6 +161,29 @@ let private asAggregated (rs: BloodPressureReading list) =
       MaxDiastolic = r.Diastolic })
 
 [<Fact>]
+let ``toHtmlRecent renders a dashed line segment when a gap exceeds 10% of the window as missing days`` () =
+  // Window = 10 days; threshold = 1.0 missing day. Gap of 6 days → 5 missing days → dashed.
+  let sparse = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 7 9 None ]
+  let html = BpChart.toHtmlRecent GoalRange.defaults 10 sparse
+  test <@ html.Contains("\"dash\":\"dash\"") @>
+
+[<Fact>]
+let ``toHtmlRecent connects readings with a solid line when the gap stays within 10% of the window`` () =
+  // Window = 10 days; threshold = 1.0 missing day. Gap of 1 day → 0 missing days → solid.
+  let dense = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 2 9 None ]
+  let html = BpChart.toHtmlRecent GoalRange.defaults 10 dense
+  test <@ not (html.Contains("\"dash\":\"dash\"")) @>
+
+[<Fact>]
+let ``toHtmlRecent renders one marker per reading for each series, regardless of gap count`` () =
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let sysMarkers = Regex.Match(html, "\"name\":\"Systolic\".*?\"y\":\\[([^\\]]*)\\]")
+  let diaMarkers = Regex.Match(html, "\"name\":\"Diastolic\".*?\"y\":\\[([^\\]]*)\\]")
+  test <@ sysMarkers.Success && diaMarkers.Success @>
+  test <@ sysMarkers.Groups[1].Value.Split(',').Length = readings.Length @>
+  test <@ diaMarkers.Groups[1].Value.Split(',').Length = readings.Length @>
+
+[<Fact>]
 let ``toHtmlDashed matches snapshot`` () : Task =
   let html: string =
     BpChart.toHtmlDashed GoalRange.defaults Weekly (asAggregated readings)
