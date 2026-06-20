@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0-rc3] - 2026-06-20
+
 ### Fixed
 
 - Charts (History, Recent, Trends) no longer clip their x-axis date labels on narrow mobile screens — Plotly was rendering at a fixed default height regardless of the actual container size, and the excess was silently cut off
@@ -213,7 +215,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.6.0-rc2...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.6.0-rc3...HEAD
+[1.6.0-rc3]: https://github.com/draptik/BpMonitor/compare/v1.6.0-rc2...v1.6.0-rc3
 [1.6.0-rc2]: https://github.com/draptik/BpMonitor/compare/v1.6.0-rc1...v1.6.0-rc2
 [1.6.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.5.1...v1.6.0-rc1
 [1.5.1]: https://github.com/draptik/BpMonitor/compare/v1.5.0...v1.5.1
