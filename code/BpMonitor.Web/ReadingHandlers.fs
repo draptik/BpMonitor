@@ -86,7 +86,7 @@ module ReadingHandlers =
         |> List.sortByDescending _.Timestamp
 
       let days30 = window 30
-      let chartHtml = BpChart.toHtml m.Goal days30
+      let chartHtml = BpChart.toHtmlRecent m.Goal 30 days30
       htmlResponse (ReadingViews.recent m chartHtml (window 7) (window 14) days30) ctx)
 
   let trends: HttpContext -> Task =

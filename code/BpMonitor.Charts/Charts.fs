@@ -146,8 +146,8 @@ module BpChart =
     |> _.Replace("\"height\":600,", "")
     |> fun html -> html + errorBarScript
 
-  /// Classic x/y plot — one point per reading. Used by /history and /recent.
-  /// `includeHeartRate` is false for /recent, which omits the Heart Rate trace.
+  /// Classic x/y plot — one point per reading. Used by /history.
+  /// `includeHeartRate` is currently always false (no caller passes true).
   let private renderIndividual
     (includeHeartRate: bool)
     (goal: GoalRange)
@@ -324,3 +324,71 @@ module BpChart =
 
   let toHtml (goal: GoalRange) = renderIndividual false goal
   let toHtmlDashed (goal: GoalRange) (gran: Granularity) = renderDashed goal gran
+
+  // ── /recent: missing-data-aware solid/dashed line styling ──────────────────
+  // Wegier et al. 2021 (docs/resources/12911_2021_Article_1598.pdf, "Missing data"):
+  // a gap is "missing data" once the days it skips exceed 10% of the displayed window;
+  // such gaps render dashed, ordinary gaps render solid. Connecting lines are split into
+  // per-gap segments (legend-hidden) so each gap can carry its own dash style, with a
+  // separate markers-only trace per series carrying the legend entry.
+  let private isGapDashed (windowDays: int) (gapDays: float) =
+    let missingDays = gapDays - 1.0
+    missingDays > 0.10 * float windowDays
+
+  let private lineSegments
+    (color: Color)
+    (windowDays: int)
+    (sorted: BloodPressureReading list)
+    (labels: string list)
+    (values: int list)
+    : GenericChart list =
+    List.zip3 sorted labels values
+    |> List.pairwise
+    |> List.map (fun ((r0, l0, v0), (r1, l1, v1)) ->
+      let dash =
+        if isGapDashed windowDays (r1.Timestamp - r0.Timestamp).TotalDays then
+          StyleParam.DrawingStyle.Dash
+        else
+          StyleParam.DrawingStyle.Solid
+
+      Chart.Line(x = [ l0; l1 ], y = [ v0; v1 ], ShowLegend = false, LineDash = dash)
+      |> Chart.withLineStyle (Color = color))
+
+  let private markerTrace (color: Color) (name: string) (labels: string list) (values: int list) =
+    Chart.Point(x = labels, y = values, Name = name, MarkerColor = color)
+
+  let private renderRecent (goal: GoalRange) (windowDays: int) (readings: BloodPressureReading list) : string =
+    let readings = readings |> List.sortBy _.Timestamp
+    let timestamps = readings |> List.map (_.Timestamp >> Formats.formatLocal)
+    let systolic = readings |> List.map _.Systolic
+    let diastolic = readings |> List.map _.Diastolic
+    let commented = readings |> List.filter _.Comments.IsSome
+
+    let commentTraces =
+      if commented.IsEmpty then
+        []
+      else
+        let cTimestamps = commented |> List.map (_.Timestamp >> Formats.formatLocal)
+        let cBaseline = commented |> List.map (fun _ -> 0)
+        let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
+
+        [ Chart.Point(
+            x = cTimestamps,
+            y = cBaseline,
+            Name = "Comments",
+            MultiText = cTexts,
+            MarkerColor = systolicColor
+          )
+          |> Chart.withMarkerStyle (Size = 10) ]
+
+    [ markerTrace systolicColor "Systolic" timestamps systolic
+      yield! lineSegments systolicColor windowDays readings timestamps systolic
+      markerTrace diastolicColor "Diastolic" timestamps diastolic
+      yield! lineSegments diastolicColor windowDays readings timestamps diastolic
+      yield! commentTraces ]
+    |> Chart.combine
+    |> Chart.withTitle "Blood Pressure History"
+    |> Chart.withShapes (goalBands goal)
+    |> finish
+
+  let toHtmlRecent (goal: GoalRange) (windowDays: int) = renderRecent goal windowDays
