@@ -331,27 +331,36 @@ module BpChart =
   // such gaps render dashed, ordinary gaps render solid. Connecting lines are split into
   // per-gap segments (legend-hidden) so each gap can carry its own dash style, with a
   // separate markers-only trace per series carrying the legend entry.
-  let private isGapDashed (windowDays: int) (gapDays: float) =
-    let missingDays = gapDays - 1.0
-    missingDays > 0.10 * float windowDays
+  let private isGapDashed (windowDays: int) (gapDays: int) =
+    let missingDays = gapDays - 1
+    float missingDays > 0.10 * float windowDays
+
+  // Calendar-day gap between two readings, in the member's local time zone — using the
+  // raw elapsed TotalDays would make the dashed/solid threshold sensitive to the time of
+  // day each reading was taken, flipping styling for gaps that are the same number of
+  // calendar days apart.
+  let private calendarGapDays (r0: BloodPressureReading) (r1: BloodPressureReading) =
+    (r1.Timestamp.ToLocalTime().Date - r0.Timestamp.ToLocalTime().Date).Days
+
+  let private dashPattern (windowDays: int) (sorted: BloodPressureReading list) : StyleParam.DrawingStyle list =
+    sorted
+    |> List.pairwise
+    |> List.map (fun (r0, r1) ->
+      if isGapDashed windowDays (calendarGapDays r0 r1) then
+        StyleParam.DrawingStyle.Dash
+      else
+        StyleParam.DrawingStyle.Solid)
 
   let private lineSegments
     (color: Color)
-    (windowDays: int)
-    (sorted: BloodPressureReading list)
+    (name: string)
+    (dashes: StyleParam.DrawingStyle list)
     (labels: string list)
     (values: int list)
     : GenericChart list =
-    List.zip3 sorted labels values
-    |> List.pairwise
-    |> List.map (fun ((r0, l0, v0), (r1, l1, v1)) ->
-      let dash =
-        if isGapDashed windowDays (r1.Timestamp - r0.Timestamp).TotalDays then
-          StyleParam.DrawingStyle.Dash
-        else
-          StyleParam.DrawingStyle.Solid
-
-      Chart.Line(x = [ l0; l1 ], y = [ v0; v1 ], ShowLegend = false, LineDash = dash)
+    List.zip3 (List.pairwise labels) (List.pairwise values) dashes
+    |> List.map (fun ((l0, l1), (v0, v1), dash) ->
+      Chart.Line(x = [ l0; l1 ], y = [ v0; v1 ], Name = name, ShowLegend = false, LineDash = dash)
       |> Chart.withLineStyle (Color = color))
 
   let private markerTrace (color: Color) (name: string) (labels: string list) (values: int list) =
@@ -363,6 +372,7 @@ module BpChart =
     let systolic = readings |> List.map _.Systolic
     let diastolic = readings |> List.map _.Diastolic
     let commented = readings |> List.filter _.Comments.IsSome
+    let dashes = dashPattern windowDays readings
 
     let commentTraces =
       if commented.IsEmpty then
@@ -382,9 +392,9 @@ module BpChart =
           |> Chart.withMarkerStyle (Size = 10) ]
 
     [ markerTrace systolicColor "Systolic" timestamps systolic
-      yield! lineSegments systolicColor windowDays readings timestamps systolic
+      yield! lineSegments systolicColor "Systolic" dashes timestamps systolic
       markerTrace diastolicColor "Diastolic" timestamps diastolic
-      yield! lineSegments diastolicColor windowDays readings timestamps diastolic
+      yield! lineSegments diastolicColor "Diastolic" dashes timestamps diastolic
       yield! commentTraces ]
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"

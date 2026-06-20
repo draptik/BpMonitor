@@ -175,6 +175,24 @@ let ``toHtmlRecent connects readings with a solid line when the gap stays within
   test <@ not (html.Contains("\"dash\":\"dash\"")) @>
 
 [<Fact>]
+let ``toHtmlRecent judges gaps by calendar days, not raw elapsed time`` () =
+  // Window = 30 days; threshold = 3.0 missing days. Day 1 → Day 5 is a 4-calendar-day gap
+  // (missingDays = 3, not > 3), so it must render solid even though the readings are
+  // 9:00 → 10:00, i.e. raw elapsed time (4.0417 days) would cross the threshold if used directly.
+  let readings = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 5 10 None ]
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  test <@ not (html.Contains("\"dash\":\"dash\"")) @>
+
+[<Fact>]
+let ``toHtmlRecent names each line segment after its series for hover text`` () =
+  let html = BpChart.toHtmlRecent GoalRange.defaults 10 readings
+
+  let lineNameCount =
+    Regex.Matches(html, "\"name\":\"(Systolic|Diastolic)\",\"showlegend\":false,\"mode\":\"lines\"").Count
+
+  test <@ lineNameCount > 0 @>
+
+[<Fact>]
 let ``toHtmlRecent renders one marker per reading for each series, regardless of gap count`` () =
   let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
   let sysMarkers = Regex.Match(html, "\"name\":\"Systolic\".*?\"y\":\\[([^\\]]*)\\]")
