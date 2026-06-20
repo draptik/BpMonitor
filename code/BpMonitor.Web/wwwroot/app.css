@@ -166,6 +166,19 @@ nav a[aria-current="page"] {
   overflow: hidden;
 }
 
+/* Plotly's own container div has no inherent height — it sizes to whatever its child SVG
+   already is, so it never picks up `.chart`'s CSS height on its own. Without this, Plotly's
+   initial render always uses its content-driven default (~450px) regardless of the actual
+   (possibly much shorter, e.g. mobile) container, and the excess gets clipped by `overflow:
+   hidden` above — severely enough on mobile to cut off the x-axis tick labels entirely.
+   A percentage height only resolves against a definite (non-auto) ancestor height, so the
+   plain wrapper div Plotly.NET emits (`.chart > div`) needs `height: 100%` too — otherwise
+   `.js-plotly-plot`'s own `height: 100%` would resolve against that wrapper's auto height. */
+.chart > div,
+.chart .js-plotly-plot {
+  height: 100%;
+}
+
 /* Plotly's stroke helper sets stroke-opacity as an inline style (value = 1 for solid colors).
    CSS !important beats normal inline styles; JS setProperty(...,'important') beats this CSS
    rule on hover; removeProperty on unhover falls back to this rule. */
