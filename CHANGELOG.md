@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Charts (History, Recent, Trends) no longer clip their x-axis date labels on narrow mobile screens — Plotly was rendering at a fixed default height regardless of the actual container size, and the excess was silently cut off
+
 ## [1.6.0-rc2] - 2026-06-20
 
 ### Changed

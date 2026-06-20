@@ -69,11 +69,20 @@ module BpChart =
   // over the CSS !important, which requires setProperty(...,'important') to write an inline
   // !important that takes precedence; removeProperty on unhover falls back to the CSS rule.
   // g.errorbar (singular, per point) lives inside g.errorbars (plural, per trace).
+  //
+  // Plotly's initial render ignores the `.chart` container's CSS height (it lays out at its own
+  // content-driven default, ~450px) and only correctly fits the actual container on a later
+  // resize event. Since `.chart` has `overflow:hidden`, that mismatch clips the bottom of the
+  // chart — on narrow mobile heights, severely enough to cut off the x-axis tick labels
+  // entirely. Forcing one `Plotly.Plots.resize` right after mount makes it re-measure the real
+  // (CSS-constrained) container immediately, instead of waiting for a resize event that may
+  // never fire.
   let private errorBarScript =
     "<script>(function(){"
     + "function setup(){"
     + "var d=document.querySelector('.js-plotly-plot');"
     + "if(!d||!d.on){setTimeout(setup,50);return;}"
+    + "Plotly.Plots.resize(d);"
     + "d.on('plotly_hover',function(e){"
     + "var p=e.points[0];"
     + "var gs=d.querySelectorAll('g.errorbars')[p.curveNumber];"
