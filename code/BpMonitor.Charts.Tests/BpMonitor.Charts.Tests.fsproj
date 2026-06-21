@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Verifier.fs" />
     <Compile Include="ChartsTests.fs" />
   </ItemGroup>
 
