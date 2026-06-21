@@ -32,7 +32,11 @@ dotnet run --project code/BpMonitor.Web
 
 For developer onboarding and demos, a pre-built Simpson-family dataset can be
 seeded into a fresh database. It covers ~5 years of readings with per-member
-personalities so all features render richly out of the box:
+personalities so all features render richly out of the box. A sixth member,
+Ned Flanders, tells a Fig. 5-style story (Wegier et al. 2021, see
+`docs/resources/12911_2021_Article_1598.pdf`): elevated readings, a week-long
+gap, then improved control after starting medication — exercising the
+/recent chart's missing-data dashed line and LOWESS trend overlay:
 
 ```bash
 # Remove any existing DB and start fresh with the Simpson family

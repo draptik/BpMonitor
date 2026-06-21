@@ -9,10 +9,29 @@ module BpChart =
   // ── palette ──────────────────────────────────────────────────────────────
   let private transparent = Color.fromString "rgba(0,0,0,0)"
   let private lightGridLine = Color.fromString "rgba(0,0,0,0.08)"
-  let private systolicColor = Color.fromString "#008471"
-  let private diastolicColor = Color.fromString "#9C652B"
-  let private systolicBandColor = Color.fromString "rgba(0,132,113,0.12)"
-  let private diastolicBandColor = Color.fromString "rgba(156,101,43,0.12)"
+
+  // Each series has one RGB source of truth; every other shade (full-strength line,
+  // faded line, background band) is a derived alpha of it, so retuning a series' hue
+  // only ever needs a change in one place.
+  let private opaque (r, g, b) =
+    Color.fromString (sprintf "#%02X%02X%02X" r g b)
+
+  let private withAlpha (alpha: float) (r, g, b) =
+    Color.fromString (sprintf "rgba(%d,%d,%d,%g)" r g b alpha)
+
+  let private systolicRgb = (0, 132, 113)
+  let private diastolicRgb = (156, 101, 43)
+
+  let private systolicColor = opaque systolicRgb
+  let private diastolicColor = opaque diastolicRgb
+
+  // The /recent chart fades the raw per-reading line so the LOWESS trend line (kept at
+  // full strength) stands out as the visual focus — Wegier et al. 2021, "Smoothing data".
+  let private systolicFadedColor = withAlpha 0.22 systolicRgb
+  let private diastolicFadedColor = withAlpha 0.22 diastolicRgb
+
+  let private systolicBandColor = withAlpha 0.12 systolicRgb
+  let private diastolicBandColor = withAlpha 0.12 diastolicRgb
 
   /// Full-width horizontal background bands behind the data, one per series, matching
   /// the series' color (the "like-with-like" goal-range design from Wegier et al. 2021).
@@ -410,12 +429,48 @@ module BpChart =
         )
         |> Chart.withLineStyle (Color = color))
 
+  // Fraction of points in each point's local LOWESS neighbourhood. A wide bandwidth
+  // (e.g. 0.5) averages over so many points that real local structure — a dip right
+  // before a gap, a spike right after one — gets smoothed away into one broad hump,
+  // unlike the responsive trend line in Wegier et al. 2021's Fig. 5. A narrow
+  // bandwidth keeps the day-to-day jitter damped while still tracking those shifts.
+  let private lowessBandwidth = 0.12
+
+  // Minimum reading count for a trend line to be meaningful; below this, a local
+  // regression is mostly fitting noise.
+  let private minReadingsForTrend = 4
+
+  /// The LOWESS trend overlay for one series — the chart's visual focus, drawn at full
+  /// color and thicker than the (faded) raw line, with no markers. Omitted when there
+  /// aren't enough readings for the smoothing to be meaningful.
+  let private smoothTrace
+    (color: Color)
+    (name: string)
+    (sorted: BloodPressureReading list)
+    (labels: string list)
+    (values: int list)
+    : GenericChart list =
+    if List.length values < minReadingsForTrend then
+      []
+    else
+      let first = (List.head sorted).Timestamp.ToLocalTime().Date
+
+      let xs =
+        sorted |> List.map (fun r -> (r.Timestamp.ToLocalTime().Date - first).TotalDays)
+
+      let smoothed = Lowess.smooth lowessBandwidth xs (values |> List.map float)
+
+      [ Chart.Line(x = labels, y = smoothed, Name = name, ShowLegend = true)
+        |> Chart.withLineStyle (Color = color, Width = 3.5) ]
+
   let private renderRecent (goal: GoalRange) (windowDays: int) (readings: BloodPressureReading list) : string =
     let readings, timestamps, systolic, diastolic = seriesOf readings
     let dashes = dashPattern windowDays readings
 
-    [ yield! seriesTraces systolicColor "Systolic" dashes timestamps systolic
-      yield! seriesTraces diastolicColor "Diastolic" dashes timestamps diastolic
+    [ yield! seriesTraces systolicFadedColor "Systolic" dashes timestamps systolic
+      yield! seriesTraces diastolicFadedColor "Diastolic" dashes timestamps diastolic
+      yield! smoothTrace systolicColor "Systolic (trend)" readings timestamps systolic
+      yield! smoothTrace diastolicColor "Diastolic (trend)" readings timestamps diastolic
       yield! commentTraces readings ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)

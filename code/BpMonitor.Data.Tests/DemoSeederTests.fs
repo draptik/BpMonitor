@@ -29,13 +29,13 @@ let ``disabled flag leaves the store untouched`` () =
 // ── enabled seeder ────────────────────────────────────────────────────────────
 
 [<Fact>]
-let ``enabled seeder on empty store creates exactly 5 members`` () =
+let ``enabled seeder on empty store creates exactly 6 members`` () =
   let members, readings = emptyStore ()
   DemoSeeder.seedIfEmpty members readings ranges tp true
-  test <@ members.GetAll().Length = 5 @>
+  test <@ members.GetAll().Length = 6 @>
 
 [<Fact>]
-let ``enabled seeder renames the default Me member (no sixth member)`` () =
+let ``enabled seeder renames the default Me member (no extra member)`` () =
   let members, readings = emptyStore ()
   DemoSeeder.seedIfEmpty members readings ranges tp true
   let names = members.GetAll() |> List.map _.Name
