@@ -26,18 +26,18 @@ let private customizedVerifySettings () =
 
   settings
 
-let verify (value: 't :> obj) (sourceFilePath: string) : Task =
+let verify (sourceFilePath: string) (value: 't :> obj) : Task =
   VerifyXunit.Verifier.Verify(value :> obj, customizedVerifySettings (), sourceFilePath).ToTask() :> Task
 
-let verifyHtml (value: string) (sourceFilePath: string) : Task =
+let verifyHtml (sourceFilePath: string) (value: string) : Task =
   let target = Target(extension = "html", data = value)
 
   VerifyXunit.Verifier.Verify(target, customizedVerifySettings (), sourceFilePath).ToTask() :> Task
 
-let verifyXml (value: string) (sourceFilePath: string) : Task =
+let verifyXml (sourceFilePath: string) (value: string) : Task =
   VerifyXunit.Verifier.VerifyXml(value, customizedVerifySettings (), sourceFilePath).ToTask() :> Task
 
-let verifyJson (value: string) (sourceFilePath: string) : Task =
+let verifyJson (sourceFilePath: string) (value: string) : Task =
   let settings = customizedVerifySettings ()
   // VerifyJson defaults to a quote-stripped, .verified.txt snapshot; strict
   // mode keeps it valid JSON and gives it a .verified.json extension instead.
