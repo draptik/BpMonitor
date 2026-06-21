@@ -52,7 +52,7 @@ module ReadingViews =
       activeMember.Name
       activeMember.IsAdmin
       "Recent"
-      [ Elem.h1 [] [ Text.raw $"Recent — {activeMember.Name}" ]
+      [ Elem.h1 [] [ Text.raw "Recent" ]
         Elem.div
           [ Attr.class' "recent-window-buttons" ]
           [ pill "Last 7 days" "days-7"

@@ -101,6 +101,14 @@ let ``toHtml renders tick marks on both axes`` () =
   test <@ tickCount = 2 @>
 
 [<Fact>]
+let ``toHtml gives tick marks the same theme-neutral color as the axis line, so they stay visible in dark mode`` () =
+  // Axis lines already use "#444" and get relayouted per-theme by theme.js; ticks need the
+  // same starting color, otherwise they keep Plotly's near-invisible-on-dark default.
+  let html = BpChart.toHtml GoalRange.defaults readings
+  let tickColorCount = Regex.Matches(html, "\"tickcolor\":\"#444\"").Count
+  test <@ tickColorCount = 2 @>
+
+[<Fact>]
 let ``toHtml renders a marker at every systolic and diastolic data point`` () =
   let html = BpChart.toHtml GoalRange.defaults readings
   let modeCount = Regex.Matches(html, "\"mode\":\"lines\\+markers\"").Count
@@ -208,6 +216,11 @@ let ``toHtmlRecent does not drop any reading, even when split across dash/solid 
   test <@ (coveredLabels "Diastolic").Count = readings.Length @>
   test <@ html.Contains("\"dash\":\"dash\"") @>
   test <@ html.Contains("\"dash\":\"solid\"") @>
+
+[<Fact>]
+let ``toHtmlRecent renders a horizontal centered legend at the bottom, like the trends chart`` () =
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  test <@ html.Contains("\"legend\":{\"orientation\":\"h\",\"x\":0.5,\"xanchor\":\"center\"}") @>
 
 [<Fact>]
 let ``toHtmlRecent shows exactly one legend entry per series, even when split across multiple dash/solid runs`` () =
