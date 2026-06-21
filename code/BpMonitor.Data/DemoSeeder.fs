@@ -17,7 +17,7 @@ module DemoSeeder =
   /// Seeds the Simpson family iff `enabled` is true and the store is empty.
   ///
   /// The lone auto-seeded "Me" member (created by SchemaMigrations) is repurposed
-  /// as Marge Simpson so the final member count is exactly 5, not 6.
+  /// as Marge Simpson, so the final member count is exactly 6, not 7.
   let seedIfEmpty
     (members: IFamilyMemberRepository)
     (readings: IReadingRepository)

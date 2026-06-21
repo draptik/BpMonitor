@@ -64,7 +64,7 @@ let private passwordGen: Gen<string> =
     let! len = Gen.choose (1, 64)
 
     let! chars =
-      Gen.elements ([ '!' .. '~' ]) // printable ASCII excluding space
+      Gen.elements [ '!' .. '~' ] // printable ASCII excluding space
       |> Gen.listOfLength len
 
     return System.String(List.toArray chars)

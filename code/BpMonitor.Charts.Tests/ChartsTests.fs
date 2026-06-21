@@ -184,7 +184,7 @@ let ``toHtmlRecent connects readings with a solid line when the gap stays within
 let ``toHtmlRecent judges gaps by calendar days, not raw elapsed time`` () =
   // Window = 30 days; threshold = 3.0 missing days. Day 1 → Day 5 is a 4-calendar-day gap
   // (missingDays = 3, not > 3), so it must render solid even though the readings are
-  // 9:00 → 10:00, i.e. raw elapsed time (4.0417 days) would cross the threshold if used directly.
+  // 9:00 → 10:00, i.e., raw elapsed time (4.0417 days) would cross the threshold if used directly.
   let readings = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 5 10 None ]
   let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
   test <@ not (html.Contains("\"dash\":\"dash\"")) @>
@@ -253,6 +253,37 @@ let ``toHtmlRecent shows exactly one legend entry per series, even when split ac
 
   test <@ legendCount "Systolic" = 1 @>
   test <@ legendCount "Diastolic" = 1 @>
+
+[<Fact>]
+let ``toHtmlRecent renders a smoothed trend line for systolic and diastolic`` () =
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  test <@ html.Contains("\"name\":\"Systolic (trend)\"") @>
+  test <@ html.Contains("\"name\":\"Diastolic (trend)\"") @>
+
+[<Fact>]
+let ``toHtmlRecent omits the trend line when there are too few readings to smooth meaningfully`` () =
+  let sparse = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 2 9 None ]
+  let html = BpChart.toHtmlRecent GoalRange.defaults 10 sparse
+  test <@ not (html.Contains("(trend)")) @>
+
+[<Fact>]
+let ``toHtmlRecent fades the raw measurement line so the LOWESS trend line stands out as the visual focus`` () =
+  // Wegier et al. 2021, "Smoothing data": "The line graph of (raw) measurements was
+  // then faded slightly to help the smoothing line stand out." — the raw series should
+  // render at reduced opacity (rgba alpha < 1) while the trend series keeps full color.
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+
+  let traceLineColor (exactName: string) =
+    let m =
+      Regex.Match(html, $"\"name\":\"{Regex.Escape(exactName)}\".*?\"line\":{{[^}}]*\"color\":\"([^\"]*)\"")
+
+    test <@ m.Success @>
+    m.Groups[1].Value
+
+  test <@ (traceLineColor "Systolic").StartsWith("rgba") @>
+  test <@ (traceLineColor "Diastolic").StartsWith("rgba") @>
+  test <@ traceLineColor "Systolic (trend)" = "#008471" @>
+  test <@ traceLineColor "Diastolic (trend)" = "#9C652B" @>
 
 [<Fact>]
 let ``toHtmlDashed matches snapshot`` () : Task =
