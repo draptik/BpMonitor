@@ -16,7 +16,8 @@ code/
 ├── BpMonitor.Web            # Falco web app (dashboard, add, history pages)
 ├── BpMonitor.Web.Tests      # Tests for Web layer
 ├── BpMonitor.Web.E2E.Tests  # Playwright .NET browser smoke tests (real out-of-process app + Chromium)
-└── BpMonitor.Arch.Tests     # ArchUnit tests enforcing Clean Architecture rules
+├── BpMonitor.Arch.Tests     # ArchUnit tests enforcing Clean Architecture rules
+└── BpMonitor.TestSupport    # Shared test infrastructure (Verify snapshot settings) for *.Tests projects
 ```
 
 ## Tech Stack

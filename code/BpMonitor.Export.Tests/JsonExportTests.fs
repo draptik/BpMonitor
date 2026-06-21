@@ -5,10 +5,13 @@ open System.Text.Json
 open System.Threading.Tasks
 open BpMonitor.Core
 open BpMonitor.Export.JsonExport
+open BpMonitor.TestSupport
 
 open Swensen.Unquote
-open VerifyXunit
 open Xunit
+
+let private thisFile = Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__)
+let private verifyJson = Verifier.verifyJson thisFile
 
 [<Fact>]
 let ``serialize readings to JSON matches snapshot`` () : Task =
@@ -24,7 +27,7 @@ let ``serialize readings to JSON matches snapshot`` () : Task =
       ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
 
   let json = serialize [ reading ]
-  Verifier.VerifyJson(json).ToTask()
+  verifyJson json
 
 [<Fact>]
 let ``tryWriteToFile writes serialized readings to the given path`` () =

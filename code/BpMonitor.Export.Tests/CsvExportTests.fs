@@ -4,10 +4,13 @@ open System.IO
 open System.Threading.Tasks
 open BpMonitor.Core
 open BpMonitor.Export.CsvExport
+open BpMonitor.TestSupport
 
 open Swensen.Unquote
-open VerifyXunit
 open Xunit
+
+let private thisFile = Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__)
+let private verify = Verifier.verify thisFile
 
 let private reading =
   { Id = 1
@@ -23,7 +26,7 @@ let private reading =
 [<Fact>]
 let ``serialize readings to CSV matches snapshot`` () : Task =
   let csv = serialize [ reading ]
-  Verifier.Verify(csv).ToTask()
+  verify csv
 
 [<Fact>]
 let ``serialize produces a header row`` () =

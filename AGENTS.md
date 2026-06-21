@@ -62,7 +62,8 @@ code/
 ├── BpMonitor.Web               # Falco web app (login + per-member auth, landing, add, history, recent, trends, settings, members pages); Serilog structured stdout logging
 ├── BpMonitor.Web.Tests
 ├── BpMonitor.Web.E2E.Tests     # Playwright .NET browser smoke tests against a real out-of-process BpMonitor.Web instance
-└── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules
+├── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules
+└── BpMonitor.TestSupport       # Shared test infrastructure (Verify snapshot settings) for *.Tests projects
 docs/                           # Product vision, architecture, ADRs
 scripts/                        # Dev tooling scripts (e.g. extract-plotly-js.fsx)
 ```

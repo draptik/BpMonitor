@@ -3,12 +3,14 @@ module ChartsTests
 open System
 open System.Text.RegularExpressions
 open System.Threading.Tasks
+open BpMonitor.TestSupport
 open Xunit
 open Swensen.Unquote
-open VerifyXunit
 open BpMonitor.Core
 open BpMonitor.Charts
 
+let private thisFile = IO.Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__)
+let private verifyHtml = Verifier.verifyHtml thisFile
 
 let private reading id systolic diastolic heartRate day hour comment =
   { Id = id
@@ -138,16 +140,7 @@ let ``toHtml does not include None comment readings in comments trace`` () =
 [<Fact>]
 let ``toHtml matches snapshot`` () : Task =
   let html: string = BpChart.toHtml GoalRange.defaults readings
-  let settings = VerifyTests.VerifySettings()
-  settings.ScrubInlineGuids()
-
-  settings.AddScrubber(fun sb ->
-    let scrubbed =
-      Regex.Replace(string sb, @"renderPlotly_[0-9a-f]{32}", "renderPlotly_GUID")
-
-    sb.Clear().Append(scrubbed) |> ignore)
-
-  Verifier.Verify(html, settings).ToTask()
+  verifyHtml html
 
 /// Wrap a list of readings as single-reading aggregated points (Count = 1 each).
 let private asAggregated (rs: BloodPressureReading list) =
@@ -243,16 +236,7 @@ let ``toHtmlDashed matches snapshot`` () : Task =
   let html: string =
     BpChart.toHtmlDashed GoalRange.defaults Weekly (asAggregated readings)
 
-  let settings = VerifyTests.VerifySettings()
-  settings.ScrubInlineGuids()
-
-  settings.AddScrubber(fun sb ->
-    let scrubbed =
-      Regex.Replace(string sb, @"renderPlotly_[0-9a-f]{32}", "renderPlotly_GUID")
-
-    sb.Clear().Append(scrubbed) |> ignore)
-
-  Verifier.Verify(html, settings).ToTask()
+  verifyHtml html
 
 [<Fact>]
 let ``toHtmlDashed: multi-reading period uses diamond marker (size 11) and 'readings (avg)' hover`` () =
