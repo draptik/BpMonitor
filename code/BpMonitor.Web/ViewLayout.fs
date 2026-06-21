@@ -23,6 +23,15 @@ module ViewLayout =
 
     Elem.li [] [ Elem.a attrs [ Text.raw label ] ]
 
+  /// The dark/light mode toggle (icon set by theme.js/theme-label.js). `extraClass`
+  /// lets the login page add `theme-toggle--standalone` since it has no topbar/sidebar
+  /// to host it (see app.css).
+  let private themeToggleButton (extraClass: string) : XmlNode =
+    Elem.button
+      [ Attr.class' ($"theme-toggle {extraClass}".Trim())
+        Attr.create "onclick" "toggleTheme()" ]
+      []
+
   /// Shared <head> element. `extras` allows callers to append additional nodes
   /// (e.g. the htmx script that only the authenticated layout needs).
   let private htmlHead (title: string) (extras: XmlNode list) : XmlNode =
@@ -68,7 +77,7 @@ module ViewLayout =
                     Attr.create "aria-label" "Menu" ]
                   [ Text.raw "☰" ]
                 Elem.span [ Attr.class' "topbar-title" ] [ Text.raw "BpMonitor" ]
-                Elem.button [ Attr.class' "theme-toggle"; Attr.create "onclick" "toggleTheme()" ] [] ]
+                themeToggleButton "" ]
             // Second label for same checkbox: acts as the backdrop — clicking it unchecks
             // the checkbox and closes the drawer.
             Elem.label [ Attr.create "for" "nav-toggle"; Attr.class' "nav-backdrop" ] []
@@ -105,7 +114,7 @@ module ViewLayout =
                 Elem.div
                   [ Attr.class' "sidebar-user" ]
                   [ Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ]
-                    Elem.button [ Attr.class' "theme-toggle"; Attr.create "onclick" "toggleTheme()" ] []
+                    themeToggleButton ""
                     Elem.form
                       [ Attr.method "post"; Attr.action "/logout"; Attr.class' "inline" ]
                       [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw "Logout" ] ] ] ]
@@ -123,7 +132,7 @@ module ViewLayout =
       [ htmlHead title []
         Elem.body
           [ Attr.create "hx-boost" "false" ]
-          [ Elem.button [ Attr.class' "theme-toggle"; Attr.create "onclick" "toggleTheme()" ] []
+          [ themeToggleButton "theme-toggle--standalone"
             Elem.main
               [ Attr.class' "container login-container" ]
               ([ Elem.header

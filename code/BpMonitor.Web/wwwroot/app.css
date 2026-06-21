@@ -175,7 +175,7 @@ nav a[aria-current="page"] {
 
 /* The login page has no topbar/sidebar to host its theme toggle, so it stays
    a fixed standalone control — just restyled to match .theme-toggle. */
-body:not(:has(.topbar)) > .theme-toggle {
+.theme-toggle--standalone {
   position: fixed;
   top: 0.5rem;
   right: 0.5rem;
