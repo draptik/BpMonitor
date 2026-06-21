@@ -146,6 +146,11 @@ let ``toHtml does not include None comment readings in comments trace`` () =
   test <@ not (html.Contains("Comments")) @>
 
 [<Fact>]
+let ``toHtml uses compact margins, like the trends chart, now that it has no title`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":56}") @>
+
+[<Fact>]
 let ``toHtml matches snapshot`` () : Task =
   let html: string = BpChart.toHtml GoalRange.defaults readings
   verifyHtml html
@@ -221,6 +226,11 @@ let ``toHtmlRecent does not drop any reading, even when split across dash/solid 
 let ``toHtmlRecent renders a horizontal centered legend at the bottom, like the trends chart`` () =
   let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
   test <@ html.Contains("\"legend\":{\"orientation\":\"h\",\"x\":0.5,\"xanchor\":\"center\"}") @>
+
+[<Fact>]
+let ``toHtmlRecent uses compact margins, like the trends chart, now that it has no title`` () =
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":56}") @>
 
 [<Fact>]
 let ``toHtmlRecent shows exactly one legend entry per series, even when split across multiple dash/solid runs`` () =

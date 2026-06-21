@@ -30,6 +30,7 @@ module ReadingHandlers =
     isAdmin
     title
     action
+    redirectTo
     (save: BloodPressureReading -> unit)
     : Task =
     task {
@@ -54,7 +55,7 @@ module ReadingHandlers =
             reading.Timestamp
           )
 
-          ctx.Response.Redirect Routes.history
+          ctx.Response.Redirect redirectTo
         | Error errors ->
           let messages = Config.formatValidationErrors rg errors
           log.LogWarning("Reading form validation failed (domain): {Errors}", messages)
@@ -228,7 +229,8 @@ module ReadingHandlers =
         ctx
 
   let createReading: HttpContext -> Task =
-    withMember (fun m ctx -> submit ctx Routes.add m.Name m.IsAdmin "Add reading" Routes.readings ((repo ctx).Add m.Id))
+    withMember (fun m ctx ->
+      submit ctx Routes.add m.Name m.IsAdmin "Add reading" Routes.readings Routes.recent ((repo ctx).Add m.Id))
 
   let editReading: HttpContext -> Task =
     withMember (fun m ctx ->
@@ -247,7 +249,7 @@ module ReadingHandlers =
   let updateReading: HttpContext -> Task =
     withMember (fun m ctx ->
       (withRouteId "updateReading" (fun id ctx ->
-        submit ctx "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" (fun r ->
+        submit ctx "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" Routes.history (fun r ->
           (repo ctx).Update { r with Id = id; MemberId = m.Id })))
         ctx)
 

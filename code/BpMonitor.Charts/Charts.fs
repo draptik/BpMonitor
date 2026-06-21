@@ -33,8 +33,13 @@ module BpChart =
     [ band goal.SystolicMin goal.SystolicMax systolicBandColor
       band goal.DiastolicMin goal.DiastolicMax diastolicBandColor ]
 
+  // Compact margins, matching the trends chart: with no chart title, Plotly's default
+  // top margin (100) would otherwise sit empty above the plot.
+  let private compactMargin =
+    Margin.init (Left = 48, Right = 16, Top = 24, Bottom = 56)
+
   let private layout () =
-    Layout.init (PaperBGColor = transparent, PlotBGColor = transparent)
+    Layout.init (PaperBGColor = transparent, PlotBGColor = transparent, Margin = compactMargin)
 
   // Light-theme default; theme.js relayouts this to the dark-theme font color
   // ("#c2cfd6") on load and on toggle, so it's never stuck unreadable in dark mode.
@@ -120,12 +125,10 @@ module BpChart =
   // - DisplayModeBar=false: no floating toolbar (awkward on touch).
   // - ScrollZoom=NoZoom: wheel/pinch won't fight page scroll.
   let private trendsLayout () =
-    let margin = Margin.init (Left = 48, Right = 16, Top = 24, Bottom = 56)
-
     Layout.init (
       PaperBGColor = transparent,
       PlotBGColor = transparent,
-      Margin = margin,
+      Margin = compactMargin,
       DragMode = StyleParam.DragMode.False
     )
 
@@ -205,7 +208,6 @@ module BpChart =
       yield! heartRateTrace
       yield! commentTraces readings ]
     |> Chart.combine
-    |> Chart.withTitle "Blood Pressure History"
     |> Chart.withShapes (goalBands goal)
     |> finish
 
@@ -416,7 +418,6 @@ module BpChart =
       yield! seriesTraces diastolicColor "Diastolic" dashes timestamps diastolic
       yield! commentTraces readings ]
     |> Chart.combine
-    |> Chart.withTitle "Blood Pressure History"
     |> Chart.withShapes (goalBands goal)
     // Horizontal centered legend at the bottom, matching the trends chart, so the recent
     // chart's default top-right legend doesn't steal horizontal width from the plot.
