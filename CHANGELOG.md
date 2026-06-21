@@ -7,21 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.6.0-rc3] - 2026-06-20
-
-### Fixed
-
-- Charts (History, Recent, Trends) no longer clip their x-axis date labels on narrow mobile screens — Plotly was rendering at a fixed default height regardless of the actual container size, and the excess was silently cut off
-
-## [1.6.0-rc2] - 2026-06-20
-
-### Changed
-
-- Charts now show denser y-axis gridlines, visible x/y axis lines and tick marks that adapt to the light/dark theme, and a "blood pressure [mmHg]" y-axis label
-- History and Recent charts now mark every reading with a circle, and comment markers sit on the x-axis baseline instead of overlapping the systolic line
-- Recent chart now shows a dashed connecting line across gaps where data is missing (more than 10% of the displayed 30-day window), with its legend styling matching the History chart
-
-## [1.6.0-rc1] - 2026-06-20
+## [1.6.0] - 2026-06-21
 
 ### Added
 
@@ -32,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Charts now load plotly.js from a locally vendored copy instead of the `cdn.plot.ly` CDN — no third-party request needed to view charts
 - Systolic/diastolic chart colors changed to a colorblind-safe mint/cocoa palette to match the new goal-range bands
+- Charts now show denser y-axis gridlines, visible x/y axis lines and tick marks that adapt to the light/dark theme, and a "blood pressure [mmHg]" y-axis label
+- History and Recent charts now mark every reading with a circle, and comment markers sit on the x-axis baseline instead of overlapping the systolic line
+- Recent chart now shows a dashed connecting line across gaps where data is missing (more than 10% of the displayed 30-day window), with its legend styling matching the History chart
+
+### Fixed
+
+- Charts (History, Recent, Trends) no longer clip their x-axis date labels on narrow mobile screens — Plotly was rendering at a fixed default height regardless of the actual container size, and the excess was silently cut off
 
 ## [1.5.1] - 2026-06-16
 
@@ -215,10 +208,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.6.0-rc3...HEAD
-[1.6.0-rc3]: https://github.com/draptik/BpMonitor/compare/v1.6.0-rc2...v1.6.0-rc3
-[1.6.0-rc2]: https://github.com/draptik/BpMonitor/compare/v1.6.0-rc1...v1.6.0-rc2
-[1.6.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.5.1...v1.6.0-rc1
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/draptik/BpMonitor/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/draptik/BpMonitor/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/draptik/BpMonitor/compare/v1.4.3...v1.5.0
 [1.4.3]: https://github.com/draptik/BpMonitor/compare/v1.4.2...v1.4.3
