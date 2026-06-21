@@ -2,8 +2,6 @@
 
 A loose collection of TODOs I want to tackle at some point in time.
 
-- The theme toggle button as well as the hamburger menu don't fit nicely with the rest of the design.
-
 ## Features
 
 - some science behind the visualization:

@@ -19,35 +19,74 @@ body {
   pointer-events: none;
 }
 
-/* Hamburger button — hidden on desktop, shown on mobile.
+/* Hamburger — ghost icon, sized to match .theme-toggle. Lives inside .topbar,
+   which controls when it's visible, so this only needs to set appearance.
    Specificity needs to be (0,1,1) to beat Pico's
    [type="checkbox"] ~ label { display: inline-block } rule (also 0,1,1),
-   relying on app.css loading after pico.min.css for the tie-break.
-   Appearance lives here so the mobile and desktop-collapsed trigger
-   rules below only need to flip `display` — same look in both states. */
+   relying on app.css loading after pico.min.css for the tie-break. */
 label.nav-burger {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
-  position: fixed;
-  top: 0.5rem;
-  left: 0.5rem;
-  z-index: 200;
   cursor: pointer;
   font-size: 1.25rem;
   width: 2.5rem;
   height: 2.5rem;
-  background: var(--pico-background-color);
-  border: 1px solid var(--pico-muted-border-color);
   border-radius: var(--pico-border-radius);
   line-height: 1;
   user-select: none;
+}
+
+label.nav-burger:hover {
+  background: var(--pico-secondary-background);
 }
 
 /* Backdrop overlay — hidden until drawer is open on mobile. Same specificity
    reasoning as .nav-burger above. */
 label.nav-backdrop {
   display: none;
+}
+
+/* Slim app bar — hidden on desktop by default; shown on mobile, and as the
+   restore bar when the desktop sidebar is collapsed (see media queries). */
+.topbar {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3rem;
+  z-index: 200;
+  padding: 0 0.5rem;
+  background: var(--pico-background-color);
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.topbar-title {
+  font-weight: 600;
+}
+
+.topbar .theme-toggle {
+  margin-left: auto;
+}
+
+/* Borderless/ghost icon button shared by both theme-toggle instances
+   (topbar + sidebar) and the login page's standalone instance. */
+.theme-toggle {
+  background: transparent;
+  border: none;
+  color: var(--pico-secondary);
+  padding: 0.25rem 0.5rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--pico-border-radius);
+}
+
+.theme-toggle:hover {
+  background: var(--pico-secondary-background);
 }
 
 /* `position: fixed` (not `sticky`) — sticky broke once the sidebar's own box
@@ -134,14 +173,13 @@ nav a[aria-current="page"] {
   text-underline-offset: 3px;
 }
 
-#theme-toggle {
+/* The login page has no topbar/sidebar to host its theme toggle, so it stays
+   a fixed standalone control — just restyled to match .theme-toggle. */
+.theme-toggle--standalone {
   position: fixed;
   top: 0.5rem;
   right: 0.5rem;
   z-index: 200;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.875rem;
-  margin: 0;
 }
 
 .chart-toggle {
@@ -251,11 +289,15 @@ g.errorbars path.yerror {
 
   /* ── Mobile sidebar / off-canvas drawer ─────────────────────────────────── */
 
-  /* Hamburger button shown above all content on mobile.
-     label.nav-burger for (0,1,1) specificity to beat Pico's checkbox~label rule.
-     Appearance comes from the base label.nav-burger rule above. */
-  label.nav-burger {
+  /* Slim app bar (☰ + title + theme toggle) replaces the old floating
+     corner buttons on mobile. */
+  .topbar {
     display: flex;
+  }
+
+  /* The sidebar's own theme toggle is redundant once the topbar owns it. */
+  .sidebar-user .theme-toggle {
+    display: none;
   }
 
   /* Sidebar is an off-canvas drawer on mobile: slides off-screen by default
@@ -301,10 +343,10 @@ g.errorbars path.yerror {
 
   /* On mobile the sidebar overlays as a drawer rather than pushing content
      over, so content shouldn't reserve space for it. Also push content down
-     to clear the fixed hamburger button. */
+     to clear the fixed topbar. */
   .content {
     margin-left: 0;
-    padding-top: 3rem;
+    padding-top: 3.25rem;
   }
 }
 
@@ -325,10 +367,13 @@ g.errorbars path.yerror {
      reserves its space while it's visible — release it when collapsed. */
   #nav-toggle:checked ~ .content {
     margin-left: 0;
+    padding-top: 3.25rem;
   }
 
-  /* Appearance comes from the base label.nav-burger rule above. */
-  #nav-toggle:checked ~ label.nav-burger {
+  /* When collapsed, the topbar takes over as the restore bar — it still
+     holds the ☰ (now restoring instead of opening a drawer) and the theme
+     toggle, so theme switching stays available with the sidebar hidden. */
+  #nav-toggle:checked ~ .topbar {
     display: flex;
   }
 }

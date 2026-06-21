@@ -26,8 +26,7 @@ window.toggleTheme=()=> {
   var h=document.documentElement,n=h.getAttribute('data-theme')==='dark'?'light':'dark';
   h.setAttribute('data-theme',n);
   localStorage.setItem('theme',n);
-  var b=document.getElementById('theme-toggle');
-  if(b)b.textContent=n==='dark'?'☀️':'🌙';
+  document.querySelectorAll('.theme-toggle').forEach((b) => { b.textContent=n==='dark'?'☀️':'🌙'; });
   applyChartTheme(n);
 };
 

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adding a new reading now redirects to the **Recent** page instead of **History**
 - History and Recent charts no longer show a "Blood Pressure History" title, matching the Trends chart, and now use the freed-up vertical space with more compact margins
 - Sidebar navigation links on mobile have more spacing between them, making them easier to tap accurately
+- Redesigned the hamburger menu and theme toggle to fit the rest of the design: mobile now has a slim top app bar (menu, title, theme toggle) instead of floating corner buttons, and the desktop theme toggle now lives in the sidebar next to the member name
 
 ## [1.6.0] - 2026-06-21
 
