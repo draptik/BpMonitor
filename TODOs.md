@@ -2,7 +2,6 @@
 
 A loose collection of TODOs I want to tackle at some point in time.
 
-- The sidebar navigation items are too close to each other on mobile: It is difficult to select the correct entry on touch screen.
 - The theme toggle button as well as the hamburger menu don't fit nicely with the rest of the design.
 
 ## Features

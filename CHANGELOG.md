@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- History page heading no longer repeats the family member's name
+- Adding a new reading now redirects to the **Recent** page instead of **History**
+- History and Recent charts no longer show a "Blood Pressure History" title, matching the Trends chart, and now use the freed-up vertical space with more compact margins
+- Sidebar navigation links on mobile have more spacing between them, making them easier to tap accurately
+
 ## [1.6.0] - 2026-06-21
 
 ### Added

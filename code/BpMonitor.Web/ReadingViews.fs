@@ -26,7 +26,7 @@ module ReadingViews =
       activeMember.Name
       activeMember.IsAdmin
       "History"
-      [ Elem.h1 [] [ Text.raw $"History — {activeMember.Name}" ]
+      [ Elem.h1 [] [ Text.raw "History" ]
         Elem.details
           []
           [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw "Blood Pressure Graph" ]

@@ -24,9 +24,10 @@ type LoginAddHistoryTests(fixture: WebAppFixture) =
       do! page.FillAsync("#Diastolic", "76")
       do! page.FillAsync("#HeartRate", "62")
       do! page.ClickAsync("form[action='/readings'] button[type=submit]")
-      do! page.WaitForURLAsync($"{fixture.BaseUrl}/history")
+      do! page.WaitForURLAsync($"{fixture.BaseUrl}/recent")
 
       // Confirm it appears in the history table.
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/history")
       let! tableText = page.Locator("table").TextContentAsync()
       Assert.Contains("118", tableText)
       Assert.Contains("76", tableText)

@@ -273,6 +273,19 @@ g.errorbars path.yerror {
     transform: translateX(0);
   }
 
+  /* Larger tap targets and breathing room between nav links — the desktop
+     baseline (app.css ~78-89) zeroes this spacing, making adjacent links
+     hard to hit individually on a touch screen. */
+  nav.sidebar ul {
+    gap: 0.5rem;
+  }
+
+  nav.sidebar ul li a {
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+  }
+
   /* Backdrop shown when drawer is open; starts after the sidebar so
      it only covers the content area — avoids z-index interception. */
   #nav-toggle:checked ~ label.nav-backdrop {

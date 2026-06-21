@@ -79,7 +79,7 @@ let ``createReading persists a valid reading and redirects`` () =
   TestHost.run ReadingHandlers.createReading ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
-  test <@ ctx.Response.Headers.Location.ToString() = "/history" @>
+  test <@ ctx.Response.Headers.Location.ToString() = "/recent" @>
   test <@ repo.GetAll(defaultMemberId) |> List.length = 1 @>
 
 [<Fact>]
