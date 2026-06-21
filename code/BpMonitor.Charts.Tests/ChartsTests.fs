@@ -3,10 +3,13 @@ module ChartsTests
 open System
 open System.Text.RegularExpressions
 open System.Threading.Tasks
+open BpMonitor.TestSupport
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
 open BpMonitor.Charts
+
+let private thisFile = IO.Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__)
 
 let private reading id systolic diastolic heartRate day hour comment =
   { Id = id
@@ -136,7 +139,7 @@ let ``toHtml does not include None comment readings in comments trace`` () =
 [<Fact>]
 let ``toHtml matches snapshot`` () : Task =
   let html: string = BpChart.toHtml GoalRange.defaults readings
-  Verifier.verifyHtml html
+  Verifier.verifyHtml html thisFile
 
 /// Wrap a list of readings as single-reading aggregated points (Count = 1 each).
 let private asAggregated (rs: BloodPressureReading list) =
@@ -232,7 +235,7 @@ let ``toHtmlDashed matches snapshot`` () : Task =
   let html: string =
     BpChart.toHtmlDashed GoalRange.defaults Weekly (asAggregated readings)
 
-  Verifier.verifyHtml html
+  Verifier.verifyHtml html thisFile
 
 [<Fact>]
 let ``toHtmlDashed: multi-reading period uses diamond marker (size 11) and 'readings (avg)' hover`` () =
