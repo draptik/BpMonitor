@@ -152,6 +152,15 @@ let ``recent renders the chart with the authenticated member's goal range`` () =
   test <@ body.Contains "\"y1\":88" @>
 
 [<Fact>]
+let ``recent heading does not repeat the member's name (already shown in the navbar)`` () =
+  let tp = FakeTimeProvider(now)
+  let ctx = TestHost.contextWithProvider (repoWith []) tp
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "<h1>Recent</h1>" @>
+
+[<Fact>]
 let ``recent chart toggle label matches the history page's`` () =
   let tp = FakeTimeProvider(now)
   let ctx = TestHost.contextWithProvider (repoWith []) tp

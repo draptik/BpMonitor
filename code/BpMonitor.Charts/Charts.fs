@@ -45,7 +45,8 @@ module BpChart =
       ShowGrid = false,
       ShowLine = true,
       LineColor = axisLineColor,
-      Ticks = StyleParam.TickOptions.Outside
+      Ticks = StyleParam.TickOptions.Outside,
+      TickColor = axisLineColor
     )
 
   let private yAxis () =
@@ -59,6 +60,7 @@ module BpChart =
       ShowLine = true,
       LineColor = axisLineColor,
       Ticks = StyleParam.TickOptions.Outside,
+      TickColor = axisLineColor,
       Title = Title.init (Text = "blood pressure [mmHg]")
     )
 
@@ -133,7 +135,8 @@ module BpChart =
       TickAngle = -45,
       ShowLine = true,
       LineColor = axisLineColor,
-      Ticks = StyleParam.TickOptions.Outside
+      Ticks = StyleParam.TickOptions.Outside,
+      TickColor = axisLineColor
     )
 
   let private trendsConfig =
@@ -415,6 +418,13 @@ module BpChart =
     |> Chart.combine
     |> Chart.withTitle "Blood Pressure History"
     |> Chart.withShapes (goalBands goal)
+    // Horizontal centered legend at the bottom, matching the trends chart, so the recent
+    // chart's default top-right legend doesn't steal horizontal width from the plot.
+    |> Chart.withLegendStyle (
+      Orientation = StyleParam.Orientation.Horizontal,
+      X = 0.5,
+      XAnchor = StyleParam.XAnchorPosition.Center
+    )
     |> finish
 
   let toHtmlRecent (goal: GoalRange) (windowDays: int) = renderRecent goal windowDays

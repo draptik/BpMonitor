@@ -15,6 +15,8 @@ function applyChartTheme(theme) {
       font: { color: axisLineColor },
       'xaxis.linecolor': axisLineColor,
       'yaxis.linecolor': axisLineColor,
+      'xaxis.tickcolor': axisLineColor,
+      'yaxis.tickcolor': axisLineColor,
       'yaxis.gridcolor': isDark ? 'rgba(194,207,214,0.12)' : 'rgba(0,0,0,0.08)'
     });
   });
