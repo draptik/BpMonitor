@@ -58,19 +58,20 @@ module ViewLayout =
               [ Attr.type' "checkbox"
                 Attr.id "nav-toggle"
                 Attr.create "aria-hidden" "true" ]
-            Elem.label
-              [ Attr.create "for" "nav-toggle"
-                Attr.class' "nav-burger"
-                Attr.create "aria-label" "Menu" ]
-              [ Text.raw "☰" ]
+            // Slim app bar: hidden on desktop, shown on mobile (and as the restore bar
+            // when the desktop sidebar is collapsed) — see app.css.
+            Elem.header
+              [ Attr.class' "topbar" ]
+              [ Elem.label
+                  [ Attr.create "for" "nav-toggle"
+                    Attr.class' "nav-burger"
+                    Attr.create "aria-label" "Menu" ]
+                  [ Text.raw "☰" ]
+                Elem.span [ Attr.class' "topbar-title" ] [ Text.raw "BpMonitor" ]
+                Elem.button [ Attr.class' "theme-toggle"; Attr.create "onclick" "toggleTheme()" ] [] ]
             // Second label for same checkbox: acts as the backdrop — clicking it unchecks
             // the checkbox and closes the drawer.
             Elem.label [ Attr.create "for" "nav-toggle"; Attr.class' "nav-backdrop" ] []
-            Elem.button
-              [ Attr.id "theme-toggle"
-                Attr.class' "outline secondary"
-                Attr.create "onclick" "toggleTheme()" ]
-              []
             Elem.nav
               [ Attr.class' "sidebar" ]
               [ Elem.ul
@@ -104,6 +105,7 @@ module ViewLayout =
                 Elem.div
                   [ Attr.class' "sidebar-user" ]
                   [ Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ]
+                    Elem.button [ Attr.class' "theme-toggle"; Attr.create "onclick" "toggleTheme()" ] []
                     Elem.form
                       [ Attr.method "post"; Attr.action "/logout"; Attr.class' "inline" ]
                       [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw "Logout" ] ] ] ]
@@ -121,11 +123,7 @@ module ViewLayout =
       [ htmlHead title []
         Elem.body
           [ Attr.create "hx-boost" "false" ]
-          [ Elem.button
-              [ Attr.id "theme-toggle"
-                Attr.class' "outline secondary"
-                Attr.create "onclick" "toggleTheme()" ]
-              []
+          [ Elem.button [ Attr.class' "theme-toggle"; Attr.create "onclick" "toggleTheme()" ] []
             Elem.main
               [ Attr.class' "container login-container" ]
               ([ Elem.header
