@@ -58,12 +58,13 @@ module ReadingViews =
     (activeMember: FamilyMember)
     (chartHtml: string)
     (allReadings: BloodPressureReading list)
-    (cutoff: System.DateTimeOffset)
+    (windowStart: System.DateTimeOffset)
     : XmlNode =
     let valueStrip =
-      // The strip lists every loaded reading (chart now loads all of them so panning
-      // reveals older data); cells older than `cutoff` start hidden via `out-of-range`
-      // (see scrubberScript below, which un-hides them in sync as the user pans).
+      // The strip lists every loaded reading (the chart's load window, see ReadingHandlers
+      // — bounded but wider than the visible focus); cells older than `windowStart` start
+      // hidden via `out-of-range` (see scrubberScript below, which un-hides them in sync as
+      // the user pans).
       let chronological = allReadings |> List.sortBy _.Timestamp
 
       // Each cell is tagged with the same x-label the chart uses for this reading
@@ -90,7 +91,7 @@ module ReadingViews =
               // class the relayout listener below toggles on pan/zoom), so the initial
               // view matches the chart's initial x-axis range even though all readings
               // are loaded.
-              let staleClass = if r.Timestamp < cutoff then " out-of-range" else ""
+              let staleClass = if r.Timestamp < windowStart then " out-of-range" else ""
 
               Elem.td
                 [ Attr.class' (cellClass (classify v) + staleClass)

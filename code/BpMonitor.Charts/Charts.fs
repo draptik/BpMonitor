@@ -432,6 +432,10 @@ module BpChart =
   // such gaps render dashed, ordinary gaps render solid. Consecutive same-style gaps are
   // merged into a single multi-point trace (a "run") instead of one trace per gap, keeping
   // the trace count proportional to the number of dash/solid transitions rather than to N.
+  // /recent's load window is wider than its visible focus window (see ReadingHandlers'
+  // `recentLoadWindowDays`), so this threshold — tuned for the 30-day focus window — also
+  // governs gaps the user only sees by panning back; that's intentional (consistent styling
+  // across however much history is loaded), not an oversight.
   let private isGapDashed (windowDays: int) (gapDays: int) =
     let missingDays = gapDays - 1
     float missingDays > 0.10 * float windowDays
@@ -535,13 +539,14 @@ module BpChart =
   let private renderRecent
     (goal: GoalRange)
     (windowDays: int)
-    (now: System.DateTimeOffset)
+    (windowStart: System.DateTimeOffset)
+    (windowEnd: System.DateTimeOffset)
     (readings: BloodPressureReading list)
     : string =
     let readings, timestamps, systolic, diastolic = seriesOf readings
     let dashes = dashPattern windowDays readings
-    let rangeLow = Formats.formatLocal (now.AddDays(-float windowDays))
-    let rangeHigh = Formats.formatLocal now
+    let rangeLow = Formats.formatLocal windowStart
+    let rangeHigh = Formats.formatLocal windowEnd
 
     [ yield! seriesTraces systolicFadedColor "Systolic" dashes timestamps systolic
       yield! seriesTraces diastolicFadedColor "Diastolic" dashes timestamps diastolic
@@ -559,4 +564,14 @@ module BpChart =
     )
     |> finishRecent rangeLow rangeHigh
 
-  let toHtmlRecent (goal: GoalRange) (windowDays: int) (now: System.DateTimeOffset) = renderRecent goal windowDays now
+  // `windowStart`/`windowEnd` are computed once by the caller (the same instant the
+  // value strip's out-of-range cutoff is computed from) rather than re-derived here from
+  // `now`/`windowDays`, so the chart's visible range and the value strip's hidden cells
+  // can never drift apart from a duplicated AddDays computation.
+  let toHtmlRecent
+    (goal: GoalRange)
+    (windowDays: int)
+    (windowStart: System.DateTimeOffset)
+    (windowEnd: System.DateTimeOffset)
+    =
+    renderRecent goal windowDays windowStart windowEnd
