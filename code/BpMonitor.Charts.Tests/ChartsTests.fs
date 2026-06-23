@@ -286,6 +286,20 @@ let ``toHtmlRecent fades the raw measurement line so the LOWESS trend line stand
   test <@ traceLineColor "Diastolic (trend)" = "#9C652B" @>
 
 [<Fact>]
+let ``toHtmlRecent shows a spikeline on the x-axis, to scrub through the chart and value strip`` () =
+  // Wegier et al. 2021, "Scrubber bar": a vertical line tracks the cursor's horizontal
+  // position across the display. Plotly's x-axis spikes give this for free.
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  test <@ html.Contains("\"showspikes\":true") @>
+
+[<Fact>]
+let ``toHtml (history) does not show a spikeline`` () =
+  // The scrubber bar is a /recent-only affordance (it links to the value strip, which
+  // only /recent has) — /history's chart keeps its plain x-axis.
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ not (html.Contains("\"showspikes\":true")) @>
+
+[<Fact>]
 let ``toHtmlDashed matches snapshot`` () : Task =
   let html: string =
     BpChart.toHtmlDashed GoalRange.defaults Weekly (asAggregated readings)

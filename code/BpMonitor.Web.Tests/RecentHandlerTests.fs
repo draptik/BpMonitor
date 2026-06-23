@@ -245,3 +245,30 @@ let ``recent value strip uses a table so each reading's sys/dias values align in
 
   test <@ strip.Contains "<table" @>
   test <@ cellValues = [ "130"; "142"; "118"; "82"; "91"; "76" ] @>
+
+[<Fact>]
+let ``recent value strip tags each cell with the reading's chart x-label, for the scrubber bar to match against`` () =
+  // Wegier et al. 2021, "Scrubber bar": the vertical line that tracks the cursor links
+  // the chart and the data table together. The chart's hover payload reports the
+  // hovered point's x as Formats.formatLocal r.Timestamp (see Charts.fs `seriesOf`), so
+  // each value-strip cell needs the same string in a data-x attribute to be matchable.
+  let r1 =
+    { reading 3 1 with
+        Systolic = 130
+        Diastolic = 82 }
+
+  let r2 =
+    { reading 2 2 with
+        Systolic = 142
+        Diastolic = 91 }
+
+  let tp = FakeTimeProvider(now)
+  let ctx = TestHost.contextWithProvider (repoWith [ r1; r2 ]) tp
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  let expectedX1 = Formats.formatLocal r1.Timestamp
+  let expectedX2 = Formats.formatLocal r2.Timestamp
+
+  test <@ body.Contains $"data-x=\"{expectedX1}\"" @>
+  test <@ body.Contains $"data-x=\"{expectedX2}\"" @>

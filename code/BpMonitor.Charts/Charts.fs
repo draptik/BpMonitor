@@ -73,6 +73,28 @@ module BpChart =
       TickColor = axisLineColor
     )
 
+  // Fig. 5's scrubber bar (Wegier et al. 2021, "Scrubber bar"): a vertical line that
+  // tracks the cursor's horizontal position, linking the chart to the value strip above
+  // it. Plotly's x-axis spikes give us this for free — snapped to the nearest data point
+  // (SpikeSnap = Data) and drawn across the whole plot area (SpikeMode = Across).
+  // /recent-only: the spike is only meaningful where there's a value strip to link to.
+  let private scrubberColor = Color.fromString "#00C853"
+
+  let private recentXAxis =
+    LinearAxis.init (
+      ShowGrid = false,
+      ShowLine = true,
+      LineColor = axisLineColor,
+      Ticks = StyleParam.TickOptions.Outside,
+      TickColor = axisLineColor,
+      ShowSpikes = true,
+      SpikeColor = scrubberColor,
+      SpikeThickness = 2,
+      SpikeDash = StyleParam.DrawingStyle.Solid,
+      SpikeMode = StyleParam.SpikeMode.Across,
+      SpikeSnap = StyleParam.SpikeSnap.Data
+    )
+
   let private yAxis () =
     let defaultYMin = 0
     let defaultYMax = 200
@@ -129,6 +151,28 @@ module BpChart =
     chart
     |> Chart.withLayout (layout ())
     |> Chart.withXAxis xAxis
+    |> Chart.withYAxis (yAxis ())
+    |> Chart.withConfig (Config.init (Responsive = true))
+    |> GenericChart.toChartHTML
+    |> _.Replace("\"width\":600,", "")
+    |> _.Replace("\"height\":600,", "")
+    |> fun html -> html + errorBarScript
+
+  // Like `finish`, but with the scrubber-bar x-axis and unified hover (HoverMode.X finds
+  // the nearest point across all traces at the hovered x, not just the one under the
+  // cursor) — used only by /recent, which has a value strip to link the spike to.
+  let private finishRecentLayout () =
+    Layout.init (
+      PaperBGColor = transparent,
+      PlotBGColor = transparent,
+      Margin = compactMargin,
+      HoverMode = StyleParam.HoverMode.X
+    )
+
+  let private finishRecent (chart: GenericChart) =
+    chart
+    |> Chart.withLayout (finishRecentLayout ())
+    |> Chart.withXAxis recentXAxis
     |> Chart.withYAxis (yAxis ())
     |> Chart.withConfig (Config.init (Responsive = true))
     |> GenericChart.toChartHTML
@@ -481,6 +525,6 @@ module BpChart =
       X = 0.5,
       XAnchor = StyleParam.XAnchorPosition.Center
     )
-    |> finish
+    |> finishRecent
 
   let toHtmlRecent (goal: GoalRange) (windowDays: int) = renderRecent goal windowDays
