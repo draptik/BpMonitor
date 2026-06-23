@@ -565,11 +565,26 @@ form.inline button {
 /* Scrubber bar (Wegier et al. 2021, "Scrubber bar"): boxes the value-strip column under
    the chart's hovered point, echoing Fig. 5's highlighted column. Toggled by the inline
    script in ReadingViews.recent's `scrubberScript`, matched against the chart's x-axis
-   spike (Charts.fs `recentXAxis`) via each cell's `data-x` attribute. */
+   spike (Charts.fs `recentXAxis`) via each cell's `data-x` attribute.
+   The systolic/diastolic cells sit in adjacent rows of the same column; box-shadow (not
+   outline/border, which would reflow the fixed-layout table) draws three sides on each
+   cell and omits the shared seam, so the pair reads as one rectangle rather than two. */
 .value-strip td.scrubbed {
-  outline: 2px solid #00c853;
-  outline-offset: -1px;
   font-weight: bold;
+}
+
+.value-strip tr:first-child td.scrubbed {
+  box-shadow:
+    inset 2px 0 0 #00c853,
+    inset -2px 0 0 #00c853,
+    inset 0 2px 0 #00c853;
+}
+
+.value-strip tr:last-child td.scrubbed {
+  box-shadow:
+    inset 2px 0 0 #00c853,
+    inset -2px 0 0 #00c853,
+    inset 0 -2px 0 #00c853;
 }
 
 /* ── Trends page ────────────────────────────────────────────────────────── */
