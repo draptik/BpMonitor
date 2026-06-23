@@ -56,13 +56,13 @@ let ``recent renders a chart`` () =
   test <@ body.Contains "Plotly.newPlot" @>
 
 [<Fact>]
-let ``recent chart is open by default`` () =
+let ``recent renders the chart without a details wrapper`` () =
   let tp = FakeTimeProvider(now)
   let ctx = TestHost.contextWithProvider (repoWith []) tp
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  test <@ body.Contains "<details open" @>
+  test <@ not (body.Contains "<details") && body.Contains "class=\"chart-container\"" @>
 
 [<Fact>]
 let ``recent renders the chart with the authenticated member's goal range`` () =
@@ -100,13 +100,13 @@ let ``recent heading does not repeat the member's name (already shown in the nav
   test <@ body.Contains "<h1>Recent</h1>" @>
 
 [<Fact>]
-let ``recent chart toggle label matches the history page's`` () =
+let ``recent renders the chart without the collapse wrapper used on history`` () =
   let tp = FakeTimeProvider(now)
   let ctx = TestHost.contextWithProvider (repoWith []) tp
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  test <@ body.Contains "Blood Pressure Graph<" && not (body.Contains "(last 30 days)") @>
+  test <@ not (body.Contains "Blood Pressure Graph") && body.Contains "class=\"chart\"" @>
 
 [<Fact>]
 let ``recent shows a sys/dias value strip listing every reading in the chart window, oldest first`` () =

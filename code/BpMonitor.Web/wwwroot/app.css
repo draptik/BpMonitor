@@ -276,6 +276,11 @@ g.errorbars path.yerror {
     --chart-height: 380px;
   }
 
+  /* Value strip's fixed-layout columns get too cramped to read at this width. */
+  .value-strip {
+    display: none;
+  }
+
   /* Stats table: full width, tighter column padding */
   .trends-stats {
     width: 100%;
@@ -566,6 +571,7 @@ form.inline button {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
+  border: 1px solid var(--pico-muted-border-color);
   margin: 0;
 }
 
