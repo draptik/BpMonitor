@@ -78,6 +78,7 @@ module BpChart =
   // it. Plotly's x-axis spikes give us this for free — snapped to the nearest data point
   // (SpikeSnap = Data) and drawn across the whole plot area (SpikeMode = Across).
   // /recent-only: the spike is only meaningful where there's a value strip to link to.
+  // Keep in sync with `--color-scrubber` in wwwroot/app.css (the matching scrubber box).
   let private scrubberColor = Color.fromString "#00C853"
 
   let private recentXAxis =

@@ -225,20 +225,26 @@ g.errorbars path.yerror {
   transition: stroke-opacity .15s;
 }
 
+:root {
+  --color-error-bg: #fef2f2;
+  --color-error-fg: #991b1b;
+  --color-error-border: #991b1b;
+}
+
+[data-theme="dark"] {
+  --color-error-bg: #2d0a0a;
+  --color-error-fg: #fca5a5;
+  --color-error-border: #ef4444;
+}
+
 .errors {
   border: 1px solid;
   border-radius: var(--pico-border-radius);
   padding: 0.5rem 1rem;
   margin-bottom: 1rem;
-  background: #fef2f2;
-  color: #991b1b;
-  border-color: #991b1b;
-}
-
-[data-theme="dark"] .errors {
-  background: #2d0a0a;
-  color: #fca5a5;
-  border-color: #ef4444;
+  background: var(--color-error-bg);
+  color: var(--color-error-fg);
+  border-color: var(--color-error-border);
 }
 
 .field {
@@ -487,6 +493,11 @@ form.inline button {
 }
 
 /* Member status badges */
+:root {
+  --color-badge-claimed: #16a34a;
+  --color-badge-claimed-text: #fff;
+}
+
 .badge {
   display: inline-block;
   padding: 0.1rem 0.45rem;
@@ -498,8 +509,8 @@ form.inline button {
 }
 
 .badge-claimed {
-  background: #16a34a;
-  color: #fff;
+  background: var(--color-badge-claimed);
+  color: var(--color-badge-claimed-text);
 }
 
 .badge-unclaimed {
@@ -508,6 +519,13 @@ form.inline button {
 }
 
 /* ── Recent page ────────────────────────────────────────────────────────── */
+
+:root {
+  --color-above: #ff9800; /* value above goal range */
+  --color-below: #2a49f9; /* value below goal range */
+  /* scrubber green — keep in sync with Charts.fs `scrubberColor` (#00C853) */
+  --color-scrubber: #00c853;
+}
 
 /* Wraps the value strip and the chart together so the strip's table can
    match the chart's rendered width without affecting .chart's own fixed
@@ -555,11 +573,11 @@ form.inline button {
    member's goal range (GoalRange.classifySystolic/classifyDiastolic): out-of-range
    values are highlighted, in-range values stay the default text color. */
 .value-strip td.value-strip-value.above {
-  color: #ff9800;
+  color: var(--color-above);
 }
 
 .value-strip td.value-strip-value.below {
-  color: #2a49f9;
+  color: var(--color-below);
 }
 
 /* Scrubber bar (Wegier et al. 2021, "Scrubber bar"): boxes the value-strip column under
@@ -575,16 +593,16 @@ form.inline button {
 
 .value-strip tr:first-child td.scrubbed {
   box-shadow:
-    inset 2px 0 0 #00c853,
-    inset -2px 0 0 #00c853,
-    inset 0 2px 0 #00c853;
+    inset 2px 0 0 var(--color-scrubber),
+    inset -2px 0 0 var(--color-scrubber),
+    inset 0 2px 0 var(--color-scrubber);
 }
 
 .value-strip tr:last-child td.scrubbed {
   box-shadow:
-    inset 2px 0 0 #00c853,
-    inset -2px 0 0 #00c853,
-    inset 0 -2px 0 #00c853;
+    inset 2px 0 0 var(--color-scrubber),
+    inset -2px 0 0 var(--color-scrubber),
+    inset 0 -2px 0 var(--color-scrubber);
 }
 
 /* ── Trends page ────────────────────────────────────────────────────────── */
