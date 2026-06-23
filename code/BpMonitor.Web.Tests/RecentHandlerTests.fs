@@ -213,6 +213,19 @@ let ``recent value strip tags each cell with the reading's chart x-label, for th
   test <@ body.Contains $"data-x=\"{expectedX2}\"" @>
 
 [<Fact>]
+let ``recent chart wires a relayout listener to keep the value strip in sync with the x-axis`` () =
+  // TODOs.md: "Recent: when zooming/paning keep the value-strip in sync with the
+  // displayed x-axis". On zoom/pan the chart's x-range narrows; the value strip needs
+  // to hide columns outside that range to stay aligned with what's plotted.
+  let tp = FakeTimeProvider(now)
+  let ctx = TestHost.contextWithProvider (repoWith [ reading 1 1 ]) tp
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+
+  test <@ body.Contains "plotly_relayout" @>
+
+[<Fact>]
 let ``recent value strip marks a reading above the goal range as 'above'`` () =
   // Default goal range (GoalRange.defaults): systolic max 140. 142 > 140.
   let r = { reading 1 1 with Systolic = 142 }
