@@ -168,3 +168,80 @@ let ``recent chart toggle label matches the history page's`` () =
 
   let body = TestHost.readBody ctx
   test <@ body.Contains "Blood Pressure Graph<" && not (body.Contains "(last 30 days)") @>
+
+[<Fact>]
+let ``recent shows a sys/dias value strip listing every reading in the chart window, oldest first`` () =
+  let tp = FakeTimeProvider(now)
+
+  let r1 =
+    { reading 3 1 with
+        Systolic = 130
+        Diastolic = 82 }
+
+  let r2 =
+    { reading 2 2 with
+        Systolic = 142
+        Diastolic = 91 }
+
+  let r3 =
+    { reading 1 3 with
+        Systolic = 118
+        Diastolic = 76 }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ r1; r2; r3 ]) tp
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "value-strip" @>
+
+  let systolicRow =
+    body.Substring(body.IndexOf "Systolic", body.IndexOf "Diastolic" - body.IndexOf "Systolic")
+
+  let diastolicRow = body.Substring(body.IndexOf "Diastolic")
+
+  test
+    <@
+      systolicRow.IndexOf "130" < systolicRow.IndexOf "142"
+      && systolicRow.IndexOf "142" < systolicRow.IndexOf "118"
+    @>
+
+  test
+    <@
+      diastolicRow.IndexOf "82" < diastolicRow.IndexOf "91"
+      && diastolicRow.IndexOf "91" < diastolicRow.IndexOf "76"
+    @>
+
+[<Fact>]
+let ``recent value strip uses a table so each reading's sys/dias values align in the same column`` () =
+  let tp = FakeTimeProvider(now)
+
+  let r1 =
+    { reading 3 1 with
+        Systolic = 130
+        Diastolic = 82 }
+
+  let r2 =
+    { reading 2 2 with
+        Systolic = 142
+        Diastolic = 91 }
+
+  let r3 =
+    { reading 1 3 with
+        Systolic = 118
+        Diastolic = 76 }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ r1; r2; r3 ]) tp
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  let stripStart = body.IndexOf "value-strip"
+  let stripEnd = body.IndexOf("</table>", stripStart)
+  let strip = body.Substring(stripStart, stripEnd - stripStart)
+
+  let cellValues =
+    System.Text.RegularExpressions.Regex.Matches(strip, "<td[^>]*>(\\d+)</td>")
+    |> Seq.map (fun m -> m.Groups[1].Value)
+    |> List.ofSeq
+
+  test <@ strip.Contains "<table" @>
+  test <@ cellValues = [ "130"; "142"; "118"; "82"; "91"; "76" ] @>

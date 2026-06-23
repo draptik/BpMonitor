@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Recent chart now overlays a LOWESS-smoothed trend line for systolic and diastolic; the trend line is the visual focus (full color, thicker) and the raw per-reading line is faded, matching the Wegier et al. 2021 design
+- Recent page now shows a Fig. 5-style "value strip" directly above the chart, listing every Systolic/Diastolic value in the chart's 30-day window in chronological order, sized to match the chart's width with no horizontal scrolling
 - Demo dataset gains a sixth member, Ned Flanders, whose readings tell a Fig. 5-style story (elevated readings, a week-long gap, then improved control after starting medication) to showcase the new trend line and missing-data dashing
 
 ### Changed
