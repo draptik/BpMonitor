@@ -35,6 +35,7 @@ code/
 | Architecture | Clean Architecture (Core has zero dependencies on other projects) |
 | Architecture tests | ArchUnit (via `BpMonitor.Arch.Tests`) |
 | E2E tests | Playwright .NET (via `BpMonitor.Web.E2E.Tests`) — drives a real Chromium browser against a real out-of-process `BpMonitor.Web` instance with a fresh temp SQLite file |
+| Verifying frontend changes | `verify-frontend` skill — adds a throwaway xunit test against `WebAppFixture`, runs it, then deletes it; avoids ad-hoc browser automation |
 | Test runner | xUnit v3 on Microsoft.Testing.Platform (MTP) — all 8 test projects run in parallel via `dotnet test` (default `--max-parallel-test-modules` = CPU count) |
 | Test coverage | `Microsoft.Testing.Extensions.CodeCoverage` (18.0.6); run with `dotnet test -- --coverage --coverage-output-format cobertura`; outputs one GUID-named `.cobertura.xml` per project into `TestResults/` |
 

@@ -45,6 +45,7 @@ The following are available as slash commands (defined in `.claude/skills/`):
 | Setup Tooling | `/setup-tooling` | Audit and configure code quality infrastructure |
 | Model Advisor | auto-loaded | Model selection reference |
 | Status Bar | auto-loaded | Status bar configuration reference |
+| Verify Frontend | `/verify-frontend` | Verify a frontend change via a throwaway E2E test against a real browser |
 
 ## Project Structure
 
