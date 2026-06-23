@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0-rc2] - 2026-06-23
+
 ### Fixed
 
 - Recent chart's LOWESS trend line no longer breaks into gaps when readings cluster on the same day — a zero-weight local fit was dividing by zero and producing NaN
@@ -230,7 +232,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc1...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc2...HEAD
+[1.7.0-rc2]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc1...v1.7.0-rc2
 [1.7.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.6.0...v1.7.0-rc1
 [1.6.0]: https://github.com/draptik/BpMonitor/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/draptik/BpMonitor/compare/v1.5.0...v1.5.1
