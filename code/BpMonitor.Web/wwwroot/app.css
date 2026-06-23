@@ -629,6 +629,14 @@ form.inline button {
     inset 0 -2px 0 var(--color-scrubber);
 }
 
+/* Keeps the value strip in sync with the chart's x-axis on zoom/pan (TODOs.md): toggled
+   by the same inline script's `plotly_relayout` handler. Removing (not just hiding) the
+   cell from layout lets the fixed-layout table redistribute the remaining columns to fill
+   the width, matching the chart's narrowed x-range. */
+.value-strip td.out-of-range {
+  display: none;
+}
+
 /* ── Trends page ────────────────────────────────────────────────────────── */
 
 /* Granularity selector row (Weekly / Monthly / Yearly) */

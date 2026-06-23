@@ -6,14 +6,8 @@ Some science behind the visualization:
 [Home blood pressure data visualization for the management of hypertension: using human factors and design principles](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8340525/)
 (as reference, I included the paper in the docs folder: [pdf](./docs/resources/12911_2021_Article_1598.pdf))
 
-- [x] change plotly's modebar on pages Recent and History:
-  - lasso: remove/disable
-  - autoscale: remove/disable
-  - zoom: never change y-axis
-  - box-select: never change y-axis
-  - zoom-in: never change y-axis
-  - zoom-out: never change y-axis
-- [ ] Recent: paning, load all data, but focus on last 7/30 days
+- [x] Recent: when zooming/paning keep the value-strip in sync with the displayed x-axis
+- [ ] Recent: paning, load all data, but focus the x-axis and the value-strip on last 30 days
 
 ## Some ideas for the future
 
