@@ -7,7 +7,7 @@ Some science behind the visualization:
 (as reference, I included the paper in the docs folder: [pdf](./docs/resources/12911_2021_Article_1598.pdf))
 
 - [x] Recent: when zooming/paning keep the value-strip in sync with the displayed x-axis
-- [ ] Recent: paning, load all data, but focus the x-axis and the value-strip on last 30 days
+- [x] Recent: paning, load all data, but focus the x-axis and the value-strip on last 30 days
 
 ## Some ideas for the future
 

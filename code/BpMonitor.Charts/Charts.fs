@@ -81,13 +81,17 @@ module BpChart =
   // Keep in sync with `--color-scrubber` in wwwroot/app.css (the matching scrubber box).
   let private scrubberColor = Color.fromString "#00C853"
 
-  let private recentXAxis =
+  // The chart loads every reading (so panning left reveals older history), but opens
+  // focused on the last `windowDays` — set as the axis's initial `Range` rather than
+  // relying on autorange, which would zoom out to fit all loaded data instead.
+  let private recentXAxis (rangeLow: string) (rangeHigh: string) =
     LinearAxis.init (
       ShowGrid = false,
       ShowLine = true,
       LineColor = axisLineColor,
       Ticks = StyleParam.TickOptions.Outside,
       TickColor = axisLineColor,
+      Range = StyleParam.Range.ofMinMax (rangeLow, rangeHigh),
       ShowSpikes = true,
       SpikeColor = scrubberColor,
       SpikeThickness = 2,
@@ -187,10 +191,10 @@ module BpChart =
       HoverMode = StyleParam.HoverMode.X
     )
 
-  let private finishRecent (chart: GenericChart) =
+  let private finishRecent (rangeLow: string) (rangeHigh: string) (chart: GenericChart) =
     chart
     |> Chart.withLayout (finishRecentLayout ())
-    |> Chart.withXAxis recentXAxis
+    |> Chart.withXAxis (recentXAxis rangeLow rangeHigh)
     |> Chart.withYAxis (yAxis ())
     |> Chart.withConfig interactiveConfig
     |> GenericChart.toChartHTML
@@ -528,9 +532,16 @@ module BpChart =
         // /recent chart's unified hover so the tooltip only ever shows real readings.
         |> GenericChart.mapTrace (Trace2DStyle.Scatter(HoverInfo = StyleParam.HoverInfo.Skip)) ]
 
-  let private renderRecent (goal: GoalRange) (windowDays: int) (readings: BloodPressureReading list) : string =
+  let private renderRecent
+    (goal: GoalRange)
+    (windowDays: int)
+    (now: System.DateTimeOffset)
+    (readings: BloodPressureReading list)
+    : string =
     let readings, timestamps, systolic, diastolic = seriesOf readings
     let dashes = dashPattern windowDays readings
+    let rangeLow = Formats.formatLocal (now.AddDays(-float windowDays))
+    let rangeHigh = Formats.formatLocal now
 
     [ yield! seriesTraces systolicFadedColor "Systolic" dashes timestamps systolic
       yield! seriesTraces diastolicFadedColor "Diastolic" dashes timestamps diastolic
@@ -546,6 +557,6 @@ module BpChart =
       X = 0.5,
       XAnchor = StyleParam.XAnchorPosition.Center
     )
-    |> finishRecent
+    |> finishRecent rangeLow rangeHigh
 
-  let toHtmlRecent (goal: GoalRange) (windowDays: int) = renderRecent goal windowDays
+  let toHtmlRecent (goal: GoalRange) (windowDays: int) (now: System.DateTimeOffset) = renderRecent goal windowDays now

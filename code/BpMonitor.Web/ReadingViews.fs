@@ -53,11 +53,18 @@ module ReadingViews =
             Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ]
         ViewLayout.readingsTable readings ]
 
-  /// Recent: chart of the last 30 days with a sys/dias value strip.
-  let recent (activeMember: FamilyMember) (chartHtml: string) (days30: BloodPressureReading list) : XmlNode =
+  /// Recent: chart of all readings, focused on the last 30 days, with a sys/dias value strip.
+  let recent
+    (activeMember: FamilyMember)
+    (chartHtml: string)
+    (allReadings: BloodPressureReading list)
+    (cutoff: System.DateTimeOffset)
+    : XmlNode =
     let valueStrip =
-      // The strip lists the same readings as the chart below it (days30).
-      let chronological = days30 |> List.sortBy _.Timestamp
+      // The strip lists every loaded reading (chart now loads all of them so panning
+      // reveals older data); cells older than `cutoff` start hidden via `out-of-range`
+      // (see scrubberScript below, which un-hides them in sync as the user pans).
+      let chronological = allReadings |> List.sortBy _.Timestamp
 
       // Each cell is tagged with the same x-label the chart uses for this reading
       // (Charts.fs `seriesOf` formats x as Formats.formatLocal r.Timestamp), so the
@@ -79,8 +86,14 @@ module ReadingViews =
             for r in chronological ->
               let v = value r
 
+              // Cells outside the 30-day focus window start hidden (`out-of-range`, same
+              // class the relayout listener below toggles on pan/zoom), so the initial
+              // view matches the chart's initial x-axis range even though all readings
+              // are loaded.
+              let staleClass = if r.Timestamp < cutoff then " out-of-range" else ""
+
               Elem.td
-                [ Attr.class' (cellClass (classify v))
+                [ Attr.class' (cellClass (classify v) + staleClass)
                   Attr.create "data-x" (Formats.formatLocal r.Timestamp) ]
                 [ Text.raw (string v) ] ]
 

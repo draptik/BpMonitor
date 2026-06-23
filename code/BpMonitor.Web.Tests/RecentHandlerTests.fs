@@ -37,14 +37,25 @@ let ``recent returns 200`` () =
   test <@ ctx.Response.StatusCode = 200 @>
 
 [<Fact>]
-let ``recent omits a reading older than 30 days`` () =
+let ``recent loads a reading older than 30 days but marks its value-strip cell out-of-range`` () =
+  // TODOs.md: "Recent: paning, load all data, but focus the x-axis and the value-strip
+  // on last 30 days". The old reading must still be present (so panning back reveals it)
+  // but its value-strip cell starts hidden via the existing out-of-range/relayout wiring.
   let tp = FakeTimeProvider(now)
-  let r = reading 31 1
-  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  let oldReading = { reading 31 1 with Systolic = 130 }
+  let recentReading = { reading 1 2 with Systolic = 125 }
+  let ctx = TestHost.contextWithProvider (repoWith [ oldReading; recentReading ]) tp
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  test <@ not (body.Contains "/readings/1/edit") @>
+
+  let cells =
+    System.Text.RegularExpressions.Regex.Matches(body, "<td class=\"([^\"]*)\"[^>]*>(\\d+)</td>")
+    |> Seq.map (fun m -> m.Groups[2].Value, m.Groups[1].Value)
+    |> Map.ofSeq
+
+  test <@ cells["130"].Contains "out-of-range" @>
+  test <@ not (cells["125"].Contains "out-of-range") @>
 
 [<Fact>]
 let ``recent renders a chart`` () =
