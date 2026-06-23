@@ -261,6 +261,16 @@ let ``toHtmlRecent renders a smoothed trend line for systolic and diastolic`` ()
   test <@ html.Contains("\"name\":\"Diastolic (trend)\"") @>
 
 [<Fact>]
+let ``toHtmlRecent skips hover for the LOWESS trend trace, since its value is smoothed not measured`` () =
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+
+  let hasHoverSkip (exactName: string) =
+    Regex.IsMatch(html, $"\"name\":\"{Regex.Escape(exactName)}\".*?\"hoverinfo\":\"skip\"")
+
+  test <@ hasHoverSkip "Systolic (trend)" @>
+  test <@ hasHoverSkip "Diastolic (trend)" @>
+
+[<Fact>]
 let ``toHtmlRecent omits the trend line when there are too few readings to smooth meaningfully`` () =
   let sparse = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 2 9 None ]
   let html = BpChart.toHtmlRecent GoalRange.defaults 10 sparse
