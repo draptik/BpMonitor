@@ -269,6 +269,10 @@ g.errorbars path.yerror {
     flex: 1 1 100%;
   }
 
+  .actions {
+    justify-content: center;
+  }
+
   /* Was 420px. Can't go much shorter than this on mobile — both chart types
      use the default (non-compact) top/bottom margins at this width, and a
      shorter box starts clipping the x-axis labels and bottom legend row. */
@@ -413,7 +417,11 @@ input#Timestamp {
 
 input#Systolic,
 input#Diastolic,
-input#HeartRate {
+input#HeartRate,
+input#SystolicGoalMin,
+input#SystolicGoalMax,
+input#DiastolicGoalMin,
+input#DiastolicGoalMax {
   width: 5rem;
   margin-inline: auto;
   text-align: center;
@@ -421,7 +429,11 @@ input#HeartRate {
 
 .field:has(#Systolic),
 .field:has(#Diastolic),
-.field:has(#HeartRate) {
+.field:has(#HeartRate),
+.field:has(#SystolicGoalMin),
+.field:has(#SystolicGoalMax),
+.field:has(#DiastolicGoalMin),
+.field:has(#DiastolicGoalMax) {
   text-align: center;
 }
 
@@ -455,6 +467,10 @@ td.col-center {
 
 .actions > * {
   margin-bottom: 0;
+}
+
+.actions button[type="submit"] {
+  width: auto;
 }
 
 /* Landing page launch pad: a responsive grid of action buttons (distinct from
