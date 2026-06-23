@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0-rc1] - 2026-06-23
+
 ### Added
 
 - Recent chart now overlays a LOWESS-smoothed trend line for systolic and diastolic; the trend line is the visual focus (full color, thicker) and the raw per-reading line is faded, matching the Wegier et al. 2021 design
@@ -224,7 +226,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc1...HEAD
+[1.7.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.6.0...v1.7.0-rc1
 [1.6.0]: https://github.com/draptik/BpMonitor/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/draptik/BpMonitor/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/draptik/BpMonitor/compare/v1.4.3...v1.5.0
