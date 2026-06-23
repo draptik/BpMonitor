@@ -506,7 +506,10 @@ module BpChart =
       let smoothed = Lowess.smooth lowessBandwidth xs (values |> List.map float)
 
       [ Chart.Line(x = labels, y = smoothed, Name = name, ShowLegend = true)
-        |> Chart.withLineStyle (Color = color, Width = 3.5) ]
+        |> Chart.withLineStyle (Color = color, Width = 3.5)
+        // The smoothed value is derived, not measured — skip its hover entry in the
+        // /recent chart's unified hover so the tooltip only ever shows real readings.
+        |> GenericChart.mapTrace (Trace2DStyle.Scatter(HoverInfo = StyleParam.HoverInfo.Skip)) ]
 
   let private renderRecent (goal: GoalRange) (windowDays: int) (readings: BloodPressureReading list) : string =
     let readings, timestamps, systolic, diastolic = seriesOf readings
