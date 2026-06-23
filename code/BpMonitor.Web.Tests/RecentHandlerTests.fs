@@ -78,6 +78,27 @@ let ``recent excludes a reading older than the load window entirely, even though
   test <@ body.Contains "188" @>
 
 [<Fact>]
+let ``recent excludes a future-dated reading entirely, since the load window's upper bound is 'now'`` () =
+  // Code review (PR #289): the value strip's out-of-range check only covered the lower
+  // bound (`< cutoff`), so a reading dated after `now` (clock skew, or a manually entered
+  // future timestamp — BloodPressureReading.parse doesn't reject future dates) rendered as
+  // if in-range even though it's beyond the chart's `rangeHigh = now` upper bound. The
+  // load-window filter added in PR #290 (`ReadingStats.between` has an exclusive upper
+  // bound at `now`) already excludes such readings entirely — this test pins that down.
+  let tp = FakeTimeProvider(now)
+  let futureReading = { reading -1 1 with Systolic = 177 }
+  let inRangeReading = { reading 1 2 with Systolic = 166 }
+
+  let ctx =
+    TestHost.contextWithProvider (repoWith [ futureReading; inRangeReading ]) tp
+
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  test <@ not (body.Contains "177") @>
+  test <@ body.Contains "166" @>
+
+[<Fact>]
 let ``recent renders a chart`` () =
   let tp = FakeTimeProvider(now)
   let ctx = TestHost.contextWithProvider (repoWith simpsonReadings) tp
