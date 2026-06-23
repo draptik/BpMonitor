@@ -16,3 +16,24 @@ run = 'find . -name "*.sh" -not -path "./.husky/_/*" | xargs -r shellcheck'
 
 [tasks.lint]
 depends = ["lint:md", "lint:js", "lint:shell"]
+
+[tasks."test:e2e-setup"]
+description = "One-time local setup: installs the Playwright Chromium browser used by BpMonitor.Web.E2E.Tests"
+dir = "code"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+dotnet build BpMonitor.Web.E2E.Tests --configuration Release
+output_dir="$(pwd)/BpMonitor.Web.E2E.Tests/bin/Release/net10.0"
+if command -v pwsh >/dev/null 2>&1; then
+  pwsh "$output_dir/playwright.ps1" install chromium
+else
+  tmp_fsx=$(mktemp --suffix=.fsx)
+  cat > "$tmp_fsx" <<EOF
+#r "$output_dir/Microsoft.Playwright.dll"
+Microsoft.Playwright.Program.Main([| "install"; "chromium" |]) |> ignore
+EOF
+  dotnet fsi "$tmp_fsx"
+  rm -f "$tmp_fsx"
+fi
+'''

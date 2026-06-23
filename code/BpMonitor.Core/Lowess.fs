@@ -31,17 +31,26 @@ module Lowess =
   // One weighted linear regression y = a + b*x over `points` (weight, x, y), evaluated at `xi`.
   let private weightedLinearFitAt (xi: float) (points: (float * float * float) array) =
     let sumW = points |> Array.sumBy (fun (w, _, _) -> w)
-    let meanX = (points |> Array.sumBy (fun (w, x, _) -> w * x)) / sumW
-    let meanY = (points |> Array.sumBy (fun (w, _, y) -> w * y)) / sumW
-    let sxx = points |> Array.sumBy (fun (w, x, _) -> w * (x - meanX) * (x - meanX))
-    let sxy = points |> Array.sumBy (fun (w, x, y) -> w * (x - meanX) * (y - meanY))
 
-    if sxx = 0.0 then
-      meanY
+    // A whole neighbourhood can end up with zero total weight — e.g. a tight cluster of
+    // duplicate x-values (same-day readings) where the robustifying iterations bisquare-zero
+    // every remaining weight. There's no weighted information left at that point, so fall
+    // back to the plain (unweighted) mean of the neighbourhood's y-values instead of
+    // dividing 0.0/0.0 into NaN.
+    if sumW = 0.0 then
+      points |> Array.averageBy (fun (_, _, y) -> y)
     else
-      let b = sxy / sxx
-      let a = meanY - b * meanX
-      a + b * xi
+      let meanX = (points |> Array.sumBy (fun (w, x, _) -> w * x)) / sumW
+      let meanY = (points |> Array.sumBy (fun (w, _, y) -> w * y)) / sumW
+      let sxx = points |> Array.sumBy (fun (w, x, _) -> w * (x - meanX) * (x - meanX))
+      let sxy = points |> Array.sumBy (fun (w, x, y) -> w * (x - meanX) * (y - meanY))
+
+      if sxx = 0.0 then
+        meanY
+      else
+        let b = sxy / sxx
+        let a = meanY - b * meanX
+        a + b * xi
 
   /// Smooths `ys` against `xs` using Cleveland's LOWESS: a tricube-weighted local linear
   /// regression refined by robustifying iterations that downweight outlier residuals.

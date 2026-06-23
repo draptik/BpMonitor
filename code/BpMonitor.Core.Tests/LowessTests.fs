@@ -74,3 +74,21 @@ let ``smooth downweights a single extreme outlier instead of being pulled toward
 
   test <@ abs (smoothedValue - trueValue) < abs (smoothedValue - outlierValue) @>
   test <@ abs (smoothedValue - trueValue) < 10.0 @>
+
+[<Fact>]
+let ``smooth never returns NaN, even when a cluster of duplicate x-values contains an outlier`` () =
+  // Duplicate x-values arise in practice from same-day readings (the chart's x-axis is
+  // calendar days). A tight cluster of duplicates containing one outlier can, across the
+  // robustifying iterations, drive every weight in a point's neighbourhood to zero —
+  // leaving weightedLinearFitAt dividing 0.0/0.0. Reproduces the /recent chart's NaN-induced
+  // trend-line gaps reported against real reading data clustered around same-day duplicates.
+  let xs = [ 0.0; 1.0; 2.0; 3.0; 3.0; 3.0; 4.0; 4.0 ]
+  let ys = [ 10.0; 12.0; 9.0; 50.0; 8.0; 9.0; 10.0; 11.0 ]
+
+  let result = Lowess.smooth 0.3 xs ys
+
+  test
+    <@
+      result
+      |> List.forall (fun y -> not (System.Double.IsNaN y || System.Double.IsInfinity y))
+    @>
