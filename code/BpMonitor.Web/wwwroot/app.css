@@ -552,6 +552,16 @@ form.inline button {
   color: var(--pico-muted-color);
 }
 
+/* Scrubber bar (Wegier et al. 2021, "Scrubber bar"): boxes the value-strip column under
+   the chart's hovered point, echoing Fig. 5's highlighted column. Toggled by the inline
+   script in ReadingViews.recent's `scrubberScript`, matched against the chart's x-axis
+   spike (Charts.fs `recentXAxis`) via each cell's `data-x` attribute. */
+.value-strip td.scrubbed {
+  outline: 2px solid #00c853;
+  outline-offset: -1px;
+  font-weight: bold;
+}
+
 /* ── Trends page ────────────────────────────────────────────────────────── */
 
 /* Granularity selector row (Weekly / Monthly / Yearly) */
