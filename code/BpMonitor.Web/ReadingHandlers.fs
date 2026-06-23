@@ -78,15 +78,23 @@ module ReadingHandlers =
 
   let private recentChartWindowDays = 30
 
+  // Panning needs more than the 30-day focus window loaded, but truly all-time data makes
+  // the LOWESS trend line's O(n^2) precompute (and the page payload) grow unboundedly with
+  // account age. A year is generous for panning while keeping both bounded.
+  let private recentLoadWindowDays = 365
+
   let recent: HttpContext -> Task =
     withMember (fun m ctx ->
       let now = (timeProvider ctx).GetUtcNow()
       let cutoff = now.AddDays(-float recentChartWindowDays)
 
-      let allReadings = (repo ctx).GetAll(m.Id) |> List.sortByDescending _.Timestamp
+      let loadedReadings =
+        (repo ctx).GetAll(m.Id)
+        |> ReadingStats.between (now.AddDays(-float recentLoadWindowDays)) now
+        |> List.sortByDescending _.Timestamp
 
-      let chartHtml = BpChart.toHtmlRecent m.Goal recentChartWindowDays now allReadings
-      htmlResponse (ReadingViews.recent m chartHtml allReadings cutoff) ctx)
+      let chartHtml = BpChart.toHtmlRecent m.Goal recentChartWindowDays now loadedReadings
+      htmlResponse (ReadingViews.recent m chartHtml loadedReadings cutoff) ctx)
 
   let trends: HttpContext -> Task =
     withMember (fun m ctx ->
