@@ -508,6 +508,50 @@ form.inline button {
   color: var(--pico-muted-color);
 }
 
+/* ── Recent page ────────────────────────────────────────────────────────── */
+
+/* Wraps the value strip and the chart together so the strip's table can
+   match the chart's rendered width without affecting .chart's own fixed
+   height/overflow rules (needed by Plotly). */
+.chart-container {
+  width: 100%;
+}
+
+/* Fig. 5-style "Blood Pressure Values" strip: a 2-row data table (Systolic/
+   Diastolic) listing every value currently shown in the chart window. Fixed
+   table layout stretches to the same width as the chart below it and
+   divides that width evenly across columns, so it never needs horizontal
+   scrolling — a real <table> still guarantees each reading's sys/dias
+   values land in the same column regardless of differing digit widths. */
+.value-strip {
+  margin-bottom: 1rem;
+}
+
+.value-strip table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin: 0;
+}
+
+.value-strip th,
+.value-strip td {
+  padding: 0.05rem 0.05rem;
+  border: none;
+  font-size: 0.5rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.value-strip-label {
+  width: 3rem;
+  text-align: left;
+  font-weight: bold;
+  color: var(--pico-muted-color);
+}
+
 /* ── Trends page ────────────────────────────────────────────────────────── */
 
 /* Granularity selector row (Weekly / Monthly / Yearly) */

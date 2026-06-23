@@ -47,6 +47,20 @@ module ReadingViews =
     let section (heading: string) (anchor: string) (readings: BloodPressureReading list) =
       Elem.section [ Attr.id anchor ] [ Elem.h2 [] [ Text.raw heading ]; ViewLayout.readingsTable readings ]
 
+    let valueStrip =
+      // The strip lists the same readings as the chart below it (days30).
+      let chronological = days30 |> List.sortBy _.Timestamp
+
+      let row (label: string) (value: BloodPressureReading -> int) =
+        Elem.tr
+          []
+          [ yield Elem.th [ Attr.scope "row"; Attr.class' "value-strip-label" ] [ Text.raw label ]
+            for r in chronological -> Elem.td [ Attr.class' "value-strip-value" ] [ Text.raw (string (value r)) ] ]
+
+      Elem.div
+        [ Attr.class' "value-strip" ]
+        [ Elem.table [] [ Elem.tbody [] [ row "Systolic" _.Systolic; row "Diastolic" _.Diastolic ] ] ]
+
     ViewLayout.layout
       Routes.recent
       activeMember.Name
@@ -61,7 +75,9 @@ module ReadingViews =
         Elem.details
           [ Attr.create "open" "" ]
           [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw "Blood Pressure Graph" ]
-            Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ]
+            Elem.div
+              [ Attr.class' "chart-container" ]
+              [ valueStrip; Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ] ]
         section "Last 7 days" "days-7" days7
         section "Last 14 days" "days-14" days14
         section "Last 30 days" "days-30" days30 ]
