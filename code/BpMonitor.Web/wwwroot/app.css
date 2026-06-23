@@ -551,6 +551,17 @@ form.inline button {
   color: var(--pico-muted-color);
 }
 
+/* Fig. 5's data table color-codes each value by where it falls relative to the
+   member's goal range (GoalRange.classifySystolic/classifyDiastolic): out-of-range
+   values are highlighted, in-range values stay the default text color. */
+.value-strip td.value-strip-value.above {
+  color: #ff9800;
+}
+
+.value-strip td.value-strip-value.below {
+  color: #2a49f9;
+}
+
 /* Scrubber bar (Wegier et al. 2021, "Scrubber bar"): boxes the value-strip column under
    the chart's hovered point, echoing Fig. 5's highlighted column. Toggled by the inline
    script in ReadingViews.recent's `scrubberScript`, matched against the chart's x-axis

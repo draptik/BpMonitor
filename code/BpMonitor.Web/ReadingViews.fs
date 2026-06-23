@@ -42,19 +42,36 @@ module ReadingViews =
       // Each cell is tagged with the same x-label the chart uses for this reading
       // (Charts.fs `seriesOf` formats x as Formats.formatLocal r.Timestamp), so the
       // scrubber script below can match a hovered chart point back to its strip column.
-      let row (label: string) (value: BloodPressureReading -> int) =
+      //
+      // Fig. 5's data table color-codes each value by where it falls relative to the
+      // member's goal range (Wegier et al. 2021): out-of-range values are highlighted,
+      // in-range values stay neutral. See app.css `.value-strip-value.above/.below`.
+      let cellClass (position: RangePosition) =
+        match position with
+        | Above -> "value-strip-value above"
+        | Below -> "value-strip-value below"
+        | InRange -> "value-strip-value"
+
+      let row (label: string) (value: BloodPressureReading -> int) (classify: int -> RangePosition) =
         Elem.tr
           []
           [ yield Elem.th [ Attr.scope "row"; Attr.class' "value-strip-label" ] [ Text.raw label ]
             for r in chronological ->
+              let v = value r
+
               Elem.td
-                [ Attr.class' "value-strip-value"
+                [ Attr.class' (cellClass (classify v))
                   Attr.create "data-x" (Formats.formatLocal r.Timestamp) ]
-                [ Text.raw (string (value r)) ] ]
+                [ Text.raw (string v) ] ]
 
       Elem.div
         [ Attr.class' "value-strip" ]
-        [ Elem.table [] [ Elem.tbody [] [ row "Systolic" _.Systolic; row "Diastolic" _.Diastolic ] ] ]
+        [ Elem.table
+            []
+            [ Elem.tbody
+                []
+                [ row "Systolic" _.Systolic (GoalRange.classifySystolic activeMember.Goal)
+                  row "Diastolic" _.Diastolic (GoalRange.classifyDiastolic activeMember.Goal) ] ] ]
 
     // Fig. 5's scrubber bar (Wegier et al. 2021): the chart's x-axis spike (Charts.fs
     // `recentXAxis`) already draws the moving vertical line; this links it to the value

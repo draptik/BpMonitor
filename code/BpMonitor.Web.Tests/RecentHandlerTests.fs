@@ -211,3 +211,37 @@ let ``recent value strip tags each cell with the reading's chart x-label, for th
 
   test <@ body.Contains $"data-x=\"{expectedX1}\"" @>
   test <@ body.Contains $"data-x=\"{expectedX2}\"" @>
+
+[<Fact>]
+let ``recent value strip marks a reading above the goal range as 'above'`` () =
+  // Default goal range (GoalRange.defaults): systolic max 140. 142 > 140.
+  let r = { reading 1 1 with Systolic = 142 }
+  let tp = FakeTimeProvider(now)
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "value-strip-value above" @>
+
+[<Fact>]
+let ``recent value strip marks a reading below the goal range as 'below'`` () =
+  // Default goal range (GoalRange.defaults): diastolic min 60. 59 < 60.
+  let r = { reading 1 1 with Diastolic = 59 }
+  let tp = FakeTimeProvider(now)
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "value-strip-value below" @>
+
+[<Fact>]
+let ``recent value strip leaves an in-range reading's cells unmarked`` () =
+  // reading helper's defaults (Systolic = 120, Diastolic = 80) are inside GoalRange.defaults.
+  let r = reading 1 1
+  let tp = FakeTimeProvider(now)
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  test <@ not (body.Contains "value-strip-value above") @>
+  test <@ not (body.Contains "value-strip-value below") @>
