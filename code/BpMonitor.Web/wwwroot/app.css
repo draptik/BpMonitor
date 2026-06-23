@@ -498,7 +498,7 @@ form.inline button {
 }
 
 .badge-claimed {
-  background: var(--pico-color-green-550, #16a34a);
+  background: #16a34a;
   color: #fff;
 }
 
