@@ -7,11 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0-rc3] - 2026-06-24
+
+### Added
+
+- New icon-button navigation on the landing page for trends, recent, settings, exports, and members
+
 ### Changed
 
 - Recent page's chart no longer sits behind a "Blood Pressure Graph" collapse toggle — it now renders directly under the page heading
 - Recent and History charts: removed the lasso, autoscale and box-select buttons from Plotly's toolbar, and locked the y-axis so zoom can no longer stretch or compress the blood-pressure scale (only the x-axis is zoomable)
 - Recent page now loads the last 12 months of readings into the chart and value strip, opening focused on the last 30 days — pan left to see older readings instead of them being hidden entirely
+- Recent page's value strip stays in sync with the chart when zooming or panning, instead of always showing the last 30 days
 
 ## [1.7.0-rc2] - 2026-06-23
 
@@ -238,7 +245,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc2...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc3...HEAD
+[1.7.0-rc3]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc2...v1.7.0-rc3
 [1.7.0-rc2]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc1...v1.7.0-rc2
 [1.7.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.6.0...v1.7.0-rc1
 [1.6.0]: https://github.com/draptik/BpMonitor/compare/v1.5.1...v1.6.0
