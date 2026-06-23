@@ -154,7 +154,7 @@ graph TD
 - **Isolation:** each member sees only their own readings; admins manage members via `/members` but not their readings
 - **Routes:** `/` hub, `/add`, `/history`, `/recent`, `/trends`, `/settings`, `/members`, `/members/{id}/edit`, `/members/{id}/reset-password`, `/login`, `/login/{id}`, `POST /logout`
 - **`/settings`:** self-service page where the logged-in member edits their own chart goal range (`GoalRange`); validated via `GoalRange.create` (min < max per pair)
-- **`/recent`:** three rolling windows (last 7 / 14 / 30 days) of raw readings plus a 30-day chart — no aggregation. Above the chart, a Fig. 5-style (Wegier et al. 2021) "value strip" table lists every Systolic/Diastolic value in the chart's 30-day window in chronological order, sized to match the chart's rendered width with no horizontal scrolling
+- **`/recent`:** three rolling windows (last 7 / 14 / 30 days) of raw readings plus a 30-day chart — no aggregation. Above the chart, a Fig. 5-style (Wegier et al. 2021) "value strip" table lists every Systolic/Diastolic value in the chart's 30-day window in chronological order, sized to match the chart's rendered width with no horizontal scrolling. Each value is color-coded against the member's `GoalRange` (`GoalRange.classifySystolic`/`classifyDiastolic`): above the goal max renders orange, below the goal min renders blue, in-range stays neutral
 - **`/trends`:** granularity selector (Weekly/Monthly/Yearly) + htmx-swapped period fragments; stats from `ReadingStats` (Core); `TimeProvider` injected for testability
 - `protect` / `protectAdmin` combinators; active member resolved from `ClaimsPrincipal`
 - Server-rendered HTML via `Falco.Markup`; htmx for partial updates; scoped `DbContext` per request

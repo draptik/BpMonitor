@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recent page now shows a Fig. 5-style "value strip" directly above the chart, listing every Systolic/Diastolic value in the chart's 30-day window in chronological order, sized to match the chart's width with no horizontal scrolling
 - Demo dataset gains a sixth member, Ned Flanders, whose readings tell a Fig. 5-style story (elevated readings, a week-long gap, then improved control after starting medication) to showcase the new trend line and missing-data dashing
 - Recent chart now has a Fig. 5-style scrubber bar: hovering shows a vertical line that snaps to the nearest reading and boxes the matching column in the value strip above the chart, linking the two together
+- Recent page's value strip now color-codes each value against the member's goal range, matching Fig. 5: above the goal max renders orange, below the goal min renders blue, in-range values stay neutral
 
 ### Changed
 

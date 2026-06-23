@@ -39,3 +39,39 @@ let ``create rejects diastolic min equal to max`` () =
 [<Fact>]
 let ``create rejects diastolic min greater than max`` () =
   test <@ GoalRange.create 100 130 90 65 = Error DiastolicRangeInvalid @>
+
+[<Fact>]
+let ``classifySystolic reports Above when the value exceeds the goal max`` () =
+  test <@ GoalRange.classifySystolic GoalRange.defaults 141 = Above @>
+
+[<Fact>]
+let ``classifySystolic reports Below when the value is under the goal min`` () =
+  test <@ GoalRange.classifySystolic GoalRange.defaults 89 = Below @>
+
+[<Fact>]
+let ``classifySystolic reports InRange for a value strictly inside the goal range`` () =
+  test <@ GoalRange.classifySystolic GoalRange.defaults 120 = InRange @>
+
+[<Fact>]
+let ``classifySystolic treats the goal min and max boundaries as InRange`` () =
+  test
+    <@
+      GoalRange.classifySystolic GoalRange.defaults GoalRange.defaults.SystolicMin = InRange
+      && GoalRange.classifySystolic GoalRange.defaults GoalRange.defaults.SystolicMax = InRange
+    @>
+
+[<Fact>]
+let ``classifyDiastolic reports Above when the value exceeds the goal max`` () =
+  test <@ GoalRange.classifyDiastolic GoalRange.defaults 91 = Above @>
+
+[<Fact>]
+let ``classifyDiastolic reports Below when the value is under the goal min`` () =
+  test <@ GoalRange.classifyDiastolic GoalRange.defaults 59 = Below @>
+
+[<Fact>]
+let ``classifyDiastolic treats the goal min and max boundaries as InRange`` () =
+  test
+    <@
+      GoalRange.classifyDiastolic GoalRange.defaults GoalRange.defaults.DiastolicMin = InRange
+      && GoalRange.classifyDiastolic GoalRange.defaults GoalRange.defaults.DiastolicMax = InRange
+    @>

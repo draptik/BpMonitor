@@ -10,6 +10,14 @@ type GoalRangeError =
   | SystolicRangeInvalid
   | DiastolicRangeInvalid
 
+/// Where a reading falls relative to the goal range, for the Fig. 5-style
+/// (Wegier et al. 2021) value-strip color-coding: out-of-range readings are
+/// highlighted, in-range readings are left neutral.
+type RangePosition =
+  | Below
+  | InRange
+  | Above
+
 module GoalRange =
   let defaults =
     { SystolicMin = 90
@@ -28,3 +36,13 @@ module GoalRange =
           SystolicMax = sysMax
           DiastolicMin = diaMin
           DiastolicMax = diaMax }
+
+  let classifySystolic (goal: GoalRange) (value: int) : RangePosition =
+    if value > goal.SystolicMax then Above
+    elif value < goal.SystolicMin then Below
+    else InRange
+
+  let classifyDiastolic (goal: GoalRange) (value: int) : RangePosition =
+    if value > goal.DiastolicMax then Above
+    elif value < goal.DiastolicMin then Below
+    else InRange
