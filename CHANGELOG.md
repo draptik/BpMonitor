@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Recent page's chart no longer sits behind a "Blood Pressure Graph" collapse toggle — it now renders directly under the page heading
+
 ## [1.7.0-rc2] - 2026-06-23
 
 ### Fixed

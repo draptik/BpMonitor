@@ -122,14 +122,11 @@ module ReadingViews =
       activeMember.IsAdmin
       "Recent"
       [ Elem.h1 [] [ Text.raw "Recent" ]
-        Elem.details
-          [ Attr.create "open" "" ]
-          [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw "Blood Pressure Graph" ]
-            Elem.div
-              [ Attr.class' "chart-container" ]
-              [ valueStrip
-                Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
-                scrubberScript ] ] ]
+        Elem.div
+          [ Attr.class' "chart-container" ]
+          [ valueStrip
+            Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
+            scrubberScript ] ]
 
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
   /// above the fields when re-displaying after a failed submit.
