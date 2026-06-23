@@ -191,6 +191,16 @@ module BpChart =
       HoverMode = StyleParam.HoverMode.X
     )
 
+  /// Horizontal centered legend at the bottom, shared by /history, /trends and /recent,
+  /// so the default top-right legend doesn't steal horizontal width from the plot.
+  let private withBottomLegend (chart: GenericChart) =
+    chart
+    |> Chart.withLegendStyle (
+      Orientation = StyleParam.Orientation.Horizontal,
+      X = 0.5,
+      XAnchor = StyleParam.XAnchorPosition.Center
+    )
+
   let private finishRecent (rangeLow: string) (rangeHigh: string) (chart: GenericChart) =
     chart
     |> Chart.withLayout (finishRecentLayout ())
@@ -236,11 +246,7 @@ module BpChart =
     |> Chart.withXAxis trendsXAxis
     |> Chart.withYAxis (yAxis ())
     |> Chart.withConfig trendsConfig
-    |> Chart.withLegendStyle (
-      Orientation = StyleParam.Orientation.Horizontal,
-      X = 0.5,
-      XAnchor = StyleParam.XAnchorPosition.Center
-    )
+    |> withBottomLegend
     |> GenericChart.toChartHTML
     |> _.Replace("\"width\":600,", "")
     |> _.Replace("\"height\":600,", "")
@@ -294,13 +300,7 @@ module BpChart =
       yield! commentTraces readings ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
-    // Horizontal centered legend at the bottom, matching /trends and /recent, so the
-    // default top-right legend doesn't steal horizontal width from the plot.
-    |> Chart.withLegendStyle (
-      Orientation = StyleParam.Orientation.Horizontal,
-      X = 0.5,
-      XAnchor = StyleParam.XAnchorPosition.Center
-    )
+    |> withBottomLegend
     |> finish
 
   type private DailyPoint =
@@ -562,13 +562,7 @@ module BpChart =
       yield! commentTraces readings ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
-    // Horizontal centered legend at the bottom, matching the trends chart, so the recent
-    // chart's default top-right legend doesn't steal horizontal width from the plot.
-    |> Chart.withLegendStyle (
-      Orientation = StyleParam.Orientation.Horizontal,
-      X = 0.5,
-      XAnchor = StyleParam.XAnchorPosition.Center
-    )
+    |> withBottomLegend
     |> finishRecent rangeLow rangeHigh
 
   // `windowStart`/`windowEnd` are computed once by the caller (the same instant the
