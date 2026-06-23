@@ -5,6 +5,19 @@ open BpMonitor.Core
 
 /// Server-rendered HTML views for reading-related pages (landing, history, add/edit form).
 module ReadingViews =
+  /// A landing-page action button: an icon glyph followed by its label.
+  let private actionButton (href: string) (glyph: string) (label: string) : XmlNode =
+    Elem.a
+      [ Attr.href href; Attr.role "button" ]
+      [ Elem.span [ Attr.class' "icon" ] [ Text.raw glyph ]; Text.raw label ]
+
+  /// Same as `actionButton`, but opts the link out of hx-boost so file-download
+  /// responses (exports) aren't AJAX-swapped into the page.
+  let private downloadActionButton (href: string) (glyph: string) (label: string) : XmlNode =
+    Elem.a
+      [ Attr.href href; Attr.role "button"; Attr.create "hx-boost" "false" ]
+      [ Elem.span [ Attr.class' "icon" ] [ Text.raw glyph ]; Text.raw label ]
+
   /// Landing page: a simple hub linking to the app's main destinations.
   let landing (m: FamilyMember) : XmlNode =
     ViewLayout.layout
@@ -15,9 +28,16 @@ module ReadingViews =
       [ Elem.h1 [] [ Text.raw "BpMonitor" ]
         Elem.p [] [ Text.raw "Track and review your blood pressure readings." ]
         Elem.div
-          [ Attr.class' "actions" ]
-          [ Elem.a [ Attr.href "/add"; Attr.role "button" ] [ Text.raw "Add reading" ]
-            Elem.a [ Attr.href Routes.history; Attr.role "button" ] [ Text.raw "History" ] ] ]
+          [ Attr.class' "home-actions" ]
+          [ actionButton Routes.add "➕" "Add reading"
+            actionButton Routes.history "📜" "History"
+            actionButton Routes.trends "📈" "Trends"
+            actionButton Routes.recent "🕒" "Recent"
+            actionButton Routes.settings "⚙️" "Settings"
+            downloadActionButton Routes.exportJson "⬇️" "Export JSON"
+            downloadActionButton Routes.exportCsv "⬇️" "Export CSV"
+            if m.IsAdmin then
+              actionButton Routes.members "👥" "Members" ] ]
 
   /// History: chart above the readings table.
   let history (activeMember: FamilyMember) (chartHtml: string) (readings: BloodPressureReading list) : XmlNode =

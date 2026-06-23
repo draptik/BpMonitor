@@ -161,6 +161,7 @@ li:has(.sidebar-collapse) {
   flex-direction: column;
   min-height: 100vh;
   padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 main {
@@ -449,6 +450,23 @@ td.col-center {
 
 .actions > * {
   margin-bottom: 0;
+}
+
+/* Landing page launch pad: a responsive grid of action buttons (distinct from
+   .actions, which is the form submit/cancel row shared by login/member/reading forms). */
+.home-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 1rem;
+}
+
+.home-actions a[role="button"] {
+  text-align: center;
+  margin-bottom: 0;
+}
+
+.home-actions .icon {
+  margin-right: 0.4rem;
 }
 
 footer.container {
