@@ -157,6 +157,11 @@ let ``toHtml uses compact margins, like the trends chart, now that it has no tit
   test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":56}") @>
 
 [<Fact>]
+let ``toHtml renders a horizontal centered legend at the bottom, like the trends chart`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ html.Contains("\"legend\":{\"orientation\":\"h\",\"x\":0.5,\"xanchor\":\"center\"}") @>
+
+[<Fact>]
 let ``toHtml matches snapshot`` () : Task =
   let html: string = BpChart.toHtml GoalRange.defaults readings
   verifyHtml html

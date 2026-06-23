@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- History chart's legend moved from the default top-right position to a horizontal bar centered below the chart, matching the Trends and Recent charts
+
 ## [1.7.0-rc3] - 2026-06-24
 
 ### Added
