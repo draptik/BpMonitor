@@ -294,6 +294,13 @@ module BpChart =
       yield! commentTraces readings ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
+    // Horizontal centered legend at the bottom, matching /trends and /recent, so the
+    // default top-right legend doesn't steal horizontal width from the plot.
+    |> Chart.withLegendStyle (
+      Orientation = StyleParam.Orientation.Horizontal,
+      X = 0.5,
+      XAnchor = StyleParam.XAnchorPosition.Center
+    )
     |> finish
 
   type private DailyPoint =
