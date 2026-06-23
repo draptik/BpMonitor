@@ -123,13 +123,14 @@ dotnet test --configuration Release --max-parallel-test-modules 2
 
 `BpMonitor.Arch.Tests` uses `DoNotResideInNamespaceMatching("Microsoft\\.CodeCoverage.*")` in its type filters to exclude coverage-injected tracker types from ArchUnitNET dependency checks.
 
-`BpMonitor.Web.E2E.Tests` boots a real `BpMonitor.Web` instance out-of-process (`dotnet run`, fresh temp SQLite file, demo seeding off) on a free port, then drives it with a real Playwright Chromium browser. First run needs Chromium installed locally — `playwright.ps1 install chromium` from the build output dir if `pwsh` is available, otherwise via `dotnet fsi` calling `Microsoft.Playwright.Program.Main([| "install"; "chromium" |])`.
+`BpMonitor.Web.E2E.Tests` boots a real `BpMonitor.Web` instance out-of-process (`dotnet run`, fresh temp SQLite file, demo seeding off) on a free port, then drives it with a real Playwright Chromium browser. First run needs Chromium installed locally — run `mise run test:e2e-setup` (builds the test project, then installs Chromium via `playwright.ps1` if `pwsh` is available, otherwise via `dotnet fsi` calling `Microsoft.Playwright.Program.Main([| "install"; "chromium" |])`).
 
 ## Dev Tooling
 
-All non-dotnet linter versions are pinned in `mise.toml` (repo root). Run `mise install` once after cloning.
+All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also hosts one-time dev setup tasks like the Playwright Chromium install. Run `mise install` once after cloning.
 
 - `biome.json` — Biome JS linter config (scoped to `wwwroot/theme.js` and `wwwroot/theme-label.js`)
 - `.markdownlint-cli2.yaml` — markdownlint config
 - Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:md` / `lint:shell` individually
+- Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium)
 - Run `mise exec -- biome check --write` to auto-fix JS issues

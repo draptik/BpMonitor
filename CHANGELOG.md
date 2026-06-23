@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Recent chart's LOWESS trend line no longer breaks into gaps when readings cluster on the same day — a zero-weight local fit was dividing by zero and producing NaN
+
 ## [1.7.0-rc1] - 2026-06-23
 
 ### Added

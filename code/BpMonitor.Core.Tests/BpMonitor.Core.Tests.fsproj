@@ -16,6 +16,7 @@
     <Compile Include="PasswordHashingTests.fs" />
     <Compile Include="DemoDataTests.fs" />
     <Compile Include="LowessTests.fs" />
+    <Compile Include="LowessPropertyTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
