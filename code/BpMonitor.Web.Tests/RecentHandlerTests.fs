@@ -58,6 +58,26 @@ let ``recent loads a reading older than 30 days but marks its value-strip cell o
   test <@ not (cells["125"].Contains "out-of-range") @>
 
 [<Fact>]
+let ``recent excludes a reading older than the load window entirely, even though it's out-of-range either way`` () =
+  // Code review (PR #289): loading the member's *entire* lifetime history into every
+  // /recent response makes the LOWESS trend line's O(n^2) precompute and the page
+  // payload grow unboundedly with account age. Capping the load to a generous-but-finite
+  // window keeps panning useful while bounding that cost — readings older than the load
+  // window are dropped entirely (not just hidden via out-of-range).
+  let tp = FakeTimeProvider(now)
+  let beyondLoadWindow = { reading 400 1 with Systolic = 199 }
+  let withinLoadWindow = { reading 100 2 with Systolic = 188 }
+
+  let ctx =
+    TestHost.contextWithProvider (repoWith [ beyondLoadWindow; withinLoadWindow ]) tp
+
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  test <@ not (body.Contains "199") @>
+  test <@ body.Contains "188" @>
+
+[<Fact>]
 let ``recent renders a chart`` () =
   let tp = FakeTimeProvider(now)
   let ctx = TestHost.contextWithProvider (repoWith simpsonReadings) tp
