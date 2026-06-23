@@ -29,61 +29,12 @@ let private reading daysAgo (id: int) : BloodPressureReading =
     ModifiedAt = now }
 
 [<Fact>]
-let ``recent returns 200 with three window headings`` () =
+let ``recent returns 200`` () =
   let tp = FakeTimeProvider(now)
   let ctx = TestHost.contextWithProvider (repoWith []) tp
   TestHost.run ReadingHandlers.recent ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
-  let body = TestHost.readBody ctx
-
-  test
-    <@
-      body.Contains "Last 7 days"
-      && body.Contains "Last 14 days"
-      && body.Contains "Last 30 days"
-    @>
-
-[<Fact>]
-let ``recent renders pill links for each window`` () =
-  let tp = FakeTimeProvider(now)
-  let ctx = TestHost.contextWithProvider (repoWith []) tp
-  TestHost.run ReadingHandlers.recent ctx
-
-  let body = TestHost.readBody ctx
-
-  test
-    <@
-      body.Contains "href=\"#days-7\""
-      && body.Contains "href=\"#days-14\""
-      && body.Contains "href=\"#days-30\""
-    @>
-
-[<Fact>]
-let ``recent sections have anchor ids`` () =
-  let tp = FakeTimeProvider(now)
-  let ctx = TestHost.contextWithProvider (repoWith []) tp
-  TestHost.run ReadingHandlers.recent ctx
-
-  let body = TestHost.readBody ctx
-
-  test
-    <@
-      body.Contains "id=\"days-7\""
-      && body.Contains "id=\"days-14\""
-      && body.Contains "id=\"days-30\""
-    @>
-
-[<Fact>]
-let ``recent shows simpson readings in all three windows`` () =
-  let tp = FakeTimeProvider(now)
-  let ctx = TestHost.contextWithProvider (repoWith simpsonReadings) tp
-  TestHost.run ReadingHandlers.recent ctx
-
-  test <@ ctx.Response.StatusCode = 200 @>
-  let body = TestHost.readBody ctx
-  // Marge has ~3.5 readings/week — all three windows will have edit links.
-  test <@ body.Contains "/readings/" @>
 
 [<Fact>]
 let ``recent omits a reading older than 30 days`` () =
@@ -93,19 +44,7 @@ let ``recent omits a reading older than 30 days`` () =
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  test <@ body.Contains "Last 30 days" && not (body.Contains "/readings/1/edit") @>
-
-[<Fact>]
-let ``recent does not show a reading from 10 days ago in the 7-day window`` () =
-  let tp = FakeTimeProvider(now)
-  let r = reading 10 42
-  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
-  TestHost.run ReadingHandlers.recent ctx
-
-  // 10-day reading falls in 14d and 30d windows but not 7d.
-  let body = TestHost.readBody ctx
-  let occurrences = body.Split("/readings/42/edit").Length - 1
-  test <@ occurrences = 2 @>
+  test <@ not (body.Contains "/readings/1/edit") @>
 
 [<Fact>]
 let ``recent renders a chart`` () =
