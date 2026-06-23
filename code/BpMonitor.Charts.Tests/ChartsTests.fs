@@ -310,6 +310,32 @@ let ``toHtml (history) does not show a spikeline`` () =
   test <@ not (html.Contains("\"showspikes\":true")) @>
 
 [<Fact>]
+let ``toHtml removes the lasso, autoscale and box-select modebar buttons, so the y-axis scale can't be visually distorted``
+  ()
+  =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ html.Contains("\"modeBarButtonsToRemove\":[\"lasso2d\",\"autoScale2d\",\"select2d\"]") @>
+
+[<Fact>]
+let ``toHtml locks the y-axis range so zoom/select tools can only ever change the x-axis`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  // The y-axis object nests a "title" object of its own, so a [^}]* lookahead would stop
+  // at that inner brace; anchor on "range" (which precedes "fixedrange") instead.
+  test <@ Regex.IsMatch(html, "\"yaxis\":\\{.*?\"range\":\\[0,200\\],\"fixedrange\":true") @>
+
+[<Fact>]
+let ``toHtmlRecent removes the lasso, autoscale and box-select modebar buttons, so the y-axis scale can't be visually distorted``
+  ()
+  =
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  test <@ html.Contains("\"modeBarButtonsToRemove\":[\"lasso2d\",\"autoScale2d\",\"select2d\"]") @>
+
+[<Fact>]
+let ``toHtmlRecent locks the y-axis range so zoom/select tools can only ever change the x-axis`` () =
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  test <@ Regex.IsMatch(html, "\"yaxis\":\\{.*?\"range\":\\[0,200\\],\"fixedrange\":true") @>
+
+[<Fact>]
 let ``toHtmlDashed matches snapshot`` () : Task =
   let html: string =
     BpChart.toHtmlDashed GoalRange.defaults Weekly (asAggregated readings)

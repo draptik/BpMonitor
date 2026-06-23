@@ -96,6 +96,9 @@ module BpChart =
       SpikeSnap = StyleParam.SpikeSnap.Data
     )
 
+  // FixedRange disables zoom on this axis — the y-axis is pinned to a clinical 0-200 mmHg
+  // scale (the goal-range bands assume it), so zoom/box-select/zoom-in/zoom-out can only
+  // ever change the x-axis, never stretch or compress the y-axis out of that scale.
   let private yAxis () =
     let defaultYMin = 0
     let defaultYMax = 200
@@ -103,6 +106,7 @@ module BpChart =
     LinearAxis.init (
       GridColor = lightGridLine,
       Range = StyleParam.Range.MinMax(defaultYMin, defaultYMax),
+      FixedRange = true,
       DTick = 20,
       ShowLine = true,
       LineColor = axisLineColor,
@@ -148,12 +152,25 @@ module BpChart =
     + "setTimeout(setup,0);"
     + "})()</script>"
 
+  // /history and /recent are interactive (unlike /trends, which disables the modebar
+  // outright): lasso, autoscale and box-select are removed because they let a reader
+  // visually distort the blood-pressure scale (Wegier et al. 2021's goal-range bands
+  // assume a fixed y-axis).
+  let private interactiveConfig =
+    Config.init (
+      Responsive = true,
+      ModeBarButtonsToRemove =
+        [ StyleParam.ModeBarButton.Lasso2d
+          StyleParam.ModeBarButton.AutoScale2d
+          StyleParam.ModeBarButton.Select2d ]
+    )
+
   let private finish (chart: GenericChart) =
     chart
     |> Chart.withLayout (layout ())
     |> Chart.withXAxis xAxis
     |> Chart.withYAxis (yAxis ())
-    |> Chart.withConfig (Config.init (Responsive = true))
+    |> Chart.withConfig interactiveConfig
     |> GenericChart.toChartHTML
     |> _.Replace("\"width\":600,", "")
     |> _.Replace("\"height\":600,", "")
@@ -175,7 +192,7 @@ module BpChart =
     |> Chart.withLayout (finishRecentLayout ())
     |> Chart.withXAxis recentXAxis
     |> Chart.withYAxis (yAxis ())
-    |> Chart.withConfig (Config.init (Responsive = true))
+    |> Chart.withConfig interactiveConfig
     |> GenericChart.toChartHTML
     |> _.Replace("\"width\":600,", "")
     |> _.Replace("\"height\":600,", "")
