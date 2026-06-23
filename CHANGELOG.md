@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Recent page's chart no longer sits behind a "Blood Pressure Graph" collapse toggle — it now renders directly under the page heading
 - Recent and History charts: removed the lasso, autoscale and box-select buttons from Plotly's toolbar, and locked the y-axis so zoom can no longer stretch or compress the blood-pressure scale (only the x-axis is zoomable)
+- Recent page now loads your full reading history into the chart and value strip, opening focused on the last 30 days — pan left to see older readings instead of them being hidden entirely
 
 ## [1.7.0-rc2] - 2026-06-23
 

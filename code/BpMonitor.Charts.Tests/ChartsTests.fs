@@ -55,6 +55,10 @@ let private readings =
     reading 29 122 80 71 29 9 None
     reading 30 128 84 74 30 8 None ]
 
+/// `now` for /recent's x-axis range — past the latest test reading (day 30) so every
+/// fixture above falls inside the chart's initial 30-day window.
+let private now = Timestamp.local 2026 2 1 12 0 0
+
 [<Fact>]
 let ``toHtml renders a goal-range band shaped rectangle for systolic and diastolic bounds`` () =
   let goal: GoalRange =
@@ -170,14 +174,14 @@ let private asAggregated (rs: BloodPressureReading list) =
 let ``toHtmlRecent renders a dashed line segment when a gap exceeds 10% of the window as missing days`` () =
   // Window = 10 days; threshold = 1.0 missing day. Gap of 6 days → 5 missing days → dashed.
   let sparse = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 7 9 None ]
-  let html = BpChart.toHtmlRecent GoalRange.defaults 10 sparse
+  let html = BpChart.toHtmlRecent GoalRange.defaults 10 now sparse
   test <@ html.Contains("\"dash\":\"dash\"") @>
 
 [<Fact>]
 let ``toHtmlRecent connects readings with a solid line when the gap stays within 10% of the window`` () =
   // Window = 10 days; threshold = 1.0 missing day. Gap of 1 day → 0 missing days → solid.
   let dense = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 2 9 None ]
-  let html = BpChart.toHtmlRecent GoalRange.defaults 10 dense
+  let html = BpChart.toHtmlRecent GoalRange.defaults 10 now dense
   test <@ not (html.Contains("\"dash\":\"dash\"")) @>
 
 [<Fact>]
@@ -186,12 +190,12 @@ let ``toHtmlRecent judges gaps by calendar days, not raw elapsed time`` () =
   // (missingDays = 3, not > 3), so it must render solid even though the readings are
   // 9:00 → 10:00, i.e., raw elapsed time (4.0417 days) would cross the threshold if used directly.
   let readings = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 5 10 None ]
-  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
   test <@ not (html.Contains("\"dash\":\"dash\"")) @>
 
 [<Fact>]
 let ``toHtmlRecent names each line trace after its series for hover text`` () =
-  let html = BpChart.toHtmlRecent GoalRange.defaults 10 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 10 now readings
 
   let lineNameCount =
     Regex.Matches(html, "\"name\":\"(Systolic|Diastolic)\",\"showlegend\":[a-z]*,\"mode\":\"lines\\+markers\"").Count
@@ -210,7 +214,7 @@ let ``toHtmlRecent does not drop any reading, even when split across dash/solid 
       reading 5 124 80 70 11 9 None
       reading 6 125 80 70 12 9 None ]
 
-  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
 
   let coveredLabels (name: string) =
     Regex.Matches(html, $"\"name\":\"{name}\".*?\"x\":\\[([^\\]]*)\\]")
@@ -224,12 +228,12 @@ let ``toHtmlRecent does not drop any reading, even when split across dash/solid 
 
 [<Fact>]
 let ``toHtmlRecent renders a horizontal centered legend at the bottom, like the trends chart`` () =
-  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
   test <@ html.Contains("\"legend\":{\"orientation\":\"h\",\"x\":0.5,\"xanchor\":\"center\"}") @>
 
 [<Fact>]
 let ``toHtmlRecent uses compact margins, like the trends chart, now that it has no title`` () =
-  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
   test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":56}") @>
 
 [<Fact>]
@@ -242,7 +246,7 @@ let ``toHtmlRecent shows exactly one legend entry per series, even when split ac
       reading 5 124 80 70 11 9 None
       reading 6 125 80 70 12 9 None ]
 
-  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
 
   // Each trace object ends at the first "}}" (closing its "line" object then itself), so
   // bounding the match there keeps "name"/"showlegend" from leaking into the next trace.
@@ -256,13 +260,13 @@ let ``toHtmlRecent shows exactly one legend entry per series, even when split ac
 
 [<Fact>]
 let ``toHtmlRecent renders a smoothed trend line for systolic and diastolic`` () =
-  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
   test <@ html.Contains("\"name\":\"Systolic (trend)\"") @>
   test <@ html.Contains("\"name\":\"Diastolic (trend)\"") @>
 
 [<Fact>]
 let ``toHtmlRecent skips hover for the LOWESS trend trace, since its value is smoothed not measured`` () =
-  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
 
   let hasHoverSkip (exactName: string) =
     Regex.IsMatch(html, $"\"name\":\"{Regex.Escape(exactName)}\".*?\"hoverinfo\":\"skip\"")
@@ -273,7 +277,7 @@ let ``toHtmlRecent skips hover for the LOWESS trend trace, since its value is sm
 [<Fact>]
 let ``toHtmlRecent omits the trend line when there are too few readings to smooth meaningfully`` () =
   let sparse = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 2 9 None ]
-  let html = BpChart.toHtmlRecent GoalRange.defaults 10 sparse
+  let html = BpChart.toHtmlRecent GoalRange.defaults 10 now sparse
   test <@ not (html.Contains("(trend)")) @>
 
 [<Fact>]
@@ -281,7 +285,7 @@ let ``toHtmlRecent fades the raw measurement line so the LOWESS trend line stand
   // Wegier et al. 2021, "Smoothing data": "The line graph of (raw) measurements was
   // then faded slightly to help the smoothing line stand out." — the raw series should
   // render at reduced opacity (rgba alpha < 1) while the trend series keeps full color.
-  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
 
   let traceLineColor (exactName: string) =
     let m =
@@ -299,8 +303,19 @@ let ``toHtmlRecent fades the raw measurement line so the LOWESS trend line stand
 let ``toHtmlRecent shows a spikeline on the x-axis, to scrub through the chart and value strip`` () =
   // Wegier et al. 2021, "Scrubber bar": a vertical line tracks the cursor's horizontal
   // position across the display. Plotly's x-axis spikes give this for free.
-  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
   test <@ html.Contains("\"showspikes\":true") @>
+
+[<Fact>]
+let ``toHtmlRecent opens focused on the last windowDays, even though all readings are loaded`` () =
+  // TODOs.md: "Recent: paning, load all data, but focus the x-axis and the value-strip
+  // on last 30 days". The chart loads every reading (so panning left reveals older
+  // history), but its initial x-axis range only spans [now-windowDays, now] rather than
+  // autoranging to fit all loaded data.
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
+  let rangeLow = Formats.formatLocal (now.AddDays(-30.0))
+  let rangeHigh = Formats.formatLocal now
+  test <@ html.Contains($"\"range\":[\"{rangeLow}\",\"{rangeHigh}\"]") @>
 
 [<Fact>]
 let ``toHtml (history) does not show a spikeline`` () =
@@ -327,12 +342,12 @@ let ``toHtml locks the y-axis range so zoom/select tools can only ever change th
 let ``toHtmlRecent removes the lasso, autoscale and box-select modebar buttons, so the y-axis scale can't be visually distorted``
   ()
   =
-  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
   test <@ html.Contains("\"modeBarButtonsToRemove\":[\"lasso2d\",\"autoScale2d\",\"select2d\"]") @>
 
 [<Fact>]
 let ``toHtmlRecent locks the y-axis range so zoom/select tools can only ever change the x-axis`` () =
-  let html = BpChart.toHtmlRecent GoalRange.defaults 30 readings
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 now readings
   test <@ Regex.IsMatch(html, "\"yaxis\":\\{.*?\"range\":\\[0,200\\],\"fixedrange\":true") @>
 
 [<Fact>]
