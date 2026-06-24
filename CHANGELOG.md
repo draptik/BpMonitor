@@ -7,16 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0-rc5] - 2026-06-25
+
 ### Added
 
 - Recent chart: added a "Load full history" button, shown once readings older than the chart's 365-day load window exist, that loads the member's entire history so panning left can reveal it all
 - Recent chart: added a caption crediting the Wegier et al. 2021 paper the chart layout is based on, linking to its DOI
+- Recent chart: added "Last 7/30 days" zoom shortcut buttons
 
 ### Changed
 
 - History and Recent charts: comment markers now render as a dark-red hexagon (matching Wegier et al. 2021's Fig. 5) instead of a teal circle, sit on a y-axis baseline labeled "Comments", and are no longer clipped by the x-axis
 - History and Recent charts: hovering a comment marker now shows only the comment text, without the "Comments" trace name prefix
 - History, Trends, and Recent charts: hovering a systolic/diastolic data point no longer repeats the "Systolic"/"Diastolic" word, since the color-coded legend already identifies the series
+- Trends page: sub-period selector pills are now compact with horizontal scrolling instead of wrapping
+- History and Recent charts: the pan tool is now pre-selected in the chart toolbar
+- Recent chart: reduced the trend line thickness for readability
 
 ## [1.7.0-rc4] - 2026-06-24
 
@@ -263,7 +269,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc4...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc5...HEAD
+[1.7.0-rc5]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc4...v1.7.0-rc5
 [1.7.0-rc4]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc3...v1.7.0-rc4
 [1.7.0-rc3]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc2...v1.7.0-rc3
 [1.7.0-rc2]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc1...v1.7.0-rc2
