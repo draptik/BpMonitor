@@ -310,6 +310,19 @@ module BpChart =
         |> Chart.withMarkerStyle (Symbol = StyleParam.MarkerSymbol.Hexagon, Size = 11, Color = commentColor)
         |> GenericChart.mapTrace (Trace2DStyle.Scatter(ClipOnAxis = false, HoverInfo = StyleParam.HoverInfo.Text)) ]
 
+  // The trace `Name` ("Systolic"/"Diastolic") is also the color-coded legend entry, so
+  // repeating it in every hover tooltip is redundant — these templates keep the
+  // measurement(s) but drop the name via the empty `<extra>` box. Each name reflects
+  // which fields the owning chart's traces carry: /history and /trends show their own
+  // x value per trace; /recent's unified hover (HoverMode.X) already titles the row
+  // block with the shared date, so its traces only need the value.
+  let private withHoverTemplate (template: string) =
+    GenericChart.mapTrace (Trace2DStyle.Scatter(HoverTemplate = template))
+
+  let private hoverXY = withHoverTemplate "%{x}<br>%{y}<extra></extra>"
+  let private hoverXYText = withHoverTemplate "%{x}<br>%{y}<br>%{text}<extra></extra>"
+  let private hoverYOnly = withHoverTemplate "%{y}<extra></extra>"
+
   /// Classic x/y plot — one point per reading. Used by /history.
   /// `includeHeartRate` is currently always false (no caller passes true).
   let private renderIndividual
@@ -330,8 +343,10 @@ module BpChart =
 
     [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic", ShowMarkers = true)
       |> Chart.withLineStyle (Color = systolicColor)
+      |> hoverXY
       Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic", ShowMarkers = true)
       |> Chart.withLineStyle (Color = diastolicColor)
+      |> hoverXY
       yield! heartRateTrace
       yield! commentTraces readings ]
     |> Chart.combine
@@ -447,6 +462,7 @@ module BpChart =
       )
       |> Chart.withLineStyle (Color = lineColor)
       |> Chart.withMarkerStyle (MultiSize = sizes, Color = lineColor)
+      |> hoverXYText
       |> Chart.withYErrorStyle (
         Visible = true,
         Type = StyleParam.ErrorType.Data,
@@ -524,23 +540,27 @@ module BpChart =
     (labels: string list)
     (values: int list)
     : GenericChart list =
-    match labels, values with
-    | [], [] ->
-      [ Chart.Line(x = ([]: string list), y = ([]: int list), Name = name)
-        |> Chart.withLineStyle (Color = color) ]
-    | [ _ ], [ _ ] -> [ Chart.Point(x = labels, y = values, Name = name, MarkerColor = color) ]
-    | _ ->
-      dashRuns dashes
-      |> List.mapi (fun idx (startIdx, endIdx, style) ->
-        Chart.Line(
-          x = labels[startIdx..endIdx],
-          y = values[startIdx..endIdx],
-          Name = name,
-          ShowLegend = (idx = 0),
-          ShowMarkers = true,
-          LineDash = style
-        )
-        |> Chart.withLineStyle (Color = color))
+    // The chart's unified hover (HoverMode.X) already titles each row block with the
+    // shared date, so a row only needs the value — the color swatch + legend (not
+    // repeated here) identify which series it belongs to.
+    (match labels, values with
+     | [], [] ->
+       [ Chart.Line(x = ([]: string list), y = ([]: int list), Name = name)
+         |> Chart.withLineStyle (Color = color) ]
+     | [ _ ], [ _ ] -> [ Chart.Point(x = labels, y = values, Name = name, MarkerColor = color) ]
+     | _ ->
+       dashRuns dashes
+       |> List.mapi (fun idx (startIdx, endIdx, style) ->
+         Chart.Line(
+           x = labels[startIdx..endIdx],
+           y = values[startIdx..endIdx],
+           Name = name,
+           ShowLegend = (idx = 0),
+           ShowMarkers = true,
+           LineDash = style
+         )
+         |> Chart.withLineStyle (Color = color)))
+    |> List.map hoverYOnly
 
   // Fraction of points in each point's local LOWESS neighborhood. A wide bandwidth
   // (e.g., 0.5) averages over so many points that real local structure — a dip right
