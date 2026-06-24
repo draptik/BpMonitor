@@ -109,53 +109,8 @@ module ReadingViews =
 
     // Fig. 5's scrubber bar (Wegier et al. 2021): the chart's x-axis spike (Charts.fs
     // `recentXAxis`) already draws the moving vertical line; this links it to the value
-    // strip by boxing the hovered column. Follows the same poll-until-ready pattern as
-    // the chart's own errorBarScript (Charts.fs `errorBarScript`).
-    // TODOs.md: keep the value strip in sync with the chart's x-axis when zooming/panning.
-    // `plotly_relayout` fires with `xaxis.range[0]`/`[1]` on zoom/pan, or `xaxis.autorange`
-    // on a reset (e.g. double-click). Columns whose data-x falls outside the new range get
-    // `out-of-range` (display:none in app.css), so the fixed-layout table redistributes the
-    // remaining columns to stay aligned with what the chart is showing.
-    let scrubberScript =
-      Text.raw (
-        "<script>(function(){"
-        + "function setup(){"
-        + "var d=document.querySelector('.js-plotly-plot');"
-        + "if(!d||!d.on){setTimeout(setup,50);return;}"
-        + "d.on('plotly_hover',function(e){"
-        + "var x=e.points[0].x;"
-        + "document.querySelectorAll('.value-strip td.scrubbed').forEach(function(c){c.classList.remove('scrubbed');});"
-        + "document.querySelectorAll('.value-strip td[data-x=\"'+x+'\"]').forEach(function(c){c.classList.add('scrubbed');});"
-        + "});"
-        + "d.on('plotly_unhover',function(){"
-        + "document.querySelectorAll('.value-strip td.scrubbed').forEach(function(c){c.classList.remove('scrubbed');});"
-        + "});"
-        + "d.on('plotly_relayout',function(e){"
-        + "var cells=document.querySelectorAll('.value-strip td[data-x]');"
-        + "var lo=e['xaxis.range[0]'],hi=e['xaxis.range[1]'];"
-        + "if(lo===undefined&&Array.isArray(e['xaxis.range'])){lo=e['xaxis.range'][0];hi=e['xaxis.range'][1];}"
-        + "if(lo===undefined&&e['xaxis.autorange']===undefined&&d.layout&&d.layout.xaxis){"
-        + "if(d.layout.xaxis.autorange){lo=undefined;}"
-        + "else if(d.layout.xaxis.range){lo=d.layout.xaxis.range[0];hi=d.layout.xaxis.range[1];}"
-        + "}"
-        + "if(lo===undefined||hi===undefined){"
-        + "cells.forEach(function(c){c.classList.remove('out-of-range');});"
-        + "return;"
-        + "}"
-        + "var loT=new Date(String(lo).replace(' ','T')).getTime();"
-        + "var hiT=new Date(String(hi).replace(' ','T')).getTime();"
-        + "if(isNaN(loT)||isNaN(hiT))return;"
-        + "cells.forEach(function(c){"
-        + "var t=new Date(c.dataset.x.replace(' ','T')).getTime();"
-        + "if(isNaN(t))return;"
-        + "c.classList.toggle('out-of-range',t<loT||t>hiT);"
-        + "});"
-        + "});"
-        + "}"
-        + "setTimeout(setup,0);"
-        + "})()</script>"
-      )
-
+    // strip by boxing the hovered column. Behavior lives in wwwroot/recent-scrubber.js
+    // (loaded globally by ViewLayout, self-guards on `.value-strip`'s presence).
     ViewLayout.layout
       Routes.recent
       activeMember.Name
@@ -164,9 +119,7 @@ module ReadingViews =
       [ Elem.h1 [] [ Text.raw "Recent" ]
         Elem.div
           [ Attr.class' "chart-container" ]
-          [ valueStrip
-            Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
-            scrubberScript ] ]
+          [ valueStrip; Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ] ]
 
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
   /// above the fields when re-displaying after a failed submit.

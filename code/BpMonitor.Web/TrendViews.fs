@@ -101,12 +101,9 @@ module TrendViews =
       [ Attr.id "trends-panel" ]
       [ Elem.div [ Attr.class' "trends-window-buttons" ] ([ Weekly; Monthly; Yearly ] |> List.map granButton)
         Elem.div [ Attr.class' "trends-subperiod-buttons" ] (periods |> List.map periodButton)
-        yield! content
-        // Scroll the active sub-period pill into view (runs after htmx swaps in this fragment).
-        Elem.script
-          []
-          [ Text.raw
-              "(function(){var a=document.querySelector('.trends-subperiod-buttons [aria-current=\"page\"]');if(a)a.scrollIntoView({inline:'nearest',block:'nearest'});})()" ] ]
+        // Active sub-period pill is scrolled into view by wwwroot/trends-scroll.js
+        // (loaded globally by ViewLayout, re-runs on htmx:afterSettle for this swap).
+        yield! content ]
 
   /// The /trends full page. Pre-renders the Weekly/current panel (including toggle buttons).
   let trends
