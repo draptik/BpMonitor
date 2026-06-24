@@ -15,6 +15,10 @@ with `git add`, then run `scripts/ship-pr.sh "<gitmoji + conventional title>"`.
 It opens `$EDITOR` for the PR summary, watches CI, and only merges after
 explicit confirmation. Keep it in sync with this skill when the process changes.
 
+Inside Claude, the `ship` skill (`/ship`) runs the same flow end-to-end —
+commit, push, PR, CI wait, squash-merge, cleanup — without per-step
+confirmation, auto-merging once CI is green.
+
 ## Branching Strategy
 
 ```text

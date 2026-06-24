@@ -41,6 +41,7 @@ The following are available as slash commands (defined in `.claude/skills/`):
 | Skill | Command | Description |
 | --- | --- | --- |
 | Git Workflow | auto-loaded | Branching, commits, PR conventions |
+| Ship | `/ship` | Commit, push, open PR, wait for CI, squash-merge, and clean up in one go |
 | Review Tests | `/review-tests [file]` | Identify test gaps after implementation |
 | Setup Tooling | `/setup-tooling` | Audit and configure code quality infrastructure |
 | Model Advisor | auto-loaded | Model selection reference |
