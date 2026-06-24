@@ -339,6 +339,11 @@ let ``toHtml removes the lasso, autoscale and box-select modebar buttons, so the
   test <@ html.Contains("\"modeBarButtonsToRemove\":[\"lasso2d\",\"autoScale2d\",\"select2d\"]") @>
 
 [<Fact>]
+let ``toHtml pre-selects the pan tool in the modebar, instead of defaulting to zoom-box drag`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ html.Contains("\"dragmode\":\"pan\"") @>
+
+[<Fact>]
 let ``toHtml locks the y-axis range so zoom/select tools can only ever change the x-axis`` () =
   let html = BpChart.toHtml GoalRange.defaults readings
   // The y-axis object nests a "title" object of its own, so a [^}]* lookahead would stop
@@ -351,6 +356,11 @@ let ``toHtmlRecent removes the lasso, autoscale and box-select modebar buttons, 
   =
   let html = BpChart.toHtmlRecent GoalRange.defaults 30 windowStart30 now readings
   test <@ html.Contains("\"modeBarButtonsToRemove\":[\"lasso2d\",\"autoScale2d\",\"select2d\"]") @>
+
+[<Fact>]
+let ``toHtmlRecent pre-selects the pan tool in the modebar, instead of defaulting to zoom-box drag`` () =
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 windowStart30 now readings
+  test <@ html.Contains("\"dragmode\":\"pan\"") @>
 
 [<Fact>]
 let ``toHtmlRecent locks the y-axis range so zoom/select tools can only ever change the x-axis`` () =

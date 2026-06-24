@@ -57,8 +57,15 @@ module BpChart =
   let private compactMargin =
     Margin.init (Left = 48, Right = 16, Top = 24, Bottom = 56)
 
+  // Pre-selects the pan tool in the modebar, so the default drag gesture moves the
+  // x-axis window rather than drawing a zoom-box (the y-axis is fixed-range anyway).
   let private layout () =
-    Layout.init (PaperBGColor = transparent, PlotBGColor = transparent, Margin = compactMargin)
+    Layout.init (
+      PaperBGColor = transparent,
+      PlotBGColor = transparent,
+      Margin = compactMargin,
+      DragMode = StyleParam.DragMode.Pan
+    )
 
   // Light-theme default; theme.js relayouts this to the dark-theme font color
   // ("#c2cfd6") on load and on toggle, so it's never stuck unreadable in dark mode.
@@ -188,7 +195,8 @@ module BpChart =
       PaperBGColor = transparent,
       PlotBGColor = transparent,
       Margin = compactMargin,
-      HoverMode = StyleParam.HoverMode.X
+      HoverMode = StyleParam.HoverMode.X,
+      DragMode = StyleParam.DragMode.Pan
     )
 
   /// Horizontal centered legend at the bottom, shared by /history, /trends and /recent,
