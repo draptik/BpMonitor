@@ -5,6 +5,7 @@
       "code/BpMonitor.Web/wwwroot/theme.js",
       "code/BpMonitor.Web/wwwroot/theme-label.js",
       "code/BpMonitor.Web/wwwroot/recent-scrubber.js",
+      "code/BpMonitor.Web/wwwroot/recent-zoom.js",
       "code/BpMonitor.Web/wwwroot/trends-scroll.js"
     ]
   },

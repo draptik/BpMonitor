@@ -302,6 +302,22 @@ let ``recent value strip marks a reading below the goal range as 'below'`` () =
   test <@ body.Contains "value-strip-value below" @>
 
 [<Fact>]
+let ``recent renders zoom shortcut buttons for the last 7 and 30 days, anchored to now`` () =
+  let tp = FakeTimeProvider(now)
+  let ctx = TestHost.contextWithProvider (repoWith []) tp
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  let hi = Formats.formatLocal now
+  let lo7 = Formats.formatLocal (now.AddDays(-7.0))
+  let lo30 = Formats.formatLocal (now.AddDays(-30.0))
+
+  test <@ body.Contains $"data-lo=\"{lo7}\" data-hi=\"{hi}\"" @>
+  test <@ body.Contains $"data-lo=\"{lo30}\" data-hi=\"{hi}\"" @>
+  test <@ body.Contains "Last 7 days" @>
+  test <@ body.Contains "Last 30 days" @>
+
+[<Fact>]
 let ``recent value strip leaves an in-range reading's cells unmarked`` () =
   // reading helper's defaults (Systolic = 120, Diastolic = 80) are inside GoalRange.defaults.
   let r = reading 1 1

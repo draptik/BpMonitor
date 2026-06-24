@@ -83,6 +83,11 @@ module ReadingHandlers =
   // account age. A year is generous for panning while keeping both bounded.
   let private recentLoadWindowDays = 365
 
+  // Shortcut buttons rendered above the chart (ReadingViews.fs `zoomButtons`); adding a
+  // new shortcut only means adding an entry here, not touching either function's signature.
+  let private recentZoomShortcutDays =
+    [ "Last 7 days", 7.0; "Last 30 days", float recentChartWindowDays ]
+
   let recent: HttpContext -> Task =
     withMember (fun m ctx ->
       let now = (timeProvider ctx).GetUtcNow()
@@ -96,7 +101,7 @@ module ReadingHandlers =
       let chartHtml =
         BpChart.toHtmlRecent m.Goal recentChartWindowDays windowStart now loadedReadings
 
-      htmlResponse (ReadingViews.recent m chartHtml loadedReadings windowStart) ctx)
+      htmlResponse (ReadingViews.recent m chartHtml loadedReadings windowStart now recentZoomShortcutDays) ctx)
 
   let trends: HttpContext -> Task =
     withMember (fun m ctx ->

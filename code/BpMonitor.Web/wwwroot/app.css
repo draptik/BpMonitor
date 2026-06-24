@@ -655,15 +655,20 @@ form.inline button {
 
 /* ── Trends page ────────────────────────────────────────────────────────── */
 
-/* Granularity selector row (Weekly / Monthly / Yearly) */
-.trends-window-buttons {
+/* Granularity selector row (Weekly / Monthly / Yearly). Shared with the Recent
+   page's zoom-shortcut row (ReadingViews.fs `zoomButtons`,
+   wwwroot/recent-zoom.js) — same pill layout, just an <a role="button"> here
+   vs a <button> there. */
+.trends-window-buttons,
+.recent-zoom-buttons {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
   margin-bottom: 0.75rem;
 }
 
-.trends-window-buttons a[role="button"] {
+.trends-window-buttons a[role="button"],
+.recent-zoom-buttons button {
   padding: 0.25rem 0.9rem;
   font-size: 0.9rem;
   margin: 0;
