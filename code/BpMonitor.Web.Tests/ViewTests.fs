@@ -65,7 +65,7 @@ let ``landing renders action buttons for trends, recent, settings and both expor
 let ``landing export action buttons do not get hx-boosted`` () =
   let html = renderHtml (ReadingViews.landing defaultMember)
   // the sidebar already carries hx-boost="false" on its two export links;
-  // the landing action buttons must add two more, not rely on the sidebar's.
+  // the landing action buttons must add two more, not rely on the sidebar.
   test <@ occurrences "hx-boost=\"false\"" html = 4 @>
 
 [<Fact>]

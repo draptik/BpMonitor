@@ -55,7 +55,7 @@ let private readings =
     reading 29 122 80 71 29 9 None
     reading 30 128 84 74 30 8 None ]
 
-/// `now` for /recent's x-axis range — past the latest test reading (day 30) so every
+/// `now` for /recent's x-axis range — past the latest test reading (day 30), so every
 /// fixture above falls inside the chart's initial 30-day window.
 let private now = Timestamp.local 2026 2 1 12 0 0
 let private windowStart10 = now.AddDays(-10.0)

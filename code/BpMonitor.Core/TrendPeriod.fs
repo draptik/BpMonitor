@@ -2,7 +2,7 @@ namespace BpMonitor.Core
 
 /// ISO-8601 week-numbering year + week (week 1..53).
 /// NB: Year is the ISO week-numbering year, which can differ from the calendar
-/// year near year boundaries (e.g. 29 Dec 2025 can belong to ISO week 2026-W01).
+/// year near year boundaries (e.g., 29 Dec 2025 can belong to ISO week 2026-W01).
 type IsoWeek = { Year: int; Week: int }
 
 /// Calendar year + month (month 1..12).
@@ -42,8 +42,8 @@ module TrendPeriod =
 
   let private parseIsoWeekKey (key: string) : IsoWeek option =
     match key.Split('-') with
-    | [| y; w |] when w.Length >= 2 && w.[0] = 'W' ->
-      match Int32.TryParse y, Int32.TryParse(w.[1..]) with
+    | [| y; w |] when w.Length >= 2 && w[0] = 'W' ->
+      match Int32.TryParse y, Int32.TryParse(w[1..]) with
       | (true, year), (true, week) when week >= 1 && week <= 53 -> Some { Year = year; Week = week }
       | _ -> None
     | _ -> None

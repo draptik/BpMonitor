@@ -110,4 +110,4 @@ module MemberHandlers =
       (memberRepo ctx).Update({ m with PasswordHash = None })
       log.LogInformation("Admin reset password for member {Name} (Id={Id})", m.Name, m.Id)
       ctx.Response.Redirect Routes.members
-      System.Threading.Tasks.Task.CompletedTask)
+      Task.CompletedTask)

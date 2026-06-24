@@ -144,7 +144,8 @@ let ``apply adds missing columns to an existing Readings table without MemberId`
   use insertCmd = connection.CreateCommand()
 
   insertCmd.CommandText <-
-    "INSERT INTO \"Readings\" (Systolic, Diastolic, HeartRate, Timestamp) VALUES (120, 80, 70, '2026-01-01 09:00:00 +00:00')"
+    "-- noinspection SqlInsertValues
+    INSERT INTO \"Readings\" (Systolic, Diastolic, HeartRate, Timestamp) VALUES (120, 80, 70, '2026-01-01 09:00:00 +00:00')"
 
   insertCmd.ExecuteNonQuery() |> ignore
 

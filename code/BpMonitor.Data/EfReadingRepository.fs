@@ -80,7 +80,7 @@ type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvi
       if existsForMember then
         ctx.ChangeTracker.Entries<ReadingRecord>()
         |> Seq.tryFind (fun e -> e.Entity.Id = reading.Id)
-        |> Option.iter (fun e -> e.State <- Microsoft.EntityFrameworkCore.EntityState.Detached)
+        |> Option.iter (fun e -> e.State <- EntityState.Detached)
 
         ctx.Readings.Update(reading |> Mapping.withModifiedAt now |> Mapping.toEntity)
         |> ignore

@@ -6,7 +6,7 @@ open FsCheck.Xunit
 open BpMonitor.Core
 
 /// x/y series biased toward the conditions that can make a local LOWESS fit singular:
-/// x's drawn from a small discrete set make duplicate x-values (e.g. same-day readings on
+/// x's drawn from a small discrete set make duplicate x-values (e.g., same-day readings on
 /// the real /recent chart) likely, and a few outlier y's are large enough to get
 /// bisquare-zeroed during the robustifying iterations — together the combination that
 /// drove `weightedLinearFitAt`'s 0.0/0.0 division.

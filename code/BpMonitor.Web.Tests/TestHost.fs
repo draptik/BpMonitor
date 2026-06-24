@@ -58,14 +58,14 @@ let context (repo: IReadingRepository) : HttpContext =
   newCtx (buildServices repo memberRepo TimeProvider.System) (Some(buildPrincipal defaultMember))
 
 /// Variant of `context` that injects a custom TimeProvider — useful for testing
-/// handlers that read the current time (e.g. newReading timestamp prefill).
+/// handlers that read the current time (e.g., newReading timestamp prefill).
 let contextWithProvider (repo: IReadingRepository) (tp: TimeProvider) : HttpContext =
   let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
   newCtx (buildServices repo memberRepo tp) (Some(buildPrincipal defaultMember))
 
 /// Variant of `context` that uses a custom list of family members. The user
-/// principal is set to the first member in the list. Useful for multi-member
-/// scenarios (e.g. testing edit/update invariant enforcement).
+/// principal is set to be the first member in the list. Useful for multi-member
+/// scenarios (e.g., testing edit/update invariant enforcement).
 let contextWithMembers (repo: IReadingRepository) (members: FamilyMember list) : HttpContext =
   let memberRepo =
     InMemoryFamilyMemberRepository(Some members) :> IFamilyMemberRepository
@@ -74,8 +74,8 @@ let contextWithMembers (repo: IReadingRepository) (members: FamilyMember list) :
   newCtx (buildServices repo memberRepo TimeProvider.System) user
 
 /// Variant of `contextWithMembers` that also injects a custom TimeProvider —
-/// useful for testing handlers that need both a non-default member (e.g. a
-/// custom goal range) and control over the current time (e.g. trends windows).
+/// useful for testing handlers that need both a non-default member (e.g., a
+/// custom goal range) and control over the current time (e.g., trends windows).
 let contextWithMembersAndProvider
   (repo: IReadingRepository)
   (members: FamilyMember list)

@@ -73,7 +73,7 @@ module AuthHandlers =
         handler ctx
 
   /// Resolves the authenticated member and passes it to `handler`. If the member
-  /// cannot be resolved (e.g. stale principal after account removal) redirects to
+  /// cannot be resolved (e.g., stale principal after account removal), redirects to
   /// /login instead of throwing. Mirrors `protect` but hands the member to the handler.
   let withMember (handler: FamilyMember -> HttpContext -> Task) : HttpContext -> Task =
     fun ctx ->
@@ -90,7 +90,7 @@ module AuthHandlers =
   let loginPage: HttpContext -> Task =
     fun ctx -> htmlResponse (LoginViews.loginPage []) ctx
 
-  // `onFailure` lets callers choose what to render on a bad password (loginPage vs loginMember).
+  // `onFailure` lets callers choose what to render on a bad password (loginPage vs. loginMember).
   let private claimedLogin
     (m: FamilyMember)
     (password: string)

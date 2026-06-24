@@ -66,7 +66,7 @@ module SchemaMigrations =
     |> ignore
 
   /// Ensures a default family member exists. Returns its Id, which is used as the
-  /// default value when back-filling the MemberId column on existing readings.
+  /// default value when backfilling the MemberId column on existing readings.
   let private ensureDefaultMember (ctx: BpMonitorDbContext) : int =
     let count =
       withConn ctx (fun conn -> scalarInt64 conn "SELECT COUNT(*) FROM \"Members\"")
@@ -128,7 +128,7 @@ module SchemaMigrations =
     // Ensure at least one default member exists and get its Id.
     let defaultMemberId = ensureDefaultMember ctx
 
-    // Back-fill existing readings with the default member Id.
+    // Backfill existing readings with the default member Id.
     addColumnIfMissing ctx "Readings" "MemberId" "INTEGER" (string defaultMemberId)
 
     // Promote the lowest-Id member to admin+active when no active admin exists yet.

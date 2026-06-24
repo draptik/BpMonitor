@@ -6,7 +6,7 @@ module Version =
   open System
   open System.Reflection
 
-  /// Normalise a raw InformationalVersion string to a display version.
+  /// Normalize a raw InformationalVersion string to a display version.
   /// The .NET SDK appends +<sha> to the default "1.0.0" in git repos, so strip
   /// the suffix before checking the sentinel — but keep it for real versions.
   let parse (raw: string option) : string =

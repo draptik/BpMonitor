@@ -14,10 +14,10 @@ module BpChart =
   // faded line, background band) is a derived alpha of it, so retuning a series' hue
   // only ever needs a change in one place.
   let private opaque (r, g, b) =
-    Color.fromString (sprintf "#%02X%02X%02X" r g b)
+    Color.fromString $"#%02X{r}%02X{g}%02X{b}"
 
   let private withAlpha (alpha: float) (r, g, b) =
-    Color.fromString (sprintf "rgba(%d,%d,%d,%g)" r g b alpha)
+    Color.fromString $"rgba(%d{r},%d{g},%d{b},%g{alpha})"
 
   let private systolicRgb = (0, 132, 113)
   let private diastolicRgb = (156, 101, 43)
@@ -25,7 +25,7 @@ module BpChart =
   let private systolicColor = opaque systolicRgb
   let private diastolicColor = opaque diastolicRgb
 
-  // The /recent chart fades the raw per-reading line so the LOWESS trend line (kept at
+  // The /recent chart fades the raw per-reading line, so the LOWESS trend line (kept at
   // full strength) stands out as the visual focus — Wegier et al. 2021, "Smoothing data".
   let private systolicFadedColor = withAlpha 0.22 systolicRgb
   let private diastolicFadedColor = withAlpha 0.22 diastolicRgb
@@ -52,7 +52,7 @@ module BpChart =
     [ band goal.SystolicMin goal.SystolicMax systolicBandColor
       band goal.DiastolicMin goal.DiastolicMax diastolicBandColor ]
 
-  // Compact margins, matching the trends chart: with no chart title, Plotly's default
+  // Compact margins, matching the trends' chart: with no chart title, Plotly's default
   // top margin (100) would otherwise sit empty above the plot.
   let private compactMargin =
     Margin.init (Left = 48, Right = 16, Top = 24, Bottom = 56)
@@ -437,7 +437,7 @@ module BpChart =
   // Wegier et al. 2021 (docs/resources/12911_2021_Article_1598.pdf, "Missing data"):
   // a gap is "missing data" once the days it skips exceed 10% of the displayed window;
   // such gaps render dashed, ordinary gaps render solid. Consecutive same-style gaps are
-  // merged into a single multi-point trace (a "run") instead of one trace per gap, keeping
+  // merged into a single multipoint trace (a "run") instead of one trace per gap, keeping
   // the trace count proportional to the number of dash/solid transitions rather than to N.
   // /recent's load window is wider than its visible focus window (see ReadingHandlers'
   // `recentLoadWindowDays`), so this threshold — tuned for the 30-day focus window — also
@@ -479,7 +479,7 @@ module BpChart =
     |> List.map (fun (style, startGap, endGap) -> startGap, endGap + 1, style)
 
   /// One trace per dash/solid run for a series; only the first run carries the legend
-  /// entry, all runs show markers so every reading still gets a point. Falls back to a
+  /// entry, all runs show markers, so every reading still gets a point. Falls back to a
   /// single trace when there's nothing to split (0 or 1 readings).
   let private seriesTraces
     (color: Color)
@@ -506,8 +506,8 @@ module BpChart =
         )
         |> Chart.withLineStyle (Color = color))
 
-  // Fraction of points in each point's local LOWESS neighbourhood. A wide bandwidth
-  // (e.g. 0.5) averages over so many points that real local structure — a dip right
+  // Fraction of points in each point's local LOWESS neighborhood. A wide bandwidth
+  // (e.g., 0.5) averages over so many points that real local structure — a dip right
   // before a gap, a spike right after one — gets smoothed away into one broad hump,
   // unlike the responsive trend line in Wegier et al. 2021's Fig. 5. A narrow
   // bandwidth keeps the day-to-day jitter damped while still tracking those shifts.

@@ -7,7 +7,7 @@ open VerifyTests
 
 /// Verify resolves the snapshot directory from the caller's source file.
 /// Since these helpers live outside the calling test project, callers must
-/// pass their own file path explicitly (e.g. via __SOURCE_DIRECTORY__ /
+/// pass their own file path explicitly (e.g., via __SOURCE_DIRECTORY__ /
 /// __SOURCE_FILE__) rather than relying on CallerFilePathAttribute, which
 /// would anchor to this module instead of the calling test file.
 

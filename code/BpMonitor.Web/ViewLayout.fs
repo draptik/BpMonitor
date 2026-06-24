@@ -33,7 +33,7 @@ module ViewLayout =
       []
 
   /// Shared <head> element. `extras` allows callers to append additional nodes
-  /// (e.g. the htmx script that only the authenticated layout needs).
+  /// (e.g., the htmx script that only the authenticated layout needs).
   let private htmlHead (title: string) (extras: XmlNode list) : XmlNode =
     Elem.head
       []
@@ -42,7 +42,7 @@ module ViewLayout =
          Elem.title [] [ Text.raw title ]
          Elem.link [ Attr.rel "icon"; Attr.href "/favicon.svg"; Attr.type' "image/svg+xml" ]
          // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
-         // No defer/async — render-blocking prevents flash of wrong theme (FOUC).
+         // No defer/async — render-blocking prevents flash of the wrong theme (FOUC).
          Elem.script [ Attr.src "/theme.js" ] []
          Elem.link [ Attr.rel "stylesheet"; Attr.href "/pico.min.css" ]
          Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ]
@@ -159,7 +159,7 @@ module ViewLayout =
       [ Elem.label [ Attr.for' name ] [ Text.raw labelText ]
         Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ] ]
 
-  /// The readings table; wrapped in an id'd container so it can be targeted for
+  /// The readings' table; wrapped in an id'd container so it can be targeted for
   /// partial swaps later.
   let readingsTable (readings: BloodPressureReading list) : XmlNode =
     let header =

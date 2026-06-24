@@ -62,7 +62,7 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.Time
         // Detach any tracked entity with the same Id to avoid EF tracking conflicts.
         ctx.ChangeTracker.Entries<MemberRecord>()
         |> Seq.tryFind (fun e -> e.Entity.Id = m.Id)
-        |> Option.iter (fun e -> e.State <- Microsoft.EntityFrameworkCore.EntityState.Detached)
+        |> Option.iter (fun e -> e.State <- EntityState.Detached)
 
         ctx.Members.Update(MemberMapping.toEntity m.CreatedAt now m) |> ignore
         ctx.SaveChanges() |> ignore

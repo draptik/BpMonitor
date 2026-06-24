@@ -154,7 +154,7 @@ let ``trendsPanel with gran=monthly returns monthly sub-period buttons`` () =
 let ``trendsPanel with gran + key uses that specific sub-period`` () =
   let tp = FakeTimeProvider(trendsNow)
 
-  // Reading in W23 (last week: 2026-06-01 .. 2026-06-07)
+  // Reading in W23 (last week: 2026-06-01 ... 2026-06-07)
   let r =
     { sample with
         Timestamp = Timestamp.utc 2026 6 3 9 0 0 // W23

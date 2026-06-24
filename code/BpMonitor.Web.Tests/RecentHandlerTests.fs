@@ -39,7 +39,7 @@ let ``recent returns 200`` () =
 [<Fact>]
 let ``recent loads a reading older than 30 days but marks its value-strip cell out-of-range`` () =
   // TODOs.md: "Recent: paning, load all data, but focus the x-axis and the value-strip
-  // on last 30 days". The old reading must still be present (so panning back reveals it)
+  // on last 30 days". The old reading must still be present (so panning back reveals it),
   // but its value-strip cell starts hidden via the existing out-of-range/relayout wiring.
   let tp = FakeTimeProvider(now)
   let oldReading = { reading 31 1 with Systolic = 130 }

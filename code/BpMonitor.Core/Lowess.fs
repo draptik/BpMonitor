@@ -32,10 +32,10 @@ module Lowess =
   let private weightedLinearFitAt (xi: float) (points: (float * float * float) array) =
     let sumW = points |> Array.sumBy (fun (w, _, _) -> w)
 
-    // A whole neighbourhood can end up with zero total weight — e.g. a tight cluster of
+    // A whole neighborhood can end up with zero total weight — e.g., a tight cluster of
     // duplicate x-values (same-day readings) where the robustifying iterations bisquare-zero
     // every remaining weight. There's no weighted information left at that point, so fall
-    // back to the plain (unweighted) mean of the neighbourhood's y-values instead of
+    // back to the plain (unweighted) mean of the neighborhood's y-values instead of
     // dividing 0.0/0.0 into NaN.
     if sumW = 0.0 then
       points |> Array.averageBy (fun (_, _, y) -> y)
@@ -65,10 +65,10 @@ module Lowess =
       let xs = List.toArray xs
       let ys = List.toArray ys
 
-      // Number of neighbours considered for each point's local fit.
+      // Number of neighbors considered for each point's local fit.
       let k = max 2 (int (ceil (bandwidth * float n)))
 
-      // Each point's k nearest neighbours depend only on `xs`, not on the robustness
+      // Each point's k nearest neighbors depend only on `xs`, not on the robustness
       // weights — so they're identical across every robustifying iteration. Computed
       // once here rather than re-sorting all n points per point on every iteration.
       let neighbours =
