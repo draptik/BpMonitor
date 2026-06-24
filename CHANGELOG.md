@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Recent chart: added a caption crediting the Wegier et al. 2021 paper the chart layout is based on, linking to its DOI
+
 ### Changed
 
 - History and Recent charts: comment markers now render as a dark-red hexagon (matching Wegier et al. 2021's Fig. 5) instead of a teal circle, sit on a y-axis baseline labeled "Comments", and are no longer clipped by the x-axis
