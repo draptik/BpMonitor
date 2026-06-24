@@ -1,11 +1,44 @@
-// Scrolls the active sub-period pill into view. The trends panel is an htmx-swapped
-// fragment, so this re-runs on htmx:afterSettle (not just DOMContentLoaded) to catch
-// every swap — same pattern as theme.js for surviving hx-boost navigations.
+// Scrolls the active sub-period pill into view, centered in the ~5-pill window. The
+// trends panel is an htmx-swapped fragment, so this re-runs on htmx:afterSettle (not
+// just DOMContentLoaded) to catch every swap — same pattern as theme.js for surviving
+// hx-boost navigations.
 function scrollActiveSubPeriodIntoView() {
-  if (!document.querySelector(".trends-subperiod-buttons")) return;
-  var active = document.querySelector('.trends-subperiod-buttons [aria-current="page"]');
-  if (active) active.scrollIntoView({ inline: "nearest", block: "nearest" });
+  var row = document.querySelector(".trends-subperiod-buttons");
+  if (!row) return;
+  var active = row.querySelector('[aria-current="page"]');
+  if (active) active.scrollIntoView({ inline: "center", block: "nearest" });
 }
 
-document.addEventListener("DOMContentLoaded", scrollActiveSubPeriodIntoView);
-document.addEventListener("htmx:afterSettle", scrollActiveSubPeriodIntoView);
+// Toggles edge-fade affordances (CSS, app.css `.trends-subperiod-scroller`) on the
+// non-scrolling wrapper based on how far the pill row has been scrolled.
+function updateSubPeriodFades() {
+  var row = document.querySelector(".trends-subperiod-buttons");
+  var scroller = document.querySelector(".trends-subperiod-scroller");
+  if (!row || !scroller) return;
+
+  var tolerancePx = 1;
+  var canScrollLeft = row.scrollLeft > tolerancePx;
+  var canScrollRight = row.scrollLeft + row.clientWidth < row.scrollWidth - tolerancePx;
+
+  scroller.classList.toggle("can-scroll-left", canScrollLeft);
+  scroller.classList.toggle("can-scroll-right", canScrollRight);
+}
+
+function refreshSubPeriodScroller() {
+  scrollActiveSubPeriodIntoView();
+  updateSubPeriodFades();
+}
+
+document.addEventListener("DOMContentLoaded", refreshSubPeriodScroller);
+document.addEventListener("htmx:afterSettle", refreshSubPeriodScroller);
+window.addEventListener("resize", updateSubPeriodFades);
+
+document.addEventListener(
+  "scroll",
+  (event) => {
+    if (event.target?.classList?.contains("trends-subperiod-buttons")) {
+      updateSubPeriodFades();
+    }
+  },
+  true,
+);
