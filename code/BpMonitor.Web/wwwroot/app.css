@@ -703,6 +703,45 @@ form.inline button {
   border-color: var(--pico-primary);
 }
 
+/* Sub-period scroller — caps the row to roughly 5 natural-width pills so it stays
+   compact instead of stretching full-width; the rest scroll into view. Hosts the
+   edge-fade overlays below, which must sit on a non-scrolling parent. */
+.trends-subperiod-scroller {
+  position: relative;
+  max-width: min(100%, 30rem);
+  margin-bottom: 1.5rem;
+}
+
+/* Edge fades — hint that more pills exist off-screen. Hidden by default, shown via
+   .can-scroll-left/.can-scroll-right (toggled by wwwroot/trends-scroll.js). */
+.trends-subperiod-scroller::before,
+.trends-subperiod-scroller::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.5rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 1;
+}
+
+.trends-subperiod-scroller::before {
+  left: 0;
+  background: linear-gradient(to right, var(--pico-background-color), transparent);
+}
+
+.trends-subperiod-scroller::after {
+  right: 0;
+  background: linear-gradient(to left, var(--pico-background-color), transparent);
+}
+
+.trends-subperiod-scroller.can-scroll-left::before,
+.trends-subperiod-scroller.can-scroll-right::after {
+  opacity: 1;
+}
+
 /* Sub-period pill row — horizontally scrollable, no wrapping */
 .trends-subperiod-buttons {
   display: flex;
@@ -710,7 +749,6 @@ form.inline button {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
   padding-bottom: 0.25rem; /* keep scrollbar from clipping pill border */
 }
 

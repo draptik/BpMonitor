@@ -100,9 +100,11 @@ module TrendViews =
     Elem.div
       [ Attr.id "trends-panel" ]
       [ Elem.div [ Attr.class' "trends-window-buttons" ] ([ Weekly; Monthly; Yearly ] |> List.map granButton)
-        Elem.div [ Attr.class' "trends-subperiod-buttons" ] (periods |> List.map periodButton)
-        // Active sub-period pill is scrolled into view by wwwroot/trends-scroll.js
-        // (loaded globally by ViewLayout, re-runs on htmx:afterSettle for this swap).
+        // Scroller wrapper hosts the edge-fade overlays (CSS) and is read by
+        // wwwroot/trends-scroll.js to toggle them and to center the active pill.
+        Elem.div
+          [ Attr.class' "trends-subperiod-scroller" ]
+          [ Elem.div [ Attr.class' "trends-subperiod-buttons" ] (periods |> List.map periodButton) ]
         yield! content ]
 
   /// The /trends full page. Pre-renders the Weekly/current panel (including toggle buttons).
