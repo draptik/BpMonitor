@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Recent chart: added a "Load full history" button, shown once readings older than the chart's 365-day load window exist, that loads the member's entire history so panning left can reveal it all
 - Recent chart: added a caption crediting the Wegier et al. 2021 paper the chart layout is based on, linking to its DOI
 
 ### Changed

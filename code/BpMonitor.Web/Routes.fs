@@ -11,6 +11,7 @@ module Routes =
   let readings = "/readings"
   let members = "/members"
   let recent = "/recent"
+  let recentFull = "/recent/full"
   let exportJson = "/export"
   let exportCsv = "/export.csv"
   let settings = "/settings"

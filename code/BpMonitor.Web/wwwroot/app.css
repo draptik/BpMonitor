@@ -675,7 +675,8 @@ form.inline button {
 }
 
 .trends-window-buttons a[role="button"],
-.recent-zoom-buttons button {
+.recent-zoom-buttons button,
+.recent-load-full {
   padding: 0.25rem 0.9rem;
   font-size: 0.9rem;
   margin: 0;
@@ -687,6 +688,18 @@ form.inline button {
 .trends-window-buttons a[aria-current="page"] {
   background: var(--pico-primary);
   color: var(--pico-primary-inverse);
+  border-color: var(--pico-primary);
+}
+
+/* "Load full history" button (ReadingViews.fs `loadFullButton`) — only shown while the
+   server-side load window (ReadingHandlers `recentLoadWindowDays`) hides older readings.
+   Outline style distinguishes it from the filled zoom-shortcut pills above it: it's a
+   one-shot data-loading action, not a view toggle. Own row below them, hence the bottom
+   margin the shared rule above doesn't have. */
+.recent-load-full {
+  margin-bottom: 0.75rem;
+  background: transparent;
+  color: var(--pico-primary);
   border-color: var(--pico-primary);
 }
 

@@ -53,14 +53,17 @@ module ReadingViews =
             Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ]
         ViewLayout.readingsTable readings ]
 
-  /// Recent: chart of all readings, focused on the last 30 days, with a sys/dias value strip.
-  let recent
+  /// The swappable chart container: zoom/load-full buttons, value strip, chart, citation.
+  /// Rendered as a fragment for htmx swaps (GET /recent/full); also used directly by the
+  /// full /recent page, so the buttons are always inside the swapped region.
+  let recentChartContainer
     (activeMember: FamilyMember)
     (chartHtml: string)
     (allReadings: BloodPressureReading list)
     (windowStart: System.DateTimeOffset)
     (now: System.DateTimeOffset)
     (zoomShortcutDays: (string * float) list)
+    (showLoadFull: bool)
     : XmlNode =
     let valueStrip =
       // The strip lists every loaded reading (the chart's load window, see ReadingHandlers
@@ -128,25 +131,54 @@ module ReadingViews =
     let zoomButtons =
       Elem.div [ Attr.class' "recent-zoom-buttons" ] [ for label, days in zoomShortcutDays -> zoomButton label days ]
 
+    // Shown only while the load window (ReadingHandlers `recentLoadWindowDays`) is
+    // hiding older readings; clicking it htmx-swaps this whole container for one
+    // rendered from the member's entire history (GET /recent/full), same pattern as
+    // /trends' panel swap.
+    let loadFullButton =
+      if not showLoadFull then
+        []
+      else
+        [ Elem.button
+            [ Attr.type' "button"
+              Attr.class' "recent-load-full"
+              Attr.create "hx-get" Routes.recentFull
+              Attr.create "hx-target" "#recent-chart"
+              Attr.create "hx-swap" "outerHTML" ]
+            [ Text.raw "Load full history" ] ]
+
     // Fig. 5's scrubber bar (Wegier et al. 2021): the chart's x-axis spike (Charts.fs
     // `recentXAxis`) already draws the moving vertical line; this links it to the value
     // strip by boxing the hovered column. Behavior lives in wwwroot/recent-scrubber.js
     // (loaded globally by ViewLayout, self-guards on `.value-strip`'s presence).
+    Elem.div
+      [ Attr.id "recent-chart"; Attr.class' "chart-container" ]
+      ([ zoomButtons ]
+       @ loadFullButton
+       @ [ valueStrip
+           Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
+           Elem.p
+             [ Attr.class' "chart-citation" ]
+             [ Text.raw "Chart layout inspired by "
+               Elem.a [ Attr.href "https://doi.org/10.1186/s12911-021-01598-4" ] [ Text.raw "Wegier et al. 2021" ] ] ])
+
+  /// Recent: chart of all readings, focused on the last 30 days, with a sys/dias value strip.
+  let recent
+    (activeMember: FamilyMember)
+    (chartHtml: string)
+    (allReadings: BloodPressureReading list)
+    (windowStart: System.DateTimeOffset)
+    (now: System.DateTimeOffset)
+    (zoomShortcutDays: (string * float) list)
+    (showLoadFull: bool)
+    : XmlNode =
     ViewLayout.layout
       Routes.recent
       activeMember.Name
       activeMember.IsAdmin
       "Recent"
       [ Elem.h1 [] [ Text.raw "Recent" ]
-        Elem.div
-          [ Attr.class' "chart-container" ]
-          [ zoomButtons
-            valueStrip
-            Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
-            Elem.p
-              [ Attr.class' "chart-citation" ]
-              [ Text.raw "Chart layout inspired by "
-                Elem.a [ Attr.href "https://doi.org/10.1186/s12911-021-01598-4" ] [ Text.raw "Wegier et al. 2021" ] ] ] ]
+        recentChartContainer activeMember chartHtml allReadings windowStart now zoomShortcutDays showLoadFull ]
 
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
   /// above the fields when re-displaying after a failed submit.
