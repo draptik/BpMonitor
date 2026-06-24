@@ -142,7 +142,11 @@ module ReadingViews =
           [ Attr.class' "chart-container" ]
           [ zoomButtons
             valueStrip
-            Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ] ]
+            Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
+            Elem.p
+              [ Attr.class' "chart-citation" ]
+              [ Text.raw "Chart layout inspired by "
+                Elem.a [ Attr.href "https://doi.org/10.1186/s12911-021-01598-4" ] [ Text.raw "Wegier et al. 2021" ] ] ] ]
 
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
   /// above the fields when re-displaying after a failed submit.

@@ -573,6 +573,13 @@ form.inline button {
   width: 100%;
 }
 
+/* Caption crediting the Fig. 5 chart layout this page's design is based on. */
+.chart-citation {
+  margin-top: 0.5rem;
+  font-size: 0.65rem;
+  color: var(--pico-muted-color);
+}
+
 /* Fig. 5-style "Blood Pressure Values" strip: a 2-row data table (Systolic/
    Diastolic) listing every value currently shown in the chart window. Fixed
    table layout stretches to the same width as the chart below it and
