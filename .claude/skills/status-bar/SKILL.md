@@ -21,6 +21,7 @@ The Claude Code status bar displays real-time AI session information at the bott
 | Model name | Current Claude model (e.g. "Claude Sonnet 4.6"), highlighted in cyan |
 | Version | Claude Code CLI version (e.g. "v1.0.71"), in blue |
 | Context usage | % of context window used / remaining, color-coded (green/yellow/red) |
+| Plan usage | % of the Pro/Max 5-hour rate limit consumed, color-coded (green/yellow/red); omitted if not reported (e.g. API-key auth, or before the first response in a session) |
 | Token counts | Input and output tokens; cache hits if applicable |
 | Session name | Only shown if session has been renamed via `/rename` |
 | Output style | Only shown if not default |
@@ -31,7 +32,7 @@ The Claude Code status bar displays real-time AI session information at the bott
 ## Example Output
 
 ```text
-Claude Sonnet 4.6 | v1.0.71 | ctx: 12% used / 88% left | in:24000 out:850 cache-hit:18000
+Claude Sonnet 4.6 | v1.0.71 | ctx: 12% used / 88% left | plan: 64% used | in:24000 out:850 cache-hit:18000
 ```
 
 ## Customization
