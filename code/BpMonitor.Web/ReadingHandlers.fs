@@ -88,20 +88,52 @@ module ReadingHandlers =
   let private recentZoomShortcutDays =
     [ "Last 7 days", 7.0; "Last 30 days", float recentChartWindowDays ]
 
+  // Shared by `recent` and `recentFull`: the chart always opens focused on the last
+  // `recentChartWindowDays`, regardless of how much history is loaded behind it.
+  let private renderRecentChart (m: FamilyMember) (now: System.DateTimeOffset) (readings: BloodPressureReading list) =
+    let windowStart = now.AddDays(-float recentChartWindowDays)
+    windowStart, BpChart.toHtmlRecent m.Goal recentChartWindowDays windowStart now readings
+
   let recent: HttpContext -> Task =
     withMember (fun m ctx ->
       let now = (timeProvider ctx).GetUtcNow()
-      let windowStart = now.AddDays(-float recentChartWindowDays)
+      let allReadings = (repo ctx).GetAll(m.Id)
+      let loadWindowStart = now.AddDays(-float recentLoadWindowDays)
 
       let loadedReadings =
-        (repo ctx).GetAll(m.Id)
-        |> ReadingStats.between (now.AddDays(-float recentLoadWindowDays)) now
+        allReadings
+        |> ReadingStats.between loadWindowStart now
         |> List.sortByDescending _.Timestamp
 
-      let chartHtml =
-        BpChart.toHtmlRecent m.Goal recentChartWindowDays windowStart now loadedReadings
+      let hasOlderHistory =
+        allReadings |> List.exists (fun r -> r.Timestamp < loadWindowStart)
 
-      htmlResponse (ReadingViews.recent m chartHtml loadedReadings windowStart now recentZoomShortcutDays) ctx)
+      let windowStart, chartHtml = renderRecentChart m now loadedReadings
+
+      htmlResponse
+        (ReadingViews.recent m chartHtml loadedReadings windowStart now recentZoomShortcutDays hasOlderHistory)
+        ctx)
+
+  // The "Load full history" button's target (ReadingViews.recentChartContainer): an
+  // htmx fragment that re-renders the chart container with the member's *entire* history
+  // loaded (still focused on the last 30 days), so panning works all the way back. Same
+  // outerHTML-swap pattern as /trends' `trendsPanel`.
+  let recentFull: HttpContext -> Task =
+    withMember (fun m ctx ->
+      let now = (timeProvider ctx).GetUtcNow()
+
+      // Excludes future-dated readings (clock skew, or a manually entered future
+      // timestamp), same as `recent`'s load-window filter does for its bounded window.
+      let allReadings =
+        (repo ctx).GetAll(m.Id)
+        |> List.filter (fun r -> r.Timestamp < now)
+        |> List.sortByDescending _.Timestamp
+
+      let windowStart, chartHtml = renderRecentChart m now allReadings
+
+      htmlResponse
+        (ReadingViews.recentChartContainer m chartHtml allReadings windowStart now recentZoomShortcutDays false)
+        ctx)
 
   let trends: HttpContext -> Task =
     withMember (fun m ctx ->

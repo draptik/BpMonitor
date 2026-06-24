@@ -318,6 +318,52 @@ let ``recent renders zoom shortcut buttons for the last 7 and 30 days, anchored 
   test <@ body.Contains "Last 30 days" @>
 
 [<Fact>]
+let ``recent renders a 'Load full history' button when a reading older than the load window exists`` () =
+  let tp = FakeTimeProvider(now)
+  let beyondLoadWindow = reading 400 1
+  let withinLoadWindow = reading 1 2
+
+  let ctx =
+    TestHost.contextWithProvider (repoWith [ beyondLoadWindow; withinLoadWindow ]) tp
+
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "Load full history" @>
+  test <@ body.Contains "hx-get=\"/recent/full\"" @>
+
+[<Fact>]
+let ``recent omits the 'Load full history' button when all readings are within the load window`` () =
+  let tp = FakeTimeProvider(now)
+  let ctx = TestHost.contextWithProvider (repoWith [ reading 100 1; reading 1 2 ]) tp
+  TestHost.run ReadingHandlers.recent ctx
+
+  let body = TestHost.readBody ctx
+  test <@ not (body.Contains "Load full history") @>
+
+[<Fact>]
+let ``recentFull includes a reading older than the load window`` () =
+  let tp = FakeTimeProvider(now)
+  let beyondLoadWindow = { reading 400 1 with Systolic = 199 }
+  let ctx = TestHost.contextWithProvider (repoWith [ beyondLoadWindow ]) tp
+  TestHost.run ReadingHandlers.recentFull ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "199" @>
+
+[<Fact>]
+let ``recentFull returns the chart fragment without the page shell, and omits the load-full button`` () =
+  let tp = FakeTimeProvider(now)
+  let ctx = TestHost.contextWithProvider (repoWith [ reading 400 1 ]) tp
+  TestHost.run ReadingHandlers.recentFull ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "id=\"recent-chart\"" @>
+  test <@ not (body.Contains "<h1>Recent</h1>") @>
+  test <@ not (body.Contains "<nav") @>
+  test <@ not (body.Contains "Load full history") @>
+
+[<Fact>]
 let ``recent value strip leaves an in-range reading's cells unmarked`` () =
   // reading helper's defaults (Systolic = 120, Diastolic = 80) are inside GoalRange.defaults.
   let r = reading 1 1
