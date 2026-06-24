@@ -33,6 +33,10 @@ module BpChart =
   let private systolicBandColor = withAlpha 0.12 systolicRgb
   let private diastolicBandColor = withAlpha 0.12 diastolicRgb
 
+  // Wegier et al. 2021 Fig. 5's dark-red "Notes" marker (sampled from the figure).
+  let private commentRgb = (139, 0, 0)
+  let private commentColor = opaque commentRgb
+
   /// Full-width horizontal background bands behind the data, one per series, matching
   /// the series' color (the "like-with-like" goal-range design from Wegier et al. 2021).
   let private goalBands (goal: GoalRange) : Shape seq =
@@ -110,21 +114,36 @@ module BpChart =
   // FixedRange disables zoom on this axis — the y-axis is pinned to a clinical 0-200 mmHg
   // scale (the goal-range bands assume it), so zoom/box-select/zoom-in/zoom-out can only
   // ever change the x-axis, never stretch or compress the y-axis out of that scale.
-  let private yAxis () =
+  //
+  // `labelCommentBaseline` relabels the 0 tick "Comments" (Wegier et al. 2021 Fig. 5's
+  // labeled annotation row) — only meaningful for /history and /recent, which plot comment
+  // markers on that baseline, and only when there actually is at least one such marker
+  // (an empty axis row shouldn't claim a label nothing backs).
+  let private yAxis (labelCommentBaseline: bool) =
     let defaultYMin = 0
     let defaultYMax = 200
 
-    LinearAxis.init (
-      GridColor = lightGridLine,
-      Range = StyleParam.Range.MinMax(defaultYMin, defaultYMax),
-      FixedRange = true,
-      DTick = 20,
-      ShowLine = true,
-      LineColor = axisLineColor,
-      Ticks = StyleParam.TickOptions.Outside,
-      TickColor = axisLineColor,
-      Title = Title.init (Text = "blood pressure [mmHg]")
-    )
+    let axis =
+      LinearAxis.init (
+        GridColor = lightGridLine,
+        Range = StyleParam.Range.MinMax(defaultYMin, defaultYMax),
+        FixedRange = true,
+        DTick = 20,
+        ShowLine = true,
+        LineColor = axisLineColor,
+        Ticks = StyleParam.TickOptions.Outside,
+        TickColor = axisLineColor,
+        Title = Title.init (Text = "blood pressure [mmHg]")
+      )
+
+    if not labelCommentBaseline then
+      axis
+    else
+      let ticks = [ 0..20..defaultYMax ]
+      let tickText = ticks |> List.map (fun v -> if v = 0 then "Comments" else string v)
+
+      axis
+      |> LinearAxis.style (TickMode = StyleParam.TickMode.Array, TickVals = ticks, TickText = tickText)
 
   // Plotly's stroke helper sets stroke-opacity as an inline style on every path.yerror
   // (value = alpha of the trace color; for our solid colors that is 1). Normal inline styles
@@ -176,11 +195,11 @@ module BpChart =
           StyleParam.ModeBarButton.Select2d ]
     )
 
-  let private finish (chart: GenericChart) =
+  let private finish (hasComments: bool) (chart: GenericChart) =
     chart
     |> Chart.withLayout (layout ())
     |> Chart.withXAxis xAxis
-    |> Chart.withYAxis (yAxis ())
+    |> Chart.withYAxis (yAxis hasComments)
     |> Chart.withConfig interactiveConfig
     |> GenericChart.toChartHTML
     |> _.Replace("\"width\":600,", "")
@@ -209,11 +228,11 @@ module BpChart =
       XAnchor = StyleParam.XAnchorPosition.Center
     )
 
-  let private finishRecent (rangeLow: string) (rangeHigh: string) (chart: GenericChart) =
+  let private finishRecent (hasComments: bool) (rangeLow: string) (rangeHigh: string) (chart: GenericChart) =
     chart
     |> Chart.withLayout (finishRecentLayout ())
     |> Chart.withXAxis (recentXAxis rangeLow rangeHigh)
-    |> Chart.withYAxis (yAxis ())
+    |> Chart.withYAxis (yAxis hasComments)
     |> Chart.withConfig interactiveConfig
     |> GenericChart.toChartHTML
     |> _.Replace("\"width\":600,", "")
@@ -248,11 +267,14 @@ module BpChart =
   let private trendsConfig =
     Config.init (Responsive = true, DisplayModeBar = false, ScrollZoom = StyleParam.ScrollZoom.NoZoom)
 
+  // /trends never plots comment markers on the baseline (its comment trace, when present,
+  // sits at the reading's systolic value — see `commentTraces` below) — keep the plain
+  // numeric y-axis.
   let private finishTrends (chart: GenericChart) =
     chart
     |> Chart.withLayout (trendsLayout ())
     |> Chart.withXAxis trendsXAxis
-    |> Chart.withYAxis (yAxis ())
+    |> Chart.withYAxis (yAxis false)
     |> Chart.withConfig trendsConfig
     |> withBottomLegend
     |> GenericChart.toChartHTML
@@ -269,7 +291,9 @@ module BpChart =
     let diastolic = sorted |> List.map _.Diastolic
     sorted, labels, systolic, diastolic
 
-  /// Comment markers plotted on the x-axis baseline (y=0), one per commented reading.
+  /// Comment markers plotted on the x-axis baseline (y=0), one per commented reading —
+  /// styled after Wegier et al. 2021 Fig. 5's annotation row: a dark-red hexagon, not
+  /// clipped by the x-axis line it sits on (ClipOnAxis = false).
   let private commentTraces (sorted: BloodPressureReading list) : GenericChart list =
     let commented = sorted |> List.filter _.Comments.IsSome
 
@@ -280,8 +304,11 @@ module BpChart =
       let cBaseline = commented |> List.map (fun _ -> 0)
       let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
 
-      [ Chart.Point(x = cTimestamps, y = cBaseline, Name = "Comments", MultiText = cTexts, MarkerColor = systolicColor)
-        |> Chart.withMarkerStyle (Size = 10) ]
+      // HoverInfo.Text shows only the comment itself on hover — without it, Plotly
+      // prefixes every tooltip with the trace name ("Comments").
+      [ Chart.Point(x = cTimestamps, y = cBaseline, Name = "Comments", MultiText = cTexts)
+        |> Chart.withMarkerStyle (Symbol = StyleParam.MarkerSymbol.Hexagon, Size = 11, Color = commentColor)
+        |> GenericChart.mapTrace (Trace2DStyle.Scatter(ClipOnAxis = false, HoverInfo = StyleParam.HoverInfo.Text)) ]
 
   /// Classic x/y plot — one point per reading. Used by /history.
   /// `includeHeartRate` is currently always false (no caller passes true).
@@ -291,6 +318,7 @@ module BpChart =
     (readings: BloodPressureReading list)
     : string =
     let readings, timestamps, systolic, diastolic = seriesOf readings
+    let hasComments = readings |> List.exists _.Comments.IsSome
 
     let heartRateTrace =
       if includeHeartRate then
@@ -309,7 +337,7 @@ module BpChart =
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
     |> withBottomLegend
-    |> finish
+    |> finish hasComments
 
   type private DailyPoint =
     { Label: string
@@ -562,6 +590,7 @@ module BpChart =
     let dashes = dashPattern windowDays readings
     let rangeLow = Formats.formatLocal windowStart
     let rangeHigh = Formats.formatLocal windowEnd
+    let hasComments = readings |> List.exists _.Comments.IsSome
 
     [ yield! seriesTraces systolicFadedColor "Systolic" dashes timestamps systolic
       yield! seriesTraces diastolicFadedColor "Diastolic" dashes timestamps diastolic
@@ -571,7 +600,7 @@ module BpChart =
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
     |> withBottomLegend
-    |> finishRecent rangeLow rangeHigh
+    |> finishRecent hasComments rangeLow rangeHigh
 
   // `windowStart`/`windowEnd` are computed once by the caller (the same instant the
   // value strip's out-of-range cutoff is computed from) rather than re-derived here from
