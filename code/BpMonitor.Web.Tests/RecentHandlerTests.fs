@@ -265,17 +265,19 @@ let ``recent value strip tags each cell with the reading's chart x-label, for th
   test <@ body.Contains $"data-x=\"{expectedX2}\"" @>
 
 [<Fact>]
-let ``recent chart wires a relayout listener to keep the value strip in sync with the x-axis`` () =
+let ``recent page loads the scrubber script that keeps the value strip in sync with the x-axis`` () =
   // TODOs.md: "Recent: when zooming/paning keep the value-strip in sync with the
   // displayed x-axis". On zoom/pan the chart's x-range narrows; the value strip needs
-  // to hide columns outside that range to stay aligned with what's plotted.
+  // to hide columns outside that range to stay aligned with what's plotted. The
+  // relayout-listener wiring itself now lives in wwwroot/recent-scrubber.js (loaded
+  // globally by ViewLayout); this just guards that the page references it.
   let tp = FakeTimeProvider(now)
   let ctx = TestHost.contextWithProvider (repoWith [ reading 1 1 ]) tp
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
 
-  test <@ body.Contains "plotly_relayout" @>
+  test <@ body.Contains "/recent-scrubber.js" @>
 
 [<Fact>]
 let ``recent value strip marks a reading above the goal range as 'above'`` () =
