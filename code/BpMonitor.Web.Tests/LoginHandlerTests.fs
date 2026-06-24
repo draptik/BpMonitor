@@ -118,7 +118,7 @@ let ``loginSubmit claims unclaimed member and sets password hash`` () =
   test <@ ctx.Response.StatusCode = 302 @>
   let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
   let saved = memberRepo.GetById(1) |> Option.get
-  test <@ BpMonitor.Core.FamilyMember.isClaimed saved @>
+  test <@ FamilyMember.isClaimed saved @>
   test <@ PasswordHashing.verify "correct-horse" (saved.PasswordHash |> Option.get) @>
 
 [<Fact>]
@@ -193,4 +193,4 @@ let ``resetPassword sets member to unclaimed`` () =
 
   let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
   let saved = memberRepo.GetById(1) |> Option.get
-  test <@ not (BpMonitor.Core.FamilyMember.isClaimed saved) @>
+  test <@ not (FamilyMember.isClaimed saved) @>

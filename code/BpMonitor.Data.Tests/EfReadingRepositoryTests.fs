@@ -34,7 +34,7 @@ let private createContext () =
   ctx
 
 let private createRepo (ctx: BpMonitorDbContext) : IReadingRepository =
-  EfReadingRepository(ctx, System.TimeProvider.System) :> IReadingRepository
+  EfReadingRepository(ctx, TimeProvider.System) :> IReadingRepository
 
 [<Fact>]
 let ``GetAll returns empty list when database is empty`` () =
@@ -182,4 +182,5 @@ let ``Update does not affect a reading belonging to a different member`` () =
         MemberId = 2 }
   )
   // Reading should remain unchanged for member 1
+  // ReSharper disable once FSharpRedundantDotInIndexer
   test <@ (repo.GetAll 1).[0].Systolic = 120 @>

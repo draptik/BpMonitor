@@ -7,7 +7,7 @@ open BpMonitor.Core
 module TrendViews =
   /// The swappable panel: granularity toggle + sub-period strip + stats + inline chart.
   /// Rendered as a fragment for htmx swaps (GET /trends/{gran} and GET /trends/{gran}/{key});
-  /// also used directly by the full /trends page so the buttons are always inside the swapped region.
+  /// also used directly by the full /trends page, so the buttons are always inside the swapped region.
   let trendsPanel
     (summary: WindowSummary)
     (periods: TrendPeriod list)

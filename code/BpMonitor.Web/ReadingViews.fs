@@ -11,7 +11,7 @@ module ReadingViews =
       [ Attr.href href; Attr.role "button" ]
       [ Elem.span [ Attr.class' "icon" ] [ Text.raw glyph ]; Text.raw label ]
 
-  /// Same as `actionButton`, but opts the link out of hx-boost so file-download
+  /// Same as `actionButton`, but opts the link out of hx-boost, so file-download
   /// responses (exports) aren't AJAX-swapped into the page.
   let private downloadActionButton (href: string) (glyph: string) (label: string) : XmlNode =
     Elem.a
@@ -39,7 +39,7 @@ module ReadingViews =
             if m.IsAdmin then
               actionButton Routes.members "👥" "Members" ] ]
 
-  /// History: chart above the readings table.
+  /// History: chart above the readings' table.
   let history (activeMember: FamilyMember) (chartHtml: string) (readings: BloodPressureReading list) : XmlNode =
     ViewLayout.layout
       Routes.history

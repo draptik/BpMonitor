@@ -5,7 +5,7 @@ open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
 
-// Fixed "now" = Tuesday 2026-06-09 12:00 UTC (ISO week 24 of 2026, June, 2026)
+// Fixed "now" = Tuesday 2026-06-09 12:00 UTC (ISO week 24 of 2026, June 2026)
 let private now = DateTimeOffset(2026, 6, 9, 12, 0, 0, TimeSpan.Zero)
 
 // ── slug / parseGranularity ────────────────────────────────────────────────────

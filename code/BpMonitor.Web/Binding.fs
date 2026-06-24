@@ -42,7 +42,7 @@ module Binding =
     | _ -> Error $"Timestamp: '{s}' is not a valid date/time"
 
   /// Parse-level conversion. Returns the unvalidated reading or the list of
-  /// parse errors (range checks happen afterwards via BloodPressureReading.parse).
+  /// parse errors (range checks happen afterward via BloodPressureReading.parse).
   let toUnvalidated (m: FormModel) : Validation<BloodPressureReadingUnvalidated, string> =
     validation {
       let! sys = tryInt "Systolic" m.Systolic |> Validation.ofResult

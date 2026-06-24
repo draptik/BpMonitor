@@ -27,7 +27,7 @@ let private architecture =
 // injected into every instrumented assembly. ArchUnitNET sees the same tracker type
 // across multiple assemblies and incorrectly reports cross-assembly dependencies.
 // Filter out Microsoft.CodeCoverage types to prevent these false positives.
-let private appTypes (assembly: System.Reflection.Assembly) =
+let private appTypes (assembly: Assembly) =
   ArchRuleDefinition
     .Types()
     .That()

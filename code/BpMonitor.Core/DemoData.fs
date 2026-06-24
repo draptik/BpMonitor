@@ -108,7 +108,7 @@ module DemoData =
 
   // Clamps raw vitals into range and parses them into a reading. Shared by every
   // generator below (the random-jitter Simpson profiles and Ned Flanders' scripted
-  // narrative alike) so there's one place that builds an `unvalidated` record.
+  // narrative alike), so there's one place that builds an `unvalidated` record.
   let private buildReading
     (ranges: ReadingRanges)
     (systolic: int)
@@ -351,8 +351,8 @@ module DemoData =
     let bigGapDays = 5.0
     let stepDays = (29.0 - bigGapDays) / float (totalPoints - 2)
 
-    // How much further back a point sits once it's past the gap: one ordinary step
-    // is replaced by the (longer) gap, so everything past it shifts back by the
+    // How much further back a point sits once it's past the gap: the (longer) gap
+    // replaces one ordinary step, so everything past it shifts back by the
     // difference. Index j's days-ago is then a single formula: a uniform `j * stepDays`
     // ramp, with that one extra shift applied from the gap onward.
     let gapShift = bigGapDays - stepDays

@@ -72,9 +72,9 @@ let ``dailyAverages: two readings on same day are averaged`` () =
   let r2 = mkReading 2 140 90 80 (DateTimeOffset(day0.AddHours(20.0), TimeSpan.Zero))
   let result = ReadingStats.dailyAverages [ r1; r2 ]
   test <@ result.Length = 1 @>
-  test <@ result.[0].Systolic = 130 @>
-  test <@ result.[0].Diastolic = 85 @>
-  test <@ result.[0].HeartRate = 70 @>
+  test <@ result[0].Systolic = 130 @>
+  test <@ result[0].Diastolic = 85 @>
+  test <@ result[0].HeartRate = 70 @>
 
 [<Fact>]
 let ``dailyAverages: readings on different days produce one entry per day`` () =
@@ -88,7 +88,7 @@ let ``dailyAverages: result is sorted ascending by date`` () =
   let r1 = mkReading 1 130 85 70 (now.AddDays(-1.0))
   let r2 = mkReading 2 120 80 60 (now.AddDays(-3.0))
   let result = ReadingStats.dailyAverages [ r1; r2 ]
-  test <@ result.[0].Timestamp < result.[1].Timestamp @>
+  test <@ result[0].Timestamp < result[1].Timestamp @>
 
 [<Fact>]
 let ``dailyAverages: timestamp is midnight of the local date`` () =
@@ -106,14 +106,14 @@ let ``weeklyAverages: empty list returns empty`` () =
 
 [<Fact>]
 let ``weeklyAverages: readings in same ISO week are averaged into one entry`` () =
-  // 2026-W24: Mon 2026-06-08 .. Sun 2026-06-14
+  // 2026-W24: Mon 2026-06-08 ... Sun 2026-06-14
   let r1 = mkReading 1 120 80 60 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
   let r2 = mkReading 2 140 90 80 (DateTimeOffset(2026, 6, 10, 9, 0, 0, TimeSpan.Zero))
   let result = ReadingStats.weeklyAverages [ r1; r2 ]
   test <@ result.Length = 1 @>
-  test <@ result.[0].Systolic = 130 @>
-  test <@ result.[0].Diastolic = 85 @>
-  test <@ result.[0].HeartRate = 70 @>
+  test <@ result[0].Systolic = 130 @>
+  test <@ result[0].Diastolic = 85 @>
+  test <@ result[0].HeartRate = 70 @>
 
 [<Fact>]
 let ``weeklyAverages: readings in different weeks produce one entry per week`` () =
@@ -127,7 +127,7 @@ let ``weeklyAverages: result is sorted ascending`` () =
   let r1 = mkReading 1 120 80 60 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero)) // W24
   let r2 = mkReading 2 130 85 70 (DateTimeOffset(2026, 6, 1, 9, 0, 0, TimeSpan.Zero)) // W23
   let result = ReadingStats.weeklyAverages [ r1; r2 ]
-  test <@ result.[0].Timestamp < result.[1].Timestamp @>
+  test <@ result[0].Timestamp < result[1].Timestamp @>
 
 [<Fact>]
 let ``weeklyAverages: timestamp is Monday midnight of the ISO week`` () =
@@ -150,7 +150,7 @@ let ``monthlyAverages: readings in same month are averaged into one entry`` () =
   let r2 = mkReading 2 140 90 80 (DateTimeOffset(2026, 6, 20, 9, 0, 0, TimeSpan.Zero))
   let result = ReadingStats.monthlyAverages [ r1; r2 ]
   test <@ result.Length = 1 @>
-  test <@ result.[0].Systolic = 130 @>
+  test <@ result[0].Systolic = 130 @>
 
 [<Fact>]
 let ``monthlyAverages: readings in different months produce one entry per month`` () =
@@ -164,7 +164,7 @@ let ``monthlyAverages: result is sorted ascending`` () =
   let r1 = mkReading 1 120 80 60 (DateTimeOffset(2026, 6, 15, 9, 0, 0, TimeSpan.Zero))
   let r2 = mkReading 2 130 85 70 (DateTimeOffset(2026, 5, 15, 9, 0, 0, TimeSpan.Zero))
   let result = ReadingStats.monthlyAverages [ r1; r2 ]
-  test <@ result.[0].Timestamp < result.[1].Timestamp @>
+  test <@ result[0].Timestamp < result[1].Timestamp @>
 
 [<Fact>]
 let ``monthlyAverages: timestamp is first of month midnight`` () =

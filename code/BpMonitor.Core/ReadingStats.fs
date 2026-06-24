@@ -1,7 +1,7 @@
 namespace BpMonitor.Core
 
 /// A period-averaged reading together with the number of raw readings that were
-/// folded into it. Used by the trends chart to distinguish single-reading periods
+/// folded into it. Used by the trends' chart to distinguish single-reading periods
 /// (circle marker) from multi-reading averages (diamond marker).
 type AggregatedReading =
   { Reading: BloodPressureReading
@@ -113,7 +113,7 @@ module ReadingStats =
 
   // ── summary ──────────────────────────────────────────────────────────────────
 
-  /// Summarises readings that have already been filtered to the given period.
+  /// Summarizes readings that have already been filtered to the given period.
   /// Count/min/avg/max are computed over the supplied list; period metadata stamped from the period.
   let summarizeRange (period: TrendPeriod) (rangeReadings: BloodPressureReading list) : WindowSummary =
     match rangeReadings with
