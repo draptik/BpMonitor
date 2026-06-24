@@ -47,6 +47,7 @@ module ViewLayout =
          // Behavior-only (no FOUC concern); each self-guards on the page elements it
          // needs and re-runs on htmx:afterSettle to survive hx-boost swaps.
          Elem.script [ Attr.src "/recent-scrubber.js" ] []
+         Elem.script [ Attr.src "/recent-zoom.js" ] []
          Elem.script [ Attr.src "/trends-scroll.js" ] []
          Elem.link [ Attr.rel "stylesheet"; Attr.href "/pico.min.css" ]
          Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ]

@@ -59,6 +59,8 @@ module ReadingViews =
     (chartHtml: string)
     (allReadings: BloodPressureReading list)
     (windowStart: System.DateTimeOffset)
+    (now: System.DateTimeOffset)
+    (zoomShortcutDays: (string * float) list)
     : XmlNode =
     let valueStrip =
       // The strip lists every loaded reading (the chart's load window, see ReadingHandlers
@@ -107,6 +109,25 @@ module ReadingViews =
                 [ row "Systolic" _.Systolic (GoalRange.classifySystolic activeMember.Goal)
                   row "Diastolic" _.Diastolic (GoalRange.classifyDiastolic activeMember.Goal) ] ] ]
 
+    // Shortcut buttons that snap the chart's x-axis to a fixed window via
+    // Plotly.relayout (wwwroot/recent-zoom.js). Each button's range is rendered
+    // server-side from the same `now` the handler passed to the chart, so the format
+    // (Formats.formatLocal) and anchor always match exactly. The existing
+    // recent-scrubber.js `plotly_relayout` listener re-syncs the value strip's
+    // out-of-range cells automatically when relayout fires.
+    let hiFormatted = Formats.formatLocal now
+
+    let zoomButton (label: string) (days: float) =
+      Elem.button
+        [ Attr.type' "button"
+          Attr.class' "recent-zoom-button"
+          Attr.create "data-lo" (Formats.formatLocal (now.AddDays(-days)))
+          Attr.create "data-hi" hiFormatted ]
+        [ Text.raw label ]
+
+    let zoomButtons =
+      Elem.div [ Attr.class' "recent-zoom-buttons" ] [ for label, days in zoomShortcutDays -> zoomButton label days ]
+
     // Fig. 5's scrubber bar (Wegier et al. 2021): the chart's x-axis spike (Charts.fs
     // `recentXAxis`) already draws the moving vertical line; this links it to the value
     // strip by boxing the hovered column. Behavior lives in wwwroot/recent-scrubber.js
@@ -119,7 +140,9 @@ module ReadingViews =
       [ Elem.h1 [] [ Text.raw "Recent" ]
         Elem.div
           [ Attr.class' "chart-container" ]
-          [ valueStrip; Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ] ]
+          [ zoomButtons
+            valueStrip
+            Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ] ]
 
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
   /// above the fields when re-displaying after a failed submit.
