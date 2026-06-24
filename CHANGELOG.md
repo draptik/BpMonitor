@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - History and Recent charts: comment markers now render as a dark-red hexagon (matching Wegier et al. 2021's Fig. 5) instead of a teal circle, sit on a y-axis baseline labeled "Comments", and are no longer clipped by the x-axis
 - History and Recent charts: hovering a comment marker now shows only the comment text, without the "Comments" trace name prefix
+- History, Trends, and Recent charts: hovering a systolic/diastolic data point no longer repeats the "Systolic"/"Diastolic" word, since the color-coded legend already identifies the series
 
 ## [1.7.0-rc4] - 2026-06-24
 

@@ -61,6 +61,13 @@ let private now = Timestamp.local 2026 2 1 12 0 0
 let private windowStart10 = now.AddDays(-10.0)
 let private windowStart30 = now.AddDays(-30.0)
 
+/// True when the named trace's hover never repeats its own name — the legend already
+/// shows it, color-coded. The negative lookahead stops the lazy match from crossing
+/// into the next trace's "name" field, so this works regardless of which (if any)
+/// fields a chart serializes between "name" and "hovertemplate".
+let private hasNamelessHover (html: string) (name: string) =
+  Regex.IsMatch(html, $"\"name\":\"{name}\"(?:(?!\"name\":).)*?\"hovertemplate\":\"[^\"]*<extra><\\/extra>\"")
+
 [<Fact>]
 let ``toHtml renders a goal-range band shaped rectangle for systolic and diastolic bounds`` () =
   let goal: GoalRange =
@@ -199,6 +206,12 @@ let ``toHtml renders a horizontal centered legend at the bottom, like the trends
   test <@ html.Contains("\"legend\":{\"orientation\":\"h\",\"x\":0.5,\"xanchor\":\"center\"}") @>
 
 [<Fact>]
+let ``toHtml hover omits the redundant "Systolic"/"Diastolic" trace name, since the legend already shows it`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ hasNamelessHover html "Systolic" @>
+  test <@ hasNamelessHover html "Diastolic" @>
+
+[<Fact>]
 let ``toHtml matches snapshot`` () : Task =
   let html: string = BpChart.toHtml GoalRange.defaults readings
   verifyHtml html
@@ -238,13 +251,19 @@ let ``toHtmlRecent judges gaps by calendar days, not raw elapsed time`` () =
   test <@ not (html.Contains("\"dash\":\"dash\"")) @>
 
 [<Fact>]
-let ``toHtmlRecent names each line trace after its series for hover text`` () =
+let ``toHtmlRecent names each line trace after its series for the legend`` () =
   let html = BpChart.toHtmlRecent GoalRange.defaults 10 windowStart10 now readings
 
   let lineNameCount =
     Regex.Matches(html, "\"name\":\"(Systolic|Diastolic)\",\"showlegend\":[a-z]*,\"mode\":\"lines\\+markers\"").Count
 
   test <@ lineNameCount > 0 @>
+
+[<Fact>]
+let ``toHtmlRecent hover omits the redundant "Systolic"/"Diastolic" trace name, since the legend already shows it`` () =
+  let html = BpChart.toHtmlRecent GoalRange.defaults 10 windowStart10 now readings
+  test <@ hasNamelessHover html "Systolic" @>
+  test <@ hasNamelessHover html "Diastolic" @>
 
 [<Fact>]
 let ``toHtmlRecent does not drop any reading, even when split across dash/solid runs`` () =
@@ -292,12 +311,10 @@ let ``toHtmlRecent shows exactly one legend entry per series, even when split ac
 
   let html = BpChart.toHtmlRecent GoalRange.defaults 30 windowStart30 now readings
 
-  // Each trace object ends at the first "}}" (closing its "line" object then itself), so
-  // bounding the match there keeps "name"/"showlegend" from leaking into the next trace.
+  // "name" and "showlegend" are always serialized as adjacent fields, so matching them
+  // directly avoids relying on which field happens to close the trace object last.
   let legendCount (name: string) =
-    Regex.Matches(html, $"\"name\":\"{name}\".*?}}}}")
-    |> Seq.filter (fun m -> m.Value.Contains("\"showlegend\":true"))
-    |> Seq.length
+    Regex.Matches(html, $"\"name\":\"{name}\",\"showlegend\":true").Count
 
   test <@ legendCount "Systolic" = 1 @>
   test <@ legendCount "Diastolic" = 1 @>
@@ -491,3 +508,9 @@ let ``toHtmlDashed: multi-reading systolic tooltip shows count and range`` () =
   test <@ html.Contains("2 readings") @>
   test <@ html.Contains("110") @>
   test <@ html.Contains("130") @>
+
+[<Fact>]
+let ``toHtmlDashed hover omits the redundant "Systolic"/"Diastolic" trace name, since the legend already shows it`` () =
+  let html = BpChart.toHtmlDashed GoalRange.defaults Weekly (asAggregated readings)
+  test <@ hasNamelessHover html "Systolic" @>
+  test <@ hasNamelessHover html "Diastolic" @>
