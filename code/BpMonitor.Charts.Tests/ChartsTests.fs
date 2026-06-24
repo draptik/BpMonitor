@@ -130,6 +130,36 @@ let ``toHtml plots comment markers on the x-axis baseline (y=0), not at the read
   test <@ yValues |> Array.forall (fun y -> y = 0) @>
 
 [<Fact>]
+let ``toHtml renders comment markers as a dark-red hexagon, matching Wegier et al. 2021 Fig. 5`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  let m = Regex.Match(html, "\"name\":\"Comments\".*?\"marker\":\\{([^}]*)\\}")
+  test <@ m.Success @>
+  let markerJson = m.Groups[1].Value
+  // Plotly.NET serializes MarkerSymbol as its numeric Plotly code, not the name string —
+  // "14" is hexagon (matches the "0"/"2" numeric codes for Circle/Diamond in the
+  // toHtmlDashed snapshot).
+  test <@ markerJson.Contains("\"symbol\":\"14\"") @>
+  test <@ markerJson.Contains("\"color\":\"#8B0000\"") @>
+
+[<Fact>]
+let ``toHtml does not clip comment markers against the x-axis`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  let m = Regex.Match(html, "\"name\":\"Comments\".*?\"cliponaxis\":(true|false)")
+  test <@ m.Success @>
+  test <@ m.Groups[1].Value = "false" @>
+
+[<Fact>]
+let ``toHtml labels the y-axis baseline "Comments" when comment markers are present`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ html.Contains("\"ticktext\":[\"Comments\",\"20\",\"40\"") @>
+
+[<Fact>]
+let ``toHtml does not label the y-axis baseline "Comments" when there are no comment markers`` () =
+  let noCommentOnly = [ reading 1 120 80 70 1 9 None ]
+  let html = BpChart.toHtml GoalRange.defaults noCommentOnly
+  test <@ not (html.Contains("\"ticktext\"")) @>
+
+[<Fact>]
 let ``toHtml renders timestamps in ascending order regardless of input order`` () =
   let reversed = List.rev readings
   let html = BpChart.toHtml GoalRange.defaults reversed
@@ -144,6 +174,13 @@ let ``toHtml includes comment text as hover info for commented readings`` () =
   test <@ html.Contains("Stressful day") @>
   test <@ html.Contains("After walk") @>
   test <@ html.Contains("Work deadline") @>
+
+[<Fact>]
+let ``toHtml shows only the comment text on hover, not the "Comments" trace name`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  let m = Regex.Match(html, "\"name\":\"Comments\".*?\"hoverinfo\":\"([a-z]+)\"")
+  test <@ m.Success @>
+  test <@ m.Groups[1].Value = "text" @>
 
 [<Fact>]
 let ``toHtml does not include None comment readings in comments trace`` () =
