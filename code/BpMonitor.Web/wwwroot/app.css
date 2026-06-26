@@ -405,14 +405,20 @@ form.stacked {
   display: block;
 }
 
-input#Timestamp {
-  width: 10.5rem;
+input#Timestamp,
+input#Systolic,
+input#Diastolic,
+input#HeartRate,
+input#SystolicGoalMin,
+input#SystolicGoalMax,
+input#DiastolicGoalMin,
+input#DiastolicGoalMax {
   margin-inline: auto;
   text-align: center;
 }
 
-.field:has(#Timestamp) {
-  text-align: center;
+input#Timestamp {
+  width: 10.5rem;
 }
 
 input#Systolic,
@@ -423,10 +429,9 @@ input#SystolicGoalMax,
 input#DiastolicGoalMin,
 input#DiastolicGoalMax {
   width: 5rem;
-  margin-inline: auto;
-  text-align: center;
 }
 
+.field:has(#Timestamp),
 .field:has(#Systolic),
 .field:has(#Diastolic),
 .field:has(#HeartRate),
@@ -600,7 +605,7 @@ form.inline button {
 
 .value-strip th,
 .value-strip td {
-  padding: 0.05rem 0.05rem;
+  padding: 0.05rem;
   border: none;
   font-size: 0.5rem;
   text-align: center;
@@ -684,8 +689,9 @@ form.inline button {
   text-align: center;
 }
 
-/* Active granularity button — filled primary (matches nav active pill style) */
-.trends-window-buttons a[aria-current="page"] {
+/* Active granularity / sub-period pill — filled primary (matches nav active pill style) */
+.trends-window-buttons a[aria-current="page"],
+.trends-subperiod-buttons a[aria-current="page"] {
   background: var(--pico-primary);
   color: var(--pico-primary-inverse);
   border-color: var(--pico-primary);
@@ -758,13 +764,6 @@ form.inline button {
   font-size: 0.85rem;
   margin: 0;
   white-space: nowrap;
-}
-
-/* Active sub-period pill */
-.trends-subperiod-buttons a[aria-current="page"] {
-  background: var(--pico-primary);
-  color: var(--pico-primary-inverse);
-  border-color: var(--pico-primary);
 }
 
 /* Disabled sub-period pill (no data in that period) */
