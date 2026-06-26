@@ -14,24 +14,30 @@ module ViewLayout =
     | Some url -> [ Text.raw "BpMonitor "; Elem.a [ Attr.href url ] [ Text.raw $"v{v}" ] ]
     | None -> [ Text.raw $"BpMonitor {v}" ]
 
-  let private navLink (active: string) (href: string) (glyph: string) (label: string) (isAction: bool) : XmlNode =
+  let private navIcon (glyph: string) (label: string) : XmlNode list =
+    [ Elem.span [ Attr.class' "icon" ] [ Text.raw glyph ]; Text.raw label ]
+
+  let private navLink (active: string) (href: string) (glyph: string) (label: string) : XmlNode =
     let aAttrs =
       [ yield Attr.href href
-        if isAction then
-          yield Attr.class' "nav-action"
-          yield Attr.role "button"
         if href = active then
           yield Attr.create "aria-current" "page" ]
 
-    let liAttrs = if isAction then [ Attr.class' "nav-action-item" ] else []
-    Elem.li liAttrs [ Elem.a aAttrs [ Elem.span [ Attr.class' "icon" ] [ Text.raw glyph ]; Text.raw label ] ]
+    Elem.li [] [ Elem.a aAttrs (navIcon glyph label) ]
 
+  let private navActionLink (active: string) (href: string) (glyph: string) (label: string) : XmlNode =
+    let aAttrs =
+      [ yield Attr.href href
+        yield Attr.class' "nav-action"
+        yield Attr.role "button"
+        if href = active then
+          yield Attr.create "aria-current" "page" ]
+
+    Elem.li [ Attr.class' "nav-action-item" ] [ Elem.a aAttrs (navIcon glyph label) ]
+
+  /// Opts the link out of hx-boost so file-download responses aren't AJAX-swapped into the page.
   let private navDownloadLink (href: string) (glyph: string) (label: string) : XmlNode =
-    Elem.li
-      []
-      [ Elem.a
-          [ Attr.href href; Attr.create "hx-boost" "false" ]
-          [ Elem.span [ Attr.class' "icon" ] [ Text.raw glyph ]; Text.raw label ] ]
+    Elem.li [] [ Elem.a [ Attr.href href; Attr.create "hx-boost" "false" ] (navIcon glyph label) ]
 
   /// The dark/light mode toggle (icon set by theme.js/theme-label.js). `extraClass`
   /// lets the login page add `theme-toggle--standalone` since it has no topbar/sidebar
@@ -111,16 +117,15 @@ module ViewLayout =
               [ Attr.class' "sidebar" ]
               [ Elem.ul
                   []
-                  [ navLink active Routes.add "➕" "Add" true
-                    navLink active Routes.history "📜" "History" false
-                    navLink active Routes.recent "🕒" "Recent" false
-                    navLink active Routes.trends "📈" "Trends" false
+                  [ navActionLink active Routes.add "➕" "Add"
+                    navLink active Routes.history "📜" "History"
+                    navLink active Routes.recent "🕒" "Recent"
+                    navLink active Routes.trends "📈" "Trends"
                     if isAdmin then
-                      navLink active Routes.members "👥" "Members" false ]
+                      navLink active Routes.members "👥" "Members" ]
                 Elem.ul
                   [ Attr.class' "sidebar-bottom" ]
-                  [ navLink active Routes.settings "⚙️" "Settings" false
-                    // hx-boost="false" prevents htmx from AJAX-swapping the download response.
+                  [ navLink active Routes.settings "⚙️" "Settings"
                     navDownloadLink Routes.exportJson "⬇️" "Export JSON"
                     navDownloadLink Routes.exportCsv "⬇️" "Export CSV" ] ]
             Elem.div
