@@ -151,7 +151,6 @@ nav.sidebar a.nav-action {
 }
 
 nav.sidebar a.nav-action[aria-current="page"] {
-  text-decoration: none;
   outline: 2px solid var(--pico-primary-inverse);
   outline-offset: -3px;
 }
@@ -159,8 +158,6 @@ nav.sidebar a.nav-action[aria-current="page"] {
 nav.sidebar li.nav-action-item {
   margin-bottom: 1rem;
 }
-
-
 
 .content {
   margin-left: var(--sidebar-width);
