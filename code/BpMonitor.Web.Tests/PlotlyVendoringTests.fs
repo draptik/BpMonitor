@@ -10,15 +10,7 @@ open Falco.Markup
 open BpMonitor.Core
 open BpMonitor.Web
 
-let private defaultMember: FamilyMember =
-  { Id = 1
-    Name = "Me"
-    IsAdmin = true
-    IsActive = true
-    PasswordHash = None
-    Goal = GoalRange.defaults
-    CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+let private defaultMember = HandlerTestHelpers.sampleMember
 
 [<Fact>]
 let ``layout loads plotly.js from a local path, not the CDN`` () =

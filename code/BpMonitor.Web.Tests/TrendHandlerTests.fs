@@ -52,14 +52,6 @@ let ``trends renders the chart with the authenticated member's goal range`` () =
       DiastolicMin = 65
       DiastolicMax = 88 }
 
-  let m =
-    FamilyMember.create "Me" true
-    |> Result.defaultWith (fun _ -> failwith "invalid member")
-    |> fun m ->
-        { m with
-            Id = defaultMemberId
-            Goal = goal }
-
   let r =
     { sample with
         Timestamp = trendsNow.AddDays(-1.0)
@@ -68,14 +60,12 @@ let ``trends renders the chart with the authenticated member's goal range`` () =
         HeartRate = 70 }
 
   let tp = FakeTimeProvider(trendsNow)
-  let ctx = TestHost.contextWithMembersAndProvider (repoWith [ r ]) [ m ] tp
-  TestHost.run ReadingHandlers.trends ctx
 
-  let body = TestHost.readBody ctx
-  test <@ body.Contains "\"y0\":100" @>
-  test <@ body.Contains "\"y1\":135" @>
-  test <@ body.Contains "\"y0\":65" @>
-  test <@ body.Contains "\"y1\":88" @>
+  let ctx =
+    TestHost.contextWithMembersAndProvider (repoWith [ r ]) [ memberWithGoal goal ] tp
+
+  TestHost.run ReadingHandlers.trends ctx
+  assertGoalBands goal (TestHost.readBody ctx)
 
 [<Fact>]
 let ``trendsPanel renders the chart with the authenticated member's goal range`` () =
@@ -85,14 +75,6 @@ let ``trendsPanel renders the chart with the authenticated member's goal range``
       DiastolicMin = 65
       DiastolicMax = 88 }
 
-  let m =
-    FamilyMember.create "Me" true
-    |> Result.defaultWith (fun _ -> failwith "invalid member")
-    |> fun m ->
-        { m with
-            Id = defaultMemberId
-            Goal = goal }
-
   let r =
     { sample with
         Timestamp = trendsNow.AddDays(-1.0)
@@ -101,15 +83,13 @@ let ``trendsPanel renders the chart with the authenticated member's goal range``
         HeartRate = 70 }
 
   let tp = FakeTimeProvider(trendsNow)
-  let ctx = TestHost.contextWithMembersAndProvider (repoWith [ r ]) [ m ] tp
+
+  let ctx =
+    TestHost.contextWithMembersAndProvider (repoWith [ r ]) [ memberWithGoal goal ] tp
+
   setRouteGran ctx "weekly"
   TestHost.run ReadingHandlers.trendsPanel ctx
-
-  let body = TestHost.readBody ctx
-  test <@ body.Contains "\"y0\":100" @>
-  test <@ body.Contains "\"y1\":135" @>
-  test <@ body.Contains "\"y0\":65" @>
-  test <@ body.Contains "\"y1\":88" @>
+  assertGoalBands goal (TestHost.readBody ctx)
 
 [<Fact>]
 let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and stats`` () =
