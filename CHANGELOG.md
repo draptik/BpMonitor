@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- JS: replaced all `var` with `const`/`let` and added five Biome linter rules (`useConst`, `useTemplate`, `noUselessElse`, `useSingleVarDeclarator`, `useCollapsedElseIf`) to enforce modern JS style
+
 ## [1.7.0-rc5] - 2026-06-25
 
 ### Added
