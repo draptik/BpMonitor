@@ -160,7 +160,7 @@ module AuthHandlers =
           | Some hash -> do! claimedLogin m password hash (LoginViews.loginPage [ "Invalid name or password" ]) ctx
           | None ->
             // Unclaimed: redirect to per-member claim page
-            ctx.Response.Redirect $"{Routes.login}/{m.Id}"
+            ctx.Response.Redirect(Routes.loginMember m.Id)
       }
       :> Task
 

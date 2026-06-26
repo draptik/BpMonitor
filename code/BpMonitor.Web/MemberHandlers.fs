@@ -35,7 +35,14 @@ module MemberHandlers =
   let editMember: HttpContext -> Task =
     withRouteMember "editMember" (fun m ctx ->
       htmlResponse
-        (MemberViews.memberForm Routes.members (authenticatedMemberName ctx) true "Edit member" $"/members/{m.Id}" [] m)
+        (MemberViews.memberForm
+          Routes.members
+          (authenticatedMemberName ctx)
+          true
+          "Edit member"
+          (Routes.memberUpdate m.Id)
+          []
+          m)
         ctx)
 
   let private renderMemberEditError
@@ -46,7 +53,10 @@ module MemberHandlers =
     (ctx: HttpContext)
     : Task =
     ctx.Response.StatusCode <- 422
-    htmlResponse (MemberViews.memberForm Routes.members adminName true "Edit member" $"/members/{id}" errors m) ctx
+
+    htmlResponse
+      (MemberViews.memberForm Routes.members adminName true "Edit member" (Routes.memberUpdate id) errors m)
+      ctx
 
   let private applyMemberEdit
     (id: int)

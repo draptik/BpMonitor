@@ -31,10 +31,10 @@ module MemberViews =
             [ Attr.style "display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap" ]
             [ if isCurrent then
                 Elem.span [ Attr.class' "current-member" ] [ Text.raw "You" ]
-              Elem.a [ Attr.href $"/members/{m.Id}/edit"; Attr.class' "outline" ] [ Text.raw "Edit" ]
+              Elem.a [ Attr.href (Routes.memberEdit m.Id); Attr.class' "outline" ] [ Text.raw "Edit" ]
               Elem.form
                 [ Attr.method "post"
-                  Attr.action $"/members/{m.Id}/reset-password"
+                  Attr.action (Routes.memberResetPassword m.Id)
                   Attr.class' "inline" ]
                 [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw "Reset password" ] ] ] ]
 
