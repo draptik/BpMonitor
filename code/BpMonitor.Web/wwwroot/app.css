@@ -71,7 +71,10 @@ label.nav-backdrop {
   font-weight: 600;
 }
 
-.topbar .theme-toggle {
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-left: auto;
 }
 
@@ -133,16 +136,6 @@ nav.sidebar ul li {
 }
 
 
-/* Member name / logout / theme toggle pinned to the sidebar bottom */
-.sidebar-user {
-  margin-top: auto;
-  padding-top: 1rem;
-  border-top: 1px solid var(--pico-muted-border-color);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: flex-start;
-}
 
 .content {
   margin-left: var(--sidebar-width);
