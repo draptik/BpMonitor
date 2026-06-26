@@ -69,6 +69,8 @@ label.nav-backdrop {
 
 .topbar-title {
   font-weight: 600;
+  color: inherit;
+  text-decoration: none;
 }
 
 .topbar-right {
