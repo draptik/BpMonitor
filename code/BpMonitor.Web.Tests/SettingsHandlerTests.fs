@@ -34,7 +34,7 @@ let ``updateSettings persists a valid goal range and redirects to history`` () =
   TestHost.run ReadingHandlers.updateSettings ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
-  test <@ ctx.Response.Headers.Location.ToString() = "/history" @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.history @>
 
   let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
   let updated = (memberRepo.GetById defaultMemberId).Value

@@ -304,7 +304,7 @@ let ``recent renders a 'Load full history' button when a reading older than the 
 
   let body = TestHost.readBody ctx
   test <@ body.Contains "Load full history" @>
-  test <@ body.Contains "hx-get=\"/recent/full\"" @>
+  test <@ body.Contains $"hx-get=\"{Routes.recentFull}\"" @>
 
 [<Fact>]
 let ``recent omits the 'Load full history' button when all readings are within the load window`` () =

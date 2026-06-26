@@ -34,7 +34,7 @@ let ``loginWithCredentials redirects to / for correct credentials`` () =
   TestHost.run AuthHandlers.loginWithCredentials ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
-  test <@ ctx.Response.Headers.Location.ToString() = "/" @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.home @>
 
 [<Fact>]
 let ``loginWithCredentials returns 401 for wrong password`` () =
@@ -66,7 +66,7 @@ let ``loginWithCredentials redirects to claim page for unclaimed member`` () =
   TestHost.run AuthHandlers.loginWithCredentials ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
-  test <@ ctx.Response.Headers.Location.ToString() = "/login/1" @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.loginMember 1 @>
 
 [<Fact>]
 let ``loginMember returns 200 for an existing active member`` () =
@@ -145,7 +145,7 @@ let ``loginSubmit accepts correct password for claimed member and redirects`` ()
   TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
-  test <@ ctx.Response.Headers.Location.ToString() = "/" @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.home @>
 
 [<Fact>]
 let ``loginSubmit rejects wrong password for claimed member with 401`` () =

@@ -36,9 +36,12 @@ let ``trends renders 200 with granularity buttons and current Weekly panel`` () 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
   // Granularity buttons
-  test <@ body.Contains "href=\"/trends/weekly\"" @>
-  test <@ body.Contains "href=\"/trends/monthly\"" @>
-  test <@ body.Contains "href=\"/trends/yearly\"" @>
+  let weeklyGran = Routes.trendsGran "weekly"
+  let monthlyGran = Routes.trendsGran "monthly"
+  let yearlyGran = Routes.trendsGran "yearly"
+  test <@ body.Contains $"href=\"{weeklyGran}\"" @>
+  test <@ body.Contains $"href=\"{monthlyGran}\"" @>
+  test <@ body.Contains $"href=\"{yearlyGran}\"" @>
   // Weekly is active
   test <@ body.Contains "aria-current=\"page\"" @>
   // Inline chart rendered
@@ -249,8 +252,10 @@ let ``trendsPanel period pills without data are aria-disabled and have no href``
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
+  let w24Route = Routes.trendsGranKey "weekly" "2026-W24"
+  let w23Route = Routes.trendsGranKey "weekly" "2026-W23"
   // W24 (This Week) pill should be a normal link
-  test <@ body.Contains "href=\"/trends/weekly/2026-W24\"" @>
+  test <@ body.Contains $"href=\"{w24Route}\"" @>
   // W23 (Last Week) pill should be disabled — no href, has aria-disabled
-  test <@ body.Contains "href=\"/trends/weekly/2026-W23\"" |> not @>
+  test <@ body.Contains $"href=\"{w23Route}\"" |> not @>
   test <@ body.Contains "aria-disabled=\"true\"" @>

@@ -15,7 +15,12 @@ let ``landing renders links to add and history`` () =
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
-  test <@ body.Contains "href=\"/add\"" && body.Contains "href=\"/history\"" @>
+
+  test
+    <@
+      body.Contains $"href=\"{Routes.add}\""
+      && body.Contains $"href=\"{Routes.history}\""
+    @>
 
 [<Fact>]
 let ``history renders a row per reading`` () =
@@ -24,7 +29,7 @@ let ``history renders a row per reading`` () =
   TestHost.run ReadingHandlers.history ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
-  test <@ (TestHost.readBody ctx).Contains "/readings/1/edit" @>
+  test <@ (TestHost.readBody ctx).Contains(Routes.readingEdit 1) @>
 
 [<Fact>]
 let ``history renders the chart with the authenticated member's goal range`` () =
@@ -65,7 +70,7 @@ let ``createReading persists a valid reading and redirects`` () =
   TestHost.run ReadingHandlers.createReading ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
-  test <@ ctx.Response.Headers.Location.ToString() = "/recent" @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.recent @>
   test <@ repo.GetAll(defaultMemberId) |> List.length = 1 @>
 
 [<Fact>]
@@ -159,6 +164,6 @@ let ``updateReading saves changes and redirects`` () =
   TestHost.run ReadingHandlers.updateReading ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
-  test <@ ctx.Response.Headers.Location.ToString() = "/history" @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.history @>
   let updated = repo.GetAll(defaultMemberId) |> List.exactlyOne
   test <@ updated.Systolic = 111 && updated.Comments = Some "updated" @>
