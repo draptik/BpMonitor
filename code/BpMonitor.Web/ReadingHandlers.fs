@@ -250,48 +250,33 @@ module ReadingHandlers =
   // ---------------------------------------------------------------------------
 
   let newReading: HttpContext -> Task =
-    fun ctx ->
-      let m = authenticatedMember ctx
-
+    withMember (fun m ctx ->
       let prefill =
         { Binding.empty with
             Binding.Timestamp = (timeProvider ctx).GetLocalNow().ToString(Formats.timestamp) }
 
-      htmlResponse
-        (ReadingViews.readingForm
-          Routes.add
-          (m |> Option.map _.Name |> Option.defaultValue "")
-          (m |> Option.exists _.IsAdmin)
-          "Add reading"
-          Routes.readings
-          []
-          prefill)
-        ctx
+      htmlResponse (ReadingViews.readingForm Routes.add m.Name m.IsAdmin "Add reading" Routes.readings [] prefill) ctx)
 
   let createReading: HttpContext -> Task =
     withMember (fun m ctx ->
       submit ctx Routes.add m.Name m.IsAdmin "Add reading" Routes.readings Routes.recent ((repo ctx).Add m.Id))
 
   let editReading: HttpContext -> Task =
-    withMember (fun m ctx ->
-      (withRouteId "editReading" (fun id ctx ->
-        match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
-        | Some r ->
-          htmlResponse
-            (ReadingViews.readingForm "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" [] (Binding.ofReading r))
-            ctx
-        | None ->
-          let log = logger ctx
-          log.LogWarning("editReading: reading {Id} not found for member {MemberId}", id, m.Id)
-          notFound ctx))
-        ctx)
+    withMemberAndRouteId "editReading" (fun m id ctx ->
+      match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
+      | Some r ->
+        htmlResponse
+          (ReadingViews.readingForm "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" [] (Binding.ofReading r))
+          ctx
+      | None ->
+        let log = logger ctx
+        log.LogWarning("editReading: reading {Id} not found for member {MemberId}", id, m.Id)
+        notFound ctx)
 
   let updateReading: HttpContext -> Task =
-    withMember (fun m ctx ->
-      (withRouteId "updateReading" (fun id ctx ->
-        submit ctx "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" Routes.history (fun r ->
-          (repo ctx).Update { r with Id = id; MemberId = m.Id })))
-        ctx)
+    withMemberAndRouteId "updateReading" (fun m id ctx ->
+      submit ctx "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" Routes.history (fun r ->
+        (repo ctx).Update { r with Id = id; MemberId = m.Id }))
 
   // ---------------------------------------------------------------------------
   // Export

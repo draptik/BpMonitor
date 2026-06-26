@@ -83,6 +83,15 @@ module AuthHandlers =
         Task.CompletedTask
       | Some m -> handler m ctx
 
+  /// Resolves both the authenticated member and the "id" route segment, passing both to
+  /// `handler`. Redirects to /login if the member cannot be resolved; returns 400 for a
+  /// non-integer id.
+  let withMemberAndRouteId
+    (handlerName: string)
+    (handler: FamilyMember -> int -> HttpContext -> Task)
+    : HttpContext -> Task =
+    withMember (fun m ctx -> (withRouteId handlerName (fun id ctx -> handler m id ctx)) ctx)
+
   // ---------------------------------------------------------------------------
   // Login / logout
   // ---------------------------------------------------------------------------
