@@ -4,32 +4,19 @@ open Xunit
 open Swensen.Unquote
 open BpMonitor.Web
 
-[<Fact>]
-let ``parse None returns dev`` () = test <@ Version.parse None = "dev" @>
+[<Theory>]
+[<InlineData(null)>]
+[<InlineData("")>]
+[<InlineData("   ")>]
+[<InlineData("1.0.0+abc123")>]
+let ``parse returns dev for None and sentinel values`` (raw: string) =
+  test <@ Version.parse (Option.ofObj raw) = "dev" @>
 
-[<Fact>]
-let ``parse empty string returns dev`` () =
-  test <@ Version.parse (Some "") = "dev" @>
-
-[<Fact>]
-let ``parse whitespace returns dev`` () =
-  test <@ Version.parse (Some "   ") = "dev" @>
-
-[<Fact>]
-let ``parse 1.0.0 returns 1.0.0`` () =
-  test <@ Version.parse (Some "1.0.0") = "1.0.0" @>
-
-[<Fact>]
-let ``parse real version returns it unchanged`` () =
-  test <@ Version.parse (Some "0.1.14") = "0.1.14" @>
-
-[<Fact>]
-let ``parse preserves build metadata after plus`` () =
-  test <@ Version.parse (Some "0.1.14+abc123") = "0.1.14+abc123" @>
-
-[<Fact>]
-let ``parse 1.0.0 with sha returns dev`` () =
-  test <@ Version.parse (Some "1.0.0+abc123") = "dev" @>
+[<Theory>]
+[<InlineData("1.0.0")>]
+[<InlineData("0.1.14")>]
+[<InlineData("0.1.14+abc123")>]
+let ``parse returns the version unchanged`` (v: string) = test <@ Version.parse (Some v) = v @>
 
 [<Fact>]
 let ``releaseUrl returns None for dev`` () =
