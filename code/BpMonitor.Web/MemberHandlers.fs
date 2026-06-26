@@ -12,7 +12,7 @@ module MemberHandlers =
   let members: HttpContext -> Task =
     withMember (fun active ctx ->
       let allMembers = (memberRepo ctx).GetAll()
-      htmlResponse (MemberViews.members allMembers active None) ctx)
+      htmlResponse (MemberViews.members allMembers active []) ctx)
 
   let createMember: HttpContext -> Task =
     withMember (fun active ctx ->
@@ -25,7 +25,7 @@ module MemberHandlers =
         | Error NameIsEmpty ->
           let allMembers = (memberRepo ctx).GetAll()
           ctx.Response.StatusCode <- 422
-          do! htmlResponse (MemberViews.members allMembers active (Some "Name cannot be empty")) ctx
+          do! htmlResponse (MemberViews.members allMembers active [ "Name cannot be empty" ]) ctx
         | Ok m ->
           (memberRepo ctx).Add(m) |> ignore
           ctx.Response.Redirect Routes.members

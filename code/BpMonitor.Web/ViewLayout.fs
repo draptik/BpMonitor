@@ -156,6 +156,13 @@ module ViewLayout =
         [ Attr.class' "errors"; Attr.role "alert" ]
         [ Elem.ul [] (errors |> List.map (fun e -> Elem.li [] [ Text.enc e ])) ]
 
+  /// The shared form save/cancel row. `cancelHref` is the Cancel link destination.
+  let formActions (cancelHref: string) : XmlNode =
+    Elem.div
+      [ Attr.class' "actions" ]
+      [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
+        Elem.a [ Attr.href cancelHref; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ]
+
   /// A single labeled form field: `<div class="field"><label/><input/></div>`.
   /// Shared by readingForm, memberForm, and settingsForm.
   let field (labelText: string) (name: string) (value: string) (inputType: string) : XmlNode =
