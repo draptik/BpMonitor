@@ -90,8 +90,8 @@ let ``recent excludes a reading older than the load window entirely, even though
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  test <@ not (body.Contains "199") @>
-  test <@ body.Contains "188" @>
+  test <@ not (body.Contains ">199<") @>
+  test <@ body.Contains ">188<" @>
 
 [<Fact>]
 let ``recent excludes a future-dated reading entirely, since the load window's upper bound is 'now'`` () =
@@ -111,8 +111,8 @@ let ``recent excludes a future-dated reading entirely, since the load window's u
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  test <@ not (body.Contains "177") @>
-  test <@ body.Contains "166" @>
+  test <@ not (body.Contains ">177<") @>
+  test <@ body.Contains ">166<" @>
 
 [<Fact>]
 let ``recent renders a chart`` () =
@@ -323,7 +323,7 @@ let ``recentFull includes a reading older than the load window`` () =
   TestHost.run ReadingHandlers.recentFull ctx
 
   let body = TestHost.readBody ctx
-  test <@ body.Contains "199" @>
+  test <@ body.Contains ">199<" @>
 
 [<Fact>]
 let ``recentFull returns the chart fragment without the page shell, and omits the load-full button`` () =
