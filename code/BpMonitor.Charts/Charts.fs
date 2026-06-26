@@ -324,22 +324,9 @@ module BpChart =
   let private hoverYOnly = withHoverTemplate "%{y}<extra></extra>"
 
   /// Classic x/y plot — one point per reading. Used by /history.
-  /// `includeHeartRate` is currently always false (no caller passes true).
-  let private renderIndividual
-    (includeHeartRate: bool)
-    (goal: GoalRange)
-    (readings: BloodPressureReading list)
-    : string =
+  let private renderIndividual (goal: GoalRange) (readings: BloodPressureReading list) : string =
     let readings, timestamps, systolic, diastolic = seriesOf readings
     let hasComments = readings |> List.exists _.Comments.IsSome
-
-    let heartRateTrace =
-      if includeHeartRate then
-        let heartRate = readings |> List.map _.HeartRate
-        [ Chart.Line(x = timestamps, y = heartRate, Name = "Heart Rate") ]
-      else
-        []
-
 
     [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic", ShowMarkers = true)
       |> Chart.withLineStyle (Color = systolicColor)
@@ -347,7 +334,6 @@ module BpChart =
       Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic", ShowMarkers = true)
       |> Chart.withLineStyle (Color = diastolicColor)
       |> hoverXY
-      yield! heartRateTrace
       yield! commentTraces readings ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
@@ -426,30 +412,7 @@ module BpChart =
     let diaUpper = dailyPoints |> List.map _.DiaUpper
     let diaLower = dailyPoints |> List.map _.DiaLower
 
-    // Aggregated readings always have Comments = None, so this trace is empty in practice.
-    // Kept for structural completeness.
-    let commented = aggregated |> List.filter (fun a -> a.Reading.Comments.IsSome)
-
-    let commentTraces =
-      if commented.IsEmpty then
-        []
-      else
-        let cTimestamps = commented |> List.map (fun a -> xLabel a.Reading)
-        let cSystolic = commented |> List.map (fun a -> a.Reading.Systolic)
-
-        let cTexts =
-          commented |> List.map (fun a -> a.Reading.Comments |> Option.defaultValue "")
-
-        [ Chart.Point(
-            x = cTimestamps,
-            y = cSystolic,
-            Name = "Comments",
-            MultiText = cTexts,
-            Opacity = 0.5,
-            MarkerColor = systolicColor
-          ) ]
-
-    let line name lineColor y text upper lower errorColor =
+    let line name lineColor y text upper lower =
       Chart.Line(
         x = timestamps,
         y = y,
@@ -469,20 +432,16 @@ module BpChart =
         Symmetric = false,
         Array = upper,
         Arrayminus = lower,
-        Color = errorColor
+        Color = lineColor
       )
 
-    let sysErrorColor = systolicColor
-    let diaErrorColor = diastolicColor
-
-    [ line "Systolic" systolicColor systolic sysHover sysUpper sysLower sysErrorColor
-      line "Diastolic" diastolicColor diastolic diaHover diaUpper diaLower diaErrorColor
-      yield! commentTraces ]
+    [ line "Systolic" systolicColor systolic sysHover sysUpper sysLower
+      line "Diastolic" diastolicColor diastolic diaHover diaUpper diaLower ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
     |> finishTrends
 
-  let toHtml (goal: GoalRange) = renderIndividual false goal
+  let toHtml (goal: GoalRange) = renderIndividual goal
   let toHtmlDashed (goal: GoalRange) (gran: Granularity) = renderDashed goal gran
 
   // ── /recent: missing-data-aware solid/dashed line styling ──────────────────
