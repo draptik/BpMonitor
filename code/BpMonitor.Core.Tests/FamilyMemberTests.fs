@@ -3,6 +3,7 @@ module FamilyMemberTests
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
+open TestBuilders
 
 [<Fact>]
 let ``create seeds default goal range`` () =
@@ -42,52 +43,17 @@ let ``hasActiveAdmin is false for empty list`` () =
 
 [<Fact>]
 let ``hasActiveAdmin is false when no member is admin`` () =
-  let members =
-    [ { Id = 1
-        Name = "A"
-        IsAdmin = false
-        IsActive = true
-        PasswordHash = None
-        Goal = GoalRange.defaults
-        CreatedAt = System.DateTimeOffset.MinValue
-        ModifiedAt = System.DateTimeOffset.MinValue } ]
-
+  let members = [ mkMember 1 "A" false true ]
   test <@ FamilyMember.hasActiveAdmin members = false @>
 
 [<Fact>]
 let ``hasActiveAdmin is false when admin member is inactive`` () =
-  let members =
-    [ { Id = 1
-        Name = "A"
-        IsAdmin = true
-        IsActive = false
-        PasswordHash = None
-        Goal = GoalRange.defaults
-        CreatedAt = System.DateTimeOffset.MinValue
-        ModifiedAt = System.DateTimeOffset.MinValue } ]
-
+  let members = [ mkMember 1 "A" true false ]
   test <@ FamilyMember.hasActiveAdmin members = false @>
 
 [<Fact>]
 let ``hasActiveAdmin is true when at least one member is admin and active`` () =
-  let members =
-    [ { Id = 1
-        Name = "A"
-        IsAdmin = false
-        IsActive = true
-        PasswordHash = None
-        Goal = GoalRange.defaults
-        CreatedAt = System.DateTimeOffset.MinValue
-        ModifiedAt = System.DateTimeOffset.MinValue }
-      { Id = 2
-        Name = "B"
-        IsAdmin = true
-        IsActive = true
-        PasswordHash = None
-        Goal = GoalRange.defaults
-        CreatedAt = System.DateTimeOffset.MinValue
-        ModifiedAt = System.DateTimeOffset.MinValue } ]
-
+  let members = [ mkMember 1 "A" false true; mkMember 2 "B" true true ]
   test <@ FamilyMember.hasActiveAdmin members = true @>
 
 [<Fact>]

@@ -4,6 +4,7 @@ open System
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
+open TestBuilders
 
 type private StubRepository(initial: BloodPressureReading list) =
   let readings = ResizeArray<BloodPressureReading>(initial)
@@ -27,15 +28,7 @@ type private StubRepository(initial: BloodPressureReading list) =
       | None -> ()
 
 let private reading id memberId sys dia hr =
-  { Id = id
-    MemberId = memberId
-    Systolic = sys
-    Diastolic = dia
-    HeartRate = hr
-    Timestamp = Timestamp.utc 2026 1 1 9 0 0
-    Comments = None
-    CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+  mkReading id memberId sys dia hr (Timestamp.utc 2026 1 1 9 0 0)
 
 [<Fact>]
 let ``Update replaces the reading with the matching Id`` () =

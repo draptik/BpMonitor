@@ -63,3 +63,21 @@ let mixedUnvalidatedGen: Gen<BloodPressureReadingUnvalidated> =
 /// An int strictly below the minimum or strictly above the maximum.
 let outOfRangeGen (lo: int) (hi: int) : Gen<int> =
   Gen.oneof [ Gen.choose (lo - 1000, lo - 1); Gen.choose (hi + 1, hi + 1000) ]
+
+/// x/y series biased toward conditions that make a local LOWESS fit singular:
+/// x's from a small discrete set create duplicate x-values, and outlier y's
+/// get bisquare-zeroed during robustifying iterations.
+let clusteredSeriesGen: Gen<float list * float list> =
+  gen {
+    let! n = Gen.choose (3, 25)
+    let! xs = Gen.choose (0, 10) |> Gen.map float |> Gen.listOfLength n
+
+    let! ys =
+      Gen.frequency
+        [ 8, Gen.choose (60, 180) |> Gen.map float
+          1, Gen.choose (-500, -200) |> Gen.map float
+          1, Gen.choose (500, 1000) |> Gen.map float ]
+      |> Gen.listOfLength n
+
+    return xs, ys
+  }
