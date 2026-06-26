@@ -144,12 +144,6 @@ nav.sidebar ul li {
   align-items: flex-start;
 }
 
-/* The sidebar's own theme toggle is redundant — the topbar owns the single
-   theme toggle across all screen sizes. */
-.sidebar-user .theme-toggle {
-  display: none;
-}
-
 .content {
   margin-left: var(--sidebar-width);
   display: flex;
