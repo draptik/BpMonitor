@@ -11,10 +11,15 @@
   <ItemGroup>
     <Compile Include="TestHost.fs" />
     <Compile Include="HandlerTestHelpers.fs" />
+    <Compile Include="ViewTestHelpers.fs" />
     <Compile Include="BindingTests.fs" />
     <Compile Include="VersionTests.fs" />
     <Compile Include="VersionPropertyTests.fs" />
-    <Compile Include="ViewTests.fs" />
+    <Compile Include="LandingViewTests.fs" />
+    <Compile Include="LayoutViewTests.fs" />
+    <Compile Include="HistoryViewTests.fs" />
+    <Compile Include="MemberViewTests.fs" />
+    <Compile Include="LoginViewTests.fs" />
     <Compile Include="ReadingHandlerTests.fs" />
     <Compile Include="MemberHandlerTests.fs" />
     <Compile Include="LoginHandlerTests.fs" />
