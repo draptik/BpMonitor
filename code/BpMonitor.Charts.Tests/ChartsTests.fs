@@ -156,15 +156,9 @@ let ``toHtml does not clip comment markers against the x-axis`` () =
   test <@ m.Groups[1].Value = "false" @>
 
 [<Fact>]
-let ``toHtml labels the y-axis baseline "Comments" when comment markers are present`` () =
+let ``toHtml does not show "Comments" as a y-axis tick label even when comment markers are present`` () =
   let html = BpChart.toHtml GoalRange.defaults readings
-  test <@ html.Contains("\"ticktext\":[\"Comments\",\"20\",\"40\"") @>
-
-[<Fact>]
-let ``toHtml does not label the y-axis baseline "Comments" when there are no comment markers`` () =
-  let noCommentOnly = [ reading 1 120 80 70 1 9 None ]
-  let html = BpChart.toHtml GoalRange.defaults noCommentOnly
-  test <@ not (html.Contains("\"ticktext\"")) @>
+  test <@ not (html.Contains("ticktext")) @>
 
 [<Fact>]
 let ``toHtml renders timestamps in ascending order regardless of input order`` () =
