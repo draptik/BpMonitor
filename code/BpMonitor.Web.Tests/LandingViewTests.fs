@@ -26,8 +26,8 @@ let ``landing renders links to add and history`` () =
 
   test <@ html.Contains "href=\"/add\"" @>
   test <@ html.Contains "href=\"/history\"" @>
-  // the Home nav link is marked active on the landing page
-  test <@ html.Contains "href=\"/\" aria-current=\"page\"" @>
+  // the topbar title links to the landing page (replaces the removed Home sidebar entry)
+  test <@ html.Contains "class=\"topbar-title\" href=\"/\"" @>
 
 [<Fact>]
 let ``landing renders action buttons for trends, recent, settings and both exports`` () =

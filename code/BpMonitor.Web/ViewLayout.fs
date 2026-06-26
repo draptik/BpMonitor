@@ -88,7 +88,7 @@ module ViewLayout =
                     Attr.class' "nav-burger"
                     Attr.create "aria-label" "Menu" ]
                   [ Text.raw "☰" ]
-                Elem.span [ Attr.class' "topbar-title" ] [ Text.raw "BpMonitor" ]
+                Elem.a [ Attr.class' "topbar-title"; Attr.href Routes.home ] [ Text.raw "BpMonitor" ]
                 Elem.div
                   [ Attr.class' "topbar-right" ]
                   [ Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ]
@@ -101,11 +101,12 @@ module ViewLayout =
               [ Attr.class' "sidebar" ]
               [ Elem.ul
                   []
-                  [ navLink active Routes.home "Home"
-                    navLink active Routes.add "Add"
+                  [ navLink active Routes.add "Add"
                     navLink active Routes.history "History"
                     navLink active Routes.recent "Recent"
                     navLink active Routes.trends "Trends"
+                    if isAdmin then
+                      navLink active Routes.members "Members"
                     navLink active Routes.settings "Settings"
                     // hx-boost="false" prevents htmx from AJAX-swapping the download response.
                     Elem.li
@@ -116,9 +117,7 @@ module ViewLayout =
                     // hx-boost="false" prevents htmx from AJAX-swapping the download response.
                     Elem.li
                       []
-                      [ Elem.a [ Attr.href Routes.exportCsv; Attr.create "hx-boost" "false" ] [ Text.raw "Export CSV" ] ]
-                    if isAdmin then
-                      navLink active Routes.members "Members" ] ]
+                      [ Elem.a [ Attr.href Routes.exportCsv; Attr.create "hx-boost" "false" ] [ Text.raw "Export CSV" ] ] ] ]
             Elem.div
               [ Attr.class' "content" ]
               [ Elem.main [ Attr.class' "container" ] content
