@@ -141,20 +141,13 @@ nav.sidebar ul.sidebar-bottom {
   margin-top: auto;
 }
 
+/* Pico's [role="button"] handles bg, color, border, and hover. We only
+   need layout overrides: full-width block, centered text, no underline. */
 nav.sidebar a.nav-action {
   display: block;
-  background: var(--pico-primary);
-  color: var(--pico-primary-inverse);
-  border-radius: var(--pico-border-radius);
-  padding: 0.35rem 0.75rem;
   text-align: center;
-  font-weight: 600;
   text-decoration: none;
-}
-
-nav.sidebar a.nav-action:hover {
-  background: var(--pico-primary-hover, var(--pico-primary));
-  color: var(--pico-primary-inverse);
+  margin-bottom: 0;
 }
 
 nav.sidebar a.nav-action[aria-current="page"] {

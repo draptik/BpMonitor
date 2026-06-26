@@ -19,6 +19,7 @@ module ViewLayout =
       [ yield Attr.href href
         if isAction then
           yield Attr.class' "nav-action"
+          yield Attr.role "button"
         if href = active then
           yield Attr.create "aria-current" "page" ]
 
