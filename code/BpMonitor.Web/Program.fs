@@ -122,7 +122,5 @@ let main args =
   with ex ->
     Log.Fatal(ex, "BpMonitor.Web terminated unexpectedly")
 
+    Log.CloseAndFlush()
     1
-    |> fun exitCode ->
-      Log.CloseAndFlush()
-      exitCode

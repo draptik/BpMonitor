@@ -131,7 +131,7 @@ dotnet test --configuration Release --max-parallel-test-modules 2
 
 All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also hosts one-time dev setup tasks like the Playwright Chromium install. Run `mise install` once after cloning.
 
-- `biome.json` — Biome JS linter config (scoped to `wwwroot/theme.js`, `wwwroot/theme-label.js`, `wwwroot/recent-scrubber.js`, `wwwroot/trends-scroll.js`)
+- `biome.json` — Biome JS linter config (scoped to `wwwroot/theme.js`, `wwwroot/theme-label.js`, `wwwroot/recent-scrubber.js`, `wwwroot/trends-scroll.js`, `wwwroot/recent-zoom.js`)
 - `.markdownlint-cli2.yaml` — markdownlint config
 - Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:md` / `lint:shell` individually
 - Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium)

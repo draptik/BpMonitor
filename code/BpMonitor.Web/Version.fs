@@ -28,7 +28,7 @@ module Version =
     Assembly.GetEntryAssembly()
     |> Option.ofObj
     |> Option.bind (fun a -> a.GetCustomAttribute<AssemblyInformationalVersionAttribute>() |> Option.ofObj)
-    |> Option.map (fun a -> a.InformationalVersion)
+    |> Option.map _.InformationalVersion
     |> parse
 
   /// GitHub release page URL for a stamped version; None for the "dev" fallback.
