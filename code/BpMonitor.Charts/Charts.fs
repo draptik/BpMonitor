@@ -195,16 +195,20 @@ module BpChart =
           StyleParam.ModeBarButton.Select2d ]
     )
 
+  let private toHtmlString (chart: GenericChart) =
+    chart
+    |> GenericChart.toChartHTML
+    |> _.Replace("\"width\":600,", "")
+    |> _.Replace("\"height\":600,", "")
+    |> fun html -> html + errorBarScript
+
   let private finish (hasComments: bool) (chart: GenericChart) =
     chart
     |> Chart.withLayout (layout ())
     |> Chart.withXAxis xAxis
     |> Chart.withYAxis (yAxis hasComments)
     |> Chart.withConfig interactiveConfig
-    |> GenericChart.toChartHTML
-    |> _.Replace("\"width\":600,", "")
-    |> _.Replace("\"height\":600,", "")
-    |> fun html -> html + errorBarScript
+    |> toHtmlString
 
   // Like `finish`, but with the scrubber-bar x-axis and unified hover (HoverMode.X finds
   // the nearest point across all traces at the hovered x, not just the one under the
@@ -234,10 +238,7 @@ module BpChart =
     |> Chart.withXAxis (recentXAxis rangeLow rangeHigh)
     |> Chart.withYAxis (yAxis hasComments)
     |> Chart.withConfig interactiveConfig
-    |> GenericChart.toChartHTML
-    |> _.Replace("\"width\":600,", "")
-    |> _.Replace("\"height\":600,", "")
-    |> fun html -> html + errorBarScript
+    |> toHtmlString
 
   // Trends-specific tuning for mobile:
   // - Compact margins maximize the narrow plot area.
@@ -277,10 +278,7 @@ module BpChart =
     |> Chart.withYAxis (yAxis false)
     |> Chart.withConfig trendsConfig
     |> withBottomLegend
-    |> GenericChart.toChartHTML
-    |> _.Replace("\"width\":600,", "")
-    |> _.Replace("\"height\":600,", "")
-    |> fun html -> html + errorBarScript
+    |> toHtmlString
 
   /// Sorts readings chronologically and extracts the parallel label/value series
   /// shared by every per-reading chart (/history and /recent).
@@ -340,19 +338,6 @@ module BpChart =
     |> withBottomLegend
     |> finish hasComments
 
-  type private DailyPoint =
-    { Label: string
-      Systolic: int
-      Diastolic: int
-      Symbol: StyleParam.MarkerSymbol
-      Size: int
-      SysHover: string
-      DiaHover: string
-      SysUpper: int
-      SysLower: int
-      DiaUpper: int
-      DiaLower: int }
-
   /// Dashed line chart — one point per aggregated period, connected by a dashed line.
   /// Circle marker = single reading in that period; Diamond marker = average of multiple readings.
   /// X-axis labels adapt to granularity: Weekly → date, Monthly → ISO week, Yearly → month name.
@@ -370,47 +355,39 @@ module BpChart =
         $"W{week}"
       | Yearly -> local.Date.ToString("MMM")
 
-    let dailyPoints =
-      aggregated
-      |> List.map (fun a ->
-        let avgSys = a.Reading.Systolic
-        let avgDia = a.Reading.Diastolic
+    let toSymbol count =
+      if count = 1 then
+        StyleParam.MarkerSymbol.Circle
+      else
+        StyleParam.MarkerSymbol.Diamond
 
-        { Label = xLabel a.Reading
-          Systolic = avgSys
-          Diastolic = avgDia
-          Symbol =
-            if a.Count = 1 then
-              StyleParam.MarkerSymbol.Circle
-            else
-              StyleParam.MarkerSymbol.Diamond
-          Size = if a.Count = 1 then 8 else 11
-          SysHover =
-            if a.Count = 1 then
-              "1 reading"
-            else
-              $"{a.Count} readings · {a.MinSystolic}–{avgSys}–{a.MaxSystolic}"
-          DiaHover =
-            if a.Count = 1 then
-              ""
-            else
-              $"{a.MinDiastolic}–{avgDia}–{a.MaxDiastolic}"
-          SysUpper = a.MaxSystolic - avgSys
-          SysLower = avgSys - a.MinSystolic
-          DiaUpper = a.MaxDiastolic - avgDia
-          DiaLower = avgDia - a.MinDiastolic })
+    let toSysHover (a: AggregatedReading) =
+      if a.Count = 1 then
+        "1 reading"
+      else
+        $"{a.Count} readings · {a.MinSystolic}–{a.Reading.Systolic}–{a.MaxSystolic}"
 
-    let timestamps = dailyPoints |> List.map _.Label
-    let systolic = dailyPoints |> List.map _.Systolic
-    let diastolic = dailyPoints |> List.map _.Diastolic
-    let symbols = dailyPoints |> List.map _.Symbol
-    let sizes = dailyPoints |> List.map _.Size
-    let sysHover = dailyPoints |> List.map _.SysHover
-    let diaHover = dailyPoints |> List.map _.DiaHover
-    let sysUpper = dailyPoints |> List.map _.SysUpper
-    let sysLower = dailyPoints |> List.map _.SysLower
-    let diaUpper = dailyPoints |> List.map _.DiaUpper
-    let diaLower = dailyPoints |> List.map _.DiaLower
+    let toDiaHover (a: AggregatedReading) =
+      if a.Count = 1 then
+        ""
+      else
+        $"{a.MinDiastolic}–{a.Reading.Diastolic}–{a.MaxDiastolic}"
+
+    let timestamps = aggregated |> List.map (fun a -> xLabel a.Reading)
+    let systolic = aggregated |> List.map _.Reading.Systolic
+    let diastolic = aggregated |> List.map _.Reading.Diastolic
+    let symbols = aggregated |> List.map (fun a -> toSymbol a.Count)
+    let sizes = aggregated |> List.map (fun a -> if a.Count = 1 then 8 else 11)
+    let sysHover = aggregated |> List.map toSysHover
+    let diaHover = aggregated |> List.map toDiaHover
+    let sysUpper = aggregated |> List.map (fun a -> a.MaxSystolic - a.Reading.Systolic)
+    let sysLower = aggregated |> List.map (fun a -> a.Reading.Systolic - a.MinSystolic)
+
+    let diaUpper =
+      aggregated |> List.map (fun a -> a.MaxDiastolic - a.Reading.Diastolic)
+
+    let diaLower =
+      aggregated |> List.map (fun a -> a.Reading.Diastolic - a.MinDiastolic)
 
     let line name lineColor y text upper lower =
       Chart.Line(

@@ -512,3 +512,17 @@ let ``toHtmlDashed hover omits the redundant "Systolic"/"Diastolic" trace name, 
   let html = BpChart.toHtmlDashed GoalRange.defaults Weekly (asAggregated readings)
   test <@ hasNamelessHover html "Systolic" @>
   test <@ hasNamelessHover html "Diastolic" @>
+
+[<Fact>]
+let ``toHtmlDashed Monthly: x-axis labels use ISO week format`` () =
+  // Jan 8, 2026 is a Thursday in ISO week 2
+  let aggregated = asAggregated [ reading 1 120 80 70 8 9 None ]
+  let html = BpChart.toHtmlDashed GoalRange.defaults Monthly aggregated
+  test <@ html.Contains("W2") @>
+
+[<Fact>]
+let ``toHtmlDashed Yearly: x-axis labels use month-name format`` () =
+  // Jan 8, 2026 → "Jan"
+  let aggregated = asAggregated [ reading 1 120 80 70 8 9 None ]
+  let html = BpChart.toHtmlDashed GoalRange.defaults Yearly aggregated
+  test <@ html.Contains("Jan") @>
