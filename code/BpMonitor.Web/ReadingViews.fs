@@ -212,7 +212,4 @@ module ReadingViews =
             fieldWithHint "Diastolic" "mmHg" "Diastolic" m.Diastolic "number"
             fieldWithHint "Heart Rate" "bpm" "HeartRate" m.HeartRate "number"
             ViewLayout.field "Comment" "Comments" m.Comments "text"
-            Elem.div
-              [ Attr.class' "actions" ]
-              [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
-                Elem.a [ Attr.href Routes.history; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
+            ViewLayout.formActions Routes.history ] ]

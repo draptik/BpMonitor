@@ -5,11 +5,7 @@ open BpMonitor.Core
 
 /// Server-rendered HTML views for family-member management pages.
 module MemberViews =
-  let private membersList
-    (allMembers: FamilyMember list)
-    (active: FamilyMember)
-    (errorMsg: string option)
-    : XmlNode list =
+  let private membersList (allMembers: FamilyMember list) (active: FamilyMember) (errors: string list) : XmlNode list =
     let badge (text: string) (cls: string) =
       Elem.span [ Attr.class' cls ] [ Text.raw text ]
 
@@ -28,7 +24,7 @@ module MemberViews =
               else
                 badge "Unclaimed" "badge badge-unclaimed" ]
           Elem.td
-            [ Attr.style "display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap" ]
+            [ Attr.class' "member-actions" ]
             [ if isCurrent then
                 Elem.span [ Attr.class' "current-member" ] [ Text.raw "You" ]
               Elem.a [ Attr.href (Routes.memberEdit m.Id); Attr.class' "outline" ] [ Text.raw "Edit" ]
@@ -38,9 +34,7 @@ module MemberViews =
                   Attr.class' "inline" ]
                 [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw "Reset password" ] ] ] ]
 
-    [ match errorMsg with
-      | Some msg -> yield ViewLayout.errorBox [ msg ]
-      | None -> ()
+    [ yield ViewLayout.errorBox errors
       yield
         Elem.table
           []
@@ -107,10 +101,7 @@ module MemberViews =
                   [ Attr.for' "IsActive" ]
                   [ Elem.input (checkedAttr m.IsActive @ [ Attr.id "IsActive"; Attr.name "IsActive" ])
                     Text.raw " Active" ] ]
-            Elem.div
-              [ Attr.class' "actions" ]
-              [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
-                Elem.a [ Attr.href Routes.members; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
+            ViewLayout.formActions Routes.members ] ]
 
   /// Self-service goal-range settings page: lets the logged-in member edit their own
   /// systolic/diastolic goal range, rendered as color-coded bands on their charts.
@@ -139,17 +130,14 @@ module MemberViews =
             ViewLayout.field "Systolic max" "SystolicGoalMax" sysMax "number"
             ViewLayout.field "Diastolic min" "DiastolicGoalMin" diaMin "number"
             ViewLayout.field "Diastolic max" "DiastolicGoalMax" diaMax "number"
-            Elem.div
-              [ Attr.class' "actions" ]
-              [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
-                Elem.a [ Attr.href Routes.history; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ] ] ]
+            ViewLayout.formActions Routes.history ] ]
 
   /// Members page: list of family members with Edit/Reset-password buttons and an add form.
-  /// Pass `error = Some "msg"` to show a validation error above the add form.
-  let members (allMembers: FamilyMember list) (active: FamilyMember) (error: string option) : XmlNode =
+  /// Pass non-empty `errors` to show validation errors above the add form.
+  let members (allMembers: FamilyMember list) (active: FamilyMember) (errors: string list) : XmlNode =
     ViewLayout.layout
       Routes.members
       active.Name
       active.IsAdmin
       "Family Members"
-      (Elem.h1 [] [ Text.raw "Family Members" ] :: membersList allMembers active error)
+      (Elem.h1 [] [ Text.raw "Family Members" ] :: membersList allMembers active errors)
