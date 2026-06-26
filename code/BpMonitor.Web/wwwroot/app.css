@@ -6,6 +6,9 @@
      drift out of sync. Same value on mobile and desktop (desktop used to be
      14rem, which felt oversized for a nav-only column). */
   --sidebar-width: 11rem;
+  /* Topbar height — referenced by nav.sidebar's top offset, .content's
+     padding-top, and the mobile backdrop, so they stay in sync. */
+  --topbar-height: 3rem;
 }
 
 body {
@@ -47,17 +50,17 @@ label.nav-backdrop {
   display: none;
 }
 
-/* Slim app bar — hidden on desktop by default; shown on mobile, and as the
-   restore bar when the desktop sidebar is collapsed (see media queries). */
+/* Slim app bar — always visible; anchored to the top of the viewport. The
+   sidebar and content area sit below it (see nav.sidebar/content rules). */
 .topbar {
-  display: none;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 3rem;
+  height: var(--topbar-height);
   z-index: 200;
   padding: 0 0.5rem;
   background: var(--pico-background-color);
@@ -94,15 +97,17 @@ label.nav-backdrop {
    page's tallest content, leaving it no shorter containing block to stick
    within, so it scrolled away with the rest of the page on long pages like
    History. Fixed takes it out of flow entirely; .content's margin-left
-   below reserves the space it would otherwise have occupied. */
+   below reserves the space it would otherwise have occupied.
+   top: --topbar-height places the sidebar directly below the always-visible
+   header; height: calc keeps it from extending past the viewport bottom. */
 nav.sidebar {
   width: var(--sidebar-width);
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 0;
+  top: var(--topbar-height);
   left: 0;
-  height: 100vh;
+  height: calc(100vh - var(--topbar-height));
   z-index: 10;
   overflow-y: auto;
   border-right: 1px solid var(--pico-muted-border-color);
@@ -128,22 +133,6 @@ nav.sidebar ul li {
 }
 
 
-/* Collapse button (◀) — desktop only; hidden on mobile */
-.sidebar-collapse {
-  display: none;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0.1rem 0.3rem;
-  line-height: 1;
-  user-select: none;
-}
-
-/* Right-align the collapse button in its li so it sits at the sidebar edge */
-li:has(.sidebar-collapse) {
-  display: flex;
-  justify-content: flex-end;
-}
-
 /* Member name / logout / theme toggle pinned to the sidebar bottom */
 .sidebar-user {
   margin-top: auto;
@@ -155,11 +144,18 @@ li:has(.sidebar-collapse) {
   align-items: flex-start;
 }
 
+/* The sidebar's own theme toggle is redundant — the topbar owns the single
+   theme toggle across all screen sizes. */
+.sidebar-user .theme-toggle {
+  display: none;
+}
+
 .content {
   margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  padding-top: var(--topbar-height);
   padding-left: 1rem;
   padding-right: 1rem;
 }
@@ -304,17 +300,6 @@ g.errorbars path.yerror {
 
   /* ── Mobile sidebar / off-canvas drawer ─────────────────────────────────── */
 
-  /* Slim app bar (☰ + title + theme toggle) replaces the old floating
-     corner buttons on mobile. */
-  .topbar {
-    display: flex;
-  }
-
-  /* The sidebar's own theme toggle is redundant once the topbar owns it. */
-  .sidebar-user .theme-toggle {
-    display: none;
-  }
-
   /* Sidebar is an off-canvas drawer on mobile: slides off-screen by default
      (translateX), slides in when the checkbox is checked. Position/size
      come from the shared baseline rule above — only the slide behavior and
@@ -343,12 +328,12 @@ g.errorbars path.yerror {
     align-items: center;
   }
 
-  /* Backdrop shown when drawer is open; starts after the sidebar so
-     it only covers the content area — avoids z-index interception. */
+  /* Backdrop shown when drawer is open; starts after the sidebar and below
+     the topbar so it only covers the content area — avoids z-index interception. */
   #nav-toggle:checked ~ label.nav-backdrop {
     display: block;
     position: fixed;
-    top: 0;
+    top: var(--topbar-height);
     left: var(--sidebar-width);
     right: 0;
     bottom: 0;
@@ -357,23 +342,16 @@ g.errorbars path.yerror {
   }
 
   /* On mobile the sidebar overlays as a drawer rather than pushing content
-     over, so content shouldn't reserve space for it. Also push content down
-     to clear the fixed topbar. */
+     over, so content shouldn't reserve space for it. padding-top comes from
+     the base rule (--topbar-height), which already clears the fixed topbar. */
   .content {
     margin-left: 0;
-    padding-top: 3.25rem;
   }
 }
 
 /* ── Desktop sidebar collapse ───────────────────────────────────────────── */
 @media (min-width: 601px) {
-  /* Show the collapse button (◀) inside the sidebar header */
-  .sidebar-collapse {
-    display: flex;
-    align-items: center;
-  }
-
-  /* Hide sidebar and show hamburger as the restore button */
+  /* Hide sidebar when collapsed — the topbar ☰ restores it. */
   #nav-toggle:checked ~ nav.sidebar {
     display: none;
   }
@@ -382,14 +360,6 @@ g.errorbars path.yerror {
      reserves its space while it's visible — release it when collapsed. */
   #nav-toggle:checked ~ .content {
     margin-left: 0;
-    padding-top: 3.25rem;
-  }
-
-  /* When collapsed, the topbar takes over as the restore bar — it still
-     holds the ☰ (now restoring instead of opening a drawer) and the theme
-     toggle, so theme switching stays available with the sidebar hidden. */
-  #nav-toggle:checked ~ .topbar {
-    display: flex;
   }
 }
 

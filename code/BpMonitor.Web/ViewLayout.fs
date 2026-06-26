@@ -72,8 +72,8 @@ module ViewLayout =
               [ Attr.type' "checkbox"
                 Attr.id "nav-toggle"
                 Attr.create "aria-hidden" "true" ]
-            // Slim app bar: hidden on desktop, shown on mobile (and as the restore bar
-            // when the desktop sidebar is collapsed) — see app.css.
+            // Slim app bar: always visible — anchors the ☰ collapse/expand toggle and
+            // the theme toggle across all screen sizes — see app.css.
             Elem.header
               [ Attr.class' "topbar" ]
               [ Elem.label
@@ -90,14 +90,7 @@ module ViewLayout =
               [ Attr.class' "sidebar" ]
               [ Elem.ul
                   []
-                  [ Elem.li
-                      []
-                      [ Elem.label
-                          [ Attr.create "for" "nav-toggle"
-                            Attr.class' "sidebar-collapse"
-                            Attr.create "aria-label" "Collapse sidebar" ]
-                          [ Text.raw "◀" ] ]
-                    navLink active Routes.home "Home"
+                  [ navLink active Routes.home "Home"
                     navLink active Routes.add "Add"
                     navLink active Routes.history "History"
                     navLink active Routes.recent "Recent"
