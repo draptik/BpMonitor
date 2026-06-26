@@ -12,7 +12,14 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "style": {
+        "useConst": "error",
+        "useTemplate": "error",
+        "noUselessElse": "error",
+        "useSingleVarDeclarator": "error",
+        "useCollapsedElseIf": "error"
+      }
     }
   },
   "formatter": {
