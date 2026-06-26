@@ -1,13 +1,13 @@
 // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
 (()=> {
-  var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  const t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
   document.documentElement.setAttribute('data-theme',t);
 })();
 
 function applyChartTheme(theme) {
   if (typeof Plotly === 'undefined') return;
-  var isDark = theme === 'dark';
-  var axisLineColor = isDark ? '#c2cfd6' : '#444';
+  const isDark = theme === 'dark';
+  const axisLineColor = isDark ? '#c2cfd6' : '#444';
   document.querySelectorAll('.js-plotly-plot').forEach((d) => {
     Plotly.relayout(d, {
       paper_bgcolor: 'rgba(0,0,0,0)',
@@ -23,7 +23,8 @@ function applyChartTheme(theme) {
 }
 
 window.toggleTheme=()=> {
-  var h=document.documentElement,n=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  const h=document.documentElement;
+  const n=h.getAttribute('data-theme')==='dark'?'light':'dark';
   h.setAttribute('data-theme',n);
   localStorage.setItem('theme',n);
   document.querySelectorAll('.theme-toggle').forEach((b) => { b.textContent=n==='dark'?'☀️':'🌙'; });

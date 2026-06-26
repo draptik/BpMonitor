@@ -5,11 +5,11 @@
 // Plotly.relayout — same call pattern as theme.js. The existing plotly_relayout
 // listener in recent-scrubber.js re-syncs the value strip automatically.
 function setupRecentZoomButtons() {
-  var buttons = document.querySelectorAll(".recent-zoom-button");
+  const buttons = document.querySelectorAll(".recent-zoom-button");
   if (buttons.length === 0) return;
 
   function setup() {
-    var d = document.querySelector(".js-plotly-plot");
+    const d = document.querySelector(".js-plotly-plot");
     if (!d?.on) {
       setTimeout(setup, 50);
       return;

@@ -18,11 +18,11 @@
 // Event delegation on the strip container avoids flicker when the pointer moves
 // between the stacked Systolic/Diastolic cells of the same column.
 function setupRecentScrubber() {
-  var strip = document.querySelector(".value-strip");
+  const strip = document.querySelector(".value-strip");
   if (!strip) return;
 
   function setup() {
-    var d = document.querySelector(".js-plotly-plot");
+    const d = document.querySelector(".js-plotly-plot");
     if (!d?.on) {
       setTimeout(setup, 50);
       return;
@@ -30,7 +30,7 @@ function setupRecentScrubber() {
 
     // chart → strip: box the value-strip column matching the hovered chart point.
     d.on("plotly_hover", (e) => {
-      var x = e.points[0].x;
+      const x = e.points[0].x;
       document.querySelectorAll(".value-strip td.scrubbed").forEach((c) => {
         c.classList.remove("scrubbed");
       });
@@ -56,18 +56,18 @@ function setupRecentScrubber() {
     // correct x pixel without any timezone conversion (Plotly's own d2l parses the
     // same date strings it stored in the trace data). The plotly_hover event fires
     // naturally, so the existing chart→strip listener adds .scrubbed for free.
-    var lastX = null;
+    let lastX = null;
     strip.addEventListener("mouseover", (e) => {
-      var cell = e.target.closest("td[data-x]");
+      const cell = e.target.closest("td[data-x]");
       if (!cell || cell.dataset.x === lastX) return;
       lastX = cell.dataset.x;
-      var xaxis = d._fullLayout?.xaxis;
+      const xaxis = d._fullLayout?.xaxis;
       if (!xaxis?.d2l || !xaxis?.l2p) return;
-      var dragRect = d.querySelector(".draglayer .xy > rect");
+      const dragRect = d.querySelector(".draglayer .xy > rect");
       if (!dragRect) return;
-      var br = dragRect.getBoundingClientRect();
-      var xPx = xaxis.l2p(xaxis.d2l(cell.dataset.x));
-      var yPx = (d._fullLayout?.yaxis?.l2p?.(120)) ?? br.height / 2;
+      const br = dragRect.getBoundingClientRect();
+      const xPx = xaxis.l2p(xaxis.d2l(cell.dataset.x));
+      const yPx = (d._fullLayout?.yaxis?.l2p?.(120)) ?? br.height / 2;
       dragRect.dispatchEvent(
         new MouseEvent("mousemove", {
           bubbles: true,
@@ -81,7 +81,7 @@ function setupRecentScrubber() {
       lastX = null;
       // Dispatch mouseout on the drag layer to trigger Plotly's unhover path;
       // also clear .scrubbed directly so the box never lingers.
-      var dragRect = d.querySelector(".draglayer .xy > rect");
+      const dragRect = d.querySelector(".draglayer .xy > rect");
       if (dragRect)
         dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
       document.querySelectorAll(".value-strip td.scrubbed").forEach((c) => {
@@ -90,9 +90,9 @@ function setupRecentScrubber() {
     });
 
     d.on("plotly_relayout", (e) => {
-      var cells = document.querySelectorAll(".value-strip td[data-x]");
-      var lo = e["xaxis.range[0]"];
-      var hi = e["xaxis.range[1]"];
+      const cells = document.querySelectorAll(".value-strip td[data-x]");
+      let lo = e["xaxis.range[0]"];
+      let hi = e["xaxis.range[1]"];
 
       if (lo === undefined && Array.isArray(e["xaxis.range"])) {
         lo = e["xaxis.range"][0];
@@ -115,12 +115,12 @@ function setupRecentScrubber() {
         return;
       }
 
-      var loT = new Date(String(lo).replace(" ", "T")).getTime();
-      var hiT = new Date(String(hi).replace(" ", "T")).getTime();
+      const loT = new Date(String(lo).replace(" ", "T")).getTime();
+      const hiT = new Date(String(hi).replace(" ", "T")).getTime();
       if (Number.isNaN(loT) || Number.isNaN(hiT)) return;
 
       cells.forEach((c) => {
-        var t = new Date(c.dataset.x.replace(" ", "T")).getTime();
+        const t = new Date(c.dataset.x.replace(" ", "T")).getTime();
         if (Number.isNaN(t)) return;
         c.classList.toggle("out-of-range", t < loT || t > hiT);
       });

@@ -3,22 +3,22 @@
 // just DOMContentLoaded) to catch every swap — same pattern as theme.js for surviving
 // hx-boost navigations.
 function scrollActiveSubPeriodIntoView() {
-  var row = document.querySelector(".trends-subperiod-buttons");
+  const row = document.querySelector(".trends-subperiod-buttons");
   if (!row) return;
-  var active = row.querySelector('[aria-current="page"]');
+  const active = row.querySelector('[aria-current="page"]');
   if (active) active.scrollIntoView({ inline: "center", block: "nearest" });
 }
 
 // Toggles edge-fade affordances (CSS, app.css `.trends-subperiod-scroller`) on the
 // non-scrolling wrapper based on how far the pill row has been scrolled.
 function updateSubPeriodFades() {
-  var row = document.querySelector(".trends-subperiod-buttons");
-  var scroller = document.querySelector(".trends-subperiod-scroller");
+  const row = document.querySelector(".trends-subperiod-buttons");
+  const scroller = document.querySelector(".trends-subperiod-scroller");
   if (!row || !scroller) return;
 
-  var tolerancePx = 1;
-  var canScrollLeft = row.scrollLeft > tolerancePx;
-  var canScrollRight = row.scrollLeft + row.clientWidth < row.scrollWidth - tolerancePx;
+  const tolerancePx = 1;
+  const canScrollLeft = row.scrollLeft > tolerancePx;
+  const canScrollRight = row.scrollLeft + row.clientWidth < row.scrollWidth - tolerancePx;
 
   scroller.classList.toggle("can-scroll-left", canScrollLeft);
   scroller.classList.toggle("can-scroll-right", canScrollRight);
