@@ -5,7 +5,7 @@
      the mobile backdrop's offset, and .content's margin-left, so they can't
      drift out of sync. Same value on mobile and desktop (desktop used to be
      14rem, which felt oversized for a nav-only column). */
-  --sidebar-width: 10rem;
+  --sidebar-width: 12rem;
   /* Topbar height — referenced by nav.sidebar's top offset, .content's
      padding-top, and the mobile backdrop, so they stay in sync. */
   --topbar-height: 3rem;
@@ -135,6 +135,36 @@ nav.sidebar ul {
 nav.sidebar ul li {
   padding: 0;
   margin: 0;
+}
+
+nav.sidebar ul.sidebar-bottom {
+  margin-top: auto;
+}
+
+nav.sidebar a.nav-action {
+  display: block;
+  background: var(--pico-primary);
+  color: var(--pico-primary-inverse);
+  border-radius: var(--pico-border-radius);
+  padding: 0.35rem 0.75rem;
+  text-align: center;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+nav.sidebar a.nav-action:hover {
+  background: var(--pico-primary-hover, var(--pico-primary));
+  color: var(--pico-primary-inverse);
+}
+
+nav.sidebar a.nav-action[aria-current="page"] {
+  text-decoration: none;
+  outline: 2px solid var(--pico-primary-inverse);
+  outline-offset: -3px;
+}
+
+nav.sidebar li.nav-action-item {
+  margin-bottom: 1rem;
 }
 
 
@@ -450,7 +480,7 @@ td.col-center {
   margin-bottom: 0;
 }
 
-.home-actions .icon {
+.icon {
   margin-right: 0.4rem;
 }
 
