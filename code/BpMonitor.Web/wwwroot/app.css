@@ -477,6 +477,13 @@ td.col-center {
   margin-right: 0.4rem;
 }
 
+main h1 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--pico-primary);
+  margin: 1.25rem 0 1rem;
+}
+
 footer.container {
   max-width: 700px;
   margin-top: 2rem;
