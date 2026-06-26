@@ -1,25 +1,22 @@
 module ExportHandlerTests
 
+open System.Threading.Tasks
+open Microsoft.AspNetCore.Http
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Web
 open HandlerTestHelpers
 
-[<Fact>]
-let ``exportJson returns 200 with application/json content type`` () =
+let private assertExportResponse (handler: HttpContext -> Task) (contentType: string) (filename: string) =
   let ctx = TestHost.context (repoWith [ sample ])
-  TestHost.run ReadingHandlers.exportJson ctx
-
+  TestHost.run handler ctx
   test <@ ctx.Response.StatusCode = 200 @>
-  test <@ ctx.Response.ContentType = "application/json; charset=utf-8" @>
+  test <@ ctx.Response.ContentType = contentType @>
+  test <@ ctx.Response.Headers["Content-Disposition"].ToString() = $"attachment; filename=\"{filename}\"" @>
 
 [<Fact>]
-let ``exportJson sets Content-Disposition to attachment with correct filename`` () =
-  let ctx = TestHost.context (repoWith [ sample ])
-  TestHost.run ReadingHandlers.exportJson ctx
-
-  let disposition = ctx.Response.Headers["Content-Disposition"].ToString()
-  test <@ disposition = "attachment; filename=\"bpmonitor-export.json\"" @>
+let ``exportJson returns 200, json content type, and attachment header`` () =
+  assertExportResponse ReadingHandlers.exportJson "application/json; charset=utf-8" "bpmonitor-export.json"
 
 [<Fact>]
 let ``exportJson body contains the seeded reading's fields`` () =
@@ -44,20 +41,8 @@ let ``exportJson returns only the active member's readings`` () =
   test <@ body.StartsWith "[{" && body.EndsWith "}]" @>
 
 [<Fact>]
-let ``exportCsv returns 200 with text/csv content type`` () =
-  let ctx = TestHost.context (repoWith [ sample ])
-  TestHost.run ReadingHandlers.exportCsv ctx
-
-  test <@ ctx.Response.StatusCode = 200 @>
-  test <@ ctx.Response.ContentType = "text/csv; charset=utf-8" @>
-
-[<Fact>]
-let ``exportCsv sets Content-Disposition to attachment with correct filename`` () =
-  let ctx = TestHost.context (repoWith [ sample ])
-  TestHost.run ReadingHandlers.exportCsv ctx
-
-  let disposition = ctx.Response.Headers["Content-Disposition"].ToString()
-  test <@ disposition = "attachment; filename=\"bpmonitor-export.csv\"" @>
+let ``exportCsv returns 200, csv content type, and attachment header`` () =
+  assertExportResponse ReadingHandlers.exportCsv "text/csv; charset=utf-8" "bpmonitor-export.csv"
 
 [<Fact>]
 let ``exportCsv body contains header row and seeded reading's fields`` () =
