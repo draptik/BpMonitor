@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0-rc6] - 2026-06-26
+
+### Added
+
+- Chart scrubber now follows the hovered value strip for more precise navigation
+
 ### Changed
 
 - JS: replaced all `var` with `const`/`let` and added five Biome linter rules (`useConst`, `useTemplate`, `noUselessElse`, `useSingleVarDeclarator`, `useCollapsedElseIf`) to enforce modern JS style
@@ -273,7 +279,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc5...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc6...HEAD
+[1.7.0-rc6]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc5...v1.7.0-rc6
 [1.7.0-rc5]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc4...v1.7.0-rc5
 [1.7.0-rc4]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc3...v1.7.0-rc4
 [1.7.0-rc3]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc2...v1.7.0-rc3
