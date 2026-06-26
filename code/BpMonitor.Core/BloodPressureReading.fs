@@ -58,32 +58,28 @@ module ReadingRanges =
 module BloodPressureReading =
   open FsToolkit.ErrorHandling
 
-  let private validateSystolic ranges (input: BloodPressureReadingUnvalidated) : Validation<int, ValidationError> =
-    if input.Systolic >= ranges.SystolicMin && input.Systolic <= ranges.SystolicMax then
-      Validation.ok input.Systolic
-    else
-      Validation.error (SystolicOutOfRange input.Systolic)
+  let private validateField
+    (selector: BloodPressureReadingUnvalidated -> int)
+    (min: int)
+    (max: int)
+    (errorCtor: int -> ValidationError)
+    (input: BloodPressureReadingUnvalidated)
+    : Validation<int, ValidationError> =
+    let value = selector input
 
-  let private validateDiastolic ranges (input: BloodPressureReadingUnvalidated) : Validation<int, ValidationError> =
-    if input.Diastolic >= ranges.DiastolicMin && input.Diastolic <= ranges.DiastolicMax then
-      Validation.ok input.Diastolic
+    if value >= min && value <= max then
+      Validation.ok value
     else
-      Validation.error (DiastolicOutOfRange input.Diastolic)
-
-  let private validateHeartRate ranges (input: BloodPressureReadingUnvalidated) : Validation<int, ValidationError> =
-    if input.HeartRate >= ranges.HeartRateMin && input.HeartRate <= ranges.HeartRateMax then
-      Validation.ok input.HeartRate
-    else
-      Validation.error (HeartRateOutOfRange input.HeartRate)
+      Validation.error (errorCtor value)
 
   let parse
     (ranges: ReadingRanges)
     (input: BloodPressureReadingUnvalidated)
     : Validation<BloodPressureReading, ValidationError> =
     validation {
-      let! sys = validateSystolic ranges input
-      and! dia = validateDiastolic ranges input
-      and! hr = validateHeartRate ranges input
+      let! sys = validateField _.Systolic ranges.SystolicMin ranges.SystolicMax SystolicOutOfRange input
+      and! dia = validateField _.Diastolic ranges.DiastolicMin ranges.DiastolicMax DiastolicOutOfRange input
+      and! hr = validateField _.HeartRate ranges.HeartRateMin ranges.HeartRateMax HeartRateOutOfRange input
 
       return
         { Id = 0

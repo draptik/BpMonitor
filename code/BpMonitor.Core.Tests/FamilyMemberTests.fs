@@ -89,3 +89,17 @@ let ``hasActiveAdmin is true when at least one member is admin and active`` () =
         ModifiedAt = System.DateTimeOffset.MinValue } ]
 
   test <@ FamilyMember.hasActiveAdmin members = true @>
+
+[<Fact>]
+let ``isClaimed returns false when PasswordHash is None`` () =
+  match FamilyMember.create "Alice" true with
+  | Error _ -> failwith "unexpected error"
+  | Ok m -> test <@ FamilyMember.isClaimed m = false @>
+
+[<Fact>]
+let ``isClaimed returns true when PasswordHash is set`` () =
+  match FamilyMember.create "Alice" true with
+  | Error _ -> failwith "unexpected error"
+  | Ok m ->
+    let claimed = { m with PasswordHash = Some "hashed" }
+    test <@ FamilyMember.isClaimed claimed = true @>

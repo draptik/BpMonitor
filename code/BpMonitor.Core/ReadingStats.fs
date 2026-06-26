@@ -40,6 +40,18 @@ module ReadingStats =
     readings
     |> List.filter (fun r -> r.Timestamp >= startIncl && r.Timestamp < endExcl)
 
+  // ── stat helpers ─────────────────────────────────────────────────────────────
+
+  /// Returns (min, max) for the given field selector.
+  let private rangeOf (selector: BloodPressureReading -> int) rs =
+    rs |> List.minBy selector |> selector, rs |> List.maxBy selector |> selector
+
+  /// Returns (min, avg, max) for the given field selector over n readings.
+  let private statsOf (selector: BloodPressureReading -> int) n rs =
+    rs |> List.minBy selector |> selector,
+    rs |> List.sumBy selector |> (fun s -> s / n),
+    rs |> List.maxBy selector |> selector
+
   // ── aggregation ──────────────────────────────────────────────────────────────
 
   /// Groups readings by `keyOf`, sorts by key, and produces one AggregatedReading per
@@ -57,6 +69,8 @@ module ReadingStats =
       let n = List.length rs
       let date = dateOf key
       let offset = TimeZoneInfo.Local.GetUtcOffset(date)
+      let minSys, maxSys = rangeOf _.Systolic rs
+      let minDia, maxDia = rangeOf _.Diastolic rs
 
       { Reading =
           { Id = 0
@@ -69,10 +83,10 @@ module ReadingStats =
             CreatedAt = DateTimeOffset.MinValue
             ModifiedAt = DateTimeOffset.MinValue }
         Count = n
-        MinSystolic = rs |> List.minBy _.Systolic |> _.Systolic
-        MaxSystolic = rs |> List.maxBy _.Systolic |> _.Systolic
-        MinDiastolic = rs |> List.minBy _.Diastolic |> _.Diastolic
-        MaxDiastolic = rs |> List.maxBy _.Diastolic |> _.Diastolic })
+        MinSystolic = minSys
+        MaxSystolic = maxSys
+        MinDiastolic = minDia
+        MaxDiastolic = maxDia })
 
   let private dailyAveragesWithCount =
     buildAggregated (fun r -> r.Timestamp.ToLocalTime().Date) id
@@ -133,17 +147,20 @@ module ReadingStats =
         MaxHeartRate = 0 }
     | rs ->
       let n = List.length rs
+      let minSys, avgSys, maxSys = statsOf _.Systolic n rs
+      let minDia, avgDia, maxDia = statsOf _.Diastolic n rs
+      let minHr, avgHr, maxHr = statsOf _.HeartRate n rs
 
       { Granularity = period.Granularity
         PeriodKey = period.Key
         Label = period.Label
         Count = n
-        MinSystolic = rs |> List.minBy _.Systolic |> _.Systolic
-        AvgSystolic = rs |> List.sumBy _.Systolic |> (fun s -> s / n)
-        MaxSystolic = rs |> List.maxBy _.Systolic |> _.Systolic
-        MinDiastolic = rs |> List.minBy _.Diastolic |> _.Diastolic
-        AvgDiastolic = rs |> List.sumBy _.Diastolic |> (fun s -> s / n)
-        MaxDiastolic = rs |> List.maxBy _.Diastolic |> _.Diastolic
-        MinHeartRate = rs |> List.minBy _.HeartRate |> _.HeartRate
-        AvgHeartRate = rs |> List.sumBy _.HeartRate |> (fun s -> s / n)
-        MaxHeartRate = rs |> List.maxBy _.HeartRate |> _.HeartRate }
+        MinSystolic = minSys
+        AvgSystolic = avgSys
+        MaxSystolic = maxSys
+        MinDiastolic = minDia
+        AvgDiastolic = avgDia
+        MaxDiastolic = maxDia
+        MinHeartRate = minHr
+        AvgHeartRate = avgHr
+        MaxHeartRate = maxHr }

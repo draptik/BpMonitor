@@ -76,25 +76,19 @@ let ``same anchor produces identical results (deterministic)`` () =
 
 // ── member profiles are distinct ──────────────────────────────────────────────
 
+let private meanSys (result: (MemberSpec * BloodPressureReading list) list) name =
+  let _, readings = result |> List.find (fun (s, _) -> s.Name = name)
+  readings |> List.averageBy (fun r -> float r.Systolic)
+
 [<Fact>]
 let ``Homer mean systolic is higher than Marge mean systolic`` () =
   let result = DemoData.simpsons ranges now
-
-  let meanSys name =
-    let _, readings = result |> List.find (fun (s, _) -> s.Name = name)
-    readings |> List.averageBy (fun r -> float r.Systolic)
-
-  test <@ meanSys "Homer Simpson" > meanSys "Marge Simpson" @>
+  test <@ meanSys result "Homer Simpson" > meanSys result "Marge Simpson" @>
 
 [<Fact>]
 let ``Marge mean systolic is higher than Bart mean systolic`` () =
   let result = DemoData.simpsons ranges now
-
-  let meanSys name =
-    let _, readings = result |> List.find (fun (s, _) -> s.Name = name)
-    readings |> List.averageBy (fun r -> float r.Systolic)
-
-  test <@ meanSys "Marge Simpson" > meanSys "Bart Simpson" @>
+  test <@ meanSys result "Marge Simpson" > meanSys result "Bart Simpson" @>
 
 // ── Ned Flanders: a Fig. 5-style narrative (Wegier et al. 2021) ───────────────
 // Elevated BP, a multi-day gap in home monitoring, then visibly improved control
