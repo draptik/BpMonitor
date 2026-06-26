@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="Generators.fs" />
+    <Compile Include="TestBuilders.fs" />
     <Compile Include="GoalRangeTests.fs" />
     <Compile Include="BloodPressureReadingTests.fs" />
     <Compile Include="BloodPressureReadingPropertyTests.fs" />
