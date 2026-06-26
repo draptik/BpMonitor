@@ -57,6 +57,13 @@ module ViewLayout =
          Elem.script [ Attr.src "/plotly-2.27.1.min.js"; Attr.charset "utf-8" ] [] ]
        @ extras)
 
+  /// Inline POST form containing a single secondary outline submit button — used
+  /// wherever a destructive or secondary action needs no surrounding form.
+  let inlinePostButton (action: string) (label: string) : XmlNode =
+    Elem.form
+      [ Attr.method "post"; Attr.action action; Attr.class' "inline" ]
+      [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw label ] ]
+
   /// Page shell for authenticated pages: shared <head>, nav bar with logged-in member
   /// name + logout, and hx-boosted body.
   let layout (active: string) (memberName: string) (isAdmin: bool) (title: string) (content: XmlNode list) : XmlNode =
@@ -82,7 +89,11 @@ module ViewLayout =
                     Attr.create "aria-label" "Menu" ]
                   [ Text.raw "☰" ]
                 Elem.span [ Attr.class' "topbar-title" ] [ Text.raw "BpMonitor" ]
-                themeToggleButton "" ]
+                Elem.div
+                  [ Attr.class' "topbar-right" ]
+                  [ Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ]
+                    themeToggleButton ""
+                    inlinePostButton Routes.logout "Logout" ] ]
             // Second label for same checkbox: acts as the backdrop — clicking it unchecks
             // the checkbox and closes the drawer.
             Elem.label [ Attr.create "for" "nav-toggle"; Attr.class' "nav-backdrop" ] []
@@ -107,14 +118,7 @@ module ViewLayout =
                       []
                       [ Elem.a [ Attr.href Routes.exportCsv; Attr.create "hx-boost" "false" ] [ Text.raw "Export CSV" ] ]
                     if isAdmin then
-                      navLink active Routes.members "Members" ]
-                // Member name and logout pinned to the bottom of the sidebar.
-                Elem.div
-                  [ Attr.class' "sidebar-user" ]
-                  [ Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ]
-                    Elem.form
-                      [ Attr.method "post"; Attr.action Routes.logout; Attr.class' "inline" ]
-                      [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw "Logout" ] ] ] ]
+                      navLink active Routes.members "Members" ] ]
             Elem.div
               [ Attr.class' "content" ]
               [ Elem.main [ Attr.class' "container" ] content
