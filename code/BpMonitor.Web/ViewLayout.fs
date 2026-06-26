@@ -187,6 +187,6 @@ module ViewLayout =
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.Diastolic) ]
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.HeartRate) ]
           Elem.td [] [ Text.enc (r.Comments |> Option.defaultValue "") ]
-          Elem.td [] [ Elem.a [ Attr.href $"/readings/{r.Id}/edit" ] [ Text.raw "Edit" ] ] ]
+          Elem.td [] [ Elem.a [ Attr.href (Routes.readingEdit r.Id) ] [ Text.raw "Edit" ] ] ]
 
     Elem.div [ Attr.id "readings" ] [ Elem.table [] [ header; Elem.tbody [] (readings |> List.map row) ] ]

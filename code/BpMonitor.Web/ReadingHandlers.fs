@@ -266,7 +266,14 @@ module ReadingHandlers =
       match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
       | Some r ->
         htmlResponse
-          (ReadingViews.readingForm "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" [] (Binding.ofReading r))
+          (ReadingViews.readingForm
+            ""
+            m.Name
+            m.IsAdmin
+            "Edit reading"
+            (Routes.readingUpdate id)
+            []
+            (Binding.ofReading r))
           ctx
       | None ->
         let log = logger ctx
@@ -275,7 +282,7 @@ module ReadingHandlers =
 
   let updateReading: HttpContext -> Task =
     withMemberAndRouteId "updateReading" (fun m id ctx ->
-      submit ctx "" m.Name m.IsAdmin "Edit reading" $"/readings/{id}" Routes.history (fun r ->
+      submit ctx "" m.Name m.IsAdmin "Edit reading" (Routes.readingUpdate id) Routes.history (fun r ->
         (repo ctx).Update { r with Id = id; MemberId = m.Id }))
 
   // ---------------------------------------------------------------------------

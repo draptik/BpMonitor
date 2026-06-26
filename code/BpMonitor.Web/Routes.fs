@@ -15,3 +15,11 @@ module Routes =
   let exportJson = "/export"
   let exportCsv = "/export.csv"
   let settings = "/settings"
+
+  // Parametric URL builders for id-scoped resources.
+  let readingEdit (id: int) = $"/readings/{id}/edit"
+  let readingUpdate (id: int) = $"/readings/{id}"
+  let memberEdit (id: int) = $"/members/{id}/edit"
+  let memberUpdate (id: int) = $"/members/{id}"
+  let memberResetPassword (id: int) = $"/members/{id}/reset-password"
+  let loginMember (id: int) = $"{login}/{id}"
