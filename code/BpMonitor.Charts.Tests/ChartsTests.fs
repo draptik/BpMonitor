@@ -369,10 +369,8 @@ let ``toHtmlRecent shows a spikeline on the x-axis, to scrub through the chart a
 
 [<Fact>]
 let ``toHtmlRecent opens focused on the last windowDays, even though all readings are loaded`` () =
-  // TODOs.md: "Recent: paning, load all data, but focus the x-axis and the value-strip
-  // on last 30 days". The chart loads every reading (so panning left reveals older
-  // history), but its initial x-axis range only spans [now-windowDays, now] rather than
-  // autoranging to fit all loaded data.
+  // The chart loads every reading (so panning left reveals older history), but its
+  // initial x-axis range only spans [now-windowDays, now] rather than autoranging.
   let html = BpChart.toHtmlRecent GoalRange.defaults 30 windowStart30 now readings
   let rangeLow = Formats.formatLocal (now.AddDays(-30.0))
   let rangeHigh = Formats.formatLocal now
