@@ -135,29 +135,42 @@ module ReadingHandlers =
         (ReadingViews.recentChartContainer m chartHtml allReadings windowStart now recentZoomShortcutDays false)
         ctx)
 
+  let private renderTrendsData
+    (gran: Granularity)
+    (period: TrendPeriod)
+    (now: System.DateTimeOffset)
+    (m: FamilyMember)
+    (allReadings: BloodPressureReading list)
+    =
+    let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
+    let summary = ReadingStats.summarizeRange period windowed
+    let periods = TrendPeriod.available gran now
+
+    let periodsWithData =
+      periods
+      |> List.filter (fun p ->
+        allReadings
+        |> ReadingStats.between p.Start p.EndExclusive
+        |> List.isEmpty
+        |> not)
+      |> List.map _.Key
+      |> Set.ofList
+
+    let tableReadings = windowed |> List.sortByDescending _.Timestamp
+
+    let chartHtml =
+      BpChart.toHtmlDashed m.Goal gran (ReadingStats.aggregate gran windowed)
+
+    summary, periods, periodsWithData, tableReadings, chartHtml
+
   let trends: HttpContext -> Task =
     withMember (fun m ctx ->
       let now = (timeProvider ctx).GetUtcNow()
       let allReadings = (repo ctx).GetAll(m.Id)
       let period = TrendPeriod.current Weekly now
-      let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
-      let summary = ReadingStats.summarizeRange period windowed
-      let periods = TrendPeriod.available Weekly now
 
-      let periodsWithData =
-        periods
-        |> List.filter (fun p ->
-          allReadings
-          |> ReadingStats.between p.Start p.EndExclusive
-          |> List.isEmpty
-          |> not)
-        |> List.map _.Key
-        |> Set.ofList
-
-      let tableReadings = windowed |> List.sortByDescending _.Timestamp
-
-      let chartHtml =
-        BpChart.toHtmlDashed m.Goal Weekly (ReadingStats.aggregate Weekly windowed)
+      let summary, periods, periodsWithData, tableReadings, chartHtml =
+        renderTrendsData Weekly period now m allReadings
 
       htmlResponse (TrendViews.trends m summary periods periodsWithData tableReadings chartHtml) ctx)
 
@@ -174,24 +187,8 @@ module ReadingHandlers =
           |> Option.bind (fun k -> TrendPeriod.ofKey gran k now)
           |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
 
-        let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
-        let summary = ReadingStats.summarizeRange period windowed
-        let periods = TrendPeriod.available gran now
-
-        let periodsWithData =
-          periods
-          |> List.filter (fun p ->
-            allReadings
-            |> ReadingStats.between p.Start p.EndExclusive
-            |> List.isEmpty
-            |> not)
-          |> List.map _.Key
-          |> Set.ofList
-
-        let tableReadings = windowed |> List.sortByDescending _.Timestamp
-
-        let chartHtml =
-          BpChart.toHtmlDashed m.Goal gran (ReadingStats.aggregate gran windowed)
+        let summary, periods, periodsWithData, tableReadings, chartHtml =
+          renderTrendsData gran period now m allReadings
 
         htmlResponse (TrendViews.trendsPanel summary periods periodsWithData tableReadings chartHtml) ctx)
 
@@ -300,16 +297,19 @@ module ReadingHandlers =
   // Export
   // ---------------------------------------------------------------------------
 
+  let private download (contentType: string) (filename: string) (body: string) (ctx: HttpContext) : Task =
+    ctx.Response.ContentType <- contentType
+    ctx.Response.Headers.Append("Content-Disposition", $"attachment; filename=\"{filename}\"")
+    ctx.Response.WriteAsync body
+
   let exportJson: HttpContext -> Task =
     withMember (fun m ctx ->
-      let json = JsonExport.serialize ((repo ctx).GetAll(m.Id))
-      ctx.Response.ContentType <- "application/json; charset=utf-8"
-      ctx.Response.Headers.Append("Content-Disposition", "attachment; filename=\"bpmonitor-export.json\"")
-      ctx.Response.WriteAsync json)
+      download
+        "application/json; charset=utf-8"
+        "bpmonitor-export.json"
+        (JsonExport.serialize ((repo ctx).GetAll(m.Id)))
+        ctx)
 
   let exportCsv: HttpContext -> Task =
     withMember (fun m ctx ->
-      let csv = CsvExport.serialize ((repo ctx).GetAll(m.Id))
-      ctx.Response.ContentType <- "text/csv; charset=utf-8"
-      ctx.Response.Headers.Append("Content-Disposition", "attachment; filename=\"bpmonitor-export.csv\"")
-      ctx.Response.WriteAsync csv)
+      download "text/csv; charset=utf-8" "bpmonitor-export.csv" (CsvExport.serialize ((repo ctx).GetAll(m.Id))) ctx)

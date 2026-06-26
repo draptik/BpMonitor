@@ -121,7 +121,7 @@ module ViewLayout =
                   [ Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ]
                     themeToggleButton ""
                     Elem.form
-                      [ Attr.method "post"; Attr.action "/logout"; Attr.class' "inline" ]
+                      [ Attr.method "post"; Attr.action Routes.logout; Attr.class' "inline" ]
                       [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw "Logout" ] ] ] ]
             Elem.div
               [ Attr.class' "content" ]

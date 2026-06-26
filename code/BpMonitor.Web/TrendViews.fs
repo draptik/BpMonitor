@@ -117,7 +117,7 @@ module TrendViews =
     (chartHtml: string)
     : XmlNode =
     ViewLayout.layout
-      "/trends"
+      Routes.trends
       m.Name
       m.IsAdmin
       "Trends"

@@ -87,8 +87,7 @@ module AuthHandlers =
   // Login / logout
   // ---------------------------------------------------------------------------
 
-  let loginPage: HttpContext -> Task =
-    fun ctx -> htmlResponse (LoginViews.loginPage []) ctx
+  let loginPage: HttpContext -> Task = htmlResponse (LoginViews.loginPage [])
 
   // `onFailure` lets callers choose what to render on a bad password (loginPage vs. loginMember).
   let private claimedLogin

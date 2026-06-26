@@ -21,7 +21,7 @@ module ReadingViews =
   /// Landing page: a simple hub linking to the app's main destinations.
   let landing (m: FamilyMember) : XmlNode =
     ViewLayout.layout
-      "/"
+      Routes.home
       m.Name
       m.IsAdmin
       "BpMonitor"
