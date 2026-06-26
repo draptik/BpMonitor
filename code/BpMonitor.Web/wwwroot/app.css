@@ -5,7 +5,7 @@
      the mobile backdrop's offset, and .content's margin-left, so they can't
      drift out of sync. Same value on mobile and desktop (desktop used to be
      14rem, which felt oversized for a nav-only column). */
-  --sidebar-width: 11rem;
+  --sidebar-width: 10rem;
   /* Topbar height — referenced by nav.sidebar's top offset, .content's
      padding-top, and the mobile backdrop, so they stay in sync. */
   --topbar-height: 3rem;
