@@ -25,8 +25,8 @@ let ``members page renders Admin and Active columns and Edit link`` () =
 
   test <@ html.Contains "Admin" @>
   test <@ html.Contains "Active" @>
-  test <@ html.Contains "href=\"/members/1/edit\"" @>
-  test <@ html.Contains "href=\"/members/2/edit\"" @>
+  test <@ html.Contains $"href=\"{Routes.memberEdit 1}\"" @>
+  test <@ html.Contains $"href=\"{Routes.memberEdit 2}\"" @>
 
 [<Fact>]
 let ``members page shows claimed/unclaimed badge`` () =
@@ -72,10 +72,10 @@ let ``memberForm prefills name and reflects IsAdmin and IsActive`` () =
       ModifiedAt = DateTimeOffset.MinValue }
 
   let html =
-    renderHtml (MemberViews.memberForm "/members" "Me" true "Edit member" "/members/3" [] m)
+    renderHtml (MemberViews.memberForm Routes.members "Me" true "Edit member" (Routes.memberUpdate 3) [] m)
 
   test <@ html.Contains "value=\"Bob\"" @>
-  test <@ html.Contains "action=\"/members/3\"" @>
+  test <@ html.Contains $"action=\"{Routes.memberUpdate 3}\"" @>
   // IsAdmin checked → checked attribute present
   test <@ html.Contains "checked" @>
 
@@ -84,11 +84,11 @@ let ``memberForm renders errors`` () =
   let html =
     renderHtml (
       MemberViews.memberForm
-        "/members"
+        Routes.members
         "Me"
         true
         "Edit member"
-        "/members/3"
+        (Routes.memberUpdate 3)
         [ "At least one member must be an active admin" ]
         defaultMember
     )

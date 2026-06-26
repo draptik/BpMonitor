@@ -23,3 +23,5 @@ module Routes =
   let memberUpdate (id: int) = $"/members/{id}"
   let memberResetPassword (id: int) = $"/members/{id}/reset-password"
   let loginMember (id: int) = $"{login}/{id}"
+  let trendsGran (gran: string) = $"{trends}/{gran}"
+  let trendsGranKey (gran: string) (key: string) = $"{trends}/{gran}/{key}"

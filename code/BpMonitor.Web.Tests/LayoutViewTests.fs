@@ -21,20 +21,20 @@ let ``layout renders a topbar with menu button, title and theme toggle`` () =
 let ``admin sees Members nav link`` () =
   let admin = { defaultMember with IsAdmin = true }
   let html = renderHtml (ReadingViews.landing admin)
-  test <@ html.Contains "href=\"/members\"" @>
+  test <@ html.Contains $"href=\"{Routes.members}\"" @>
 
 [<Fact>]
 let ``non-admin does not see Members nav link`` () =
   let nonAdmin = { defaultMember with IsAdmin = false }
   let html = renderHtml (ReadingViews.landing nonAdmin)
-  test <@ not (html.Contains "href=\"/members\"") @>
+  test <@ not (html.Contains $"href=\"{Routes.members}\"") @>
 
 [<Fact>]
 let ``every page has a BpMonitor footer`` () =
   let pages =
     [ renderHtml (ReadingViews.landing defaultMember)
       renderHtml (ReadingViews.history defaultMember "" [ sample ])
-      renderHtml (ReadingViews.readingForm "/add" "Me" true "Add reading" "/readings" [] Binding.empty) ]
+      renderHtml (ReadingViews.readingForm Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty) ]
 
   for html in pages do
     test <@ html.Contains "<footer" @>
@@ -45,10 +45,10 @@ let ``every authenticated page shows the logout button`` () =
   let pages =
     [ renderHtml (ReadingViews.landing defaultMember)
       renderHtml (ReadingViews.history defaultMember "" [ sample ])
-      renderHtml (ReadingViews.readingForm "/add" "Me" true "Add reading" "/readings" [] Binding.empty) ]
+      renderHtml (ReadingViews.readingForm Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty) ]
 
   for html in pages do
-    test <@ html.Contains "action=\"/logout\"" @>
+    test <@ html.Contains $"action=\"{Routes.logout}\"" @>
     test <@ html.Contains "Logout" @>
 
 [<Fact>]

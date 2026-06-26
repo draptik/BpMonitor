@@ -24,20 +24,20 @@ let private occurrences (needle: string) (haystack: string) : int =
 let ``landing renders links to add and history`` () =
   let html = renderHtml (ReadingViews.landing defaultMember)
 
-  test <@ html.Contains "href=\"/add\"" @>
-  test <@ html.Contains "href=\"/history\"" @>
+  test <@ html.Contains $"href=\"{Routes.add}\"" @>
+  test <@ html.Contains $"href=\"{Routes.history}\"" @>
   // the topbar title links to the landing page (replaces the removed Home sidebar entry)
-  test <@ html.Contains "class=\"topbar-title\" href=\"/\"" @>
+  test <@ html.Contains $"class=\"topbar-title\" href=\"{Routes.home}\"" @>
 
 [<Fact>]
 let ``landing renders action buttons for trends, recent, settings and both exports`` () =
   let html = renderHtml (ReadingViews.landing defaultMember)
 
-  test <@ occurrences "href=\"/trends\"" html = 2 @>
-  test <@ occurrences "href=\"/recent\"" html = 2 @>
-  test <@ occurrences "href=\"/settings\"" html = 2 @>
-  test <@ occurrences "href=\"/export\"" html = 2 @>
-  test <@ occurrences "href=\"/export.csv\"" html = 2 @>
+  test <@ occurrences $"href=\"{Routes.trends}\"" html = 2 @>
+  test <@ occurrences $"href=\"{Routes.recent}\"" html = 2 @>
+  test <@ occurrences $"href=\"{Routes.settings}\"" html = 2 @>
+  test <@ occurrences $"href=\"{Routes.exportJson}\"" html = 2 @>
+  test <@ occurrences $"href=\"{Routes.exportCsv}\"" html = 2 @>
 
 [<Fact>]
 let ``landing export action buttons do not get hx-boosted`` () =
@@ -50,10 +50,10 @@ let ``landing export action buttons do not get hx-boosted`` () =
 let ``admin sees a Members action button on landing`` () =
   let admin = { defaultMember with IsAdmin = true }
   let html = renderHtml (ReadingViews.landing admin)
-  test <@ occurrences "href=\"/members\"" html = 2 @>
+  test <@ occurrences $"href=\"{Routes.members}\"" html = 2 @>
 
 [<Fact>]
 let ``non-admin does not see a Members action button on landing`` () =
   let nonAdmin = { defaultMember with IsAdmin = false }
   let html = renderHtml (ReadingViews.landing nonAdmin)
-  test <@ occurrences "href=\"/members\"" html = 0 @>
+  test <@ occurrences $"href=\"{Routes.members}\"" html = 0 @>

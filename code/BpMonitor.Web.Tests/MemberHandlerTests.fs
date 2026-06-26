@@ -77,7 +77,7 @@ let ``updateMember saves changes and redirects to /members`` () =
   TestHost.run MemberHandlers.updateMember ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
-  test <@ ctx.Response.Headers.Location.ToString() = "/members" @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.members @>
 
   let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
 
