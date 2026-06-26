@@ -28,6 +28,22 @@ let private reading daysAgo (id: int) : BloodPressureReading =
     CreatedAt = now
     ModifiedAt = now }
 
+// Three readings used by value-strip ordering and table-layout tests.
+let private stripR1 =
+  { reading 3 1 with
+      Systolic = 130
+      Diastolic = 82 }
+
+let private stripR2 =
+  { reading 2 2 with
+      Systolic = 142
+      Diastolic = 91 }
+
+let private stripR3 =
+  { reading 1 3 with
+      Systolic = 118
+      Diastolic = 76 }
+
 [<Fact>]
 let ``recent returns 200`` () =
   let tp = FakeTimeProvider(now)
@@ -124,23 +140,13 @@ let ``recent renders the chart with the authenticated member's goal range`` () =
       DiastolicMin = 65
       DiastolicMax = 88 }
 
-  let m =
-    FamilyMember.create "Me" true
-    |> Result.defaultWith (fun _ -> failwith "invalid member")
-    |> fun m ->
-        { m with
-            Id = defaultMemberId
-            Goal = goal }
-
   let tp = FakeTimeProvider(now)
-  let ctx = TestHost.contextWithMembersAndProvider (repoWith simpsonReadings) [ m ] tp
-  TestHost.run ReadingHandlers.recent ctx
 
-  let body = TestHost.readBody ctx
-  test <@ body.Contains "\"y0\":100" @>
-  test <@ body.Contains "\"y1\":135" @>
-  test <@ body.Contains "\"y0\":65" @>
-  test <@ body.Contains "\"y1\":88" @>
+  let ctx =
+    TestHost.contextWithMembersAndProvider (repoWith simpsonReadings) [ memberWithGoal goal ] tp
+
+  TestHost.run ReadingHandlers.recent ctx
+  assertGoalBands goal (TestHost.readBody ctx)
 
 [<Fact>]
 let ``recent heading does not repeat the member's name (already shown in the navbar)`` () =
@@ -163,23 +169,7 @@ let ``recent renders the chart without the collapse wrapper used on history`` ()
 [<Fact>]
 let ``recent shows a sys/dias value strip listing every reading in the chart window, oldest first`` () =
   let tp = FakeTimeProvider(now)
-
-  let r1 =
-    { reading 3 1 with
-        Systolic = 130
-        Diastolic = 82 }
-
-  let r2 =
-    { reading 2 2 with
-        Systolic = 142
-        Diastolic = 91 }
-
-  let r3 =
-    { reading 1 3 with
-        Systolic = 118
-        Diastolic = 76 }
-
-  let ctx = TestHost.contextWithProvider (repoWith [ r1; r2; r3 ]) tp
+  let ctx = TestHost.contextWithProvider (repoWith [ stripR1; stripR2; stripR3 ]) tp
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
@@ -205,23 +195,7 @@ let ``recent shows a sys/dias value strip listing every reading in the chart win
 [<Fact>]
 let ``recent value strip uses a table so each reading's sys/dias values align in the same column`` () =
   let tp = FakeTimeProvider(now)
-
-  let r1 =
-    { reading 3 1 with
-        Systolic = 130
-        Diastolic = 82 }
-
-  let r2 =
-    { reading 2 2 with
-        Systolic = 142
-        Diastolic = 91 }
-
-  let r3 =
-    { reading 1 3 with
-        Systolic = 118
-        Diastolic = 76 }
-
-  let ctx = TestHost.contextWithProvider (repoWith [ r1; r2; r3 ]) tp
+  let ctx = TestHost.contextWithProvider (repoWith [ stripR1; stripR2; stripR3 ]) tp
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
@@ -231,7 +205,7 @@ let ``recent value strip uses a table so each reading's sys/dias values align in
 
   let cellValues =
     System.Text.RegularExpressions.Regex.Matches(strip, "<td[^>]*>(\\d+)</td>")
-    |> Seq.map (fun m -> m.Groups[1].Value)
+    |> Seq.map _.Groups[1].Value
     |> List.ofSeq
 
   test <@ strip.Contains "<table" @>

@@ -8,15 +8,7 @@ open BpMonitor.Core
 open BpMonitor.Web
 open HandlerTestHelpers
 
-let private unclaimedMember: FamilyMember =
-  { Id = 1
-    Name = "Me"
-    IsAdmin = true
-    IsActive = true
-    PasswordHash = None
-    Goal = GoalRange.defaults
-    CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+let private unclaimedMember = sampleMember
 
 let private claimedMember (hash: string) : FamilyMember =
   { unclaimedMember with

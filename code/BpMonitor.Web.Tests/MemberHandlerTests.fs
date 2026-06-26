@@ -99,18 +99,11 @@ let ``updateMember rejects demoting the last active admin with 422`` () =
 
 [<Fact>]
 let ``updateMember allows demoting one admin when another active admin exists`` () =
-  let secondAdmin: FamilyMember =
-    { Id = 2
-      Name = "Alice"
-      IsAdmin = true
-      IsActive = true
-      PasswordHash = None
-      Goal = GoalRange.defaults
-      CreatedAt = DateTimeOffset.MinValue
-      ModifiedAt = DateTimeOffset.MinValue }
-
   let repo = repoWith []
-  let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Me"; secondAdmin ]
+
+  let ctx =
+    TestHost.contextWithMembers repo [ adminMember 1 "Me"; adminMember 2 "Alice" ]
+
   TestHost.setRouteId ctx 1
 
   // Demote member 1 to non-admin; member 2 remains active admin → invariant holds.

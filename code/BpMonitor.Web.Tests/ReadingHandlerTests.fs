@@ -34,23 +34,9 @@ let ``history renders the chart with the authenticated member's goal range`` () 
       DiastolicMin = 65
       DiastolicMax = 88 }
 
-  let m =
-    FamilyMember.create "Me" true
-    |> Result.defaultWith (fun _ -> failwith "invalid member")
-    |> fun m ->
-        { m with
-            Id = defaultMemberId
-            Goal = goal }
-
-  let repo = repoWith [ sample ]
-  let ctx = TestHost.contextWithMembers repo [ m ]
+  let ctx = TestHost.contextWithMembers (repoWith [ sample ]) [ memberWithGoal goal ]
   TestHost.run ReadingHandlers.history ctx
-
-  let body = TestHost.readBody ctx
-  test <@ body.Contains "\"y0\":100" @>
-  test <@ body.Contains "\"y1\":135" @>
-  test <@ body.Contains "\"y0\":65" @>
-  test <@ body.Contains "\"y1\":88" @>
+  assertGoalBands goal (TestHost.readBody ctx)
 
 [<Fact>]
 let ``newReading returns 200 and prefills timestamp with local time`` () =
