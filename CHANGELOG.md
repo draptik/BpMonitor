@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-06-27
+
+### Fixed
+
+- Fixed mobile topbar overflow: the member name now truncates with an ellipsis on narrow screens, keeping the logout and theme buttons visible
+
 ## [1.7.0] - 2026-06-27
 
 ### Added
@@ -300,7 +306,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/draptik/BpMonitor/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/draptik/BpMonitor/compare/v1.6.0...v1.7.0
 [1.7.0-rc7]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc6...v1.7.0-rc7
 [1.7.0-rc6]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc5...v1.7.0-rc6
