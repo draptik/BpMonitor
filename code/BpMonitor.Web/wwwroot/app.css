@@ -421,6 +421,15 @@ input#DiastolicGoalMax {
   text-align: center;
 }
 
+/* Prevents the wide readings table (fixed-width timestamp + several columns) from
+   overflowing the page horizontally on narrow mobile viewports. Without this,
+   the page scrolls horizontally, which corrupts position:fixed elements (the topbar)
+   on some mobile browsers — right:0 resolves against the scrollable width instead of
+   the viewport, pushing the topbar off-screen. */
+#readings {
+  overflow-x: auto;
+}
+
 #readings,
 form {
   font-size: 0.875rem;
