@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0-rc7] - 2026-06-27
+
+### Changed
+
+- Refreshed navigation layout: always-visible top bar, sidebar icons, logout button moved to the top bar, and the app title links back to the home page
+- Page headings now styled with the primary colour for better visual hierarchy
+- Charts no longer show a redundant "Comments" y-axis label
+
 ## [1.7.0-rc6] - 2026-06-26
 
 ### Added
@@ -279,7 +287,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc6...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc7...HEAD
+[1.7.0-rc7]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc6...v1.7.0-rc7
 [1.7.0-rc6]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc5...v1.7.0-rc6
 [1.7.0-rc5]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc4...v1.7.0-rc5
 [1.7.0-rc4]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc3...v1.7.0-rc4
