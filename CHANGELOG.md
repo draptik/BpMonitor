@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-06-27
+
+### Added
+
+- Recent chart now overlays a LOWESS-smoothed trend line and a Fig. 5-style scrubber bar that snaps to readings and highlights the matching value in the strip above the chart
+- Recent page now shows a value strip listing every systolic/diastolic reading in the visible window, color-coded against your goal range (orange = above goal, blue = below goal)
+- Recent chart now loads the last 12 months of readings; pan left to explore older data, or click "Load full history" to see everything; added "Last 7/30 days" zoom shortcuts
+
+### Changed
+
+- Navigation redesigned: always-visible top bar with a sidebar showing icon buttons; logout moved to the top bar; landing page gains icon-button shortcuts to trends, recent, settings, exports, and members
+- History and Recent charts: comment markers now render as dark-red hexagons (matching Wegier et al. 2021 Fig. 5), hover tooltips cleaned up, pan tool pre-selected, y-axis locked against accidental zoom
+
 ## [1.7.0-rc7] - 2026-06-27
 
 ### Changed
@@ -287,7 +300,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc7...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/draptik/BpMonitor/compare/v1.6.0...v1.7.0
 [1.7.0-rc7]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc6...v1.7.0-rc7
 [1.7.0-rc6]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc5...v1.7.0-rc6
 [1.7.0-rc5]: https://github.com/draptik/BpMonitor/compare/v1.7.0-rc4...v1.7.0-rc5
