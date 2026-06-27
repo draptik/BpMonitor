@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-06-27
+
+### Fixed
+
+- Fixed legend overlapping x-axis labels on trends and recent charts on mobile viewports
+
 ## [1.7.2] - 2026-06-27
 
 ### Fixed
@@ -312,7 +318,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.2...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.3...HEAD
+[1.7.3]: https://github.com/draptik/BpMonitor/compare/v1.7.2...v1.7.3
 [1.7.2]: https://github.com/draptik/BpMonitor/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/draptik/BpMonitor/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/draptik/BpMonitor/compare/v1.6.0...v1.7.0
