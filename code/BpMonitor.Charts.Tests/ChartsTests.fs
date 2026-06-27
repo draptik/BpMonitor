@@ -192,12 +192,18 @@ let ``toHtml does not include None comment readings in comments trace`` () =
 [<Fact>]
 let ``toHtml uses compact margins, like the trends chart, now that it has no title`` () =
   let html = BpChart.toHtml GoalRange.defaults readings
-  test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":56}") @>
+  test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":72}") @>
 
 [<Fact>]
 let ``toHtml renders a horizontal centered legend at the bottom, like the trends chart`` () =
   let html = BpChart.toHtml GoalRange.defaults readings
-  test <@ html.Contains("\"legend\":{\"orientation\":\"h\",\"x\":0.5,\"xanchor\":\"center\"}") @>
+
+  test
+    <@
+      html.Contains(
+        "\"legend\":{\"orientation\":\"h\",\"x\":0.5,\"xanchor\":\"center\",\"y\":-0.15,\"yanchor\":\"top\"}"
+      )
+    @>
 
 [<Fact>]
 let ``toHtml hover omits the redundant "Systolic"/"Diastolic" trace name, since the legend already shows it`` () =
@@ -286,12 +292,18 @@ let ``toHtmlRecent does not drop any reading, even when split across dash/solid 
 [<Fact>]
 let ``toHtmlRecent renders a horizontal centered legend at the bottom, like the trends chart`` () =
   let html = BpChart.toHtmlRecent GoalRange.defaults 30 windowStart30 now readings
-  test <@ html.Contains("\"legend\":{\"orientation\":\"h\",\"x\":0.5,\"xanchor\":\"center\"}") @>
+
+  test
+    <@
+      html.Contains(
+        "\"legend\":{\"orientation\":\"h\",\"x\":0.5,\"xanchor\":\"center\",\"y\":-0.15,\"yanchor\":\"top\"}"
+      )
+    @>
 
 [<Fact>]
 let ``toHtmlRecent uses compact margins, like the trends chart, now that it has no title`` () =
   let html = BpChart.toHtmlRecent GoalRange.defaults 30 windowStart30 now readings
-  test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":56}") @>
+  test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":72}") @>
 
 [<Fact>]
 let ``toHtmlRecent shows exactly one legend entry per series, even when split across multiple dash/solid runs`` () =
