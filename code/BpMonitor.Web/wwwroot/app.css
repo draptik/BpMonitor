@@ -505,6 +505,16 @@ footer.container {
 .nav-member-name {
   color: var(--pico-muted-color);
   font-size: 0.875rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: clamp(4rem, 20vw, 10rem);
+}
+
+/* Allow topbar-right to shrink on narrow viewports so the member name
+   truncates instead of overflowing the topbar. */
+.topbar-right {
+  min-width: 0;
 }
 
 /* Inline logout/action form — removes default form block display */
