@@ -61,11 +61,11 @@ let ``createReading persists a valid reading and redirects`` () =
 
   TestHost.setForm
     ctx
-    [ "Timestamp", "2026-05-01 09:00"
-      "Systolic", "120"
-      "Diastolic", "80"
-      "HeartRate", "66"
-      "Comments", "x" ]
+    [ FormFields.timestamp, "2026-05-01 09:00"
+      FormFields.systolic, "120"
+      FormFields.diastolic, "80"
+      FormFields.heartRate, "66"
+      FormFields.comments, "x" ]
 
   TestHost.run ReadingHandlers.createReading ctx
 
@@ -80,11 +80,11 @@ let ``createReading stamps reading with active member Id`` () =
 
   TestHost.setForm
     ctx
-    [ "Timestamp", "2026-05-01 09:00"
-      "Systolic", "120"
-      "Diastolic", "80"
-      "HeartRate", "66"
-      "Comments", "" ]
+    [ FormFields.timestamp, "2026-05-01 09:00"
+      FormFields.systolic, "120"
+      FormFields.diastolic, "80"
+      FormFields.heartRate, "66"
+      FormFields.comments, "" ]
 
   TestHost.run ReadingHandlers.createReading ctx
 
@@ -97,11 +97,11 @@ let ``createReading rejects an out-of-range reading with 422 and does not persis
 
   TestHost.setForm
     ctx
-    [ "Timestamp", "2026-05-01 09:00"
-      "Systolic", "999"
-      "Diastolic", "80"
-      "HeartRate", "66"
-      "Comments", "" ]
+    [ FormFields.timestamp, "2026-05-01 09:00"
+      FormFields.systolic, "999"
+      FormFields.diastolic, "80"
+      FormFields.heartRate, "66"
+      FormFields.comments, "" ]
 
   TestHost.run ReadingHandlers.createReading ctx
 
@@ -116,11 +116,11 @@ let ``createReading rejects a non-numeric field with 422`` () =
 
   TestHost.setForm
     ctx
-    [ "Timestamp", "2026-05-01 09:00"
-      "Systolic", "abc"
-      "Diastolic", "80"
-      "HeartRate", "66"
-      "Comments", "" ]
+    [ FormFields.timestamp, "2026-05-01 09:00"
+      FormFields.systolic, "abc"
+      FormFields.diastolic, "80"
+      FormFields.heartRate, "66"
+      FormFields.comments, "" ]
 
   TestHost.run ReadingHandlers.createReading ctx
 
@@ -155,11 +155,11 @@ let ``updateReading saves changes and redirects`` () =
 
   TestHost.setForm
     ctx
-    [ "Timestamp", "2026-05-01 09:00"
-      "Systolic", "111"
-      "Diastolic", "70"
-      "HeartRate", "60"
-      "Comments", "updated" ]
+    [ FormFields.timestamp, "2026-05-01 09:00"
+      FormFields.systolic, "111"
+      FormFields.diastolic, "70"
+      FormFields.heartRate, "60"
+      FormFields.comments, "updated" ]
 
   TestHost.run ReadingHandlers.updateReading ctx
 

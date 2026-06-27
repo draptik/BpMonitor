@@ -207,9 +207,9 @@ module ReadingViews =
         ViewLayout.errorBox errors
         Elem.form
           [ Attr.method "post"; Attr.action action ]
-          [ fieldWithHint "Timestamp" "yyyy-MM-dd HH:mm" "Timestamp" m.Timestamp "text"
-            fieldWithHint "Systolic" "mmHg" "Systolic" m.Systolic "number"
-            fieldWithHint "Diastolic" "mmHg" "Diastolic" m.Diastolic "number"
-            fieldWithHint "Heart Rate" "bpm" "HeartRate" m.HeartRate "number"
-            ViewLayout.field "Comment" "Comments" m.Comments "text"
+          [ fieldWithHint "Timestamp" "yyyy-MM-dd HH:mm" FormFields.timestamp m.Timestamp "text"
+            fieldWithHint "Systolic" "mmHg" FormFields.systolic m.Systolic "number"
+            fieldWithHint "Diastolic" "mmHg" FormFields.diastolic m.Diastolic "number"
+            fieldWithHint "Heart Rate" "bpm" FormFields.heartRate m.HeartRate "number"
+            ViewLayout.field "Comment" FormFields.comments m.Comments "text"
             ViewLayout.formActions Routes.history ] ]

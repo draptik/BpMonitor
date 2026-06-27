@@ -15,20 +15,20 @@ module LoginViews =
           [ Attr.method "post"; Attr.action Routes.login; Attr.class' "stacked" ]
           [ Elem.div
               [ Attr.class' "field" ]
-              [ Elem.label [ Attr.for' "Username" ] [ Text.raw "Name" ]
+              [ Elem.label [ Attr.for' FormFields.username ] [ Text.raw "Name" ]
                 Elem.input
                   [ Attr.type' "text"
-                    Attr.id "Username"
-                    Attr.name "Username"
+                    Attr.id FormFields.username
+                    Attr.name FormFields.username
                     Attr.create "autofocus" "autofocus"
                     Attr.create "autocomplete" "username" ] ]
             Elem.div
               [ Attr.class' "field" ]
-              [ Elem.label [ Attr.for' "Password" ] [ Text.raw "Password" ]
+              [ Elem.label [ Attr.for' FormFields.password ] [ Text.raw "Password" ]
                 Elem.input
                   [ Attr.type' "password"
-                    Attr.id "Password"
-                    Attr.name "Password"
+                    Attr.id FormFields.password
+                    Attr.name FormFields.password
                     Attr.create "autocomplete" "current-password" ] ]
             Elem.div [ Attr.class' "actions" ] [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Sign in" ] ] ] ]
 
@@ -42,11 +42,11 @@ module LoginViews =
         // Claimed: single password field
         [ Elem.div
             [ Attr.class' "field" ]
-            [ Elem.label [ Attr.for' "Password" ] [ Text.raw "Password" ]
+            [ Elem.label [ Attr.for' FormFields.password ] [ Text.raw "Password" ]
               Elem.input
                 [ Attr.type' "password"
-                  Attr.id "Password"
-                  Attr.name "Password"
+                  Attr.id FormFields.password
+                  Attr.name FormFields.password
                   Attr.create "autofocus" "autofocus"
                   Attr.create "autocomplete" "current-password" ] ] ]
       else
@@ -56,20 +56,20 @@ module LoginViews =
             [ Text.raw "This account hasn't been claimed yet. Choose a password to activate it." ]
           Elem.div
             [ Attr.class' "field" ]
-            [ Elem.label [ Attr.for' "Password" ] [ Text.raw "New password" ]
+            [ Elem.label [ Attr.for' FormFields.password ] [ Text.raw "New password" ]
               Elem.input
                 [ Attr.type' "password"
-                  Attr.id "Password"
-                  Attr.name "Password"
+                  Attr.id FormFields.password
+                  Attr.name FormFields.password
                   Attr.create "autofocus" "autofocus"
                   Attr.create "autocomplete" "new-password" ] ]
           Elem.div
             [ Attr.class' "field" ]
-            [ Elem.label [ Attr.for' "PasswordConfirm" ] [ Text.raw "Confirm password" ]
+            [ Elem.label [ Attr.for' FormFields.passwordConfirm ] [ Text.raw "Confirm password" ]
               Elem.input
                 [ Attr.type' "password"
-                  Attr.id "PasswordConfirm"
-                  Attr.name "PasswordConfirm"
+                  Attr.id FormFields.passwordConfirm
+                  Attr.name FormFields.passwordConfirm
                   Attr.create "autocomplete" "new-password" ] ] ]
 
     ViewLayout.loginLayout

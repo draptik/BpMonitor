@@ -18,8 +18,8 @@ module MemberHandlers =
     withMember (fun active ctx ->
       task {
         let! form = ctx.Request.ReadFormAsync()
-        let name = form["Name"].ToString()
-        let isAdmin = form.ContainsKey("IsAdmin")
+        let name = form[FormFields.name].ToString()
+        let isAdmin = form.ContainsKey(FormFields.isAdmin)
 
         match FamilyMember.create name isAdmin with
         | Error NameIsEmpty ->
@@ -106,9 +106,9 @@ module MemberHandlers =
             existing.Id
             (authenticatedMemberName ctx)
             existing
-            (form["Name"].ToString())
-            (form.ContainsKey("IsAdmin"))
-            (form.ContainsKey("IsActive"))
+            (form[FormFields.name].ToString())
+            (form.ContainsKey(FormFields.isAdmin))
+            (form.ContainsKey(FormFields.isActive))
             ctx
       }
       :> Task)

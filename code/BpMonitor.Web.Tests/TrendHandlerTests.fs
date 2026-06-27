@@ -36,9 +36,9 @@ let ``trends renders 200 with granularity buttons and current Weekly panel`` () 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
   // Granularity buttons
-  let weeklyGran = Routes.trendsGran "weekly"
-  let monthlyGran = Routes.trendsGran "monthly"
-  let yearlyGran = Routes.trendsGran "yearly"
+  let weeklyGran = Routes.trendsGran (TrendPeriod.slug Weekly)
+  let monthlyGran = Routes.trendsGran (TrendPeriod.slug Monthly)
+  let yearlyGran = Routes.trendsGran (TrendPeriod.slug Yearly)
   test <@ body.Contains $"href=\"{weeklyGran}\"" @>
   test <@ body.Contains $"href=\"{monthlyGran}\"" @>
   test <@ body.Contains $"href=\"{yearlyGran}\"" @>
@@ -90,7 +90,7 @@ let ``trendsPanel renders the chart with the authenticated member's goal range``
   let ctx =
     TestHost.contextWithMembersAndProvider (repoWith [ r ]) [ memberWithGoal goal ] tp
 
-  setRouteGran ctx "weekly"
+  setRouteGran ctx (TrendPeriod.slug Weekly)
   TestHost.run ReadingHandlers.trendsPanel ctx
   assertGoalBands goal (TestHost.readBody ctx)
 
@@ -106,7 +106,7 @@ let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and 
         HeartRate = 70 }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
-  setRouteGran ctx "weekly"
+  setRouteGran ctx (TrendPeriod.slug Weekly)
   TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
@@ -125,7 +125,7 @@ let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and 
 let ``trendsPanel with gran=monthly returns monthly sub-period buttons`` () =
   let tp = FakeTimeProvider(trendsNow)
   let ctx = TestHost.contextWithProvider (repoWith []) tp
-  setRouteGran ctx "monthly"
+  setRouteGran ctx (TrendPeriod.slug Monthly)
   TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
@@ -146,7 +146,7 @@ let ``trendsPanel with gran + key uses that specific sub-period`` () =
         HeartRate = 65 }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
-  setRouteGranKey ctx "weekly" "2026-W23"
+  setRouteGranKey ctx (TrendPeriod.slug Weekly) "2026-W23"
   TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
@@ -167,7 +167,7 @@ let ``trendsPanel includes readings table with in-period readings`` () =
         Systolic = 130 }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
-  setRouteGran ctx "weekly"
+  setRouteGran ctx (TrendPeriod.slug Weekly)
   TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
@@ -191,7 +191,7 @@ let ``trendsPanel excludes readings outside the period from the table`` () =
         Systolic = 999 }
 
   let ctx = TestHost.contextWithProvider (repoWith [ inside; outside ]) tp
-  setRouteGran ctx "weekly"
+  setRouteGran ctx (TrendPeriod.slug Weekly)
   TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
@@ -209,7 +209,7 @@ let ``trendsPanel shows empty state when no readings in period`` () =
         Timestamp = trendsNow.AddDays(-100.0) }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
-  setRouteGran ctx "weekly"
+  setRouteGran ctx (TrendPeriod.slug Weekly)
   TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
@@ -247,13 +247,13 @@ let ``trendsPanel period pills without data are aria-disabled and have no href``
         Systolic = 130 }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
-  setRouteGran ctx "weekly"
+  setRouteGran ctx (TrendPeriod.slug Weekly)
   TestHost.run ReadingHandlers.trendsPanel ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
-  let w24Route = Routes.trendsGranKey "weekly" "2026-W24"
-  let w23Route = Routes.trendsGranKey "weekly" "2026-W23"
+  let w24Route = Routes.trendsGranKey (TrendPeriod.slug Weekly) "2026-W24"
+  let w23Route = Routes.trendsGranKey (TrendPeriod.slug Weekly) "2026-W23"
   // W24 (This Week) pill should be a normal link
   test <@ body.Contains $"href=\"{w24Route}\"" @>
   // W23 (Last Week) pill should be disabled — no href, has aria-disabled

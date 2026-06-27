@@ -50,11 +50,14 @@ module MemberViews =
           [ Attr.method "post"; Attr.action Routes.members; Attr.class' "stacked" ]
           [ Elem.div
               [ Attr.class' "field" ]
-              [ Elem.label [ Attr.for' "Name" ] [ Text.raw "Name" ]
-                Elem.input [ Attr.type' "text"; Attr.id "Name"; Attr.name "Name" ] ]
+              [ Elem.label [ Attr.for' FormFields.name ] [ Text.raw "Name" ]
+                Elem.input [ Attr.type' "text"; Attr.id FormFields.name; Attr.name FormFields.name ] ]
             Elem.label
-              [ Attr.for' "IsAdmin" ]
-              [ Elem.input [ Attr.type' "checkbox"; Attr.id "IsAdmin"; Attr.name "IsAdmin" ]
+              [ Attr.for' FormFields.isAdmin ]
+              [ Elem.input
+                  [ Attr.type' "checkbox"
+                    Attr.id FormFields.isAdmin
+                    Attr.name FormFields.isAdmin ]
                 Text.raw " Admin" ]
             Elem.button [ Attr.type' "submit" ] [ Text.raw "Add member" ] ] ]
 
@@ -84,18 +87,24 @@ module MemberViews =
         ViewLayout.errorBox errors
         Elem.form
           [ Attr.method "post"; Attr.action action ]
-          [ ViewLayout.field "Name" "Name" m.Name "text"
+          [ ViewLayout.field "Name" FormFields.name m.Name "text"
             Elem.div
               [ Attr.class' "field" ]
               [ Elem.label
-                  [ Attr.for' "IsAdmin" ]
-                  [ Elem.input (checkedAttr m.IsAdmin @ [ Attr.id "IsAdmin"; Attr.name "IsAdmin" ])
+                  [ Attr.for' FormFields.isAdmin ]
+                  [ Elem.input (
+                      checkedAttr m.IsAdmin
+                      @ [ Attr.id FormFields.isAdmin; Attr.name FormFields.isAdmin ]
+                    )
                     Text.raw " Admin" ] ]
             Elem.div
               [ Attr.class' "field" ]
               [ Elem.label
-                  [ Attr.for' "IsActive" ]
-                  [ Elem.input (checkedAttr m.IsActive @ [ Attr.id "IsActive"; Attr.name "IsActive" ])
+                  [ Attr.for' FormFields.isActive ]
+                  [ Elem.input (
+                      checkedAttr m.IsActive
+                      @ [ Attr.id FormFields.isActive; Attr.name FormFields.isActive ]
+                    )
                     Text.raw " Active" ] ]
             ViewLayout.formActions Routes.members ] ]
 
@@ -122,10 +131,10 @@ module MemberViews =
         ViewLayout.errorBox errors
         Elem.form
           [ Attr.method "post"; Attr.action Routes.settings ]
-          [ ViewLayout.field "Systolic min" "SystolicGoalMin" sysMin "number"
-            ViewLayout.field "Systolic max" "SystolicGoalMax" sysMax "number"
-            ViewLayout.field "Diastolic min" "DiastolicGoalMin" diaMin "number"
-            ViewLayout.field "Diastolic max" "DiastolicGoalMax" diaMax "number"
+          [ ViewLayout.field "Systolic min" FormFields.systolicGoalMin sysMin "number"
+            ViewLayout.field "Systolic max" FormFields.systolicGoalMax sysMax "number"
+            ViewLayout.field "Diastolic min" FormFields.diastolicGoalMin diaMin "number"
+            ViewLayout.field "Diastolic max" FormFields.diastolicGoalMax diaMax "number"
             ViewLayout.formActions Routes.history ] ]
 
   /// Members page: list of family members with Edit/Reset-password buttons and an add form.

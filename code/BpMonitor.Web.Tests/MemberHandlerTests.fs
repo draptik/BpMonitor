@@ -23,7 +23,7 @@ let ``createMember with IsAdmin checkbox persists an admin member`` () =
   let repo = repoWith []
   let ctx = TestHost.context repo
 
-  TestHost.setForm ctx [ "Name", "Alice"; "IsAdmin", "on" ]
+  TestHost.setForm ctx [ FormFields.name, "Alice"; FormFields.isAdmin, "on" ]
   TestHost.run MemberHandlers.createMember ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
@@ -38,7 +38,7 @@ let ``createMember without IsAdmin checkbox persists a non-admin member`` () =
   let repo = repoWith []
   let ctx = TestHost.context repo
 
-  TestHost.setForm ctx [ "Name", "Bob" ]
+  TestHost.setForm ctx [ FormFields.name, "Bob" ]
   TestHost.run MemberHandlers.createMember ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
@@ -73,7 +73,12 @@ let ``updateMember saves changes and redirects to /members`` () =
   let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Me" ]
   TestHost.setRouteId ctx 1
 
-  TestHost.setForm ctx [ "Name", "Myself"; "IsAdmin", "on"; "IsActive", "on" ]
+  TestHost.setForm
+    ctx
+    [ FormFields.name, "Myself"
+      FormFields.isAdmin, "on"
+      FormFields.isActive, "on" ]
+
   TestHost.run MemberHandlers.updateMember ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
@@ -91,7 +96,7 @@ let ``updateMember rejects demoting the last active admin with 422`` () =
   TestHost.setRouteId ctx 1
 
   // Uncheck both IsAdmin and IsActive — would leave no active admin.
-  TestHost.setForm ctx [ "Name", "Me" ]
+  TestHost.setForm ctx [ FormFields.name, "Me" ]
   TestHost.run MemberHandlers.updateMember ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
@@ -107,7 +112,7 @@ let ``updateMember allows demoting one admin when another active admin exists`` 
   TestHost.setRouteId ctx 1
 
   // Demote member 1 to non-admin; member 2 remains active admin → invariant holds.
-  TestHost.setForm ctx [ "Name", "Me"; "IsActive", "on" ]
+  TestHost.setForm ctx [ FormFields.name, "Me"; FormFields.isActive, "on" ]
   TestHost.run MemberHandlers.updateMember ctx
 
   test <@ ctx.Response.StatusCode = 302 @>

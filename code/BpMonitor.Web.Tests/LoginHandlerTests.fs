@@ -30,7 +30,7 @@ let ``loginWithCredentials redirects to / for correct credentials`` () =
 
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ claimed ]
-  TestHost.setForm ctx [ "Username", "Me"; "Password", "correct" ]
+  TestHost.setForm ctx [ FormFields.username, "Me"; FormFields.password, "correct" ]
   TestHost.run AuthHandlers.loginWithCredentials ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
@@ -44,7 +44,7 @@ let ``loginWithCredentials returns 401 for wrong password`` () =
 
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ claimed ]
-  TestHost.setForm ctx [ "Username", "Me"; "Password", "wrong" ]
+  TestHost.setForm ctx [ FormFields.username, "Me"; FormFields.password, "wrong" ]
   TestHost.run AuthHandlers.loginWithCredentials ctx
 
   test <@ ctx.Response.StatusCode = 401 @>
@@ -53,7 +53,7 @@ let ``loginWithCredentials returns 401 for wrong password`` () =
 let ``loginWithCredentials returns 401 for unknown user`` () =
   let repo = repoWith []
   let ctx = TestHost.context repo
-  TestHost.setForm ctx [ "Username", "Nobody"; "Password", "anything" ]
+  TestHost.setForm ctx [ FormFields.username, "Nobody"; FormFields.password, "anything" ]
   TestHost.run AuthHandlers.loginWithCredentials ctx
 
   test <@ ctx.Response.StatusCode = 401 @>
@@ -62,7 +62,7 @@ let ``loginWithCredentials returns 401 for unknown user`` () =
 let ``loginWithCredentials redirects to claim page for unclaimed member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
-  TestHost.setForm ctx [ "Username", "Me"; "Password", "" ]
+  TestHost.setForm ctx [ FormFields.username, "Me"; FormFields.password, "" ]
   TestHost.run AuthHandlers.loginWithCredentials ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
@@ -104,7 +104,12 @@ let ``loginSubmit claims unclaimed member and sets password hash`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
   TestHost.setRouteId ctx 1
-  TestHost.setForm ctx [ "Password", "correct-horse"; "PasswordConfirm", "correct-horse" ]
+
+  TestHost.setForm
+    ctx
+    [ FormFields.password, "correct-horse"
+      FormFields.passwordConfirm, "correct-horse" ]
+
   TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
@@ -118,7 +123,7 @@ let ``loginSubmit rejects empty password for unclaimed member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
   TestHost.setRouteId ctx 1
-  TestHost.setForm ctx [ "Password", ""; "PasswordConfirm", "" ]
+  TestHost.setForm ctx [ FormFields.password, ""; FormFields.passwordConfirm, "" ]
   TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
@@ -129,7 +134,7 @@ let ``loginSubmit rejects mismatched confirm for unclaimed member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
   TestHost.setRouteId ctx 1
-  TestHost.setForm ctx [ "Password", "abc"; "PasswordConfirm", "xyz" ]
+  TestHost.setForm ctx [ FormFields.password, "abc"; FormFields.passwordConfirm, "xyz" ]
   TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
@@ -141,7 +146,7 @@ let ``loginSubmit accepts correct password for claimed member and redirects`` ()
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ claimedMember hash ]
   TestHost.setRouteId ctx 1
-  TestHost.setForm ctx [ "Password", "letmein" ]
+  TestHost.setForm ctx [ FormFields.password, "letmein" ]
   TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
@@ -153,7 +158,7 @@ let ``loginSubmit rejects wrong password for claimed member with 401`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ claimedMember hash ]
   TestHost.setRouteId ctx 1
-  TestHost.setForm ctx [ "Password", "wrongpassword" ]
+  TestHost.setForm ctx [ FormFields.password, "wrongpassword" ]
   TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 401 @>
@@ -170,7 +175,7 @@ let ``loginSubmit returns 403 for inactive member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ inactive ]
   TestHost.setRouteId ctx 1
-  TestHost.setForm ctx [ "Password", "secret" ]
+  TestHost.setForm ctx [ FormFields.password, "secret" ]
   TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 403 @>
