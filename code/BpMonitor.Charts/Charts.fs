@@ -56,10 +56,16 @@ module BpChart =
     [ band goal.SystolicMin goal.SystolicMax systolicBandColor
       band goal.DiastolicMin goal.DiastolicMax diastolicBandColor ]
 
-  // Compact margins, matching the trends' chart: with no chart title, Plotly's default
-  // top margin (100) would otherwise sit empty above the plot.
+  // Compact margins: with no chart title, Plotly's default top margin (100) would
+  // otherwise sit empty above the plot. Bottom accommodates x-tick labels + the
+  // bottom-positioned legend (which sits at Y=-0.15, below the plot area).
   let private compactMargin =
-    Margin.init (Left = 48, Right = 16, Top = 24, Bottom = 56)
+    Margin.init (Left = 48, Right = 16, Top = 24, Bottom = 72)
+
+  // Trends rotates x-tick labels at -45°, which extends them further down than horizontal
+  // labels — needs a larger bottom margin to fit labels + the legend below them.
+  let private trendsMargin =
+    Margin.init (Left = 48, Right = 16, Top = 24, Bottom = 96)
 
   // Pre-selects the pan tool in the modebar, so the default drag gesture moves the
   // x-axis window rather than drawing a zoom-box (the y-axis is fixed-range anyway).
@@ -204,14 +210,16 @@ module BpChart =
       DragMode = StyleParam.DragMode.Pan
     )
 
-  /// Horizontal centered legend at the bottom, shared by /history, /trends and /recent,
-  /// so the default top-right legend doesn't steal horizontal width from the plot.
+  /// Horizontal centered legend below the plot area, shared by /history, /trends and /recent.
+  /// Y=-0.15/YAnchor=Top places it below the x-tick labels so they don't collide on mobile.
   let private withBottomLegend (chart: GenericChart) =
     chart
     |> Chart.withLegendStyle (
       Orientation = StyleParam.Orientation.Horizontal,
       X = 0.5,
-      XAnchor = StyleParam.XAnchorPosition.Center
+      XAnchor = StyleParam.XAnchorPosition.Center,
+      Y = -0.15,
+      YAnchor = StyleParam.YAnchorPosition.Top
     )
 
   let private finishRecent (rangeLow: string) (rangeHigh: string) (chart: GenericChart) =
@@ -233,7 +241,7 @@ module BpChart =
     Layout.init (
       PaperBGColor = transparent,
       PlotBGColor = transparent,
-      Margin = compactMargin,
+      Margin = trendsMargin,
       DragMode = StyleParam.DragMode.False
     )
 
