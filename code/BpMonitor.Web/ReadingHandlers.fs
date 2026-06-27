@@ -216,7 +216,10 @@ module ReadingHandlers =
         let raw key = form[key].ToString()
 
         let sysMinRaw, sysMaxRaw, diaMinRaw, diaMaxRaw =
-          raw "SystolicGoalMin", raw "SystolicGoalMax", raw "DiastolicGoalMin", raw "DiastolicGoalMax"
+          raw FormFields.systolicGoalMin,
+          raw FormFields.systolicGoalMax,
+          raw FormFields.diastolicGoalMin,
+          raw FormFields.diastolicGoalMax
 
         let renderErrors errors =
           ctx.Response.StatusCode <- 422

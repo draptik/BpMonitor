@@ -68,11 +68,11 @@ module HandlerHelpers =
         | _ -> ""
 
       return
-        { Binding.Systolic = get "Systolic"
-          Binding.Diastolic = get "Diastolic"
-          Binding.HeartRate = get "HeartRate"
-          Binding.Timestamp = get "Timestamp"
-          Binding.Comments = get "Comments" }
+        { Binding.Systolic = get FormFields.systolic
+          Binding.Diastolic = get FormFields.diastolic
+          Binding.HeartRate = get FormFields.heartRate
+          Binding.Timestamp = get FormFields.timestamp
+          Binding.Comments = get FormFields.comments }
     }
 
   let sortedReadings (memberId: int) (ctx: HttpContext) =

@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="Config.fs" />
+    <Compile Include="FormFields.fs" />
     <Compile Include="Binding.fs" />
     <Compile Include="Version.fs" />
     <Compile Include="Routes.fs" />

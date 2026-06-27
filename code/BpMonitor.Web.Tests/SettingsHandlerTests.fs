@@ -26,10 +26,10 @@ let ``updateSettings persists a valid goal range and redirects to history`` () =
 
   TestHost.setForm
     ctx
-    [ "SystolicGoalMin", "100"
-      "SystolicGoalMax", "130"
-      "DiastolicGoalMin", "65"
-      "DiastolicGoalMax", "85" ]
+    [ FormFields.systolicGoalMin, "100"
+      FormFields.systolicGoalMax, "130"
+      FormFields.diastolicGoalMin, "65"
+      FormFields.diastolicGoalMax, "85" ]
 
   TestHost.run ReadingHandlers.updateSettings ctx
 
@@ -70,10 +70,10 @@ let ``updateSettings rejects a systolic min greater than or equal to max with 42
 
   TestHost.setForm
     ctx
-    [ "SystolicGoalMin", "140"
-      "SystolicGoalMax", "100"
-      "DiastolicGoalMin", "65"
-      "DiastolicGoalMax", "85" ]
+    [ FormFields.systolicGoalMin, "140"
+      FormFields.systolicGoalMax, "100"
+      FormFields.diastolicGoalMin, "65"
+      FormFields.diastolicGoalMax, "85" ]
 
   TestHost.run ReadingHandlers.updateSettings ctx
 
@@ -91,10 +91,10 @@ let ``updateSettings redisplays the submitted values, not the stale persisted go
 
   TestHost.setForm
     ctx
-    [ "SystolicGoalMin", "140"
-      "SystolicGoalMax", "100"
-      "DiastolicGoalMin", "65"
-      "DiastolicGoalMax", "85" ]
+    [ FormFields.systolicGoalMin, "140"
+      FormFields.systolicGoalMax, "100"
+      FormFields.diastolicGoalMin, "65"
+      FormFields.diastolicGoalMax, "85" ]
 
   TestHost.run ReadingHandlers.updateSettings ctx
 
@@ -109,10 +109,10 @@ let ``updateSettings rejects non-numeric input with 422 and does not persist`` (
 
   TestHost.setForm
     ctx
-    [ "SystolicGoalMin", "abc"
-      "SystolicGoalMax", "130"
-      "DiastolicGoalMin", "65"
-      "DiastolicGoalMax", "85" ]
+    [ FormFields.systolicGoalMin, "abc"
+      FormFields.systolicGoalMax, "130"
+      FormFields.diastolicGoalMin, "65"
+      FormFields.diastolicGoalMax, "85" ]
 
   TestHost.run ReadingHandlers.updateSettings ctx
 
@@ -130,10 +130,10 @@ let ``updateSettings accumulates an error for every invalid field, not just the 
 
   TestHost.setForm
     ctx
-    [ "SystolicGoalMin", "abc"
-      "SystolicGoalMax", "130"
-      "DiastolicGoalMin", "xyz"
-      "DiastolicGoalMax", "85" ]
+    [ FormFields.systolicGoalMin, "abc"
+      FormFields.systolicGoalMax, "130"
+      FormFields.diastolicGoalMin, "xyz"
+      FormFields.diastolicGoalMax, "85" ]
 
   TestHost.run ReadingHandlers.updateSettings ctx
 

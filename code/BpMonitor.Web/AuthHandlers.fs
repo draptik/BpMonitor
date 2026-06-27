@@ -144,8 +144,8 @@ module AuthHandlers =
     fun ctx ->
       task {
         let! form = ctx.Request.ReadFormAsync()
-        let username = form["Username"].ToString().Trim()
-        let password = form["Password"].ToString()
+        let username = form[FormFields.username].ToString().Trim()
+        let password = form[FormFields.password].ToString()
 
         let found =
           (memberRepo ctx).GetAll()
@@ -180,11 +180,11 @@ module AuthHandlers =
           do! ctx.Response.WriteAsync("This account is inactive")
         else
           let! form = ctx.Request.ReadFormAsync()
-          let password = form["Password"].ToString()
+          let password = form[FormFields.password].ToString()
 
           match m.PasswordHash with
           | Some hash -> do! claimedLogin m password hash (LoginViews.loginMember m [ "Incorrect password" ]) ctx
-          | None -> do! unclaimedLogin m password (form["PasswordConfirm"].ToString()) ctx
+          | None -> do! unclaimedLogin m password (form[FormFields.passwordConfirm].ToString()) ctx
       }
       :> Task)
 
