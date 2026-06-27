@@ -6,7 +6,13 @@ function scrollActiveSubPeriodIntoView() {
   const row = document.querySelector(".trends-subperiod-buttons");
   if (!row) return;
   const active = row.querySelector('[aria-current="page"]');
-  if (active) active.scrollIntoView({ inline: "center", block: "nearest" });
+  if (!active) return;
+  // Use scrollLeft on the container instead of scrollIntoView — the latter
+  // walks all scrollable ancestors including the viewport, causing the whole
+  // page to shift horizontally on mobile.
+  const rowRect = row.getBoundingClientRect();
+  const activeRect = active.getBoundingClientRect();
+  row.scrollLeft += activeRect.left - rowRect.left - (rowRect.width - activeRect.width) / 2;
 }
 
 // Toggles edge-fade affordances (CSS, app.css `.trends-subperiod-scroller`) on the
