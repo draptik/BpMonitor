@@ -56,16 +56,17 @@ module BpChart =
     [ band goal.SystolicMin goal.SystolicMax systolicBandColor
       band goal.DiastolicMin goal.DiastolicMax diastolicBandColor ]
 
+  let private marginWithBottom bottom =
+    Margin.init (Left = 48, Right = 16, Top = 24, Bottom = bottom)
+
   // Compact margins: with no chart title, Plotly's default top margin (100) would
   // otherwise sit empty above the plot. Bottom accommodates x-tick labels + the
   // bottom-positioned legend (which sits at Y=-0.15, below the plot area).
-  let private compactMargin =
-    Margin.init (Left = 48, Right = 16, Top = 24, Bottom = 72)
+  let private compactMargin = marginWithBottom 72
 
   // Trends rotates x-tick labels at -45°, which extends them further down than horizontal
   // labels — needs a larger bottom margin to fit labels + the legend below them.
-  let private trendsMargin =
-    Margin.init (Left = 48, Right = 16, Top = 24, Bottom = 96)
+  let private trendsMargin = marginWithBottom 96
 
   // Pre-selects the pan tool in the modebar, so the default drag gesture moves the
   // x-axis window rather than drawing a zoom-box (the y-axis is fixed-range anyway).
