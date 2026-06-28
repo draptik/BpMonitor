@@ -55,7 +55,7 @@ module ViewLayout =
       []
       ([ Elem.meta [ Attr.charset "utf-8" ]
          Elem.meta [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]
-         Elem.title [] [ Text.raw title ]
+         Elem.title [] [ Text.enc title ]
          Elem.link [ Attr.rel "icon"; Attr.href "/favicon.svg"; Attr.type' "image/svg+xml" ]
          // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
          // No defer/async — render-blocking prevents flash of the wrong theme (FOUC).
