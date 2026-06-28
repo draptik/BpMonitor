@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Database schema migration adds an index on `MemberId` in the `Readings` table on first startup — improves query performance for all reading lookups
+
 ## [1.7.4] - 2026-06-27
 
 ### Fixed
