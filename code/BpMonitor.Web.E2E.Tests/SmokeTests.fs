@@ -1,5 +1,8 @@
 module BpMonitor.Web.E2E.SmokeTests
 
+open System
+open System.Collections.Generic
+open System.Net.Http
 open System.Threading.Tasks
 open BpMonitor.Web.E2E
 open Xunit
@@ -32,4 +35,39 @@ type LoginAddHistoryTests(fixture: WebAppFixture) =
       Assert.Contains("118", tableText)
       Assert.Contains("76", tableText)
       Assert.Contains("62", tableText)
+    }
+
+/// Verifies HTTP security properties of the running server via raw HttpClient
+/// (no browser required — just inspects response headers).
+type CookieSecurityTests(fixture: WebAppFixture) =
+  interface IClassFixture<WebAppFixture>
+
+  [<Fact>]
+  member _.``auth Set-Cookie always includes Secure attribute``() : Task =
+    task {
+      use handler = new HttpClientHandler(AllowAutoRedirect = false)
+      use client = new HttpClient(handler)
+
+      // POST /login with just a username — the "Me" account starts unclaimed,
+      // so the server redirects to the per-member claim page without checking
+      // the password field.
+      use step1Body =
+        new FormUrlEncodedContent([ KeyValuePair("Username", TestAccount.username); KeyValuePair("Password", "") ])
+
+      let! redirectResp = client.PostAsync($"{fixture.BaseUrl}/login", step1Body)
+      let claimUrl = Uri(Uri(fixture.BaseUrl), redirectResp.Headers.Location).ToString()
+
+      // Claim the account — SignInAsync fires here and emits the Set-Cookie header.
+      use step2Body =
+        new FormUrlEncodedContent(
+          [ KeyValuePair("Password", TestAccount.password)
+            KeyValuePair("PasswordConfirm", TestAccount.password) ]
+        )
+
+      let! signInResp = client.PostAsync(claimUrl, step2Body)
+
+      let setCookieHeader =
+        signInResp.Headers.GetValues("Set-Cookie") |> String.concat " "
+
+      Assert.Contains("secure", setCookieHeader.ToLower())
     }
