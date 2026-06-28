@@ -185,11 +185,34 @@ module BpChart =
     )
 
   let private toHtmlString (chart: GenericChart) =
-    chart
-    |> GenericChart.toChartHTML
-    |> _.Replace("\"width\":600,", "")
-    |> _.Replace("\"height\":600,", "")
-    |> fun html -> html + errorBarScript
+    let html =
+      chart
+      |> GenericChart.toChartHTML
+      |> _.Replace("\"width\":600,", "")
+      |> _.Replace("\"height\":600,", "")
+
+    // Prevent script injection: user comment text is serialised into an inline
+    // <script> block as JSON. Newtonsoft (used by Plotly.NET) does not escape < or /
+    // by default, so a comment containing </script> would close the script element
+    // early and allow arbitrary HTML injection into the page.
+    //
+    // Fix: replace </ → <\/ inside the script content only (not in the surrounding
+    // HTML structure). <\/ is valid JSON (RFC 7159 allows \/ as an escape for /) and
+    // JS string literals treat \/ as /, so Plotly.js receives the correct value.
+    // The HTML parser does not recognise <\ as the start of an end tag.
+    let escaped =
+      let openTag = html.IndexOf "<script"
+      let contentStart = html.IndexOf(">", openTag) + 1
+      let closeTag = html.LastIndexOf "</script>"
+
+      if openTag >= 0 && contentStart > 0 && closeTag > contentStart then
+        html.[.. contentStart - 1]
+        + html.[contentStart .. closeTag - 1].Replace("</", "<\\/")
+        + html.[closeTag..]
+      else
+        html
+
+    escaped + errorBarScript
 
   let private finish (chart: GenericChart) =
     chart

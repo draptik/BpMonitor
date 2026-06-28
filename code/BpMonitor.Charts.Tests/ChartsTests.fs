@@ -66,7 +66,9 @@ let private windowStart30 = now.AddDays(-30.0)
 /// into the next trace's "name" field, so this works regardless of which (if any)
 /// fields a chart serializes between "name" and "hovertemplate".
 let private hasNamelessHover (html: string) (name: string) =
-  Regex.IsMatch(html, $"\"name\":\"{name}\"(?:(?!\"name\":).)*?\"hovertemplate\":\"[^\"]*<extra><\\/extra>\"")
+  // After script-injection hardening, </extra> in the hover template is escaped to
+  // <\/extra> (backslash + slash) in the raw HTML; match the backslash-escaped form.
+  Regex.IsMatch(html, $"\"name\":\"{name}\"(?:(?!\"name\":).)*?\"hovertemplate\":\"[^\"]*<extra><\\\\/extra>\"")
 
 [<Fact>]
 let ``toHtml renders a goal-range band shaped rectangle for systolic and diastolic bounds`` () =
@@ -532,3 +534,17 @@ let ``toHtmlDashed Yearly: x-axis labels use month-name format`` () =
   let aggregated = asAggregated [ reading 1 120 80 70 8 9 None ]
   let html = BpChart.toHtmlDashed GoalRange.defaults Yearly aggregated
   test <@ html.Contains("Jan") @>
+
+[<Fact>]
+let ``toHtml escapes </script> in comment text to prevent inline script injection`` () =
+  let hostile = reading 1 120 80 70 1 9 (Some "</script><img src=x onerror=alert(1)>")
+  let html = BpChart.toHtml GoalRange.defaults [ hostile ]
+
+  // The raw injection string must not appear — it would close the <script> block early
+  // and allow HTML to be injected into the page DOM
+  test <@ not (html.Contains "</script><img") @>
+  // The backslash-escaped form must appear in the JSON data instead
+  // (<\/ is valid JSON and is treated as </ by JS but the HTML parser won't see it as </script>)
+  test <@ html.Contains @"<\/script><img" @>
+  // The actual </script> closing tags must still be present (the page must remain valid)
+  test <@ html.Contains "</script>" @>
