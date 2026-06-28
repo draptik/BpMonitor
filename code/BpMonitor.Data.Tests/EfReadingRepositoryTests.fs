@@ -33,6 +33,20 @@ let private createContext () =
   ctx.Database.EnsureCreated() |> ignore
   ctx
 
+let private createContextWithLog (log: ResizeArray<string>) =
+  let connection = new SqliteConnection("DataSource=:memory:")
+  connection.Open()
+
+  let options =
+    DbContextOptionsBuilder<BpMonitorDbContext>()
+      .UseSqlite(connection)
+      .LogTo(System.Action<string>(fun s -> log.Add(s)))
+      .Options
+
+  let ctx = new BpMonitorDbContext(options)
+  ctx.Database.EnsureCreated() |> ignore
+  ctx
+
 let private createRepo (ctx: BpMonitorDbContext) : IReadingRepository =
   EfReadingRepository(ctx, TimeProvider.System) :> IReadingRepository
 
@@ -184,3 +198,17 @@ let ``Update does not affect a reading belonging to a different member`` () =
   // Reading should remain unchanged for member 1
   // ReSharper disable once FSharpRedundantDotInIndexer
   test <@ (repo.GetAll 1).[0].Systolic = 120 @>
+
+[<Fact>]
+let ``GetAll translates MemberId filter to SQL WHERE clause`` () =
+  let log = ResizeArray<string>()
+  use ctx = createContextWithLog log
+  let repo = createRepo ctx
+  repo.Add defaultMemberId sample
+  log.Clear()
+  repo.GetAll(defaultMemberId) |> ignore
+
+  let selectSql =
+    log |> Seq.filter (fun s -> s.Contains("SELECT")) |> String.concat " "
+
+  Assert.Contains("WHERE", selectSql)

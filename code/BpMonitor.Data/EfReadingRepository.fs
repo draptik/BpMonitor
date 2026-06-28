@@ -36,8 +36,11 @@ module private Mapping =
 type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvider) =
   interface IReadingRepository with
     member _.GetAll(memberId) =
-      ctx.Readings.AsNoTracking()
-      |> Seq.filter (fun r -> r.MemberId = memberId)
+      query {
+        for r in ctx.Readings.AsNoTracking() do
+          where (r.MemberId = memberId)
+          select r
+      }
       |> Seq.map Mapping.toDomain
       |> Seq.toList
 
@@ -74,8 +77,13 @@ type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvi
 
       // Guard: only update if reading belongs to the expected member (prevents cross-member writes)
       let existsForMember =
-        ctx.Readings.AsNoTracking()
-        |> Seq.exists (fun r -> r.Id = reading.Id && r.MemberId = reading.MemberId)
+        query {
+          for r in ctx.Readings.AsNoTracking() do
+            where (r.Id = reading.Id && r.MemberId = reading.MemberId)
+            select r
+        }
+        |> Seq.isEmpty
+        |> not
 
       if existsForMember then
         ctx.ChangeTracker.Entries<ReadingRecord>()

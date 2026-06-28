@@ -41,8 +41,12 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.Time
       ctx.Members.AsNoTracking() |> Seq.map MemberMapping.toDomain |> Seq.toList
 
     member _.GetById(id) =
-      ctx.Members.AsNoTracking()
-      |> Seq.tryFind (fun m -> m.Id = id)
+      query {
+        for m in ctx.Members.AsNoTracking() do
+          where (m.Id = id)
+          select m
+      }
+      |> Seq.tryHead
       |> Option.map MemberMapping.toDomain
 
     member _.Add(m) =
@@ -54,7 +58,14 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.Time
 
     member _.Update(m) =
       // Guard: only update if the member exists (prevents DbUpdateConcurrencyException on missing rows).
-      let exists = ctx.Members.AsNoTracking() |> Seq.exists (fun r -> r.Id = m.Id)
+      let exists =
+        query {
+          for r in ctx.Members.AsNoTracking() do
+            where (r.Id = m.Id)
+            select r
+        }
+        |> Seq.isEmpty
+        |> not
 
       if exists then
         let now = timeProvider.GetUtcNow()

@@ -133,3 +133,7 @@ module SchemaMigrations =
 
     // Promote the lowest-Id member to admin+active when no active admin exists yet.
     ensureActiveAdmin ctx
+
+    // Index for member-scoped reading queries (every GetAll/Update filters by MemberId).
+    ctx.Database.ExecuteSqlRaw("CREATE INDEX IF NOT EXISTS \"idx_readings_memberid\" ON \"Readings\" (\"MemberId\")")
+    |> ignore

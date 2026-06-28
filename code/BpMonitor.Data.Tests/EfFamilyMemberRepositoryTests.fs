@@ -20,6 +20,20 @@ let private createContext () =
   ctx.Database.EnsureCreated() |> ignore
   ctx
 
+let private createContextWithLog (log: ResizeArray<string>) =
+  let connection = new SqliteConnection("DataSource=:memory:")
+  connection.Open()
+
+  let options =
+    DbContextOptionsBuilder<BpMonitorDbContext>()
+      .UseSqlite(connection)
+      .LogTo(System.Action<string>(fun s -> log.Add(s)))
+      .Options
+
+  let ctx = new BpMonitorDbContext(options)
+  ctx.Database.EnsureCreated() |> ignore
+  ctx
+
 let private createRepo (ctx: BpMonitorDbContext) : IFamilyMemberRepository =
   EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
 
@@ -167,3 +181,17 @@ let ``Add persists a custom goal range and Update round-trips changes to it`` ()
 
   repo.Update { added with Goal = newGoal }
   test <@ (repo.GetById added.Id).Value.Goal = newGoal @>
+
+[<Fact>]
+let ``GetById translates Id filter to SQL WHERE clause`` () =
+  let log = ResizeArray<string>()
+  use ctx = createContextWithLog log
+  let repo = createRepo ctx
+  let added = repo.Add(newMember "Alice" true)
+  log.Clear()
+  repo.GetById(added.Id) |> ignore
+
+  let selectSql =
+    log |> Seq.filter (fun s -> s.Contains("SELECT")) |> String.concat " "
+
+  Assert.Contains("WHERE", selectSql)
