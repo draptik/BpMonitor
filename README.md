@@ -14,6 +14,7 @@ A blood pressure monitoring application for families and households, built with 
 - [Install](docs/install.md) — install, configure, and deploy
 - [Contributing](CONTRIBUTING.md) — build, test, and release the project
 - [Badges branch](docs/badges-branch.md) — how the coverage badge is generated and stored
+- [Security](SECURITY.md) — how to report a vulnerability
 
 ## About This Project
 

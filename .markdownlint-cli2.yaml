@@ -1,3 +1,6 @@
+ignores:
+  - "**/bin/**"
+
 config:
   MD013: false # line length
   MD024: false # duplicate heading content
