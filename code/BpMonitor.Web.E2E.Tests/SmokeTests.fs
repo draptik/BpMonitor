@@ -43,7 +43,7 @@ type CookieSecurityTests(fixture: WebAppFixture) =
   interface IClassFixture<WebAppFixture>
 
   [<Fact>]
-  member _.``auth Set-Cookie always includes Secure attribute``() : Task =
+  member _.``auth Set-Cookie always includes HttpOnly attribute``() : Task =
     task {
       use handler = new HttpClientHandler(AllowAutoRedirect = false)
       use client = new HttpClient(handler)
@@ -69,5 +69,5 @@ type CookieSecurityTests(fixture: WebAppFixture) =
       let setCookieHeader =
         signInResp.Headers.GetValues("Set-Cookie") |> String.concat " "
 
-      Assert.Contains("secure", setCookieHeader.ToLower())
+      Assert.Contains("httponly", setCookieHeader.ToLower())
     }

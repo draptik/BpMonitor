@@ -74,13 +74,21 @@ let main args =
       EfFamilyMemberRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
     |> ignore
 
+    let secureCookies = builder.Configuration.GetValue<bool>("BpMonitor:SecureCookies")
+
     builder.Services
       .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
       .AddCookie(fun o ->
         o.LoginPath <- PathString("/login")
         o.Cookie.HttpOnly <- true
         o.Cookie.SameSite <- SameSiteMode.Strict
-        o.Cookie.SecurePolicy <- CookieSecurePolicy.Always
+
+        o.Cookie.SecurePolicy <-
+          if secureCookies then
+            CookieSecurePolicy.Always
+          else
+            CookieSecurePolicy.SameAsRequest
+
         o.SlidingExpiration <- true)
     |> ignore
 
