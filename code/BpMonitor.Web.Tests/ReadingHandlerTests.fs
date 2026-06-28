@@ -167,3 +167,21 @@ let ``updateReading saves changes and redirects`` () =
   test <@ ctx.Response.Headers.Location.ToString() = Routes.history @>
   let updated = repo.GetAll(defaultMemberId) |> List.exactlyOne
   test <@ updated.Systolic = 111 && updated.Comments = Some "updated" @>
+
+[<Fact>]
+let ``updateReading returns 404 for an unknown id`` () =
+  let repo = repoWith [ sample ]
+  let ctx = TestHost.context repo
+  TestHost.setRouteId ctx 999
+
+  TestHost.setForm
+    ctx
+    [ FormFields.timestamp, "2026-05-01 09:00"
+      FormFields.systolic, "111"
+      FormFields.diastolic, "70"
+      FormFields.heartRate, "60"
+      FormFields.comments, "" ]
+
+  TestHost.run ReadingHandlers.updateReading ctx
+
+  test <@ ctx.Response.StatusCode = 404 @>

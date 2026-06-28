@@ -285,8 +285,14 @@ module ReadingHandlers =
 
   let updateReading: HttpContext -> Task =
     withMemberAndRouteId "updateReading" (fun m id ctx ->
-      submit ctx "" m.Name m.IsAdmin "Edit reading" (Routes.readingUpdate id) Routes.history (fun r ->
-        (repo ctx).Update { r with Id = id; MemberId = m.Id }))
+      match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
+      | None ->
+        let log = logger ctx
+        log.LogWarning("updateReading: reading {Id} not found for member {MemberId}", id, m.Id)
+        notFound ctx
+      | Some _ ->
+        submit ctx "" m.Name m.IsAdmin "Edit reading" (Routes.readingUpdate id) Routes.history (fun r ->
+          (repo ctx).Update { r with Id = id; MemberId = m.Id }))
 
   // ---------------------------------------------------------------------------
   // Export
