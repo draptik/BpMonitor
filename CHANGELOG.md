@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.6] - 2026-06-28
+
+### Fixed
+
+- **Deployment:** Added `BpMonitor:SecureCookies` config key (default `false`) — set to `true` when running behind an HTTPS reverse proxy; leave unset for direct HTTP deployments
+
 ## [1.7.5] - 2026-06-28
 
 ### Changed
@@ -339,7 +345,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.5...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.6...HEAD
+[1.7.6]: https://github.com/draptik/BpMonitor/compare/v1.7.5...v1.7.6
 [1.7.5]: https://github.com/draptik/BpMonitor/compare/v1.7.4...v1.7.5
 [1.7.4]: https://github.com/draptik/BpMonitor/compare/v1.7.3...v1.7.4
 [1.7.3]: https://github.com/draptik/BpMonitor/compare/v1.7.2...v1.7.3
