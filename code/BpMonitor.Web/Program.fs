@@ -6,6 +6,7 @@ open Falco.Routing
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.HttpOverrides
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.EntityFrameworkCore
@@ -79,8 +80,12 @@ let main args =
         o.LoginPath <- PathString("/login")
         o.Cookie.HttpOnly <- true
         o.Cookie.SameSite <- SameSiteMode.Strict
-        o.Cookie.SecurePolicy <- CookieSecurePolicy.SameAsRequest
+        o.Cookie.SecurePolicy <- CookieSecurePolicy.Always
         o.SlidingExpiration <- true)
+    |> ignore
+
+    builder.Services.Configure<ForwardedHeadersOptions>(fun (opts: ForwardedHeadersOptions) ->
+      opts.ForwardedHeaders <- ForwardedHeaders.XForwardedFor ||| ForwardedHeaders.XForwardedProto)
     |> ignore
 
     builder.Services.AddAuthorization() |> ignore
@@ -109,6 +114,8 @@ let main args =
 
     // One structured log line per request (method, path, status, elapsed ms).
     app.UseSerilogRequestLogging() |> ignore
+
+    app.UseForwardedHeaders() |> ignore
 
     app.UseStaticFiles().UseRouting().UseAuthentication().UseAuthorization().UseFalco(endpoints)
     |> ignore
