@@ -7,9 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.5] - 2026-06-28
+
 ### Changed
 
 - Database schema migration adds an index on `MemberId` in the `Readings` table on first startup — improves query performance for all reading lookups
+- Faster history and trend pages — member/reading filters are now pushed to the database
+
+### Fixed
+
+- Fixed stored XSS vulnerability — page titles are now HTML-encoded
+- Fixed CSV formula injection in exported comment fields
+- Fixed script injection via Plotly chart comment text
+- Editing a reading now returns 404 if it does not exist or belongs to another member
+- **Deployment:** Cookies are now set `Secure`-only and the app reads `X-Forwarded-*` headers; if you run behind a reverse proxy (nginx, Caddy, etc.), ensure it forwards `X-Forwarded-Proto` and `X-Forwarded-For`
 
 ## [1.7.4] - 2026-06-27
 
@@ -328,7 +339,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.4...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.5...HEAD
+[1.7.5]: https://github.com/draptik/BpMonitor/compare/v1.7.4...v1.7.5
 [1.7.4]: https://github.com/draptik/BpMonitor/compare/v1.7.3...v1.7.4
 [1.7.3]: https://github.com/draptik/BpMonitor/compare/v1.7.2...v1.7.3
 [1.7.2]: https://github.com/draptik/BpMonitor/compare/v1.7.1...v1.7.2
