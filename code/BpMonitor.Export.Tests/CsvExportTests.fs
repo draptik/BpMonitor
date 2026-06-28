@@ -80,3 +80,17 @@ let ``tryWriteToFile returns Error when path is invalid`` () =
   let result = tryWriteToFile "/invalid/path/that/does/not/exist/file.csv" []
 
   test <@ result <> Ok() @>
+
+[<Theory>]
+[<InlineData("=SUM(A1:A10)")>]
+[<InlineData("+1+1")>]
+[<InlineData("-1+2")>]
+[<InlineData("@SUM(A1)")>]
+let ``serialize prefixes formula-trigger comments to prevent spreadsheet injection`` (comment: string) =
+  let r = { reading with Comments = Some comment }
+  let csv = serialize [ r ]
+
+  // Raw trigger-starting field must not appear (would execute as a formula in Excel/Sheets)
+  test <@ not (csv.Contains $",{comment},") @>
+  // Apostrophe-prefixed field must appear instead
+  test <@ csv.Contains $",'{comment}," @>

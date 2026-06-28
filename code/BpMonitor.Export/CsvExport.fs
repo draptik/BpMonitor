@@ -3,9 +3,20 @@ module BpMonitor.Export.CsvExport
 open System.Text
 open BpMonitor.Core
 
+// Characters that spreadsheet apps (Excel, Sheets) interpret as formula prefixes.
+// A field starting with one of these would execute as a formula when the CSV is
+// opened, so we prepend an apostrophe to force text interpretation.
+let private formulaTriggers = [| '='; '+'; '-'; '@' |]
+
 // RFC 4180: quote a field if it contains a comma, double-quote, CR, or LF;
 // double any embedded double-quotes.
 let private csvField (s: string) : string =
+  let s =
+    if s.Length > 0 && Array.contains s[0] formulaTriggers then
+      "'" + s
+    else
+      s
+
   if s.IndexOfAny [| ','; '"'; '\n'; '\r' |] >= 0 then
     "\"" + s.Replace("\"", "\"\"") + "\""
   else
