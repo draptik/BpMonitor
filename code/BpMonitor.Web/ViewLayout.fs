@@ -85,7 +85,13 @@ module ViewLayout =
   let layout (active: string) (memberName: string) (isAdmin: bool) (title: string) (content: XmlNode list) : XmlNode =
     Elem.html
       [ Attr.lang "en" ]
-      [ htmlHead title [ Elem.script [ Attr.src "/htmx.min.js" ] [] ]
+      [ htmlHead
+          title
+          [ Elem.script [ Attr.src "/htmx.min.js" ] []
+            Elem.script
+              []
+              [ Text.raw
+                  "htmx.config.responseHandling=[{code:'204',swap:false},{code:'[23]..',swap:true},{code:'422',swap:true,error:false},{code:'[45]..',swap:false,error:true}];" ] ]
         Elem.body
           [ Attr.create "hx-boost" "true" ]
           [ // Checkbox drives the mobile off-canvas drawer via pure CSS sibling selectors.
