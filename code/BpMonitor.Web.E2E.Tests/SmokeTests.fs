@@ -37,6 +37,31 @@ type LoginAddHistoryTests(fixture: WebAppFixture) =
       Assert.Contains("62", tableText)
     }
 
+/// Verifies that submitting invalid reading values re-renders the form with
+/// visible error messages (not silently discarded by htmx's 422 handling).
+type ReadingValidationTests(fixture: WebAppFixture) =
+  interface IClassFixture<WebAppFixture>
+
+  [<Fact>]
+  member _.``submitting an out-of-range reading shows error messages on the form``() : Task =
+    task {
+      let! page = fixture.Browser.NewPageAsync()
+
+      do! TestAccount.claimAndLogin fixture.BaseUrl page
+
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
+      do! page.FillAsync("#Timestamp", "2026-06-19 08:30")
+      do! page.FillAsync("#Systolic", "999")
+      do! page.FillAsync("#Diastolic", "80")
+      do! page.FillAsync("#HeartRate", "66")
+      do! page.ClickAsync("form[action='/readings'] button[type=submit]")
+
+      let! _ = page.WaitForSelectorAsync(".errors")
+
+      let! errorText = page.Locator(".errors").TextContentAsync()
+      Assert.Contains("out of range", errorText)
+    }
+
 /// Verifies HTTP security properties of the running server via raw HttpClient
 /// (no browser required — just inspects response headers).
 type CookieSecurityTests(fixture: WebAppFixture) =
