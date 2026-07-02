@@ -318,11 +318,17 @@ module BpChart =
       let cBaseline = commented |> List.map (fun _ -> 0)
       let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
 
-      // HoverInfo.Text shows only the comment itself on hover — without it, Plotly
-      // prefixes every tooltip with the trace name ("Comments").
+      // A HoverTemplate (rather than HoverInfo.Text) shows the comment itself, then the
+      // reading's timestamp dimmed below it; the empty <extra> box drops Plotly's default
+      // trace-name prefix ("Comments").
       [ Chart.Point(x = cTimestamps, y = cBaseline, Name = "Comments", MultiText = cTexts)
         |> Chart.withMarkerStyle (Symbol = StyleParam.MarkerSymbol.Hexagon, Size = 11, Color = commentColor)
-        |> GenericChart.mapTrace (Trace2DStyle.Scatter(ClipOnAxis = false, HoverInfo = StyleParam.HoverInfo.Text)) ]
+        |> GenericChart.mapTrace (
+          Trace2DStyle.Scatter(
+            ClipOnAxis = false,
+            HoverTemplate = "%{text}<br><span style=\"opacity:0.6\">%{x}</span><extra></extra>"
+          )
+        ) ]
 
   // The trace `Name` ("Systolic"/"Diastolic") is also the color-coded legend entry, so
   // repeating it in every hover tooltip is redundant — these templates keep the
@@ -566,7 +572,13 @@ module BpChart =
       yield! seriesTraces diastolicFadedColor "Diastolic" dashes timestamps diastolic
       yield! smoothTrace systolicColor "Systolic (trend)" readings timestamps systolic
       yield! smoothTrace diastolicColor "Diastolic (trend)" readings timestamps diastolic
-      yield! commentTraces readings ]
+      // /recent's unified hover (HoverMode.X) would otherwise surface the comment
+      // whenever the cursor is anywhere near its x-column, not just directly on the
+      // marker; skipping it here lets recent-scrubber.js drive a custom tooltip that
+      // only fires on direct proximity to the hexagon.
+      yield!
+        commentTraces readings
+        |> List.map (GenericChart.mapTrace (Trace2DStyle.Scatter(HoverInfo = StyleParam.HoverInfo.Skip))) ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
     |> withBottomLegend

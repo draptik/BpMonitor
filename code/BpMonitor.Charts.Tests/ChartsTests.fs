@@ -184,11 +184,21 @@ let ``toHtml includes comment text as hover info for commented readings`` () =
   test <@ html.Contains("Work deadline") @>
 
 [<Fact>]
-let ``toHtml shows only the comment text on hover, not the "Comments" trace name`` () =
+let ``toHtml shows the comment text on hover, with the reading's timestamp dimmed below it, and no "Comments" trace name``
+  ()
+  =
   let html = BpChart.toHtml GoalRange.defaults readings
-  let m = Regex.Match(html, "\"name\":\"Comments\".*?\"hoverinfo\":\"([a-z]+)\"")
+  // The template's own style attribute embeds escaped quotes (\"...\") in the
+  // serialized JSON, so the capture group must tolerate backslash-escaped chars
+  // rather than stopping at the first one.
+  let m =
+    Regex.Match(html, "\"name\":\"Comments\".*?\"hovertemplate\":\"((?:[^\"\\\\]|\\\\.)*)\"")
+
   test <@ m.Success @>
-  test <@ m.Groups[1].Value = "text" @>
+  let template = m.Groups[1].Value
+  test <@ template.StartsWith("%{text}") @>
+  test <@ Regex.IsMatch(template, "opacity:0\\.6.*%\\{x\\}") @>
+  test <@ template.EndsWith(@"<extra><\/extra>") @>
 
 [<Fact>]
 let ``toHtml does not include None comment readings in comments trace`` () =
@@ -347,6 +357,16 @@ let ``toHtmlRecent skips hover for the LOWESS trend trace, since its value is sm
 
   test <@ hasHoverSkip "Systolic (trend)" @>
   test <@ hasHoverSkip "Diastolic (trend)" @>
+
+[<Fact>]
+let ``toHtmlRecent skips the comment trace from unified hover, so it only appears on direct hover`` () =
+  // /recent uses HoverMode.X (unified hover), which shows every trace at the hovered
+  // x-column — including the comment marker even when the cursor is over a nearby
+  // Systolic/Diastolic point rather than the marker itself. Skipping it here lets the
+  // client (recent-scrubber.js) drive a custom tooltip that only fires on direct
+  // proximity to the marker.
+  let html = BpChart.toHtmlRecent GoalRange.defaults 30 windowStart30 now readings
+  test <@ Regex.IsMatch(html, "\"name\":\"Comments\".*?\"hoverinfo\":\"skip\"") @>
 
 [<Fact>]
 let ``toHtmlRecent omits the trend line when there are too few readings to smooth meaningfully`` () =

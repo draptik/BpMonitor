@@ -582,6 +582,8 @@ form.inline button {
   --color-below: #2a49f9; /* value below goal range */
   /* scrubber green — keep in sync with Charts.fs `scrubberColor` (#00C853) */
   --color-scrubber: #00c853;
+  /* comment marker dark red — keep in sync with Charts.fs `commentRgb` (139, 0, 0) */
+  --color-comment: #8b0000;
 }
 
 /* Wraps the value strip and the chart together so the strip's table can
@@ -676,6 +678,35 @@ form.inline button {
    the width, matching the chart's narrowed x-range. */
 .value-strip td.out-of-range {
   display: none;
+}
+
+/* Comment hover tooltip (recent-scrubber.js): /recent uses unified hover (Charts.fs
+   HoverMode.X), which would otherwise surface a comment whenever the cursor is anywhere
+   near its x-column. This custom tooltip is shown/hidden entirely in JS, only on direct
+   proximity to a comment marker, mirroring Plotly's native hover-label look. */
+.comment-tooltip {
+  position: fixed;
+  display: none;
+  pointer-events: none;
+  z-index: 300;
+  max-width: 16rem;
+  padding: 0.35rem 0.55rem;
+  background: var(--pico-background-color);
+  border: 1px solid var(--color-comment);
+  border-radius: var(--pico-border-radius);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  font-size: 0.75rem;
+  line-height: 1.3;
+  white-space: pre-wrap;
+  /* left/top are set to the marker's own pixel position (recent-scrubber.js); this
+     transform shifts the tooltip up and centers it above the marker without needing
+     to measure its rendered size (which is 0 while display:none). */
+  transform: translate(-50%, calc(-100% - 12px));
+}
+
+.comment-tooltip-time {
+  opacity: 0.6;
+  font-size: smaller;
 }
 
 /* ── Trends page ────────────────────────────────────────────────────────── */

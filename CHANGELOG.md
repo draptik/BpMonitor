@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Recent page: "Last 7 days" and "Last 30 days" buttons no longer both appear selected — only the active range is highlighted
+- Recent page: comment marker tooltip now only appears when hovering directly over the comment marker, instead of anywhere near its column; comment tooltips (Recent and History) now also show the reading's timestamp, dimmed, below the comment text
 
 ## [1.7.6] - 2026-06-28
 

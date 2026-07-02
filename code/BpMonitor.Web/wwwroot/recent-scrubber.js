@@ -45,6 +45,66 @@ function setupRecentScrubber() {
       });
     });
 
+    // Comment tooltip: /recent uses unified hover (Charts.fs HoverMode.X), which finds
+    // the nearest point at the hovered x-column across every trace — so without this,
+    // the comment would surface whenever the cursor is anywhere near its x-column, not
+    // only when directly over its marker. The comment trace is set to skip native hover
+    // (Charts.fs commentTraces via renderRecent) and this custom tooltip drives it
+    // instead, checking actual pixel distance to each marker on every mousemove.
+    // Reuses the same d2l/l2p pixel-conversion approach as the strip → chart handler
+    // below. Position is set via left/top plus a CSS transform (not measured dimensions)
+    // so it works correctly even while the tooltip starts hidden (offsetHeight is 0).
+    const commentTraceIndex = d.data?.findIndex((t) => t.name === "Comments") ?? -1;
+    if (commentTraceIndex !== -1) {
+      const commentXs = d.data[commentTraceIndex].x;
+      const commentTexts = d.data[commentTraceIndex].text;
+
+      const tooltip = document.createElement("div");
+      tooltip.className = "comment-tooltip";
+      const tooltipText = document.createElement("div");
+      const tooltipTime = document.createElement("div");
+      tooltipTime.className = "comment-tooltip-time";
+      tooltip.append(tooltipText, tooltipTime);
+      document.body.appendChild(tooltip);
+
+      const proximityPx = 8;
+
+      d.addEventListener("mousemove", (e) => {
+        const xaxis = d._fullLayout?.xaxis;
+        const yaxis = d._fullLayout?.yaxis;
+        if (!xaxis?.d2l || !xaxis?.l2p || !yaxis?.l2p) return;
+        const dragRect = d.querySelector(".draglayer .xy > rect");
+        if (!dragRect) return;
+        const br = dragRect.getBoundingClientRect();
+        const yPx = br.top + yaxis.l2p(0);
+
+        let nearest = -1;
+        let nearestDist = Infinity;
+        for (let i = 0; i < commentXs.length; i++) {
+          const xPx = br.left + xaxis.l2p(xaxis.d2l(commentXs[i]));
+          const dist = Math.hypot(e.clientX - xPx, e.clientY - yPx);
+          if (dist < nearestDist) {
+            nearestDist = dist;
+            nearest = i;
+          }
+        }
+
+        if (nearest !== -1 && nearestDist <= proximityPx) {
+          tooltipText.textContent = commentTexts[nearest];
+          tooltipTime.textContent = commentXs[nearest];
+          tooltip.style.left = `${br.left + xaxis.l2p(xaxis.d2l(commentXs[nearest]))}px`;
+          tooltip.style.top = `${yPx}px`;
+          tooltip.style.display = "block";
+        } else {
+          tooltip.style.display = "none";
+        }
+      });
+
+      d.addEventListener("mouseleave", () => {
+        tooltip.style.display = "none";
+      });
+    }
+
     // strip → chart: hovering the strip moves the chart's spike to that column.
     // `out-of-range` cells are display:none and cannot be hovered, so no guard
     // needed for them. `lastX` avoids redundant dispatches when the pointer moves
