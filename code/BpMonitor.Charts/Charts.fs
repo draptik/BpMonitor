@@ -82,13 +82,17 @@ module BpChart =
   // ("#c2cfd6") on load and on toggle, so it's never stuck unreadable in dark mode.
   let private axisLineColor = Color.fromString "#444"
 
+  // Layer = BelowTraces draws the axis line under the data instead of Plotly's default
+  // "above traces" — otherwise it paints over the bottom half of the y=0 comment hexagons
+  // (see commentTraces below).
   let private xAxis =
     LinearAxis.init (
       ShowGrid = false,
       ShowLine = true,
       LineColor = axisLineColor,
       Ticks = StyleParam.TickOptions.Outside,
-      TickColor = axisLineColor
+      TickColor = axisLineColor,
+      Layer = StyleParam.Layer.BelowTraces
     )
 
   // Fig. 5's scrubber bar (Wegier et al. 2021, "Scrubber bar"): a vertical line that
@@ -109,6 +113,7 @@ module BpChart =
       LineColor = axisLineColor,
       Ticks = StyleParam.TickOptions.Outside,
       TickColor = axisLineColor,
+      Layer = StyleParam.Layer.BelowTraces,
       Range = StyleParam.Range.ofMinMax (rangeLow, rangeHigh),
       ShowSpikes = true,
       SpikeColor = scrubberColor,
