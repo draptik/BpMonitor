@@ -64,7 +64,7 @@ module BpChart =
   // bottom-positioned legend (which sits at Y=-0.15, below the plot area).
   let private compactMargin = marginWithBottom 72
 
-  // Trends rotates x-tick labels at -45°, which extends them further down than horizontal
+  // Trends rotate x-tick labels at -45°, which extends them further down than horizontal
   // labels — needs a larger bottom margin to fit labels + the legend below them.
   let private trendsMargin = marginWithBottom 96
 
@@ -196,7 +196,7 @@ module BpChart =
       |> _.Replace("\"width\":600,", "")
       |> _.Replace("\"height\":600,", "")
 
-    // Prevent script injection: user comment text is serialised into an inline
+    // Prevent script injection: user comment text is serialized into an inline
     // <script> block as JSON. Newtonsoft (used by Plotly.NET) does not escape < or /
     // by default, so a comment containing </script> would close the script element
     // early and allow arbitrary HTML injection into the page.
@@ -204,16 +204,16 @@ module BpChart =
     // Fix: replace </ → <\/ inside the script content only (not in the surrounding
     // HTML structure). <\/ is valid JSON (RFC 7159 allows \/ as an escape for /) and
     // JS string literals treat \/ as /, so Plotly.js receives the correct value.
-    // The HTML parser does not recognise <\ as the start of an end tag.
+    // The HTML parser does not recognize <\ as the start of an end tag.
     let escaped =
       let openTag = html.IndexOf "<script"
       let contentStart = html.IndexOf(">", openTag) + 1
       let closeTag = html.LastIndexOf "</script>"
 
       if openTag >= 0 && contentStart > 0 && closeTag > contentStart then
-        html.[.. contentStart - 1]
-        + html.[contentStart .. closeTag - 1].Replace("</", "<\\/")
-        + html.[closeTag..]
+        html[.. contentStart - 1]
+        + html[contentStart .. closeTag - 1].Replace("</", "<\\/")
+        + html[closeTag..]
       else
         html
 
@@ -239,7 +239,7 @@ module BpChart =
       DragMode = StyleParam.DragMode.Pan
     )
 
-  /// Horizontal centered legend below the plot area, shared by /history, /trends and /recent.
+  /// Horizontal-centered legend below the plot area, shared by /history, /trends and /recent.
   /// Y=-0.15/YAnchor=Top places it below the x-tick labels so they don't collide on mobile.
   let private withBottomLegend (chart: GenericChart) =
     chart
