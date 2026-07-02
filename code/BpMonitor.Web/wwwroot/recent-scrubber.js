@@ -21,6 +21,19 @@ function setupRecentScrubber() {
   const strip = document.querySelector(".value-strip");
   if (!strip) return;
 
+  // Resolves the chart's axis converters and drag-layer bounding rect — shared by the
+  // comment-tooltip mousemove handler and the strip → chart mouseover handler below,
+  // both of which need to convert a data x-value to a viewport pixel position. Queried
+  // fresh on each call (not cached) since the drag-layer rect can shift on scroll/resize.
+  function chartGeometry(d) {
+    const xaxis = d._fullLayout?.xaxis;
+    const yaxis = d._fullLayout?.yaxis;
+    if (!xaxis?.d2l || !xaxis?.l2p) return null;
+    const dragRect = d.querySelector(".draglayer .xy > rect");
+    if (!dragRect) return null;
+    return { xaxis, yaxis, dragRect, br: dragRect.getBoundingClientRect() };
+  }
+
   function setup() {
     const d = document.querySelector(".js-plotly-plot");
     if (!d?.on) {
@@ -51,9 +64,11 @@ function setupRecentScrubber() {
     // only when directly over its marker. The comment trace is set to skip native hover
     // (Charts.fs commentTraces via renderRecent) and this custom tooltip drives it
     // instead, checking actual pixel distance to each marker on every mousemove.
-    // Reuses the same d2l/l2p pixel-conversion approach as the strip → chart handler
-    // below. Position is set via left/top plus a CSS transform (not measured dimensions)
-    // so it works correctly even while the tooltip starts hidden (offsetHeight is 0).
+    // Position is set via left/top plus a CSS transform (not measured dimensions) so it
+    // works correctly even while the tooltip starts hidden (offsetHeight is 0).
+    //
+    // Matched by trace name — keep this in sync with the `Name = "Comments"` trace built
+    // in Charts.fs `commentTraces`.
     const commentTraceIndex = d.data?.findIndex((t) => t.name === "Comments") ?? -1;
     if (commentTraceIndex !== -1) {
       const commentXs = d.data[commentTraceIndex].x;
@@ -70,15 +85,13 @@ function setupRecentScrubber() {
       const proximityPx = 8;
 
       d.addEventListener("mousemove", (e) => {
-        const xaxis = d._fullLayout?.xaxis;
-        const yaxis = d._fullLayout?.yaxis;
-        if (!xaxis?.d2l || !xaxis?.l2p || !yaxis?.l2p) return;
-        const dragRect = d.querySelector(".draglayer .xy > rect");
-        if (!dragRect) return;
-        const br = dragRect.getBoundingClientRect();
+        const geo = chartGeometry(d);
+        if (!geo?.yaxis?.l2p) return;
+        const { xaxis, yaxis, br } = geo;
         const yPx = br.top + yaxis.l2p(0);
 
         let nearest = -1;
+        let nearestXPx = 0;
         let nearestDist = Infinity;
         for (let i = 0; i < commentXs.length; i++) {
           const xPx = br.left + xaxis.l2p(xaxis.d2l(commentXs[i]));
@@ -86,13 +99,14 @@ function setupRecentScrubber() {
           if (dist < nearestDist) {
             nearestDist = dist;
             nearest = i;
+            nearestXPx = xPx;
           }
         }
 
         if (nearest !== -1 && nearestDist <= proximityPx) {
           tooltipText.textContent = commentTexts[nearest];
           tooltipTime.textContent = commentXs[nearest];
-          tooltip.style.left = `${br.left + xaxis.l2p(xaxis.d2l(commentXs[nearest]))}px`;
+          tooltip.style.left = `${nearestXPx}px`;
           tooltip.style.top = `${yPx}px`;
           tooltip.style.display = "block";
         } else {
@@ -121,13 +135,11 @@ function setupRecentScrubber() {
       const cell = e.target.closest("td[data-x]");
       if (!cell || cell.dataset.x === lastX) return;
       lastX = cell.dataset.x;
-      const xaxis = d._fullLayout?.xaxis;
-      if (!xaxis?.d2l || !xaxis?.l2p) return;
-      const dragRect = d.querySelector(".draglayer .xy > rect");
-      if (!dragRect) return;
-      const br = dragRect.getBoundingClientRect();
+      const geo = chartGeometry(d);
+      if (!geo) return;
+      const { xaxis, dragRect, br } = geo;
       const xPx = xaxis.l2p(xaxis.d2l(cell.dataset.x));
-      const yPx = (d._fullLayout?.yaxis?.l2p?.(120)) ?? br.height / 2;
+      const yPx = geo.yaxis?.l2p?.(120) ?? br.height / 2;
       dragRect.dispatchEvent(
         new MouseEvent("mousemove", {
           bubbles: true,
