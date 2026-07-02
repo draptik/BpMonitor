@@ -105,6 +105,11 @@ let ``toHtml renders a visible x-axis line`` () =
   test <@ Regex.IsMatch(html, "\"xaxis\":\\{[^}]*\"showline\":true") @>
 
 [<Fact>]
+let ``toHtml draws the x-axis line below traces, so comment markers sitting on it (y=0) aren't covered`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  test <@ Regex.IsMatch(html, "\"xaxis\":\\{[^}]*\"layer\":\"below traces\"") @>
+
+[<Fact>]
 let ``toHtml labels the y-axis with blood pressure and the mmHg unit`` () =
   let html = BpChart.toHtml GoalRange.defaults readings
   test <@ html.Contains("\"title\":{\"text\":\"blood pressure [mmHg]\"}") @>
