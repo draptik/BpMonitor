@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Recent page: "Last 7 days" and "Last 30 days" buttons no longer both appear selected — only the active range is highlighted
+
 ## [1.7.6] - 2026-06-28
 
 ### Fixed

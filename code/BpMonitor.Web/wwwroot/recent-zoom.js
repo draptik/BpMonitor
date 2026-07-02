@@ -3,7 +3,11 @@
 // Formats.formatLocal, anchored to the same `now` the chart's own initial range
 // uses), so clicking it just replays the chart's own range format through
 // Plotly.relayout — same call pattern as theme.js. The existing plotly_relayout
-// listener in recent-scrubber.js re-syncs the value strip automatically.
+// listener in recent-scrubber.js re-syncs the value strip automatically. The
+// server renders the initial active pill (aria-pressed="true" on whichever
+// button matches the chart's opening window, see ReadingViews.fs `zoomButton`);
+// clicking here re-toggles it client-side, since the chart itself never
+// round-trips to the server.
 function setupRecentZoomButtons() {
   const buttons = document.querySelectorAll(".recent-zoom-button");
   if (buttons.length === 0) return;
@@ -18,6 +22,9 @@ function setupRecentZoomButtons() {
     buttons.forEach((button) => {
       button.addEventListener("click", () => {
         Plotly.relayout(d, { "xaxis.range": [button.dataset.lo, button.dataset.hi] });
+        buttons.forEach((b) => {
+          b.setAttribute("aria-pressed", b === button ? "true" : "false");
+        });
       });
     });
   }
