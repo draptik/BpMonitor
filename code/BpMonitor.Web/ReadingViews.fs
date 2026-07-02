@@ -120,11 +120,19 @@ module ReadingViews =
     // out-of-range cells automatically when relayout fires.
     let hiFormatted = Formats.formatLocal now
 
+    // The button whose range starts at `windowStart` matches the chart's initial focus
+    // (both `recent` and `recentFull` render `windowStart = now.AddDays(-30)`), so it's
+    // rendered as the active pill on load; recent-zoom.js re-toggles `aria-pressed` on click.
+    let activeLo = Formats.formatLocal windowStart
+
     let zoomButton (label: string) (days: float) =
+      let lo = Formats.formatLocal (now.AddDays(-days))
+
       Elem.button
         [ Attr.type' "button"
           Attr.class' "recent-zoom-button"
-          Attr.create "data-lo" (Formats.formatLocal (now.AddDays(-days)))
+          Attr.create "aria-pressed" (if lo = activeLo then "true" else "false")
+          Attr.create "data-lo" lo
           Attr.create "data-hi" hiFormatted ]
         [ Text.raw label ]
 

@@ -129,6 +129,29 @@ let ``createReading rejects a non-numeric field with 422`` () =
   test <@ repo.GetAll(defaultMemberId) |> List.isEmpty @>
 
 [<Fact>]
+let ``recent marks only the Last 30 days button as active`` () =
+  let repo = repoWith [ sample ]
+  let ctx = TestHost.context repo
+  TestHost.run ReadingHandlers.recent ctx
+
+  test <@ ctx.Response.StatusCode = 200 @>
+  let body = TestHost.readBody ctx
+
+  let zoomButtons =
+    System.Text.RegularExpressions.Regex.Matches(body, "<button[^>]*recent-zoom-button[^>]*>([^<]*)</button>")
+    |> Seq.cast<System.Text.RegularExpressions.Match>
+    |> Seq.map (fun m -> m.Value.Contains "aria-pressed=\"true\"", m.Groups[1].Value)
+    |> Seq.toList
+
+  test <@ zoomButtons |> List.filter fst |> List.length = 1 @>
+
+  test
+    <@
+      zoomButtons
+      |> List.exists (fun (pressed, label) -> pressed && label = "Last 30 days")
+    @>
+
+[<Fact>]
 let ``editReading prefills the form for an existing reading`` () =
   let repo = repoWith [ sample ]
   let ctx = TestHost.context repo

@@ -682,8 +682,10 @@ form.inline button {
 
 /* Granularity selector row (Weekly / Monthly / Yearly). Shared with the Recent
    page's zoom-shortcut row (ReadingViews.fs `zoomButtons`,
-   wwwroot/recent-zoom.js) — same pill layout, just an <a role="button"> here
-   vs a <button> there. */
+   wwwroot/recent-zoom.js) — same pill layout. The trends row is <a role="button">
+   (Pico's outline default) with a filled `aria-current="page"` pill below; the
+   recent row is <button> (Pico's filled default), so it gets its own outline
+   base + filled `aria-pressed="true"` pill instead. */
 .trends-window-buttons,
 .recent-zoom-buttons {
   display: flex;
@@ -702,9 +704,26 @@ form.inline button {
   text-align: center;
 }
 
+/* Outline base for the recent zoom-shortcut buttons: unlike the trends row's
+   <a role="button"> (Pico's outline default), a bare <button> defaults to
+   filled, so without this every recent-zoom-button would render as if active. */
+.recent-zoom-buttons button {
+  background: transparent;
+  color: var(--pico-primary);
+  border-color: var(--pico-primary);
+}
+
 /* Active granularity / sub-period pill — filled primary (matches nav active pill style) */
 .trends-window-buttons a[aria-current="page"],
 .trends-subperiod-buttons a[aria-current="page"] {
+  background: var(--pico-primary);
+  color: var(--pico-primary-inverse);
+  border-color: var(--pico-primary);
+}
+
+/* Active recent zoom-shortcut pill (ReadingViews.fs `zoomButton`, toggled by
+   wwwroot/recent-zoom.js on click) — same filled style as the pills above. */
+.recent-zoom-buttons button[aria-pressed="true"] {
   background: var(--pico-primary);
   color: var(--pico-primary-inverse);
   border-color: var(--pico-primary);
