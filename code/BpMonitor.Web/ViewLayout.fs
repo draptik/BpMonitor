@@ -61,14 +61,15 @@ module ViewLayout =
          // No defer/async — render-blocking prevents flash of the wrong theme (FOUC).
          Elem.script [ Attr.src "/theme.js" ] []
          // Behavior-only (no FOUC concern); each self-guards on the page elements it
-         // needs and re-runs on htmx:afterSettle to survive hx-boost swaps.
-         // plot-ready.js must come first — it defines the whenPlotReady helper the
-         // chart scripts below call at parse time registration.
-         Elem.script [ Attr.src "/plot-ready.js" ] []
-         Elem.script [ Attr.src "/chart-hover.js" ] []
-         Elem.script [ Attr.src "/recent-scrubber.js" ] []
-         Elem.script [ Attr.src "/recent-zoom.js" ] []
-         Elem.script [ Attr.src "/trends-scroll.js" ] []
+         // needs and re-runs on htmx:afterSettle to survive hx-boost swaps. Deferred so
+         // they don't block HTML parsing — they only register DOMContentLoaded/htmx
+         // listeners, and defer preserves document order, so plot-ready.js still
+         // defines the whenPlotReady helper before the chart scripts below run.
+         Elem.script [ Attr.src "/plot-ready.js"; Attr.create "defer" "" ] []
+         Elem.script [ Attr.src "/chart-hover.js"; Attr.create "defer" "" ] []
+         Elem.script [ Attr.src "/recent-scrubber.js"; Attr.create "defer" "" ] []
+         Elem.script [ Attr.src "/recent-zoom.js"; Attr.create "defer" "" ] []
+         Elem.script [ Attr.src "/trends-scroll.js"; Attr.create "defer" "" ] []
          Elem.link [ Attr.rel "stylesheet"; Attr.href "/pico.min.css" ]
          Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ]
          // Vendored from Plotly.NET's embedded resource (see scripts/extract-plotly-js.fsx) —
@@ -91,11 +92,19 @@ module ViewLayout =
       [ Attr.lang "en" ]
       [ htmlHead
           title
-          [ Elem.script [ Attr.src "/htmx.min.js" ] []
-            Elem.script
-              []
-              [ Text.raw
-                  "htmx.config.responseHandling=[{code:'204',swap:false},{code:'[23]..',swap:true},{code:'422',swap:true,error:false},{code:'[45]..',swap:false,error:true}];" ] ]
+          [ // htmx merges this into htmx.config on init (declarative equivalent of an
+            // inline `htmx.config.responseHandling = ...` script, with no
+            // script-ordering dependency): swap 422 validation re-renders without
+            // treating them as errors; never swap other 4xx/5xx. Falco.Markup renders
+            // attribute values verbatim, so the JSON's quotes must be entity-escaped
+            // by hand (the browser decodes them back before htmx JSON-parses).
+            Elem.meta
+              [ Attr.name "htmx-config"
+                Attr.content (
+                  """{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"422","swap":true,"error":false},{"code":"[45]..","swap":false,"error":true}]}"""
+                    .Replace("\"", "&quot;")
+                ) ]
+            Elem.script [ Attr.src "/htmx.min.js" ] [] ]
         Elem.body
           [ Attr.create "hx-boost" "true" ]
           [ // Checkbox drives the mobile off-canvas drawer via pure CSS sibling selectors.

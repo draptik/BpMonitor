@@ -36,6 +36,11 @@ function setupRecentScrubber() {
   }
 
   whenPlotReady((d) => {
+    // Setup runs on every htmx:afterSettle; skip plots already wired so a settle
+    // that doesn't swap the chart can't stack duplicate handlers on the same div.
+    if (d.dataset.scrubberBound) return;
+    d.dataset.scrubberBound = "1";
+
     // chart → strip: box the value-strip column matching the hovered chart point.
     d.on("plotly_hover", (e) => {
       const x = e.points[0].x;
@@ -70,6 +75,9 @@ function setupRecentScrubber() {
       const commentXs = traces[commentTraceIndex].x;
       const commentTexts = traces[commentTraceIndex].text;
 
+      // The tooltip lives on <body>, outside the htmx-swapped #recent-chart region,
+      // so drop the previous plot's tooltip before appending this one.
+      document.querySelector(".comment-tooltip")?.remove();
       const tooltip = document.createElement("div");
       tooltip.className = "comment-tooltip";
       const tooltipText = document.createElement("div");
@@ -80,17 +88,26 @@ function setupRecentScrubber() {
 
       const proximityPx = 8;
 
+      // xaxis.d2l is a pure date-string → linear-ms conversion that never changes
+      // for the plot's data (only l2p depends on zoom/pan), so convert each comment
+      // x once on the first mousemove instead of re-parsing every marker per event.
+      /** @type {number[] | null} */
+      let commentLs = null;
+
       d.addEventListener("mousemove", (e) => {
         const geo = chartGeometry(d);
         if (!geo?.yaxis?.l2p) return;
         const { xaxis, yaxis, br } = geo;
         const yPx = br.top + yaxis.l2p(0);
+        const ls =
+          commentLs ?? commentXs.map((/** @type {string} */ x) => xaxis.d2l(x));
+        commentLs = ls;
 
         let nearest = -1;
         let nearestXPx = 0;
         let nearestDist = Infinity;
-        for (let i = 0; i < commentXs.length; i++) {
-          const xPx = br.left + xaxis.l2p(xaxis.d2l(commentXs[i]));
+        for (let i = 0; i < ls.length; i++) {
+          const xPx = br.left + xaxis.l2p(ls[i]);
           const dist = Math.hypot(e.clientX - xPx, e.clientY - yPx);
           if (dist < nearestDist) {
             nearestDist = dist;
@@ -99,7 +116,7 @@ function setupRecentScrubber() {
           }
         }
 
-        if (nearest !== -1 && nearestDist <= proximityPx) {
+        if (nearestDist <= proximityPx) {
           tooltipText.textContent = commentTexts[nearest];
           tooltipTime.textContent = commentXs[nearest];
           tooltip.style.left = `${nearestXPx}px`;
@@ -152,7 +169,7 @@ function setupRecentScrubber() {
       lastX = null;
       // Dispatch mouseout on the drag layer to trigger Plotly's unhover path;
       // also clear .scrubbed directly so the box never lingers.
-      const dragRect = d.querySelector(".draglayer .xy > rect");
+      const dragRect = chartGeometry(d)?.dragRect;
       if (dragRect)
         dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
       document.querySelectorAll(".value-strip td.scrubbed").forEach((c) => {
