@@ -131,8 +131,9 @@ dotnet test --configuration Release --max-parallel-test-modules 2
 
 All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also hosts one-time dev setup tasks like the Playwright Chromium install. Run `mise install` once after cloning.
 
-- `biome.json` — Biome JS linter config (scoped to `wwwroot/theme.js`, `wwwroot/theme-label.js`, `wwwroot/recent-scrubber.js`, `wwwroot/trends-scroll.js`, `wwwroot/recent-zoom.js`)
+- `biome.json` — Biome JS linter config (scoped to the hand-written `wwwroot/` files: `theme.js`, `theme-label.js`, `plot-ready.js`, `chart-hover.js`, `recent-scrubber.js`, `trends-scroll.js`, `recent-zoom.js`)
+- `tsconfig.json` + `typings/globals.d.ts` — zero-build TypeScript checking of the same `wwwroot/` JS via JSDoc (`tsc --checkJs`); the JS ships as-is, no bundler
 - `.markdownlint-cli2.yaml` — markdownlint config
-- Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:md` / `lint:shell` individually
+- Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:shell` individually
 - Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium)
 - Run `mise exec -- biome check --write` to auto-fix JS issues

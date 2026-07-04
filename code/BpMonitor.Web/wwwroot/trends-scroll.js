@@ -42,7 +42,10 @@ window.addEventListener("resize", updateSubPeriodFades);
 document.addEventListener(
   "scroll",
   (event) => {
-    if (event.target?.classList?.contains("trends-subperiod-buttons")) {
+    if (
+      event.target instanceof Element &&
+      event.target.classList.contains("trends-subperiod-buttons")
+    ) {
       updateSubPeriodFades();
     }
   },

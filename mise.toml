@@ -3,6 +3,7 @@ node = "26.4.0"
 biome = "2.4.16"
 markdownlint-cli2 = "0.23.0"
 shellcheck = "0.11.0"
+"npm:typescript" = "5.9.3"
 
 [tasks."lint:md"]
 run = 'markdownlint-cli2 "**/*.md"'
@@ -10,12 +11,16 @@ run = 'markdownlint-cli2 "**/*.md"'
 [tasks."lint:js"]
 run = "biome check"
 
+[tasks."lint:ts"]
+# Type-checks the hand-written wwwroot JS via JSDoc (tsconfig.json, checkJs) — no build step
+run = "tsc -p tsconfig.json"
+
 [tasks."lint:shell"]
 # mirror the CI/hook exclusion of Husky's generated wrapper scripts
 run = 'find . -name "*.sh" -not -path "./.husky/_/*" | xargs -r shellcheck'
 
 [tasks.lint]
-depends = ["lint:md", "lint:js", "lint:shell"]
+depends = ["lint:md", "lint:js", "lint:ts", "lint:shell"]
 
 [tasks."test:e2e-setup"]
 description = "One-time local setup: installs the Playwright Chromium browser used by BpMonitor.Web.E2E.Tests"

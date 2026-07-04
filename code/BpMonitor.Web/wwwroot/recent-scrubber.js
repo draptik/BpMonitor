@@ -1,7 +1,7 @@
 // Fig. 5's scrubber bar (Wegier et al. 2021): the chart's x-axis spike (Charts.fs
 // `recentXAxis`) already draws the moving vertical line; this links it to the value
-// strip by boxing the hovered column. Follows the same poll-until-ready pattern as
-// the chart's own errorBarScript (BpMonitor.Charts/Charts.fs).
+// strip by boxing the hovered column. Waits for the chart via whenPlotReady
+// (plot-ready.js), like the other chart scripts.
 //
 // The strip lists every loaded reading (the chart's load window — bounded but wider
 // than the visible focus). Each cell is tagged with the same x-label the chart uses
@@ -25,6 +25,7 @@ function setupRecentScrubber() {
   // comment-tooltip mousemove handler and the strip → chart mouseover handler below,
   // both of which need to convert a data x-value to a viewport pixel position. Queried
   // fresh on each call (not cached) since the drag-layer rect can shift on scroll/resize.
+  /** @param {PlotlyChartElement} d */
   function chartGeometry(d) {
     const xaxis = d._fullLayout?.xaxis;
     const yaxis = d._fullLayout?.yaxis;
@@ -34,13 +35,7 @@ function setupRecentScrubber() {
     return { xaxis, yaxis, dragRect, br: dragRect.getBoundingClientRect() };
   }
 
-  function setup() {
-    const d = document.querySelector(".js-plotly-plot");
-    if (!d?.on) {
-      setTimeout(setup, 50);
-      return;
-    }
-
+  whenPlotReady((d) => {
     // chart → strip: box the value-strip column matching the hovered chart point.
     d.on("plotly_hover", (e) => {
       const x = e.points[0].x;
@@ -69,10 +64,11 @@ function setupRecentScrubber() {
     //
     // Matched by trace name — keep this in sync with the `Name = "Comments"` trace built
     // in Charts.fs `commentTraces`.
-    const commentTraceIndex = d.data?.findIndex((t) => t.name === "Comments") ?? -1;
+    const traces = d.data ?? [];
+    const commentTraceIndex = traces.findIndex((t) => t.name === "Comments");
     if (commentTraceIndex !== -1) {
-      const commentXs = d.data[commentTraceIndex].x;
-      const commentTexts = d.data[commentTraceIndex].text;
+      const commentXs = traces[commentTraceIndex].x;
+      const commentTexts = traces[commentTraceIndex].text;
 
       const tooltip = document.createElement("div");
       tooltip.className = "comment-tooltip";
@@ -130,15 +126,18 @@ function setupRecentScrubber() {
     // correct x pixel without any timezone conversion (Plotly's own d2l parses the
     // same date strings it stored in the trace data). The plotly_hover event fires
     // naturally, so the existing chart→strip listener adds .scrubbed for free.
+    /** @type {string | null} */
     let lastX = null;
     strip.addEventListener("mouseover", (e) => {
-      const cell = e.target.closest("td[data-x]");
-      if (!cell || cell.dataset.x === lastX) return;
-      lastX = cell.dataset.x;
+      if (!(e.target instanceof Element)) return;
+      const cell = /** @type {HTMLElement | null} */ (e.target.closest("td[data-x]"));
+      const x = cell?.dataset.x;
+      if (!x || x === lastX) return;
+      lastX = x;
       const geo = chartGeometry(d);
       if (!geo) return;
       const { xaxis, dragRect, br } = geo;
-      const xPx = xaxis.l2p(xaxis.d2l(cell.dataset.x));
+      const xPx = xaxis.l2p(xaxis.d2l(x));
       const yPx = geo.yaxis?.l2p?.(120) ?? br.height / 2;
       dragRect.dispatchEvent(
         new MouseEvent("mousemove", {
@@ -162,7 +161,9 @@ function setupRecentScrubber() {
     });
 
     d.on("plotly_relayout", (e) => {
-      const cells = document.querySelectorAll(".value-strip td[data-x]");
+      const cells = /** @type {NodeListOf<HTMLElement>} */ (
+        document.querySelectorAll(".value-strip td[data-x]")
+      );
       let lo = e["xaxis.range[0]"];
       let hi = e["xaxis.range[1]"];
 
@@ -192,14 +193,14 @@ function setupRecentScrubber() {
       if (Number.isNaN(loT) || Number.isNaN(hiT)) return;
 
       cells.forEach((c) => {
-        const t = new Date(c.dataset.x.replace(" ", "T")).getTime();
+        const cellX = c.dataset.x;
+        if (!cellX) return;
+        const t = new Date(cellX.replace(" ", "T")).getTime();
         if (Number.isNaN(t)) return;
         c.classList.toggle("out-of-range", t < loT || t > hiT);
       });
     });
-  }
-
-  setTimeout(setup, 0);
+  });
 }
 
 document.addEventListener("DOMContentLoaded", setupRecentScrubber);

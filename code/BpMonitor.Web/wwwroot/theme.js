@@ -4,6 +4,7 @@
   document.documentElement.setAttribute('data-theme',t);
 })();
 
+/** @param {string} theme */
 function applyChartTheme(theme) {
   if (typeof Plotly === 'undefined') return;
   const isDark = theme === 'dark';

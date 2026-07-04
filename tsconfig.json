@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "target": "es2022",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "types": []
+  },
+  "include": ["typings/globals.d.ts", "code/BpMonitor.Web/wwwroot/*.js"],
+  "exclude": [
+    "code/BpMonitor.Web/wwwroot/htmx.min.js",
+    "code/BpMonitor.Web/wwwroot/plotly-2.27.1.min.js"
+  ]
+}

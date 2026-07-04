@@ -9,16 +9,12 @@
 // clicking here re-toggles it client-side, since the chart itself never
 // round-trips to the server.
 function setupRecentZoomButtons() {
-  const buttons = document.querySelectorAll(".recent-zoom-button");
+  const buttons = /** @type {NodeListOf<HTMLElement>} */ (
+    document.querySelectorAll(".recent-zoom-button")
+  );
   if (buttons.length === 0) return;
 
-  function setup() {
-    const d = document.querySelector(".js-plotly-plot");
-    if (!d?.on) {
-      setTimeout(setup, 50);
-      return;
-    }
-
+  whenPlotReady((d) => {
     buttons.forEach((button) => {
       button.addEventListener("click", () => {
         Plotly.relayout(d, { "xaxis.range": [button.dataset.lo, button.dataset.hi] });
@@ -27,9 +23,7 @@ function setupRecentZoomButtons() {
         });
       });
     });
-  }
-
-  setup();
+  });
 }
 
 document.addEventListener("DOMContentLoaded", setupRecentZoomButtons);

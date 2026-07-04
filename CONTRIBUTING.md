@@ -86,15 +86,17 @@ cd code && dotnet tool restore   # only needed once after cloning
 | ---- | ------- | -------------- |
 | Fantomas | `cd code && dotnet fantomas --check .` | F# formatting |
 | Biome | `mise exec -- biome check` | JS linting |
+| TypeScript | `mise exec -- tsc -p tsconfig.json` | JSDoc type-checking of hand-written `wwwroot/` JS (no build step) |
 | markdownlint | `mise exec -- markdownlint-cli2 "**/*.md"` | Markdown style |
 | shellcheck | `mise exec -- shellcheck <file>.sh` | Shell scripts |
 
 Run all non-dotnet linters at once:
 
 ```bash
-mise run lint        # markdownlint + biome + shellcheck
+mise run lint        # markdownlint + biome + tsc + shellcheck
 mise run lint:md     # markdownlint only
 mise run lint:js     # biome only
+mise run lint:ts     # tsc checkJs only
 mise run lint:shell  # shellcheck only
 ```
 

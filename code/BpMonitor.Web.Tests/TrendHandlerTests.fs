@@ -45,7 +45,7 @@ let ``trends renders 200 with granularity buttons and current Weekly panel`` () 
   // Weekly is active
   test <@ body.Contains "aria-current=\"page\"" @>
   // Inline chart rendered
-  test <@ body.Contains "js-plotly-plot" @>
+  test <@ body.Contains "Plotly.newPlot" @>
 
 [<Fact>]
 let ``trends renders the chart with the authenticated member's goal range`` () =
@@ -119,7 +119,7 @@ let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and 
   test <@ body.Contains "This Week" @>
   test <@ body.Contains "Last Week" @>
   // Inline chart rendered
-  test <@ body.Contains "js-plotly-plot" @>
+  test <@ body.Contains "Plotly.newPlot" @>
 
 [<Fact>]
 let ``trendsPanel with gran=monthly returns monthly sub-period buttons`` () =
@@ -155,7 +155,7 @@ let ``trendsPanel with gran + key uses that specific sub-period`` () =
   test <@ body.Contains "118" @>
   test <@ body.Contains "77" @>
   // Inline chart rendered
-  test <@ body.Contains "js-plotly-plot" @>
+  test <@ body.Contains "Plotly.newPlot" @>
 
 [<Fact>]
 let ``trendsPanel includes readings table with in-period readings`` () =
@@ -216,7 +216,7 @@ let ``trendsPanel shows empty state when no readings in period`` () =
   let body = TestHost.readBody ctx
   test <@ body.Contains "No readings in" @>
   // No chart rendered when there are no readings in the period
-  test <@ body.Contains "js-plotly-plot" |> not @>
+  test <@ body.Contains "Plotly.newPlot" |> not @>
 
 [<Fact>]
 let ``trendsPanel returns 400 for unrecognised gran`` () =
