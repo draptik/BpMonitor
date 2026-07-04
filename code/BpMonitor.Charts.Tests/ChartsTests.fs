@@ -561,6 +561,14 @@ let ``toHtmlDashed Yearly: x-axis labels use month-name format`` () =
   test <@ html.Contains("Jan") @>
 
 [<Fact>]
+let ``toHtml does not embed chart behavior scripts — they live in wwwroot/chart-hover.js`` () =
+  let html = BpChart.toHtml GoalRange.defaults readings
+  // "g.errorbars" only ever appeared in the inline error-bar hover script;
+  // the chart HTML must carry data + Plotly.newPlot only.
+  test <@ not (html.Contains "g.errorbars") @>
+  test <@ not (html.Contains "Plotly.Plots.resize") @>
+
+[<Fact>]
 let ``toHtml escapes </script> in comment text to prevent inline script injection`` () =
   let hostile = reading 1 120 80 70 1 9 (Some "</script><img src=x onerror=alert(1)>")
   let html = BpChart.toHtml GoalRange.defaults [ hostile ]

@@ -31,6 +31,9 @@ jobs:
       - name: Run Biome
         run: mise run lint:js
 
+      - name: Run TypeScript checkJs
+        run: mise run lint:ts
+
   lint-shell:
     name: Lint Shell
     runs-on: ubuntu-latest

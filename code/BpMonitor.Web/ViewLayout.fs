@@ -62,6 +62,10 @@ module ViewLayout =
          Elem.script [ Attr.src "/theme.js" ] []
          // Behavior-only (no FOUC concern); each self-guards on the page elements it
          // needs and re-runs on htmx:afterSettle to survive hx-boost swaps.
+         // plot-ready.js must come first — it defines the whenPlotReady helper the
+         // chart scripts below call at parse time registration.
+         Elem.script [ Attr.src "/plot-ready.js" ] []
+         Elem.script [ Attr.src "/chart-hover.js" ] []
          Elem.script [ Attr.src "/recent-scrubber.js" ] []
          Elem.script [ Attr.src "/recent-zoom.js" ] []
          Elem.script [ Attr.src "/trends-scroll.js" ] []

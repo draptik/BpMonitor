@@ -147,35 +147,6 @@ module BpChart =
   // !important that takes precedence; removeProperty on unhover falls back to the CSS rule.
   // g.errorbar (singular, per point) lives inside g.errorbars (plural, per trace).
   //
-  // Plotly's initial render ignores the `.chart` container's CSS height (it lays out at its own
-  // content-driven default, ~450px) and only correctly fits the actual container on a later
-  // resize event. Since `.chart` has `overflow:hidden`, that mismatch clips the bottom of the
-  // chart — on narrow mobile heights, severely enough to cut off the x-axis tick labels
-  // entirely. Forcing one `Plotly.Plots.resize` right after mount makes it re-measure the real
-  // (CSS-constrained) container immediately, instead of waiting for a resize event that may
-  // never fire.
-  let private errorBarScript =
-    "<script>(function(){"
-    + "function setup(){"
-    + "var d=document.querySelector('.js-plotly-plot');"
-    + "if(!d||!d.on){setTimeout(setup,50);return;}"
-    + "Plotly.Plots.resize(d);"
-    + "d.on('plotly_hover',function(e){"
-    + "var p=e.points[0];"
-    + "var gs=d.querySelectorAll('g.errorbars')[p.curveNumber];"
-    + "if(!gs)return;"
-    + "var bar=gs.querySelectorAll('g.errorbar')[p.pointIndex];"
-    + "if(!bar)return;"
-    + "var path=bar.querySelector('path.yerror');"
-    + "if(path)path.style.setProperty('stroke-opacity','1','important');"
-    + "});"
-    + "d.on('plotly_unhover',function(){"
-    + "d.querySelectorAll('g.errorbars path.yerror').forEach(function(p){p.style.removeProperty('stroke-opacity');});"
-    + "});"
-    + "}"
-    + "setTimeout(setup,0);"
-    + "})()</script>"
-
   // /history and /recent are interactive (unlike /trends, which disables the modebar
   // outright): lasso, autoscale and box-select are removed because they let a reader
   // visually distort the blood-pressure scale (Wegier et al. 2021's goal-range bands
@@ -217,7 +188,7 @@ module BpChart =
       else
         html
 
-    escaped + errorBarScript
+    escaped
 
   let private finish (chart: GenericChart) =
     chart
