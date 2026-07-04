@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.7] - 2026-07-04
+
 ### Fixed
 
 - Recent page: "Last 7 days" and "Last 30 days" buttons no longer both appear selected — only the active range is highlighted
 - Recent page: comment marker tooltip now only appears when hovering directly over the comment marker, instead of anywhere near its column; comment tooltips (Recent and History) now also show the reading's timestamp, dimmed, below the comment text
+- Fixed chart x-axis line covering comment markers at the bottom of the chart
+- Fixed validation error messages not appearing after submitting an invalid reading form
 
 ## [1.7.6] - 2026-06-28
 
@@ -350,7 +354,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.6...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.7...HEAD
+[1.7.7]: https://github.com/draptik/BpMonitor/compare/v1.7.6...v1.7.7
 [1.7.6]: https://github.com/draptik/BpMonitor/compare/v1.7.5...v1.7.6
 [1.7.5]: https://github.com/draptik/BpMonitor/compare/v1.7.4...v1.7.5
 [1.7.4]: https://github.com/draptik/BpMonitor/compare/v1.7.3...v1.7.4
