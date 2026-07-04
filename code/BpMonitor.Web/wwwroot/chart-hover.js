@@ -9,6 +9,11 @@ function setupChartHover() {
   if (!document.querySelector(".chart")) return;
 
   whenPlotReady((d) => {
+    // Setup runs on every htmx:afterSettle; skip plots already wired so a settle
+    // that doesn't swap the chart can't stack duplicate handlers on the same div.
+    if (d.dataset.hoverBound) return;
+    d.dataset.hoverBound = "1";
+
     // Plotly's initial render ignores the `.chart` container's CSS height (it
     // lays out at its own content-driven default, ~450px) and only correctly
     // fits the actual container on a later resize event. Since `.chart` has

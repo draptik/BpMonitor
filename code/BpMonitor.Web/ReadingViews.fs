@@ -123,16 +123,16 @@ module ReadingViews =
     // The button whose range starts at `windowStart` matches the chart's initial focus
     // (both `recent` and `recentFull` render `windowStart = now.AddDays(-30)`), so it's
     // rendered as the active pill on load; recent-zoom.js re-toggles `aria-pressed` on click.
-    let activeLo = Formats.formatLocal windowStart
-
+    // Pico's `outline` class gives the resting (inactive) look — app.css only styles the
+    // active filled state.
     let zoomButton (label: string) (days: float) =
-      let lo = Formats.formatLocal (now.AddDays(-days))
+      let lo = now.AddDays(-days)
 
       Elem.button
         [ Attr.type' "button"
-          Attr.class' "recent-zoom-button"
-          Attr.create "aria-pressed" (if lo = activeLo then "true" else "false")
-          Attr.create "data-lo" lo
+          Attr.class' "recent-zoom-button outline"
+          Attr.create "aria-pressed" (if lo = windowStart then "true" else "false")
+          Attr.create "data-lo" (Formats.formatLocal lo)
           Attr.create "data-hi" hiFormatted ]
         [ Text.raw label ]
 

@@ -1,5 +1,6 @@
 module ReadingHandlerTests
 
+open System.Text.RegularExpressions
 open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing
@@ -138,8 +139,8 @@ let ``recent marks only the Last 30 days button as active`` () =
   let body = TestHost.readBody ctx
 
   let zoomButtons =
-    System.Text.RegularExpressions.Regex.Matches(body, "<button[^>]*recent-zoom-button[^>]*>([^<]*)</button>")
-    |> Seq.cast<System.Text.RegularExpressions.Match>
+    Regex.Matches(body, "<button[^>]*recent-zoom-button[^>]*>([^<]*)</button>")
+    |> Seq.cast<Match>
     |> Seq.map (fun m -> m.Value.Contains "aria-pressed=\"true\"", m.Groups[1].Value)
     |> Seq.toList
 

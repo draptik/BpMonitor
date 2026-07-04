@@ -15,6 +15,12 @@ function setupRecentZoomButtons() {
   if (buttons.length === 0) return;
 
   whenPlotReady((d) => {
+    // Setup runs on every htmx:afterSettle; the buttons swap together with the
+    // chart (both live in #recent-chart), so a plot already wired means these
+    // buttons are wired too — skip instead of stacking duplicate click handlers.
+    if (d.dataset.zoomBound) return;
+    d.dataset.zoomBound = "1";
+
     buttons.forEach((button) => {
       button.addEventListener("click", () => {
         Plotly.relayout(d, { "xaxis.range": [button.dataset.lo, button.dataset.hi] });

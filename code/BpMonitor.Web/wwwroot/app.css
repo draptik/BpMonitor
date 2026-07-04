@@ -735,25 +735,12 @@ form.inline button {
   text-align: center;
 }
 
-/* Outline base for the recent zoom-shortcut buttons: unlike the trends row's
-   <a role="button"> (Pico's outline default), a bare <button> defaults to
-   filled, so without this every recent-zoom-button would render as if active. */
-.recent-zoom-buttons button {
-  background: transparent;
-  color: var(--pico-primary);
-  border-color: var(--pico-primary);
-}
-
-/* Active granularity / sub-period pill — filled primary (matches nav active pill style) */
+/* Active pill — filled primary (matches nav active pill style). Covers the trends
+   granularity / sub-period links and the recent zoom-shortcut buttons (ReadingViews.fs
+   `zoomButton`, toggled by wwwroot/recent-zoom.js on click); the zoom buttons' resting
+   look comes from Pico's own `outline` button class set in `zoomButton`. */
 .trends-window-buttons a[aria-current="page"],
-.trends-subperiod-buttons a[aria-current="page"] {
-  background: var(--pico-primary);
-  color: var(--pico-primary-inverse);
-  border-color: var(--pico-primary);
-}
-
-/* Active recent zoom-shortcut pill (ReadingViews.fs `zoomButton`, toggled by
-   wwwroot/recent-zoom.js on click) — same filled style as the pills above. */
+.trends-subperiod-buttons a[aria-current="page"],
 .recent-zoom-buttons button[aria-pressed="true"] {
   background: var(--pico-primary);
   color: var(--pico-primary-inverse);
