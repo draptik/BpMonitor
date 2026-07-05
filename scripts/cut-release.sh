@@ -231,10 +231,15 @@ cmd_prepare() {
   echo "== CHANGELOG.md diff =="
   git diff -- CHANGELOG.md
 
+  echo ""
+  echo "== Regenerating screenshots =="
+  mise run screenshots
+  git status --short docs/screenshots/
+
   read -r -p "Commit, push, and open the changelog PR? [y/N] " confirm2
   [ "$confirm2" = "y" ] || [ "$confirm2" = "Y" ] || { echo "Aborted (CHANGELOG.md left edited on branch $branch)."; exit 1; }
 
-  git add "$changelog"
+  git add "$changelog" docs/screenshots/
   git commit -m "📝 docs: update changelog for ${version}"
   git push -u origin "$branch"
   gh pr create \

@@ -137,3 +137,4 @@ All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also ho
 - Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:shell` individually
 - Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium)
 - Run `mise exec -- biome check --write` to auto-fix JS issues
+- Run `mise run screenshots` to regenerate `docs/screenshots/*.png` from a fresh self-seeded demo instance (`scripts/generate-screenshots.fsx`, logged in as Ned Flanders for his outlier-rich narrative) — part of the `cut-release` skill's changelog step, otherwise only needed after a UI change worth reflecting in the README
