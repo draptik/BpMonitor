@@ -22,6 +22,10 @@ run = 'find . -name "*.sh" -not -path "./.husky/_/*" | xargs -r shellcheck'
 [tasks.lint]
 depends = ["lint:md", "lint:js", "lint:ts", "lint:shell"]
 
+[tasks.screenshots]
+description = "Regenerates docs/screenshots/*.png from a fresh self-seeded demo instance (run before cutting a release)"
+run = "dotnet fsi scripts/generate-screenshots.fsx"
+
 [tasks."test:e2e-setup"]
 description = "One-time local setup: installs the Playwright Chromium browser used by BpMonitor.Web.E2E.Tests"
 dir = "code"

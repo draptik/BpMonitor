@@ -136,10 +136,18 @@ Edit `CHANGELOG.md`:
    - Add a new compare line for the new version above the previous latest:
      `[X.Y.Z]: https://github.com/draptik/BpMonitor/compare/vPREV...vX.Y.Z`
 
+Regenerate the marketing screenshots on the same branch and review the diff —
+they only need to change when the UI has:
+
+```bash
+mise run screenshots
+git status --short docs/screenshots/
+```
+
 Commit, push, open a PR, and **merge it to `main`** before proceeding:
 
 ```bash
-git add "$(git rev-parse --show-toplevel)/CHANGELOG.md"
+git add "$(git rev-parse --show-toplevel)/CHANGELOG.md" docs/screenshots/
 git commit -m "📝 docs: update changelog for vX.Y.Z"
 git push -u origin chore/changelog-vX.Y.Z
 gh pr create --title "📝 docs: update changelog for vX.Y.Z" --body "Changelog entry for the upcoming vX.Y.Z release."

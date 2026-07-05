@@ -7,6 +7,13 @@
 
 A blood pressure monitoring application for families and households, built with F# on .NET. Ships a multi-user web frontend (Falco) backed by a SQLite database.
 
+## Screenshots
+
+| | |
+| --- | --- |
+| ![Landing page](docs/screenshots/landing-light.png) | ![History](docs/screenshots/history-light.png) |
+| ![Recent readings with scrubber](docs/screenshots/recent-scrubber-light.png) | ![Trends](docs/screenshots/trends-light.png) |
+
 ## Docs
 
 - [Vision](docs/vision.md) — what the app does and why
