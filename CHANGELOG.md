@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Maintenance
+
+- E2E test fixture now captures the `BpMonitor.Web` child process's stdout/stderr and fails fast with that output when the process exits early (e.g. a missing Release build), instead of always waiting out a 30s timeout with a generic error
+
 ## [1.7.8] - 2026-07-05
 
 ### Maintenance
