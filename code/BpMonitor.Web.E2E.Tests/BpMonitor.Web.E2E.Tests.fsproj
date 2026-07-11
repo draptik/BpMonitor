@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="ProcessReadiness.fs" />
+    <Compile Include="ProcessReadinessTests.fs" />
     <Compile Include="WebAppFixture.fs" />
     <Compile Include="SmokeTests.fs" />
   </ItemGroup>

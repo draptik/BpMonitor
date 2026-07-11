@@ -54,6 +54,7 @@ type WebAppFixture() =
   let mutable playwright: IPlaywright = null
   let mutable browser: IBrowser = null
   let mutable dbPath = ""
+  let capturedOutput = Text.StringBuilder()
 
   let port =
     let listener = new TcpListener(System.Net.IPAddress.Loopback, 0)
@@ -68,18 +69,23 @@ type WebAppFixture() =
   member private _.WaitUntilReadyAsync() : Task =
     task {
       use client = new HttpClient(Timeout = TimeSpan.FromSeconds 2.0)
-      let deadline = DateTime.UtcNow.AddSeconds(30.0)
-      let mutable ready = false
 
-      while not ready do
-        if DateTime.UtcNow > deadline then
-          failwith $"BpMonitor.Web did not become ready on {port} within 30s"
+      let isReady () =
+        task {
+          try
+            let! resp = client.GetAsync($"http://127.0.0.1:{port}/login")
+            return resp.IsSuccessStatusCode
+          with _ ->
+            return false
+        }
 
-        try
-          let! resp = client.GetAsync($"http://127.0.0.1:{port}/login")
-          ready <- resp.IsSuccessStatusCode
-        with _ ->
-          do! Task.Delay(250)
+      do!
+        ProcessReadiness.waitUntilReadyAsync
+          isReady
+          (fun () -> webProcess.HasExited)
+          (fun () -> capturedOutput.ToString())
+          (TimeSpan.FromSeconds 30.0)
+          port
     }
 
   interface IAsyncLifetime with
@@ -95,13 +101,29 @@ type WebAppFixture() =
           ProcessStartInfo(
             FileName = "dotnet",
             Arguments = $"run --project \"%s{webProjectPath}\" -c Release --no-build -- --urls=%s{this.BaseUrl}",
-            UseShellExecute = false
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
           )
 
         psi.EnvironmentVariables["ConnectionStrings__DefaultConnection"] <- $"Data Source={dbPath}"
         psi.EnvironmentVariables["BpMonitor__SeedDemoData"] <- "false"
 
-        webProcess <- Process.Start(psi)
+        let proc = new Process(StartInfo = psi)
+
+        proc.OutputDataReceived.Add(fun e ->
+          if e.Data <> null then
+            capturedOutput.AppendLine(e.Data) |> ignore)
+
+        proc.ErrorDataReceived.Add(fun e ->
+          if e.Data <> null then
+            capturedOutput.AppendLine(e.Data) |> ignore)
+
+        proc.Start() |> ignore
+        proc.BeginOutputReadLine()
+        proc.BeginErrorReadLine()
+        webProcess <- proc
+
         do! this.WaitUntilReadyAsync()
 
         let! pw = Playwright.CreateAsync()
