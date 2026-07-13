@@ -12,6 +12,16 @@
       ],
       "enabled": false,
       "description": "Pinned: these share a Microsoft.Testing.Platform transitive dep that must version-match; update manually and together"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "automerge": false
     }
   ]
 }
