@@ -1,6 +1,5 @@
 module BpMonitor.TestSupport.Verifier
 
-open System.Text.RegularExpressions
 open System.Threading.Tasks
 open Argon
 open VerifyTests
@@ -17,12 +16,6 @@ let private customizedVerifySettings () =
   settings.AddExtraSettings(fun s -> s.NullValueHandling <- NullValueHandling.Include)
 
   settings.ScrubInlineGuids()
-
-  settings.AddScrubber(fun sb ->
-    let scrubbed =
-      Regex.Replace(string sb, @"renderPlotly_[0-9a-f]{32}", "renderPlotly_GUID")
-
-    sb.Clear().Append(scrubbed) |> ignore)
 
   settings
 
