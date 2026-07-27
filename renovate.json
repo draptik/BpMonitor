@@ -3,7 +3,7 @@
   "extends": ["config:recommended"],
   "schedule": ["* 5 * * *"],
   "minimumReleaseAge": "5 days",
-  "commitMessagePrefix": "⬆️ chore:",
+  "commitMessagePrefix": "⬆️ chore(renovate):",
   "packageRules": [
     {
       "matchPackageNames": ["Microsoft.Testing.Extensions.CodeCoverage"],
