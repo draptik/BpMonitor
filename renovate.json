@@ -6,12 +6,9 @@
   "commitMessagePrefix": "⬆️ chore:",
   "packageRules": [
     {
-      "matchPackageNames": [
-        "Microsoft.NET.Test.Sdk",
-        "Microsoft.Testing.Extensions.CodeCoverage"
-      ],
+      "matchPackageNames": ["Microsoft.Testing.Extensions.CodeCoverage"],
       "enabled": false,
-      "description": "Pinned: these share a Microsoft.Testing.Platform transitive dep that must version-match; update manually and together"
+      "description": "Pinned at 18.0.6: every later release requires Microsoft.Testing.Platform >= 2.0.0, but xunit.v3 3.2.2 (latest stable) pins Microsoft.Testing.Platform.MSBuild to 1.9.1, which only supports Microsoft.Testing.Platform 1.x — mixing them throws a TypeLoadException on IDataConsumer at test-host startup. Re-enable once xunit.v3 ships a stable release with an updated Microsoft.Testing.Platform.MSBuild dependency."
     },
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
