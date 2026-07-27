@@ -1,9 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "schedule": ["* 5 * * *"],
+  "schedule": ["before 6am"],
   "minimumReleaseAge": "5 days",
   "commitMessagePrefix": "⬆️ chore(renovate):",
+  "automergeStrategy": "squash",
+  "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
       "matchPackageNames": ["Microsoft.Testing.Extensions.CodeCoverage"],
