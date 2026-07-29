@@ -18,6 +18,7 @@ module FormFields =
   let username = "Username"
   let password = "Password"
   let passwordConfirm = "PasswordConfirm"
+  let rememberMe = "RememberMe"
   // Settings / goal-range form
   let systolicGoalMin = "SystolicGoalMin"
   let systolicGoalMax = "SystolicGoalMax"

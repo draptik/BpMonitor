@@ -103,6 +103,7 @@ module AuthHandlers =
     (m: FamilyMember)
     (password: string)
     (hash: string)
+    (rememberMe: bool)
     (onFailure: XmlNode)
     (ctx: HttpContext)
     : Task =
@@ -111,7 +112,14 @@ module AuthHandlers =
 
       if PasswordHashing.verify password hash then
         log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
-        do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal m)
+
+        do!
+          ctx.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            claimsPrincipal m,
+            AuthenticationProperties(IsPersistent = rememberMe)
+          )
+
         ctx.Response.Redirect Routes.home
       else
         log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
@@ -120,7 +128,13 @@ module AuthHandlers =
     }
     :> Task
 
-  let private unclaimedLogin (m: FamilyMember) (password: string) (confirm: string) (ctx: HttpContext) : Task =
+  let private unclaimedLogin
+    (m: FamilyMember)
+    (password: string)
+    (confirm: string)
+    (rememberMe: bool)
+    (ctx: HttpContext)
+    : Task =
     task {
       let log = logger ctx
 
@@ -135,7 +149,14 @@ module AuthHandlers =
         let claimed = { m with PasswordHash = Some hashed }
         (memberRepo ctx).Update(claimed)
         log.LogInformation("Member {Name} (Id={Id}) claimed their account", m.Name, m.Id)
-        do! ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal claimed)
+
+        do!
+          ctx.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            claimsPrincipal claimed,
+            AuthenticationProperties(IsPersistent = rememberMe)
+          )
+
         ctx.Response.Redirect Routes.home
     }
     :> Task
@@ -146,6 +167,7 @@ module AuthHandlers =
         let! form = ctx.Request.ReadFormAsync()
         let username = form[FormFields.username].ToString().Trim()
         let password = form[FormFields.password].ToString()
+        let rememberMe = form.ContainsKey(FormFields.rememberMe)
 
         let found =
           (memberRepo ctx).GetAll()
@@ -157,7 +179,8 @@ module AuthHandlers =
           do! htmlResponse (LoginViews.loginPage [ "Invalid name or password" ]) ctx
         | Some m ->
           match m.PasswordHash with
-          | Some hash -> do! claimedLogin m password hash (LoginViews.loginPage [ "Invalid name or password" ]) ctx
+          | Some hash ->
+            do! claimedLogin m password hash rememberMe (LoginViews.loginPage [ "Invalid name or password" ]) ctx
           | None ->
             // Unclaimed: redirect to per-member claim page
             ctx.Response.Redirect(Routes.loginMember m.Id)
@@ -181,10 +204,12 @@ module AuthHandlers =
         else
           let! form = ctx.Request.ReadFormAsync()
           let password = form[FormFields.password].ToString()
+          let rememberMe = form.ContainsKey(FormFields.rememberMe)
 
           match m.PasswordHash with
-          | Some hash -> do! claimedLogin m password hash (LoginViews.loginMember m [ "Incorrect password" ]) ctx
-          | None -> do! unclaimedLogin m password (form[FormFields.passwordConfirm].ToString()) ctx
+          | Some hash ->
+            do! claimedLogin m password hash rememberMe (LoginViews.loginMember m [ "Incorrect password" ]) ctx
+          | None -> do! unclaimedLogin m password (form[FormFields.passwordConfirm].ToString()) rememberMe ctx
       }
       :> Task)
 

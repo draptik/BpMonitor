@@ -95,4 +95,84 @@ type CookieSecurityTests(fixture: WebAppFixture) =
         signInResp.Headers.GetValues("Set-Cookie") |> String.concat " "
 
       Assert.Contains("httponly", setCookieHeader.ToLower())
+      Assert.Contains("samesite=lax", setCookieHeader.ToLower())
+    }
+
+/// Verifies that omitting "remember me" yields a session cookie (no Expires/Max-Age
+/// — dies with the browser). A separate type so this gets its own fixture (own
+/// process, own DB): the claim is the only login this "Me" account goes through.
+type RememberMeUncheckedCookieTests(fixture: WebAppFixture) =
+  interface IClassFixture<WebAppFixture>
+
+  [<Fact>]
+  member _.``omitting remember-me yields a session cookie with no Expires``() : Task =
+    task {
+      use handler = new HttpClientHandler(AllowAutoRedirect = false)
+      use client = new HttpClient(handler)
+
+      use step1Body =
+        new FormUrlEncodedContent([ KeyValuePair("Username", TestAccount.username); KeyValuePair("Password", "") ])
+
+      let! redirectResp = client.PostAsync($"{fixture.BaseUrl}/login", step1Body)
+      let claimUrl = Uri(Uri(fixture.BaseUrl), redirectResp.Headers.Location).ToString()
+
+      // Claim without checking "remember me".
+      use step2Body =
+        new FormUrlEncodedContent(
+          [ KeyValuePair("Password", TestAccount.password)
+            KeyValuePair("PasswordConfirm", TestAccount.password) ]
+        )
+
+      let! signInResp = client.PostAsync(claimUrl, step2Body)
+
+      let setCookieHeader =
+        signInResp.Headers.GetValues("Set-Cookie") |> String.concat " " |> _.ToLower()
+
+      Assert.DoesNotContain("expires=", setCookieHeader)
+      Assert.DoesNotContain("max-age=", setCookieHeader)
+    }
+
+/// Verifies that checking "remember me" yields a persistent cookie (an Expires
+/// attribute) — the whole point of the feature. Own fixture, so the claim (without
+/// remember-me) followed by a direct re-login (with remember-me) is the only
+/// sequence this "Me" account goes through.
+type RememberMeCheckedCookieTests(fixture: WebAppFixture) =
+  interface IClassFixture<WebAppFixture>
+
+  [<Fact>]
+  member _.``checking remember-me yields a persistent cookie with an Expires attribute``() : Task =
+    task {
+      use handler = new HttpClientHandler(AllowAutoRedirect = false)
+      use client = new HttpClient(handler)
+
+      // Claim the account first (without remember-me) so this test can then
+      // exercise the direct (already-claimed) login path with the checkbox set.
+      use claimStep1 =
+        new FormUrlEncodedContent([ KeyValuePair("Username", TestAccount.username); KeyValuePair("Password", "") ])
+
+      let! redirectResp = client.PostAsync($"{fixture.BaseUrl}/login", claimStep1)
+      let claimUrl = Uri(Uri(fixture.BaseUrl), redirectResp.Headers.Location).ToString()
+
+      use claimStep2 =
+        new FormUrlEncodedContent(
+          [ KeyValuePair("Password", TestAccount.password)
+            KeyValuePair("PasswordConfirm", TestAccount.password) ]
+        )
+
+      let! _ = client.PostAsync(claimUrl, claimStep2)
+
+      // Now log in again with "remember me" checked.
+      use rememberMeBody =
+        new FormUrlEncodedContent(
+          [ KeyValuePair("Username", TestAccount.username)
+            KeyValuePair("Password", TestAccount.password)
+            KeyValuePair("RememberMe", "on") ]
+        )
+
+      let! signInResp = client.PostAsync($"{fixture.BaseUrl}/login", rememberMeBody)
+
+      let setCookieHeader =
+        signInResp.Headers.GetValues("Set-Cookie") |> String.concat " " |> _.ToLower()
+
+      Assert.Contains("expires=", setCookieHeader)
     }

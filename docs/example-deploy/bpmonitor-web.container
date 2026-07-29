@@ -17,6 +17,7 @@ PublishPort=5000:5000
 Volume=bpmonitor-data.volume:/data
 Environment=ConnectionStrings__DefaultConnection=Data Source=/data/bpmonitor.db
 Environment=TZ=Europe/Berlin
+# Environment=BpMonitor__RememberMeDays=30
 HealthCmd=curl -fsS http://127.0.0.1:5000/health || exit 1
 HealthInterval=30s
 HealthTimeout=3s

@@ -37,6 +37,26 @@ let ``loginWithCredentials redirects to / for correct credentials`` () =
   test <@ ctx.Response.Headers.Location.ToString() = Routes.home @>
 
 [<Fact>]
+let ``loginWithCredentials redirects to / when remember-me is checked`` () =
+  let hash = PasswordHashing.hash "correct"
+
+  let claimed = { claimedMember hash with Name = "Me" }
+
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ claimed ]
+
+  TestHost.setForm
+    ctx
+    [ FormFields.username, "Me"
+      FormFields.password, "correct"
+      FormFields.rememberMe, "on" ]
+
+  TestHost.run AuthHandlers.loginWithCredentials ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.home @>
+
+[<Fact>]
 let ``loginWithCredentials returns 401 for wrong password`` () =
   let hash = PasswordHashing.hash "correct"
 
@@ -147,6 +167,18 @@ let ``loginSubmit accepts correct password for claimed member and redirects`` ()
   let ctx = TestHost.contextWithMembers repo [ claimedMember hash ]
   TestHost.setRouteId ctx 1
   TestHost.setForm ctx [ FormFields.password, "letmein" ]
+  TestHost.run AuthHandlers.loginSubmit ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.home @>
+
+[<Fact>]
+let ``loginSubmit accepts correct password with remember-me checked and redirects`` () =
+  let hash = PasswordHashing.hash "letmein"
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ claimedMember hash ]
+  TestHost.setRouteId ctx 1
+  TestHost.setForm ctx [ FormFields.password, "letmein"; FormFields.rememberMe, "on" ]
   TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
