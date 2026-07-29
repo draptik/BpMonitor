@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-07-29
+
 ### Added
 
-- New anonymous `GET /health` endpoint reporting database reachability (`200 {"status":"healthy",...}` or `503 {"status":"unhealthy",...}`), for use by container health checks and deployment monitoring
+- New `/health` endpoint reports whether the database is reachable — useful for container health checks and deployment monitoring
+- **Deployment:** the example Docker Compose and Podman Quadlet configs now include a `healthcheck`/`HealthCmd` polling `/health`; if you deploy from the example configs, pulling the latest examples picks this up automatically
 
 ### Maintenance
 
@@ -368,7 +371,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.7.8...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/draptik/BpMonitor/compare/v1.7.8...v1.8.0
 [1.7.8]: https://github.com/draptik/BpMonitor/compare/v1.7.7...v1.7.8
 [1.7.7]: https://github.com/draptik/BpMonitor/compare/v1.7.6...v1.7.7
 [1.7.6]: https://github.com/draptik/BpMonitor/compare/v1.7.5...v1.7.6
