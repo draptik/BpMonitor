@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-07-30
+
 ### Added
 
 - "Remember me" checkbox on the login page keeps you signed in across browser restarts (up to 30 days by default, configurable via `BpMonitor__RememberMeDays`) — helps on Android, where the browser is routinely killed by the OS to reclaim memory
@@ -387,7 +389,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/draptik/BpMonitor/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/draptik/BpMonitor/compare/v1.7.8...v1.8.0
 [1.7.8]: https://github.com/draptik/BpMonitor/compare/v1.7.7...v1.7.8
 [1.7.7]: https://github.com/draptik/BpMonitor/compare/v1.7.6...v1.7.7
