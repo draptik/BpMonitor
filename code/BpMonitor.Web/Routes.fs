@@ -15,6 +15,7 @@ module Routes =
   let exportJson = "/export"
   let exportCsv = "/export.csv"
   let settings = "/settings"
+  let health = "/health"
 
   // Parametric URL builders for id-scoped resources.
   let readingEdit (id: int) = $"/readings/{id}/edit"

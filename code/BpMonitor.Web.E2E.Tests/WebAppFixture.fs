@@ -73,7 +73,7 @@ type WebAppFixture() =
       let isReady () =
         task {
           try
-            let! resp = client.GetAsync($"http://127.0.0.1:{port}/login")
+            let! resp = client.GetAsync($"http://127.0.0.1:{port}/health")
             return resp.IsSuccessStatusCode
           with _ ->
             return false

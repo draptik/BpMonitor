@@ -31,6 +31,7 @@ The server binds `http://0.0.0.0:5000`.
 
 - **Database** — defaults to `Data Source=<install-dir>/bpmonitor.db`; override with `ConnectionStrings__DefaultConnection`.
 - **Bind address / port** — defaults to `http://0.0.0.0:5000`; configured via `appsettings.json` (takes precedence over `ASPNETCORE_URLS`).
+- **Health check** — `GET /health` reports database reachability (`200`/`503`); see [docs/example-deploy/README.md](example-deploy/README.md#health-check) for details.
 
 ## Docker Compose
 

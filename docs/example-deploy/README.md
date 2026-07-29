@@ -40,6 +40,14 @@ systemctl daemon-reload          # add --user for rootless
 systemctl start bpmonitor-web
 ```
 
+## Health check
+
+`GET /health` is an anonymous endpoint that checks whether the SQLite database is
+reachable — useful for catching a missing or unwritable `/data` volume. It returns
+`200` with `{"status":"healthy","version":"…","database":"connected"}` when the
+database can be opened, or `503` with `"status":"unhealthy"` otherwise. Both the
+Containerfile's `HEALTHCHECK` and the Quadlet unit above poll it.
+
 ## Configuration
 
 - **Bind address / port** — defaults to `http://0.0.0.0:5000`; configured via

@@ -1,6 +1,7 @@
 namespace BpMonitor.Web
 
 open System
+open System.Text.Json
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
@@ -8,6 +9,7 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open Falco.Markup
 open BpMonitor.Core
+open BpMonitor.Data
 
 /// DI accessors, response primitives, route helpers, and form parsing shared by all handler modules.
 module HandlerHelpers =
@@ -16,6 +18,9 @@ module HandlerHelpers =
 
   let memberRepo (ctx: HttpContext) =
     ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+
+  let dbContext (ctx: HttpContext) =
+    ctx.RequestServices.GetRequiredService<BpMonitorDbContext>()
 
   let ranges (ctx: HttpContext) =
     Config.readRanges (ctx.RequestServices.GetRequiredService<IConfiguration>())
@@ -29,6 +34,14 @@ module HandlerHelpers =
   let htmlResponse (node: XmlNode) (ctx: HttpContext) : Task =
     ctx.Response.ContentType <- "text/html; charset=utf-8"
     ctx.Response.WriteAsync(renderHtml node)
+
+  let private jsonOptions =
+    JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
+
+  let jsonResponse (status: int) (payload: obj) (ctx: HttpContext) : Task =
+    ctx.Response.StatusCode <- status
+    ctx.Response.ContentType <- "application/json; charset=utf-8"
+    ctx.Response.WriteAsync(JsonSerializer.Serialize(payload, jsonOptions))
 
   let badRequest (ctx: HttpContext) : Task =
     ctx.Response.StatusCode <- 400
