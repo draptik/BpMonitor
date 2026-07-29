@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Maintenance
+
+- GitHub release notes are now grouped into categorized sections (Added/Changed/Fixed/Security/Maintenance), matching this changelog, instead of one flat "What's Changed" list — routine dependency bumps are collapsed into a details block so they don't bury the real changes
+
 ## [1.8.0] - 2026-07-29
 
 ### Added

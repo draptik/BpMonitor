@@ -67,7 +67,7 @@ code/
 ├── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules
 └── BpMonitor.TestSupport       # Shared test infrastructure (Verify snapshot settings) for *.Tests projects
 docs/                           # Product vision, architecture, ADRs
-scripts/                        # Dev tooling scripts (e.g. extract-plotly-js.fsx)
+scripts/                        # Dev tooling scripts (e.g. extract-plotly-js.fsx, release-notes.sh)
 ```
 
 ## Documentation

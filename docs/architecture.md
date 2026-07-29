@@ -199,6 +199,8 @@ mise exec -- biome check --write  # auto-fix safe JS issues
 
 **CI:** the `lint-markdown`, `lint-js` (Biome + `tsc` checkJs), and `lint-shell` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
 
+**Release notes:** `.github/workflows/release.yml` builds the GitHub release body from the pushed tag's annotation followed by categorized notes from `scripts/release-notes.sh <tag>`, which groups commits since the previous tag by conventional-commit type into the same Added/Changed/Fixed/Security/Maintenance headings as `CHANGELOG.md`, collapsing routine dependency bumps into a `<details>` block.
+
 ## Architecture Decision Records
 
 See [docs/adr/](adr/) for records of significant architectural decisions, including abandoned spikes.

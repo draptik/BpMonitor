@@ -44,22 +44,18 @@ jobs:
           tar -czf code/bpmonitor-web-linux-x64.tar.gz
           -C code/publish-web bpmonitor-web appsettings.json wwwroot
 
-      - name: Read tag annotation
-        id: notes
+      - name: Compose release notes
         run: |
-          {
-            echo 'body<<RELEASE_EOF'
-            git tag -l --format='%(contents)' "${GITHUB_REF_NAME}"
-            echo 'RELEASE_EOF'
-          } >> "$GITHUB_OUTPUT"
+          git tag -l --format='%(contents)' "${GITHUB_REF_NAME}" > release-body.md
+          printf '\n' >> release-body.md
+          scripts/release-notes.sh "${GITHUB_REF_NAME}" >> release-body.md
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v3
         with:
           files: |
             code/bpmonitor-web-linux-x64.tar.gz
-          body: ${{ steps.notes.outputs.body }}
-          generate_release_notes: true
+          body_path: release-body.md
           # Treat tags carrying a pre-release suffix (e.g. v0.1.11-rc1) as
           # prereleases so the /releases/latest API keeps pointing at the last
           # stable release.
