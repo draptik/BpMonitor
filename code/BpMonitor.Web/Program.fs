@@ -11,12 +11,15 @@ open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.EntityFrameworkCore
 open Serilog
+open Serilog.Events
 open BpMonitor.Core
 open BpMonitor.Data
 open BpMonitor.Web
 
 let private endpoints =
-  [ // Anonymous: login/logout
+  [ // Anonymous: health probe
+    get Routes.health HealthHandlers.health
+    // Anonymous: login/logout
     get Routes.login AuthHandlers.loginPage
     post Routes.login AuthHandlers.loginWithCredentials
     get "/login/{id:int}" AuthHandlers.loginMember
@@ -121,7 +124,19 @@ let main args =
         true
 
     // One structured log line per request (method, path, status, elapsed ms).
-    app.UseSerilogRequestLogging() |> ignore
+    // Successful /health polls are dropped to Verbose (below the configured minimum
+    // level) so a container HEALTHCHECK doesn't flood stdout; a failing probe still
+    // logs at Error.
+    app.UseSerilogRequestLogging(fun opts ->
+      opts.GetLevel <-
+        fun httpCtx _elapsed ex ->
+          if ex <> null || httpCtx.Response.StatusCode >= 500 then
+            LogEventLevel.Error
+          elif httpCtx.Request.Path.StartsWithSegments(PathString Routes.health) then
+            LogEventLevel.Verbose
+          else
+            LogEventLevel.Information)
+    |> ignore
 
     app.UseForwardedHeaders() |> ignore
 

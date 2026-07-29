@@ -9,6 +9,7 @@ open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Primitives
+open Microsoft.EntityFrameworkCore
 open BpMonitor.Core
 open BpMonitor.Data
 open BpMonitor.Web
@@ -99,6 +100,18 @@ let contextWithUser (repo: IReadingRepository) (members: FamilyMember list) (log
     |> Option.map buildPrincipal
 
   newCtx (buildServices repo memberRepo TimeProvider.System) user
+
+/// Builds a context wired with a real SQLite-backed BpMonitorDbContext, for the
+/// health handler. Pass a temp-file connection string for the reachable case and
+/// a path under a nonexistent directory for the unreachable case.
+let healthContext (connectionString: string) : HttpContext =
+  let services = ServiceCollection()
+  services.AddLogging() |> ignore
+
+  services.AddDbContext<BpMonitorDbContext>(fun o -> o.UseSqlite(connectionString) |> ignore)
+  |> ignore
+
+  newCtx services None
 
 /// Reads back whatever a handler wrote to the response body.
 let readBody (ctx: HttpContext) : string =

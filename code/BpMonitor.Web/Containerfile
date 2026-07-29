@@ -12,6 +12,11 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 
+# curl is needed for the HEALTHCHECK below — the base image ships neither curl nor wget.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl \
+ && rm -rf /var/lib/apt/lists/*
+
 # Links the published GHCR package to its source repository.
 LABEL org.opencontainers.image.source="https://github.com/draptik/BpMonitor"
 
@@ -21,5 +26,10 @@ ENV ASPNETCORE_URLS=http://0.0.0.0:5000
 ENV ConnectionStrings__DefaultConnection="Data Source=/data/bpmonitor.db"
 VOLUME /data
 EXPOSE 5000
+
+# --start-period covers SchemaMigrations running synchronously before the app
+# starts serving requests.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
+  CMD curl -fsS http://127.0.0.1:5000/health || exit 1
 
 ENTRYPOINT ["dotnet", "BpMonitor.Web.dll"]

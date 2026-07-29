@@ -27,6 +27,7 @@
     <Compile Include="ExportHandlerTests.fs" />
     <Compile Include="RecentHandlerTests.fs" />
     <Compile Include="SettingsHandlerTests.fs" />
+    <Compile Include="HealthHandlerTests.fs" />
     <Compile Include="PlotlyVendoringTests.fs" />
   </ItemGroup>
 
