@@ -25,6 +25,22 @@ module Config =
       HeartRateMin = getInt "HeartRateMin" d.HeartRateMin
       HeartRateMax = getInt "HeartRateMax" d.HeartRateMax }
 
+  /// Number of days a "remember me" login stays signed in for. Defaults to 30,
+  /// clamped to 1..400 — 400 is the hard cap Firefox and Chrome both enforce on
+  /// cookie lifetime, so anything above it would be silently truncated by the browser.
+  let readRememberMeDays (config: IConfiguration) : int =
+    let fallback = 30
+
+    let parsed =
+      match config["BpMonitor:RememberMeDays"] with
+      | null -> fallback
+      | v ->
+        match Int32.TryParse(v) with
+        | true, n -> n
+        | _ -> fallback
+
+    parsed |> max 1 |> min 400
+
   /// Human-readable validation messages for range errors.
   let formatValidationErrors (ranges: ReadingRanges) (errors: ValidationError list) =
     errors

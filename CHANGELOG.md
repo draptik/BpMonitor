@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- "Remember me" checkbox on the login page keeps you signed in across browser restarts (up to 30 days by default, configurable via `BpMonitor__RememberMeDays`) — helps on Android, where the browser is routinely killed by the OS to reclaim memory
+
+### Changed
+
+- Auth cookie `SameSite` policy relaxed from `Strict` to `Lax`, so tapping a BpMonitor link from another app (e.g. a chat app or a home-screen shortcut) doesn't land you on the login page even when already signed in
+
+### Fixed
+
+- Data protection keys (which encrypt the auth cookie) are now persisted to the same volume as the database, so signed-in sessions — especially "remember me" ones — survive a container restart instead of silently logging everyone out
+
 ### Maintenance
 
 - GitHub release notes are now grouped into categorized sections (Added/Changed/Fixed/Security/Maintenance), matching this changelog, instead of one flat "What's Changed" list — routine dependency bumps are collapsed into a details block so they don't bury the real changes

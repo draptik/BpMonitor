@@ -30,6 +30,13 @@ module LoginViews =
                     Attr.id FormFields.password
                     Attr.name FormFields.password
                     Attr.create "autocomplete" "current-password" ] ]
+            Elem.label
+              [ Attr.for' FormFields.rememberMe ]
+              [ Elem.input
+                  [ Attr.type' "checkbox"
+                    Attr.id FormFields.rememberMe
+                    Attr.name FormFields.rememberMe ]
+                Text.raw " Remember me on this device" ]
             Elem.div [ Attr.class' "actions" ] [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Sign in" ] ] ] ]
 
   /// Login form for a specific member. Shows a claim form (password + confirm) for
@@ -77,9 +84,16 @@ module LoginViews =
       [ Elem.h2 [] [ Text.enc $"Login as {m.Name}" ]
         ViewLayout.errorBox errors
         Elem.form
-          [ Attr.method "post"; Attr.action $"/login/{m.Id}" ]
+          [ Attr.method "post"; Attr.action (Routes.loginMember m.Id) ]
           (passwordFields
-           @ [ Elem.div
+           @ [ Elem.label
+                 [ Attr.for' FormFields.rememberMe ]
+                 [ Elem.input
+                     [ Attr.type' "checkbox"
+                       Attr.id FormFields.rememberMe
+                       Attr.name FormFields.rememberMe ]
+                   Text.raw " Remember me on this device" ]
+               Elem.div
                  [ Attr.class' "actions" ]
                  [ Elem.button [ Attr.type' "submit" ] [ Text.raw (if isClaimed then "Login" else "Claim account") ]
                    Elem.a

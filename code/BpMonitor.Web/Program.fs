@@ -5,6 +5,7 @@ open Falco
 open Falco.Routing
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.DataProtection
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.HttpOverrides
 open Microsoft.Extensions.Configuration
@@ -78,13 +79,19 @@ let main args =
     |> ignore
 
     let secureCookies = builder.Configuration.GetValue<bool>("BpMonitor:SecureCookies")
+    let rememberMeDays = Config.readRememberMeDays builder.Configuration
 
     builder.Services
       .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
       .AddCookie(fun o ->
         o.LoginPath <- PathString("/login")
         o.Cookie.HttpOnly <- true
-        o.Cookie.SameSite <- SameSiteMode.Strict
+        // Lax (not Strict): a Strict cookie is withheld on top-level navigations that
+        // arrive from outside the site — e.g. tapping a BpMonitor link from another
+        // Android app — which looks like an unexplained logout even with "remember me"
+        // checked. Lax still withholds the cookie on cross-site POSTs, which is what
+        // matters here since the app has no antiforgery tokens.
+        o.Cookie.SameSite <- SameSiteMode.Lax
 
         o.Cookie.SecurePolicy <-
           if secureCookies then
@@ -92,8 +99,24 @@ let main args =
           else
             CookieSecurePolicy.SameAsRequest
 
-        o.SlidingExpiration <- true)
+        o.SlidingExpiration <- true
+        // Only takes effect for persistent ("remember me") logins; a non-persistent
+        // sign-in still produces a session cookie that dies with the browser process.
+        o.ExpireTimeSpan <- TimeSpan.FromDays(float rememberMeDays))
     |> ignore
+
+    // Data Protection keys encrypt/validate the auth cookie. Left unset, they land in
+    // the container's ephemeral home directory, so a "remember me" cookie would stop
+    // validating on every redeploy. Pointing this at the same volume as the SQLite
+    // database keeps it stable across container recreation.
+    let dataProtectionKeyPath = builder.Configuration["BpMonitor:DataProtectionKeyPath"]
+
+    let dataProtection =
+      builder.Services.AddDataProtection().SetApplicationName("BpMonitor")
+
+    if not (String.IsNullOrWhiteSpace dataProtectionKeyPath) then
+      dataProtection.PersistKeysToFileSystem(System.IO.DirectoryInfo(dataProtectionKeyPath))
+      |> ignore
 
     builder.Services.Configure<ForwardedHeadersOptions>(fun (opts: ForwardedHeadersOptions) ->
       opts.ForwardedHeaders <- ForwardedHeaders.XForwardedFor ||| ForwardedHeaders.XForwardedProto)

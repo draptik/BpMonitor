@@ -24,6 +24,9 @@ LABEL org.opencontainers.image.source="https://github.com/draptik/BpMonitor"
 # the SQLite database on a mounted volume so it survives redeploys.
 ENV ASPNETCORE_URLS=http://0.0.0.0:5000
 ENV ConnectionStrings__DefaultConnection="Data Source=/data/bpmonitor.db"
+# Data Protection keys encrypt the auth cookie (incl. "remember me" logins) — keep
+# them on the same volume as the database so they survive container recreation.
+ENV BpMonitor__DataProtectionKeyPath=/data/keys
 VOLUME /data
 EXPOSE 5000
 

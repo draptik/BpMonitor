@@ -15,6 +15,14 @@ let ``loginPage renders sign-in form with username and password fields`` () =
   test <@ html.Contains "Password" @>
 
 [<Fact>]
+let ``loginPage renders an unchecked remember-me checkbox`` () =
+  let html = renderHtml (LoginViews.loginPage [])
+
+  test <@ html.Contains "RememberMe" @>
+  test <@ html.Contains "type=\"checkbox\"" @>
+  test <@ not (html.Contains "checked=") @>
+
+[<Fact>]
 let ``loginPage renders errors when provided`` () =
   let html = renderHtml (LoginViews.loginPage [ "Invalid name or password" ])
 
@@ -37,6 +45,14 @@ let ``loginMember shows password form for claimed member`` () =
 
   test <@ not (html.Contains "PasswordConfirm") @>
   test <@ html.Contains "Login" @>
+
+[<Fact>]
+let ``loginMember renders an unchecked remember-me checkbox`` () =
+  let html = renderHtml (LoginViews.loginMember defaultMember [])
+
+  test <@ html.Contains "RememberMe" @>
+  test <@ html.Contains "type=\"checkbox\"" @>
+  test <@ not (html.Contains "checked=") @>
 
 [<Fact>]
 let ``loginMember renders errors`` () =
