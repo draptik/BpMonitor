@@ -7,7 +7,6 @@ open System.Text.RegularExpressions
 open Xunit
 open Swensen.Unquote
 open Falco.Markup
-open BpMonitor.Core
 open BpMonitor.Web
 
 let private defaultMember = HandlerTestHelpers.sampleMember

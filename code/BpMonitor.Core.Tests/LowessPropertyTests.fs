@@ -1,6 +1,5 @@
 module LowessPropertyTests
 
-open FsCheck
 open FsCheck.FSharp
 open FsCheck.Xunit
 open BpMonitor.Core

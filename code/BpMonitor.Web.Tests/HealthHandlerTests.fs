@@ -2,6 +2,7 @@ module HealthHandlerTests
 
 open System
 open System.IO
+open System.Text.Json
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Web
@@ -20,7 +21,11 @@ let ``health reports connected status and content type when the database is reac
   test <@ ctx.Response.ContentType = "application/json; charset=utf-8" @>
   test <@ body.Contains("\"status\":\"healthy\"") @>
   test <@ body.Contains("\"database\":\"connected\"") @>
-  test <@ body.Contains($"\"version\":\"{Version.current}\"") @>
+
+  let version =
+    JsonDocument.Parse(body).RootElement.GetProperty("version").GetString()
+
+  test <@ version = BpMonitor.Web.Version.current @>
 
 [<Fact>]
 let ``health returns 503 when the database is unreachable`` () =
