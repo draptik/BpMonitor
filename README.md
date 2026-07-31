@@ -4,6 +4,9 @@
 [![Coverage](https://raw.githubusercontent.com/draptik/BpMonitor/badges/coverage.svg)](https://github.com/draptik/BpMonitor/actions)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/draptik/BpMonitor)](https://github.com/draptik/BpMonitor/releases)
+[![Last commit](https://img.shields.io/github/last-commit/draptik/BpMonitor)](https://github.com/draptik/BpMonitor/commits/main)
+[![Top language](https://img.shields.io/github/languages/top/draptik/BpMonitor)](https://github.com/draptik/BpMonitor)
 
 A blood pressure monitoring application for families and households, built with F# on .NET. Ships a multi-user web frontend (Falco) backed by a SQLite database.
 
