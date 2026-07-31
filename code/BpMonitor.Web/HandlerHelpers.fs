@@ -99,26 +99,29 @@ module HandlerHelpers =
         routeStr ctx "id" |> Option.defaultValue "<missing>"
       )
 
+  /// Matches an HttpContext whose "id" route segment parses as an int.
+  let private (|RouteId|_|) (ctx: HttpContext) : int option = routeInt ctx "id"
+
   /// Resolves the "id" route segment to an int, logging and returning 400 for a noninteger id.
   let withRouteId (handlerName: string) (handler: int -> HttpContext -> Task) : HttpContext -> Task =
     fun ctx ->
-      match routeInt ctx "id" with
-      | None ->
+      match ctx with
+      | RouteId id -> handler id ctx
+      | _ ->
         logBadRouteId handlerName ctx
         badRequest ctx
-      | Some id -> handler id ctx
 
   /// Resolves the "id" route segment to a FamilyMember, logging and returning
   /// 400 for a noninteger id or 404 when no member with that id exists.
   let withRouteMember (handlerName: string) (handler: FamilyMember -> HttpContext -> Task) : HttpContext -> Task =
     fun ctx ->
-      match routeInt ctx "id" with
-      | None ->
-        logBadRouteId handlerName ctx
-        badRequest ctx
-      | Some id ->
+      match ctx with
+      | RouteId id ->
         match (memberRepo ctx).GetById(id) with
         | None ->
           (logger ctx).LogWarning("{Handler}: member {Id} not found", handlerName, id)
           notFound ctx
         | Some m -> handler m ctx
+      | _ ->
+        logBadRouteId handlerName ctx
+        badRequest ctx

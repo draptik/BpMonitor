@@ -40,11 +40,17 @@ module TrendPeriod =
 
   let private isoWeekKey (w: IsoWeek) = $"{w.Year}-W{w.Week:D2}"
 
+  /// Matches a string that parses as an int.
+  let private (|Int|_|) (s: string) : int option =
+    match Int32.TryParse s with
+    | true, v -> Some v
+    | _ -> None
+
   let private parseIsoWeekKey (key: string) : IsoWeek option =
     match key.Split('-') with
-    | [| y; w |] when w.Length >= 2 && w[0] = 'W' ->
-      match Int32.TryParse y, Int32.TryParse(w[1..]) with
-      | (true, year), (true, week) when week >= 1 && week <= 53 -> Some { Year = year; Week = week }
+    | [| Int year; w |] when w.Length >= 2 && w[0] = 'W' ->
+      match w[1..] with
+      | Int week when week >= 1 && week <= 53 -> Some { Year = year; Week = week }
       | _ -> None
     | _ -> None
 
@@ -52,15 +58,12 @@ module TrendPeriod =
 
   let private parseMonthKey (key: string) : YearMonth option =
     match key.Split('-') with
-    | [| y; m |] ->
-      match Int32.TryParse y, Int32.TryParse m with
-      | (true, year), (true, month) when month >= 1 && month <= 12 -> Some { Year = year; Month = month }
-      | _ -> None
+    | [| Int year; Int month |] when month >= 1 && month <= 12 -> Some { Year = year; Month = month }
     | _ -> None
 
   let private parseYearKey (key: string) : int option =
-    match Int32.TryParse key with
-    | true, year when year >= 1000 && year <= 9999 -> Some year
+    match key with
+    | Int year when year >= 1000 && year <= 9999 -> Some year
     | _ -> None
 
   let private previousIsoWeek (w: IsoWeek) : IsoWeek =
