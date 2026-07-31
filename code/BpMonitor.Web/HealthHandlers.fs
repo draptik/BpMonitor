@@ -2,7 +2,6 @@ namespace BpMonitor.Web
 
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
-open Microsoft.EntityFrameworkCore
 open Microsoft.Extensions.Logging
 
 /// Anonymous liveness + database-reachability probe for container orchestrators.

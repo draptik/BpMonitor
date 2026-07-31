@@ -114,7 +114,7 @@ module ReadingHandlers =
         (ReadingViews.recent m chartHtml loadedReadings windowStart now recentZoomShortcutDays hasOlderHistory)
         ctx)
 
-  // The "Load full history" button's target (ReadingViews.recentChartContainer): an
+  // The "Load full history" button's target (ReadingViews.recentChartContainer): a
   // htmx fragment that re-renders the chart container with the member's *entire* history
   // loaded (still focused on the last 30 days), so panning works all the way back. Same
   // outerHTML-swap pattern as /trends' `trendsPanel`.

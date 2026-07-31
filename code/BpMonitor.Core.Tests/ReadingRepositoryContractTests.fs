@@ -1,6 +1,5 @@
 module ReadingRepositoryContractTests
 
-open System
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core

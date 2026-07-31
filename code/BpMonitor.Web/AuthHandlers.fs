@@ -85,7 +85,7 @@ module AuthHandlers =
 
   /// Resolves both the authenticated member and the "id" route segment, passing both to
   /// `handler`. Redirects to /login if the member cannot be resolved; returns 400 for a
-  /// non-integer id.
+  /// noninteger id.
   let withMemberAndRouteId
     (handlerName: string)
     (handler: FamilyMember -> int -> HttpContext -> Task)
