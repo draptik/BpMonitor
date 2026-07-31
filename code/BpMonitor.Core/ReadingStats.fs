@@ -89,7 +89,7 @@ module ReadingStats =
         MaxDiastolic = maxDia })
 
   let private dailyAveragesWithCount =
-    buildAggregated (fun r -> r.Timestamp.ToLocalTime().Date) id
+    buildAggregated _.Timestamp.ToLocalTime().Date id
 
   /// Groups readings by local calendar date, sorted ascending.
   /// The returned reading's Timestamp is midnight of that local date. Comments are dropped.

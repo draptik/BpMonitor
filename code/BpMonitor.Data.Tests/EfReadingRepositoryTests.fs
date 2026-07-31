@@ -208,7 +208,6 @@ let ``GetAll translates MemberId filter to SQL WHERE clause`` () =
   log.Clear()
   repo.GetAll(defaultMemberId) |> ignore
 
-  let selectSql =
-    log |> Seq.filter (fun s -> s.Contains("SELECT")) |> String.concat " "
+  let selectSql = log |> Seq.filter _.Contains("SELECT") |> String.concat " "
 
   Assert.Contains("WHERE", selectSql)
