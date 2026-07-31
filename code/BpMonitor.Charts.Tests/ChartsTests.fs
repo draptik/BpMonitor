@@ -298,7 +298,7 @@ let ``toHtmlRecent does not drop any reading, even when split across dash/solid 
 
   let coveredLabels (name: string) =
     Regex.Matches(html, $"\"name\":\"{name}\".*?\"x\":\\[([^\\]]*)\\]")
-    |> Seq.collect (fun m -> m.Groups[1].Value.Split(','))
+    |> Seq.collect _.Groups[1].Value.Split(',')
     |> Set.ofSeq
 
   test <@ (coveredLabels "Systolic").Count = readings.Length @>

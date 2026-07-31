@@ -191,7 +191,6 @@ let ``GetById translates Id filter to SQL WHERE clause`` () =
   log.Clear()
   repo.GetById(added.Id) |> ignore
 
-  let selectSql =
-    log |> Seq.filter (fun s -> s.Contains("SELECT")) |> String.concat " "
+  let selectSql = log |> Seq.filter _.Contains("SELECT") |> String.concat " "
 
   Assert.Contains("WHERE", selectSql)
