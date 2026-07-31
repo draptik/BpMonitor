@@ -36,7 +36,7 @@
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.0.6" />
   </ItemGroup>
   <ItemGroup Label="Test - PBT">
-    <PackageVersion Include="FsCheck" Version="3.3.3" />
+    <PackageVersion Include="FsCheck" Version="3.3.4" />
     <PackageVersion Include="FsCheck.Xunit.v3" Version="3.3.3" />
   </ItemGroup>
   <ItemGroup Label="Test - E2E">
