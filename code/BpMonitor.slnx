@@ -12,6 +12,7 @@
     <File Path="..\docs\adr\0004-sqlite-persistence.md" />
     <File Path="..\docs\adr\0005-multi-user-family-support.md" />
     <File Path="..\docs\adr\0006-per-member-authentication.md" />
+    <File Path="..\docs\adr\0007-unused-opens-custom-analyzer.md" />
   </Folder>
   <Folder Name="/Documentation/example-deploy/">
     <File Path="..\docs\example-deploy\bpmonitor-data.volume" />
