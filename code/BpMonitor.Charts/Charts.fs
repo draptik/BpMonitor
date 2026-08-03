@@ -120,7 +120,14 @@ module BpChart =
       SpikeThickness = 2,
       SpikeDash = StyleParam.DrawingStyle.Solid,
       SpikeMode = StyleParam.SpikeMode.Across,
-      SpikeSnap = StyleParam.SpikeSnap.Data
+      SpikeSnap = StyleParam.SpikeSnap.Data,
+      // Plotly auto-detects this axis as a date type and independently auto-formats
+      // both the tick labels and the unified-hover spike label; without this, the
+      // spike label defaults to Plotly's own locale format ("Aug 3, 2026, 12:45")
+      // rather than matching the rest of the app's yyyy-MM-dd HH:mm convention.
+      // %a (day name) is added here only, not in the tick labels, since the ticks
+      // already carry enough date context and adding it there would crowd them.
+      HoverFormat = "%Y-%m-%d %H:%M (%a)"
     )
 
   // FixedRange disables zoom on this axis — the y-axis is pinned to a clinical 0-200 mmHg
