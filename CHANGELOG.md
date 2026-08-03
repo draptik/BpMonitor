@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-08-03
+
 ### Changed
 
 - Recent chart's hover box now shows the day name alongside the date and time (e.g. `2026-08-03 12:45 (Mon)`)
@@ -393,7 +395,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/draptik/BpMonitor/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/draptik/BpMonitor/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/draptik/BpMonitor/compare/v1.7.8...v1.8.0
 [1.7.8]: https://github.com/draptik/BpMonitor/compare/v1.7.7...v1.7.8
