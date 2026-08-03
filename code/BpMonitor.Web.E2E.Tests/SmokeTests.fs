@@ -176,3 +176,45 @@ type RememberMeCheckedCookieTests(fixture: WebAppFixture) =
 
       Assert.Contains("expires=", setCookieHeader)
     }
+
+/// Plotly auto-detects /recent's x-axis as a date type and would otherwise apply
+/// its own locale-formatted default ("Aug 3, 2026, 12:45") to the unified hover
+/// label, independently of the tick labels — guards the explicit HoverFormat
+/// (Charts.fs's recentXAxis) that keeps it on the app's yyyy-MM-dd HH:mm convention.
+type RecentChartHoverFormatTests(fixture: WebAppFixture) =
+  interface IClassFixture<WebAppFixture>
+
+  [<Fact>]
+  member _.``recent chart hover shows date, time, and day name``() : Task =
+    task {
+      let! page = fixture.Browser.NewPageAsync()
+
+      do! TestAccount.claimAndLogin fixture.BaseUrl page
+
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
+      let ts = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm")
+      do! page.FillAsync("#Timestamp", ts)
+      do! page.FillAsync("#Systolic", "118")
+      do! page.FillAsync("#Diastolic", "76")
+      do! page.FillAsync("#HeartRate", "62")
+      do! page.ClickAsync("form[action='/readings'] button[type=submit]")
+      do! page.WaitForURLAsync($"{fixture.BaseUrl}/recent")
+
+      let! _ = page.WaitForSelectorAsync(".chart .plot-container")
+
+      let! rectJson =
+        page.EvalOnSelectorAsync<string>(
+          ".chart .scatterlayer path.point",
+          "el => { const r = el.getBoundingClientRect(); return JSON.stringify({x: r.x + r.width/2, y: r.y + r.height/2}); }"
+        )
+
+      let rect = System.Text.Json.JsonDocument.Parse(rectJson).RootElement
+      let px = rect.GetProperty("x").GetSingle()
+      let py = rect.GetProperty("y").GetSingle()
+      do! page.Mouse.MoveAsync(px, py)
+      do! page.WaitForTimeoutAsync(500.0f)
+
+      let! headerText = page.Locator(".chart .hoverlayer .axistext text").TextContentAsync()
+      let expected = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm (ddd)")
+      Assert.Equal(expected, headerText)
+    }

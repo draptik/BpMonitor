@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Recent chart's hover box now shows the day name alongside the date and time (e.g. `2026-08-03 12:45 (Mon)`)
+
 ## [1.9.0] - 2026-07-30
 
 ### Added
