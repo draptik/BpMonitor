@@ -78,10 +78,11 @@ Keep `docs/architecture.md` and `AGENTS.md` in sync with every structural change
 
 Follow the `git-workflow` skill (`.claude/skills/git-workflow/SKILL.md`). Key rules:
 - Gitmoji commit messages
-- Feature branches only, never commit to `main`
+- Feature branches only, never commit to `main` *(enforced by hook)*
 - Squash merge via PR
 - Keep PRs small and focused
-- **NEVER add `Co-Authored-By:` trailers to commits** — no Claude attribution, no exceptions
+- **NEVER add `Co-Authored-By:` trailers to commits** — no Claude attribution, no exceptions *(enforced by hook)*
+- No "Generated with Claude Code" footer or "Test plan" section in PR bodies *(enforced by hook)*
 
 **Before making any code changes**, always create a feature branch first:
 
@@ -90,6 +91,11 @@ git checkout -b feat/<short-description>
 ```
 
 Never start work on `main`. Creating the branch is the first step, not an afterthought.
+
+`.claude/hooks/` mechanically enforces the branch-first, no-attribution, PR-preflight
+(CHANGELOG/docs sync reminders), and `/verify-frontend` rules described here and in
+`.claude/skills/verify-frontend/SKILL.md`; `.husky/` handles formatting checks and blocks
+commits on `main`.
 
 ## F# Style Conventions
 
