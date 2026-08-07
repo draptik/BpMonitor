@@ -15,6 +15,39 @@
             "if": "Bash(gh *)",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/git-workflow-reminder.sh\"",
             "statusMessage": "Checking git-workflow rules..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git *)",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-claude-attribution.sh\"",
+            "statusMessage": "Checking for Claude attribution..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(gh *)",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-claude-attribution.sh\"",
+            "statusMessage": "Checking for Claude attribution..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/require-feature-branch.sh\"",
+            "statusMessage": "Checking branch..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/verify-frontend-reminder.sh\"",
+            "statusMessage": "Checking frontend verification..."
           }
         ]
       }

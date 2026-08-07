@@ -20,6 +20,19 @@ case "$cmd" in
     ;;
   *"gh pr create"*)
     reminder="git-workflow skill: PR title must be gitmoji + conventional commits (it becomes the squash-merge commit). PR body is a Summary section only — no Test plan section, no Generated-with-Claude-Code footer."
+    preflight=""
+    if ! git diff --name-only main...HEAD 2>/dev/null | grep -q "^CHANGELOG.md$"; then
+      preflight="$preflight CHANGELOG.md has no changes on this branch — add an [Unreleased] bullet if this is user-facing."
+    fi
+    if git diff --name-only --diff-filter=A main...HEAD 2>/dev/null | grep -q "\.fsproj$"; then
+      touched=$(git diff --name-only main...HEAD 2>/dev/null)
+      if ! printf '%s' "$touched" | grep -q "^docs/architecture.md$" || ! printf '%s' "$touched" | grep -q "^AGENTS.md$"; then
+        preflight="$preflight A new project was added — update both docs/architecture.md and AGENTS.md in this branch."
+      fi
+    fi
+    if [ -n "$preflight" ]; then
+      reminder="$reminder$preflight"
+    fi
     ;;
   *"gh pr merge"*)
     reminder="git-workflow skill: do not merge until \`gh pr checks <number> --watch\` shows all checks green. Squash-merge only."
