@@ -2,6 +2,7 @@ module BpMonitor.Web.E2E.SmokeTests
 
 open System
 open System.Collections.Generic
+open System.Globalization
 open System.Net.Http
 open System.Threading.Tasks
 open BpMonitor.Web.E2E
@@ -192,7 +193,8 @@ type RecentChartHoverFormatTests(fixture: WebAppFixture) =
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
-      let ts = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm")
+      let now = System.DateTime.Now
+      let ts = now.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)
       do! page.FillAsync("#Timestamp", ts)
       do! page.FillAsync("#Systolic", "118")
       do! page.FillAsync("#Diastolic", "76")
@@ -215,6 +217,6 @@ type RecentChartHoverFormatTests(fixture: WebAppFixture) =
       do! page.WaitForTimeoutAsync(500.0f)
 
       let! headerText = page.Locator(".chart .hoverlayer .axistext text").TextContentAsync()
-      let expected = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm (ddd)")
+      let expected = now.ToString("yyyy-MM-dd HH:mm (ddd)", CultureInfo.InvariantCulture)
       Assert.Equal(expected, headerText)
     }
