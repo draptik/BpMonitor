@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Reordered sidebar and landing-page navigation: top group is now Add, Recent, Trends, History; Members moved into the bottom group alongside Export JSON, Export CSV, and Settings. The landing page now mirrors the sidebar's order and two-group layout.
+
 ## [1.10.1] - 2026-08-15
 
 ### Maintenance

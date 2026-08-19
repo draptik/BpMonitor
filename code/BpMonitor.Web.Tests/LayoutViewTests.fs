@@ -30,6 +30,27 @@ let ``non-admin does not see Members nav link`` () =
   test <@ not (html.Contains $"href=\"{Routes.members}\"") @>
 
 [<Fact>]
+let ``sidebar nav links appear in order: Add, Recent, Trends, History, Export JSON, Export CSV, Settings, Members`` () =
+  let admin = { defaultMember with IsAdmin = true }
+  let html = renderHtml (ReadingViews.landing admin)
+
+  let indexOf (href: string) = html.IndexOf $"href=\"{href}\""
+
+  let indices =
+    [ Routes.add
+      Routes.recent
+      Routes.trends
+      Routes.history
+      Routes.exportJson
+      Routes.exportCsv
+      Routes.settings
+      Routes.members ]
+    |> List.map indexOf
+
+  test <@ indices |> List.forall (fun i -> i >= 0) @>
+  test <@ indices = List.sort indices @>
+
+[<Fact>]
 let ``every page has a BpMonitor footer`` () =
   let pages =
     [ renderHtml (ReadingViews.landing defaultMember)

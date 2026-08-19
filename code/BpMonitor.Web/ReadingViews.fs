@@ -30,12 +30,14 @@ module ReadingViews =
         Elem.div
           [ Attr.class' "home-actions" ]
           [ actionButton Routes.add "➕" "Add reading"
-            actionButton Routes.history "📜" "History"
-            actionButton Routes.trends "📈" "Trends"
             actionButton Routes.recent "🕒" "Recent"
-            actionButton Routes.settings "⚙️" "Settings"
-            downloadActionButton Routes.exportJson "⬇️" "Export JSON"
+            actionButton Routes.trends "📈" "Trends"
+            actionButton Routes.history "📜" "History" ]
+        Elem.div
+          [ Attr.class' "home-actions home-actions-secondary" ]
+          [ downloadActionButton Routes.exportJson "⬇️" "Export JSON"
             downloadActionButton Routes.exportCsv "⬇️" "Export CSV"
+            actionButton Routes.settings "⚙️" "Settings"
             if m.IsAdmin then
               actionButton Routes.members "👥" "Members" ] ]
 

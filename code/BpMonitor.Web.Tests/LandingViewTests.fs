@@ -57,3 +57,34 @@ let ``non-admin does not see a Members action button on landing`` () =
   let nonAdmin = { defaultMember with IsAdmin = false }
   let html = renderHtml (ReadingViews.landing nonAdmin)
   test <@ occurrences $"href=\"{Routes.members}\"" html = 0 @>
+
+[<Fact>]
+let ``landing renders two home-actions groups`` () =
+  let html = renderHtml (ReadingViews.landing defaultMember)
+  test <@ occurrences "class=\"home-actions" html = 2 @>
+
+[<Fact>]
+let ``landing action buttons appear in order: Add, Recent, Trends, History, Export JSON, Export CSV, Settings, Members``
+  ()
+  =
+  let admin = { defaultMember with IsAdmin = true }
+  let html = renderHtml (ReadingViews.landing admin)
+  // the sidebar renders first with the same hrefs, so anchor to the landing
+  // action grid by slicing from its first container onward
+  let landingHtml = html.Substring(html.IndexOf "class=\"home-actions\"")
+
+  let indexOf (href: string) = landingHtml.IndexOf $"href=\"{href}\""
+
+  let indices =
+    [ Routes.add
+      Routes.recent
+      Routes.trends
+      Routes.history
+      Routes.exportJson
+      Routes.exportCsv
+      Routes.settings
+      Routes.members ]
+    |> List.map indexOf
+
+  test <@ indices |> List.forall (fun i -> i >= 0) @>
+  test <@ indices = List.sort indices @>
