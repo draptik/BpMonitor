@@ -8,12 +8,12 @@ open BpMonitor.Core
 open BpMonitor.Web
 open HandlerTestHelpers
 
-let private echoId: int -> Microsoft.AspNetCore.Http.HttpContext -> Task =
+let private echoId: int -> HttpContext -> Task =
   fun id ctx ->
     ctx.Response.StatusCode <- 200
     ctx.Response.WriteAsync(string id)
 
-let private echoMember: FamilyMember -> Microsoft.AspNetCore.Http.HttpContext -> Task =
+let private echoMember: FamilyMember -> HttpContext -> Task =
   fun m ctx ->
     ctx.Response.StatusCode <- 200
     ctx.Response.WriteAsync(m.Name)

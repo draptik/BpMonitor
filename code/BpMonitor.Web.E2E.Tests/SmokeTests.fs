@@ -193,7 +193,7 @@ type RecentChartHoverFormatTests(fixture: WebAppFixture) =
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
-      let now = System.DateTime.Now
+      let now = DateTime.Now
       let ts = now.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)
       do! page.FillAsync("#Timestamp", ts)
       do! page.FillAsync("#Systolic", "118")
