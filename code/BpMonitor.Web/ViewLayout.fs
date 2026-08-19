@@ -137,16 +137,16 @@ module ViewLayout =
               [ Elem.ul
                   []
                   [ navActionLink active Routes.add "➕" "Add"
-                    navLink active Routes.history "📜" "History"
                     navLink active Routes.recent "🕒" "Recent"
                     navLink active Routes.trends "📈" "Trends"
-                    if isAdmin then
-                      navLink active Routes.members "👥" "Members" ]
+                    navLink active Routes.history "📜" "History" ]
                 Elem.ul
                   [ Attr.class' "sidebar-bottom" ]
-                  [ navLink active Routes.settings "⚙️" "Settings"
-                    navDownloadLink Routes.exportJson "⬇️" "Export JSON"
-                    navDownloadLink Routes.exportCsv "⬇️" "Export CSV" ] ]
+                  [ navDownloadLink Routes.exportJson "⬇️" "Export JSON"
+                    navDownloadLink Routes.exportCsv "⬇️" "Export CSV"
+                    navLink active Routes.settings "⚙️" "Settings"
+                    if isAdmin then
+                      navLink active Routes.members "👥" "Members" ] ]
             Elem.div
               [ Attr.class' "content" ]
               [ Elem.main [ Attr.class' "container" ] content
