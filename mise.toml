@@ -24,7 +24,14 @@ depends = ["lint:md", "lint:js", "lint:ts", "lint:shell"]
 
 [tasks.screenshots]
 description = "Regenerates docs/screenshots/*.png from a fresh self-seeded demo instance (run before cutting a release)"
-run = "dotnet fsi scripts/generate-screenshots.fsx"
+# Builds BpMonitor.Web.E2E.Tests first so its Microsoft.Playwright.dll is present and
+# current — the script loads Playwright from there instead of its own version pin.
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+dotnet build code/BpMonitor.Web.E2E.Tests --configuration Release
+dotnet fsi scripts/generate-screenshots.fsx
+'''
 
 [tasks."test:e2e-setup"]
 description = "One-time local setup: installs the Playwright Chromium browser used by BpMonitor.Web.E2E.Tests"
