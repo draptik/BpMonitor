@@ -87,6 +87,22 @@ type ValidationError =
     | SystolicOutOfRange  of int
     | DiastolicOutOfRange of int
     | HeartRateOutOfRange of int
+
+type Medication = {
+    Id:         int
+    MemberId:   int
+    Name:       string          // short label shown on the timeline row — "HCTZ"
+    FullName:   string option   // long form, hover tooltip — "hydrochlorothiazide"
+    Comment:    string option
+    StartDate:  DateOnly
+    EndDate:    DateOnly option // None = ongoing
+    CreatedAt:  DateTimeOffset
+    ModifiedAt: DateTimeOffset
+}
+
+type MedicationError =
+    | NameIsEmpty
+    | EndDateBeforeStartDate
 ```
 
 ## Dependency Diagram
@@ -115,8 +131,9 @@ graph TD
 
 ### BpMonitor.Core
 
-- Domain models: `BloodPressureReading`, `BloodPressureReadingUnvalidated`, `FamilyMember`
-- Repository interfaces: `IReadingRepository` (member-scoped), `IFamilyMemberRepository`
+- Domain models: `BloodPressureReading`, `BloodPressureReadingUnvalidated`, `FamilyMember`, `Medication`
+- Repository interfaces: `IReadingRepository` (member-scoped), `IFamilyMemberRepository`, `IMedicationRepository` (member-scoped)
+- `Medication.parse` — applicative validation (name non-empty, end date on/after start date); `Medication.overlapping from until` — filters to medications whose `[StartDate, EndDate]` interval intersects a date window (ongoing medications, `EndDate = None`, always match forward)
 - `FamilyMember.hasActiveAdmin` — invariant: ≥1 member with `IsAdmin = true` and `IsActive = true`
 - `FamilyMember.isClaimed` — true when `PasswordHash` is `Some`
 - `GoalRange` — per-member systolic/diastolic chart goal range; `GoalRange.defaults` (90–140 / 60–90) and `GoalRange.create` (enforces min < max for each pair)
@@ -127,16 +144,18 @@ graph TD
 
 ### BpMonitor.Data
 
-- EF Core `DbContext`: `Readings` (`ReadingRecord`) and `Members` (`MemberRecord`)
+- EF Core `DbContext`: `Readings` (`ReadingRecord`), `Members` (`MemberRecord`), `Medications` (`MedicationRecord`)
 - SQLite with WAL mode + 5 s busy timeout
 - `IReadingRepository`: `EfReadingRepository` (filters by `MemberId`), `InMemoryReadingRepository`
 - `IFamilyMemberRepository`: `EfFamilyMemberRepository`, `InMemoryFamilyMemberRepository`
-- `SchemaMigrations.apply` — manual migrations (EF Core migrations don't support F#); `ensureActiveAdmin` promotes lowest-Id member when no active admin exists
-- `DemoSeeder.seedIfEmpty` — seeds Simpson-family data (from `DemoData` in Core) when `BpMonitor:SeedDemoData=true` and the store is empty; idempotent
+- `IMedicationRepository`: `EfMedicationRepository` (filters by `MemberId`), `InMemoryMedicationRepository`
+- `SchemaMigrations.apply` — manual migrations (EF Core migrations don't support F#); `ensureActiveAdmin` promotes lowest-Id member when no active admin exists; creates the `Medications` table on legacy databases
+- `DemoSeeder.seedIfEmpty` — seeds Simpson-family data (from `DemoData` in Core) when `BpMonitor:SeedDemoData=true` and the store is empty; idempotent; Ned Flanders additionally gets a demo medication timeline (an ongoing HCTZ + a completed lisinopril course)
 
 ### BpMonitor.Charts
 
 - Plotly.NET chart generation — `BpChart.toHtml goal readings` (history/recent line chart) and `BpChart.toHtmlDashed goal gran aggregated` (trends dashed chart)
+- `BpChart.toHtmlMedications showScrubber rangeLow rangeHigh medications` — the Medications Timeline (Wegier et al. 2021 Fig. 5): one thick horizontal bar per medication spanning `StartDate`→`EndDate` (ongoing medications reach `rangeHigh`) on a date axis sized to match the BP chart's margins; `showScrubber` adds the same green spike line as `/recent`'s BP chart (`SpikeSnap = Cursor`, not `Data`, so it tracks the cursor rather than snapping to a medication's own start/end date); returns `""` for an empty medication list so callers skip rendering the panel
 - Returns a chart HTML fragment embedded directly into the page by the calling handler (`ReadingHandlers.fs`)
 - `goal: GoalRange` renders a translucent horizontal background band per series (systolic mint `#008471`, diastolic cocoa `#9C652B`) behind the data, matching each series' line color — the "like-with-like" goal-range design from Wegier et al. 2021 (`docs/resources/12911_2021_Article_1598.pdf`, Fig. 3)
 - Depends on Core only
@@ -154,9 +173,10 @@ graph TD
 - **Auth:** ASP.NET Core cookie auth; per-member PBKDF2-SHA256 password; unclaimed members set password on first login; cookie carries `NameIdentifier`/`Name`/`Role` claims
 - **Cookie policy:** `SameSite=Lax` (not `Strict`) so the cookie still rides along on a top-level navigation from outside the site (e.g. tapping a link in another app) — safe because there's no antiforgery token to leak via cross-site GET, and `Lax` still withholds the cookie on cross-site POSTs. A "Remember me" checkbox on login sets `IsPersistent` on the auth ticket; duration is `BpMonitor:RememberMeDays` (default 30, clamped to 1–400 — 400 is the hard cap Firefox/Chrome place on cookie lifetime), sliding on each request. Unchecked, sign-in produces an ordinary session cookie. Data Protection keys (which encrypt/validate the cookie) are persisted outside the container via `BpMonitor:DataProtectionKeyPath` — unset, they live in the container's ephemeral home dir and a "remember me" cookie stops validating on every redeploy
 - **Isolation:** each member sees only their own readings; admins manage members via `/members` but not their readings
-- **Routes:** `/` hub, `/add`, `/history`, `/recent`, `/recent/full`, `/trends`, `/settings`, `/members`, `/members/{id}/edit`, `/members/{id}/reset-password`, `/login`, `/login/{id}`, `POST /logout`, `GET /health` (anonymous)
+- **Routes:** `/` hub, `/add`, `/history`, `/recent`, `/recent/full`, `/trends`, `/settings`, `/medications`, `/medications/{id}/edit`, `/medications/{id}`, `/medications/{id}/delete`, `/members`, `/members/{id}/edit`, `/members/{id}/reset-password`, `/login`, `/login/{id}`, `POST /logout`, `GET /health` (anonymous)
 - **`/health`:** anonymous liveness + SQLite-reachability probe (`HealthHandlers.fs`); `200` with `{status, version, database}` JSON when `DbContext.Database.CanConnect()` succeeds, `503` otherwise; polled by the Containerfile `HEALTHCHECK` and the example Podman/Compose deploys, and by `BpMonitor.Web.E2E.Tests`' readiness wait — successful polls are logged at `Verbose` (dropped) to avoid flooding stdout
-- **`/settings`:** self-service page where the logged-in member edits their own chart goal range (`GoalRange`); validated via `GoalRange.create` (min < max per pair)
+- **`/settings`:** two self-service sections under one page shell (`SettingsViews.settings`): a Goal Range form (`MemberViews.goalRangeSection`) where the logged-in member edits their own chart goal range (`GoalRange`, validated via `GoalRange.create`, min < max per pair), and a Medications section (`MedicationViews.medicationsSection`) — a table of the member's medications plus an add form, backed by `/medications*` CRUD routes (`MedicationHandlers.fs`)
+- **Medications Timeline:** a collapsible panel (`MedicationViews.timelinePanel`, `<details data-persist-key>`) rendered below the BP chart on `/recent` and `/history` — Wegier et al. 2021 Fig. 5's medication timeline. Collapsed by default; open/closed state is remembered per-panel across page loads via `wwwroot/details-memory.js` (`localStorage`). Not shown on `/trends`, whose x-axis is categorical period labels rather than dates. `wwwroot/medications-sync.js` keeps the timeline's x-axis in sync with the BP chart above it (pan/zoom, including the Last 7/30 days buttons) and mirrors the scrubber spike between the two charts in both directions, reusing `recent-scrubber.js`'s `d2l`/`l2p` pixel-geometry technique; `wwwroot/plot-ready.js`'s `whenPlotReady` takes an `index` parameter (0 = BP chart, 1 = timeline) since the page now has two Plotly divs
 - **`/recent`:** raw readings loaded for the last 365 days (`recentLoadWindowDays`), chart and value strip focused on the last 30 days (`recentChartWindowDays`) — panning the chart left reveals the rest of the loaded window. Above the chart, a Fig. 5-style (Wegier et al. 2021) "value strip" table lists every Systolic/Diastolic value in the loaded window in chronological order, sized to match the chart's rendered width with no horizontal scrolling; cells outside the 30-day focus start hidden and un-hide as the chart pans. Each value is color-coded against the member's `GoalRange` (`GoalRange.classifySystolic`/`classifyDiastolic`): above the goal max renders orange, below the goal min renders blue, in-range stays neutral. When readings older than the 365-day load window exist, a "Load full history" button htmx-swaps the chart container (`GET /recent/full`, `ReadingHandlers.recentFull`) for one rendered from the member's entire history, lifting the cap for that page view
 - **`/trends`:** granularity selector (Weekly/Monthly/Yearly) + htmx-swapped period fragments; stats from `ReadingStats` (Core); `TimeProvider` injected for testability
 - `protect` / `protectAdmin` combinators; active member resolved from `ClaimsPrincipal`

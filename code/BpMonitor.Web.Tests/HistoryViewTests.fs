@@ -8,7 +8,8 @@ open ViewTestHelpers
 
 [<Fact>]
 let ``history renders reading values, chart div and nav links`` () =
-  let html = renderHtml (ReadingViews.history defaultMember "" [ sample ])
+  let html =
+    renderHtml (ReadingViews.history defaultMember "" [ sample ] (Text.raw ""))
 
   test <@ html.Contains "123" @>
   test <@ html.Contains "after walk" @>
@@ -45,7 +46,8 @@ let ``view encodes user-supplied content`` () =
     { sample with
         Comments = Some "<script>x</script>" }
 
-  let html = renderHtml (ReadingViews.history defaultMember "" [ nasty ])
+  let html =
+    renderHtml (ReadingViews.history defaultMember "" [ nasty ] (Text.raw ""))
 
   test <@ not (html.Contains "<script>x</script>") @>
   test <@ html.Contains "&lt;script&gt;" @>

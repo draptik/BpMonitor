@@ -108,34 +108,29 @@ module MemberViews =
                     Text.raw " Active" ] ]
             ViewLayout.formActions Routes.members ] ]
 
-  /// Self-service goal-range settings page: lets the logged-in member edit their own
-  /// systolic/diastolic goal range, rendered as color-coded bands on their charts.
+  /// Self-service goal-range settings fragment: lets the logged-in member edit their
+  /// own systolic/diastolic goal range, rendered as color-coded bands on their charts.
   /// Field values are raw strings (not a validated GoalRange) so that a failed submit
   /// redisplays exactly what the user typed — mirroring ReadingViews.readingForm's
   /// Binding.FormModel redisplay — instead of falling back to the stale persisted goal.
-  let settingsForm
-    (memberName: string)
-    (isAdmin: bool)
+  /// A fragment (not a full page) so `/settings` can compose it with
+  /// `MedicationViews.medicationsSection` under one page shell (`SettingsViews.settings`).
+  let goalRangeSection
     (errors: string list)
     (sysMin: string)
     (sysMax: string)
     (diaMin: string)
     (diaMax: string)
-    : XmlNode =
-    ViewLayout.layout
-      Routes.settings
-      memberName
-      isAdmin
-      "Goal Range"
-      [ Elem.h1 [] [ Text.raw "Goal Range" ]
-        ViewLayout.errorBox errors
-        Elem.form
-          [ Attr.method "post"; Attr.action Routes.settings ]
-          [ ViewLayout.field "Systolic min" FormFields.systolicGoalMin sysMin "number"
-            ViewLayout.field "Systolic max" FormFields.systolicGoalMax sysMax "number"
-            ViewLayout.field "Diastolic min" FormFields.diastolicGoalMin diaMin "number"
-            ViewLayout.field "Diastolic max" FormFields.diastolicGoalMax diaMax "number"
-            ViewLayout.formActions Routes.history ] ]
+    : XmlNode list =
+    [ Elem.h2 [] [ Text.raw "Goal Range" ]
+      ViewLayout.errorBox errors
+      Elem.form
+        [ Attr.method "post"; Attr.action Routes.settings ]
+        [ ViewLayout.field "Systolic min" FormFields.systolicGoalMin sysMin "number"
+          ViewLayout.field "Systolic max" FormFields.systolicGoalMax sysMax "number"
+          ViewLayout.field "Diastolic min" FormFields.diastolicGoalMin diaMin "number"
+          ViewLayout.field "Diastolic max" FormFields.diastolicGoalMax diaMax "number"
+          ViewLayout.formActions Routes.history ] ]
 
   /// Members page: list of family members with Edit/Reset-password buttons and an add form.
   /// Pass non-empty `errors` to show validation errors above the add form.

@@ -69,6 +69,8 @@ module ViewLayout =
          Elem.script [ Attr.src "/chart-hover.js"; Attr.create "defer" "" ] []
          Elem.script [ Attr.src "/recent-scrubber.js"; Attr.create "defer" "" ] []
          Elem.script [ Attr.src "/recent-zoom.js"; Attr.create "defer" "" ] []
+         Elem.script [ Attr.src "/medications-sync.js"; Attr.create "defer" "" ] []
+         Elem.script [ Attr.src "/details-memory.js"; Attr.create "defer" "" ] []
          Elem.script [ Attr.src "/trends-scroll.js"; Attr.create "defer" "" ] []
          Elem.link [ Attr.rel "stylesheet"; Attr.href "/pico.min.css" ]
          Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ]

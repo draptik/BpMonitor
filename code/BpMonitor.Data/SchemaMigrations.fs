@@ -100,6 +100,25 @@ module SchemaMigrations =
       )
       |> ignore
 
+  /// Creates the Medications table if it does not already exist.
+  /// EnsureCreated() handles fresh databases, but existing databases that predate
+  /// the Medication entity need this explicit DDL.
+  let private createMedicationsTableIfMissing (ctx: BpMonitorDbContext) =
+    ctx.Database.ExecuteSqlRaw(
+      """CREATE TABLE IF NOT EXISTS "Medications" (
+        "Id" INTEGER NOT NULL CONSTRAINT "PK_Medications" PRIMARY KEY AUTOINCREMENT,
+        "MemberId" INTEGER NOT NULL,
+        "Name" TEXT NOT NULL,
+        "FullName" TEXT NULL,
+        "Comment" TEXT NULL,
+        "StartDate" TEXT NOT NULL,
+        "EndDate" TEXT NULL,
+        "CreatedAt" TEXT NOT NULL,
+        "ModifiedAt" TEXT NOT NULL
+      )"""
+    )
+    |> ignore
+
   let apply (ctx: BpMonitorDbContext) =
     ctx.Database.EnsureCreated() |> ignore
 
@@ -136,4 +155,13 @@ module SchemaMigrations =
 
     // Index for member-scoped reading queries (every GetAll/Update filters by MemberId).
     ctx.Database.ExecuteSqlRaw("CREATE INDEX IF NOT EXISTS \"idx_readings_memberid\" ON \"Readings\" (\"MemberId\")")
+    |> ignore
+
+    // Create the Medications table (no-op on fresh DBs where EnsureCreated already created it).
+    createMedicationsTableIfMissing ctx
+
+    // Index for member-scoped medication queries (every GetAll/Update filters by MemberId).
+    ctx.Database.ExecuteSqlRaw(
+      "CREATE INDEX IF NOT EXISTS \"idx_medications_memberid\" ON \"Medications\" (\"MemberId\")"
+    )
     |> ignore

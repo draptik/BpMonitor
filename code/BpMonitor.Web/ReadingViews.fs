@@ -41,8 +41,16 @@ module ReadingViews =
             if m.IsAdmin then
               actionButton Routes.members "👥" "Members" ] ]
 
-  /// History: chart above the readings' table.
-  let history (activeMember: FamilyMember) (chartHtml: string) (readings: BloodPressureReading list) : XmlNode =
+  /// History: chart above the readings' table, with the collapsible Medications Timeline
+  /// (Wegier et al. 2021 Fig. 5) rendered right below it, in document order — load-bearing
+  /// for wwwroot/plot-ready.js, whose `whenPlotReady` resolves the first `.js-plotly-plot`
+  /// it finds, so the BP chart must stay first.
+  let history
+    (activeMember: FamilyMember)
+    (chartHtml: string)
+    (readings: BloodPressureReading list)
+    (medicationsPanel: XmlNode)
+    : XmlNode =
     ViewLayout.layout
       Routes.history
       activeMember.Name
@@ -53,6 +61,7 @@ module ReadingViews =
           []
           [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw "Blood Pressure Graph" ]
             Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ]
+        medicationsPanel
         ViewLayout.readingsTable readings ]
 
   /// The swappable chart container: zoom/load-full buttons, value strip, chart, citation.
@@ -66,6 +75,7 @@ module ReadingViews =
     (now: System.DateTimeOffset)
     (zoomShortcutDays: (string * float) list)
     (showLoadFull: bool)
+    (medicationsPanel: XmlNode)
     : XmlNode =
     let valueStrip =
       // The strip lists every loaded reading (the chart's load window, see ReadingHandlers
@@ -170,7 +180,8 @@ module ReadingViews =
            Elem.p
              [ Attr.class' "chart-citation" ]
              [ Text.raw "Chart layout inspired by "
-               Elem.a [ Attr.href "https://doi.org/10.1186/s12911-021-01598-4" ] [ Text.raw "Wegier et al. 2021" ] ] ])
+               Elem.a [ Attr.href "https://doi.org/10.1186/s12911-021-01598-4" ] [ Text.raw "Wegier et al. 2021" ] ]
+           medicationsPanel ])
 
   /// Recent: chart of all readings, focused on the last 30 days, with a sys/dias value strip.
   let recent
@@ -181,6 +192,7 @@ module ReadingViews =
     (now: System.DateTimeOffset)
     (zoomShortcutDays: (string * float) list)
     (showLoadFull: bool)
+    (medicationsPanel: XmlNode)
     : XmlNode =
     ViewLayout.layout
       Routes.recent
@@ -188,7 +200,15 @@ module ReadingViews =
       activeMember.IsAdmin
       "Recent"
       [ Elem.h1 [] [ Text.raw "Recent" ]
-        recentChartContainer activeMember chartHtml allReadings windowStart now zoomShortcutDays showLoadFull ]
+        recentChartContainer
+          activeMember
+          chartHtml
+          allReadings
+          windowStart
+          now
+          zoomShortcutDays
+          showLoadFull
+          medicationsPanel ]
 
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
   /// above the fields when re-displaying after a failed submit.

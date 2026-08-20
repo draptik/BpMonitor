@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="ChartsTests.fs" />
+    <Compile Include="MedicationChartTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

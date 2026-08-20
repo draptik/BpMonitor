@@ -19,6 +19,9 @@ module HandlerHelpers =
   let memberRepo (ctx: HttpContext) =
     ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
 
+  let medicationRepo (ctx: HttpContext) =
+    ctx.RequestServices.GetRequiredService<IMedicationRepository>()
+
   let dbContext (ctx: HttpContext) =
     ctx.RequestServices.GetRequiredService<BpMonitorDbContext>()
 

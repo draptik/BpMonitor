@@ -24,3 +24,9 @@ module FormFields =
   let systolicGoalMax = "SystolicGoalMax"
   let diastolicGoalMin = "DiastolicGoalMin"
   let diastolicGoalMax = "DiastolicGoalMax"
+  // Medication form
+  let medicationName = "MedicationName"
+  let medicationFullName = "MedicationFullName"
+  let medicationComment = "MedicationComment"
+  let medicationStartDate = "MedicationStartDate"
+  let medicationEndDate = "MedicationEndDate"

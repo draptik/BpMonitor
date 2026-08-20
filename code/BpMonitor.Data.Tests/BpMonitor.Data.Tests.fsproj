@@ -6,8 +6,10 @@
 
   <ItemGroup>
     <Compile Include="InMemoryReadingRepositoryTests.fs" />
+    <Compile Include="InMemoryMedicationRepositoryTests.fs" />
     <Compile Include="EfReadingRepositoryTests.fs" />
     <Compile Include="EfFamilyMemberRepositoryTests.fs" />
+    <Compile Include="EfMedicationRepositoryTests.fs" />
     <Compile Include="SchemaMigrationsTests.fs" />
     <Compile Include="DemoSeederTests.fs" />
   </ItemGroup>

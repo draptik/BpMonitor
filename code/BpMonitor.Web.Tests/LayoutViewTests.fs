@@ -54,7 +54,7 @@ let ``sidebar nav links appear in order: Add, Recent, Trends, History, Export JS
 let ``every page has a BpMonitor footer`` () =
   let pages =
     [ renderHtml (ReadingViews.landing defaultMember)
-      renderHtml (ReadingViews.history defaultMember "" [ sample ])
+      renderHtml (ReadingViews.history defaultMember "" [ sample ] (Text.raw ""))
       renderHtml (ReadingViews.readingForm Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty) ]
 
   for html in pages do
@@ -65,7 +65,7 @@ let ``every page has a BpMonitor footer`` () =
 let ``every authenticated page shows the logout button`` () =
   let pages =
     [ renderHtml (ReadingViews.landing defaultMember)
-      renderHtml (ReadingViews.history defaultMember "" [ sample ])
+      renderHtml (ReadingViews.history defaultMember "" [ sample ] (Text.raw ""))
       renderHtml (ReadingViews.readingForm Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty) ]
 
   for html in pages do

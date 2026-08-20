@@ -7,3 +7,4 @@ type BpMonitorDbContext(options: DbContextOptions<BpMonitorDbContext>) =
 
   member this.Readings = this.Set<ReadingRecord>()
   member this.Members = this.Set<MemberRecord>()
+  member this.Medications = this.Set<MedicationRecord>()

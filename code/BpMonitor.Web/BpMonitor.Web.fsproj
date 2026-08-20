@@ -14,12 +14,15 @@
     <Compile Include="LoginViews.fs" />
     <Compile Include="ReadingViews.fs" />
     <Compile Include="MemberViews.fs" />
+    <Compile Include="MedicationViews.fs" />
+    <Compile Include="SettingsViews.fs" />
     <Compile Include="TrendViews.fs" />
     <Compile Include="HandlerHelpers.fs" />
     <Compile Include="HealthHandlers.fs" />
     <Compile Include="AuthHandlers.fs" />
     <Compile Include="ReadingHandlers.fs" />
     <Compile Include="MemberHandlers.fs" />
+    <Compile Include="MedicationHandlers.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

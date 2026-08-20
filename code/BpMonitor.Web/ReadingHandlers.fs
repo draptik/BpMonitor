@@ -70,11 +70,48 @@ module ReadingHandlers =
   let landing: HttpContext -> Task =
     withMember (fun m ctx -> htmlResponse (ReadingViews.landing m) ctx)
 
+  // ---------------------------------------------------------------------------
+  // Medications Timeline (Wegier et al. 2021 Fig. 5): shared by /history and /recent.
+  // ---------------------------------------------------------------------------
+
+  let private toLocalDateOnly (ts: System.DateTimeOffset) : System.DateOnly =
+    System.DateOnly.FromDateTime(ts.ToLocalTime().Date)
+
+  /// Renders the Medications Timeline panel for the given date span. `showScrubber`
+  /// mirrors the BP chart above it (spike on /recent, none on /history — see
+  /// BpChart.medicationsXAxis). Empty medication list renders nothing (see
+  /// MedicationViews.timelinePanel).
+  let private medicationsPanel
+    (m: FamilyMember)
+    (ctx: HttpContext)
+    (showScrubber: bool)
+    (rangeLow: System.DateTimeOffset)
+    (rangeHigh: System.DateTimeOffset)
+    : Falco.Markup.XmlNode =
+    let overlapping =
+      (medicationRepo ctx).GetAll(m.Id)
+      |> Medication.overlapping (toLocalDateOnly rangeLow) (toLocalDateOnly rangeHigh)
+
+    let chartHtml =
+      BpChart.toHtmlMedications showScrubber (Formats.formatLocal rangeLow) (Formats.formatLocal rangeHigh) overlapping
+
+    MedicationViews.timelinePanel chartHtml
+
   let history: HttpContext -> Task =
     withMember (fun m ctx ->
       let readings = sortedReadings m.Id ctx
       let chartHtml = BpChart.toHtml m.Goal readings
-      htmlResponse (ReadingViews.history m chartHtml readings) ctx)
+
+      // /history's BP chart autoranges to fit the readings (no explicit window, unlike
+      // /recent), so the timeline's own range is derived from the same readings here —
+      // the closest we can get to alignment without changing BpChart.toHtml's signature.
+      let rangeLow, rangeHigh =
+        match readings |> List.sortBy _.Timestamp with
+        | [] -> let now = (timeProvider ctx).GetUtcNow() in now, now
+        | sorted -> (List.head sorted).Timestamp, (List.last sorted).Timestamp
+
+      let panel = medicationsPanel m ctx false rangeLow rangeHigh
+      htmlResponse (ReadingViews.history m chartHtml readings panel) ctx)
 
   let private recentChartWindowDays = 30
 
@@ -109,9 +146,10 @@ module ReadingHandlers =
         allReadings |> List.exists (fun r -> r.Timestamp < loadWindowStart)
 
       let windowStart, chartHtml = renderRecentChart m now loadedReadings
+      let panel = medicationsPanel m ctx true windowStart now
 
       htmlResponse
-        (ReadingViews.recent m chartHtml loadedReadings windowStart now recentZoomShortcutDays hasOlderHistory)
+        (ReadingViews.recent m chartHtml loadedReadings windowStart now recentZoomShortcutDays hasOlderHistory panel)
         ctx)
 
   // The "Load full history" button's target (ReadingViews.recentChartContainer): a
@@ -130,9 +168,10 @@ module ReadingHandlers =
         |> List.sortByDescending _.Timestamp
 
       let windowStart, chartHtml = renderRecentChart m now allReadings
+      let panel = medicationsPanel m ctx true windowStart now
 
       htmlResponse
-        (ReadingViews.recentChartContainer m chartHtml allReadings windowStart now recentZoomShortcutDays false)
+        (ReadingViews.recentChartContainer m chartHtml allReadings windowStart now recentZoomShortcutDays false panel)
         ctx)
 
   let private renderTrendsData
@@ -198,15 +237,19 @@ module ReadingHandlers =
 
   let settings: HttpContext -> Task =
     withMember (fun m ctx ->
+      let medications = (medicationRepo ctx).GetAll(m.Id)
+
       htmlResponse
-        (MemberViews.settingsForm
+        (SettingsViews.settings
           m.Name
           m.IsAdmin
           []
           (string m.Goal.SystolicMin)
           (string m.Goal.SystolicMax)
           (string m.Goal.DiastolicMin)
-          (string m.Goal.DiastolicMax))
+          (string m.Goal.DiastolicMax)
+          medications
+          [])
         ctx)
 
   let updateSettings: HttpContext -> Task =
@@ -223,7 +266,11 @@ module ReadingHandlers =
 
         let renderErrors errors =
           ctx.Response.StatusCode <- 422
-          htmlResponse (MemberViews.settingsForm m.Name m.IsAdmin errors sysMinRaw sysMaxRaw diaMinRaw diaMaxRaw) ctx
+          let medications = (medicationRepo ctx).GetAll(m.Id)
+
+          htmlResponse
+            (SettingsViews.settings m.Name m.IsAdmin errors sysMinRaw sysMaxRaw diaMinRaw diaMaxRaw medications [])
+            ctx
 
         // Parse-level errors accumulate across all four fields (Binding.tryInt is the
         // same parser used for the reading form), mirroring Binding.toUnvalidated.

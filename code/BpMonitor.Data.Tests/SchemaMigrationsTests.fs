@@ -162,6 +162,31 @@ let ``apply adds missing columns to an existing Readings table without MemberId`
   test <@ memberId > 0L @>
 
 [<Fact>]
+let ``apply on a fresh database creates the Medications table`` () =
+  use ctx = createRawContext ()
+  SchemaMigrations.apply ctx
+
+  let conn = ctx.Database.GetDbConnection()
+
+  let tableCount =
+    scalarInt64 conn "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='Medications'"
+
+  test <@ tableCount = 1L @>
+
+[<Fact>]
+let ``apply is idempotent when the Medications table already exists`` () =
+  use ctx = createRawContext ()
+  SchemaMigrations.apply ctx
+  SchemaMigrations.apply ctx
+
+  let conn = ctx.Database.GetDbConnection()
+
+  let tableCount =
+    scalarInt64 conn "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='Medications'"
+
+  test <@ tableCount = 1L @>
+
+[<Fact>]
 let ``apply promotes lowest-Id member to active admin when no active admin exists`` () =
   use ctx = createRawContext ()
   SchemaMigrations.apply ctx
