@@ -2,7 +2,7 @@
 // instance seeded with the Simpson-family demo dataset.
 //
 // Run before cutting a release (see the cut-release skill):
-//   dotnet fsi scripts/generate-screenshots.fsx
+//   mise run screenshots
 //
 // Requires the Playwright Chromium browser (`mise run test:e2e-setup` once
 // locally). Uses Ned Flanders — his scripted "elevated readings improving
@@ -15,7 +15,12 @@
 // fsi` script with no project reference, so the two can't share a function
 // directly. Keep them in sync by hand if the self-hosting approach changes.
 
-#r "nuget: Microsoft.Playwright, 1.62.0"
+// Loads Playwright from BpMonitor.Web.E2E.Tests' own build output instead of a
+// separate `#r "nuget: ..."` pin, so the version can't drift from the one
+// Directory.Packages.props already pins solution-wide (see the `screenshots`
+// mise task, which builds that project first).
+#r "../code/BpMonitor.Web.E2E.Tests/bin/Release/net10.0/Microsoft.Bcl.AsyncInterfaces.dll"
+#r "../code/BpMonitor.Web.E2E.Tests/bin/Release/net10.0/Microsoft.Playwright.dll"
 
 open System
 open System.Diagnostics
