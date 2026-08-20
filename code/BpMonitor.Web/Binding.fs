@@ -41,6 +41,12 @@ module Binding =
     | true, v -> Ok v
     | _ -> Error $"Timestamp: '{s}' is not a valid date/time"
 
+  /// Blank string → None; otherwise `Some` of the trimmed value.
+  let blankToOption (s: string) : string option =
+    match s.Trim() with
+    | "" -> None
+    | s -> Some s
+
   /// Parse-level conversion. Returns the unvalidated reading or the list of
   /// parse errors (range checks happen afterward via BloodPressureReading.parse).
   let toUnvalidated (m: FormModel) : Validation<BloodPressureReadingUnvalidated, string> =
@@ -50,10 +56,7 @@ module Binding =
       and! hr = tryInt "Heart Rate" m.HeartRate |> Validation.ofResult
       and! ts = tryTimestamp m.Timestamp |> Validation.ofResult
 
-      let comments =
-        match m.Comments.Trim() with
-        | "" -> None
-        | s -> Some s
+      let comments = blankToOption m.Comments
 
       return
         { Systolic = sys

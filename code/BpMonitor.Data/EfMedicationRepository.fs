@@ -8,10 +8,10 @@ module private MedicationMapping =
     { Id = r.Id
       MemberId = r.MemberId
       Name = r.Name
-      FullName = if isNull r.FullName then None else Some r.FullName
-      Comment = if isNull r.Comment then None else Some r.Comment
+      FullName = Option.ofObj r.FullName
+      Comment = Option.ofObj r.Comment
       StartDate = r.StartDate
-      EndDate = if r.EndDate.HasValue then Some r.EndDate.Value else None
+      EndDate = Option.ofNullable r.EndDate
       CreatedAt = r.CreatedAt
       ModifiedAt = r.ModifiedAt }
 
@@ -26,13 +26,10 @@ module private MedicationMapping =
     { Id = m.Id
       MemberId = m.MemberId
       Name = m.Name
-      FullName = m.FullName |> Option.defaultValue null
-      Comment = m.Comment |> Option.defaultValue null
+      FullName = Option.toObj m.FullName
+      Comment = Option.toObj m.Comment
       StartDate = m.StartDate
-      EndDate =
-        m.EndDate
-        |> Option.map System.Nullable
-        |> Option.defaultValue (System.Nullable())
+      EndDate = Option.toNullable m.EndDate
       CreatedAt = m.CreatedAt
       ModifiedAt = m.ModifiedAt }
 

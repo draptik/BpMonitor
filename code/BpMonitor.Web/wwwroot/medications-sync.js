@@ -56,15 +56,34 @@ function setupMedicationsSync() {
       if (timelinePlot.dataset.medicationsSyncBound) return;
       timelinePlot.dataset.medicationsSyncBound = "1";
 
-      // Charts.fs configures both charts with the same Margin.Left/Right (48/16), but
-      // the BP chart's y-axis title ("blood pressure [mmHg]") makes Plotly auto-expand
-      // its *actual* rendered margin beyond that (measured, not the requested value —
-      // `_fullLayout.margin.l` still reports 48; `_fullLayout._size.l` has the real
-      // number). The timeline has no y-axis title, so it never gets that expansion and
-      // its plot area starts several pixels to the left of the BP chart's — copy the
-      // BP chart's real margin onto the timeline so their x-axes align pixel-for-pixel.
-      const bpSize = bpPlot._fullLayout._size;
-      Plotly.relayout(timelinePlot, { "margin.l": bpSize.l, "margin.r": bpSize.r });
+      // The BP chart's y-axis title makes Plotly auto-expand its margin beyond the
+      // configured value (`_fullLayout._size`, not `_fullLayout.margin`) — copy the
+      // real margin onto the timeline so the x-axes align pixel-for-pixel. Also copies
+      // the BP chart's actual x-axis range, since /history's BP chart autoranges.
+      function syncTimelineToBp() {
+        const bpSize = bpPlot._fullLayout._size;
+
+        Plotly.relayout(timelinePlot, {
+          "margin.l": bpSize.l,
+          "margin.r": bpSize.r,
+          "xaxis.range": bpPlot._fullLayout.xaxis.range,
+        });
+      }
+
+      syncTimelineToBp();
+
+      // /history wraps the BP chart in its own collapsed-by-default <details>; Plotly
+      // renders at zero width while hidden, so re-sync once it's opened.
+      const bpDetails = bpPlot.closest("details");
+
+      if (bpDetails) {
+        bpDetails.addEventListener("toggle", () => {
+          if (bpDetails.open) {
+            Plotly.Plots.resize(bpPlot);
+            syncTimelineToBp();
+          }
+        });
+      }
 
       // BP chart → timeline: mirror the spike position.
       bpPlot.on("plotly_hover", (e) => {
@@ -100,16 +119,22 @@ function setupMedicationsSync() {
         Plotly.relayout(timelinePlot, { "xaxis.range": [lo, hi] });
       });
 
-      // Plotly renders at zero width inside a closed <details>; resize the first time
-      // it's opened so the chart actually appears instead of collapsing to nothing.
+      // Resize on open (Plotly renders at zero width while hidden) and re-sync, in
+      // case the BP chart was still closed when this copy above ran.
       timelineDetails.addEventListener("toggle", () => {
-        if (timelineDetails.open) Plotly.Plots.resize(timelinePlot);
+        if (timelineDetails.open) {
+          Plotly.Plots.resize(timelinePlot);
+          syncTimelineToBp();
+        }
       });
 
       // details-memory.js may have already restored an open state (from localStorage)
       // before this async setup finished — that toggle fired before the listener above
       // existed to catch it, so resize once now to cover that case.
-      if (timelineDetails.open) Plotly.Plots.resize(timelinePlot);
+      if (timelineDetails.open) {
+        Plotly.Plots.resize(timelinePlot);
+        syncTimelineToBp();
+      }
     }, 1);
   }, 0);
 }
