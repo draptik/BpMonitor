@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Medications Timeline: a collapsible panel below the blood pressure chart on Recent and History showing each medication as a bar spanning its start and end dates, in the style of Wegier et al. 2021's Fig. 5. Manage medications from a new section on the Settings page. On Recent, the timeline's scrubber line stays in sync with the blood pressure chart's as you hover or pan.
+
 ### Changed
 
 - Reordered sidebar and landing-page navigation: top group is now Add, Recent, Trends, History; Members moved into the bottom group alongside Export JSON, Export CSV, and Settings. The landing page now mirrors the sidebar's order and two-group layout.

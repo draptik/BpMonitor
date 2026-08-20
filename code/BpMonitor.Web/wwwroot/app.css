@@ -604,6 +604,29 @@ form.inline button {
   color: var(--pico-muted-color);
 }
 
+/* ── Medications Timeline (Wegier et al. 2021 Fig. 5) ──────────────────────
+   Collapsible <details> below the BP chart on /recent and /history — collapsed
+   by default, remembered across loads via wwwroot/details-memory.js. */
+.medications-timeline {
+  margin-top: 1rem;
+}
+
+.medications-timeline summary {
+  cursor: pointer;
+  user-select: none;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Overrides `.chart`'s fixed --chart-height: the timeline's own height is
+   explicit and short (Charts.fs medicationsLayout, sized to its row count),
+   not the BP chart's 420px. */
+.medications-chart {
+  height: auto;
+  overflow: visible;
+}
+
 /* Fig. 5-style "Blood Pressure Values" strip: a 2-row data table (Systolic/
    Diastolic) listing every value currently shown in the chart window. Fixed
    table layout stretches to the same width as the chart below it and

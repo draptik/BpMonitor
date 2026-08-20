@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="GoalRange.fs" />
     <Compile Include="FamilyMember.fs" />
+    <Compile Include="Medication.fs" />
     <Compile Include="PasswordHashing.fs" />
     <Compile Include="IFamilyMemberRepository.fs" />
     <Compile Include="BloodPressureReading.fs" />
@@ -16,6 +17,7 @@
     <Compile Include="ReadingStats.fs" />
     <Compile Include="Lowess.fs" />
     <Compile Include="IReadingRepository.fs" />
+    <Compile Include="IMedicationRepository.fs" />
   </ItemGroup>
 
 </Project>

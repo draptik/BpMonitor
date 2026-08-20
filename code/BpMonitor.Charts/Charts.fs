@@ -573,3 +573,127 @@ module BpChart =
     (windowEnd: System.DateTimeOffset)
     =
     renderRecent goal windowDays windowStart windowEnd
+
+  // ── /recent and /history: Medications Timeline (Wegier et al. 2021 Fig. 5) ─────────────
+  // A second, short Plotly chart stacked below the BP chart: one horizontal bar per
+  // medication, spanning its StartDate→EndDate on the *same* date axis as the BP chart
+  // above it (margins match `compactMargin`'s Left/Right exactly, so the two plot areas
+  // line up pixel-for-pixel — wwwroot/medications-sync.js keeps them in sync on pan/hover).
+
+  let private medicationBarColor = opaque (96, 125, 139)
+
+  // Medication dates are day-resolution (DateOnly); the BP chart's x-axis strings carry
+  // an HH:mm component (Formats.formatLocal). Appending " 00:00" keeps both axes' strings
+  // in the same "yyyy-MM-dd HH:mm" shape so Plotly's date auto-detection treats them
+  // identically (a bare "yyyy-MM-dd" string would still parse, but mixing shapes on the
+  // same axis type is asking for a subtle date-parsing mismatch).
+  let private toAxisDate (d: System.DateOnly) = Formats.formatDate d + " 00:00"
+
+  /// Hover text: full name when given (else the short row label), the date span, then
+  /// the comment on its own line — mirrors the paper's medication timeline tooltip.
+  let private medicationTooltip (m: Medication) : string =
+    let namePart = m.FullName |> Option.defaultValue m.Name
+
+    let dateRange =
+      match m.EndDate with
+      | Some e -> $"{Formats.formatDate m.StartDate} → {Formats.formatDate e}"
+      | None -> $"{Formats.formatDate m.StartDate} → ongoing"
+
+    let commentPart =
+      m.Comment |> Option.map (fun c -> $"<br>{c}") |> Option.defaultValue ""
+
+    $"{namePart}<br>{dateRange}{commentPart}"
+
+  // One thick line segment per medication, `rangeHigh` is the same string passed to the
+  // BP chart's x-axis, so an ongoing medication's bar reaches exactly the chart's right edge.
+  let private medicationTrace (rangeHigh: string) (rowIdx: int) (m: Medication) : GenericChart =
+    let xStart = toAxisDate m.StartDate
+    let xEnd = m.EndDate |> Option.map toAxisDate |> Option.defaultValue rangeHigh
+    let tooltip = medicationTooltip m
+
+    Chart.Line(x = [ xStart; xEnd ], y = [ rowIdx; rowIdx ], MultiText = [ tooltip; tooltip ], ShowMarkers = false)
+    |> Chart.withLineStyle (Width = 14.0, Color = medicationBarColor)
+    |> GenericChart.mapTrace (Trace2DStyle.Scatter(ShowLegend = false, HoverTemplate = "%{text}<extra></extra>"))
+
+  // Left/Right must match `compactMargin` so the two charts' plot areas align; Top/Bottom
+  // are compact since this chart carries no title, legend, or rotated tick labels.
+  let private medicationsMargin =
+    Margin.init (Left = 48, Right = 16, Top = 8, Bottom = 40)
+
+  let private medicationsLayout (heightPx: int) =
+    Layout.init (
+      PaperBGColor = transparent,
+      PlotBGColor = transparent,
+      Margin = medicationsMargin,
+      Height = heightPx,
+      DragMode = StyleParam.DragMode.False
+    )
+
+  // FixedRange on both axes: the timeline never pans/zooms on its own, it only ever
+  // follows the BP chart's x-axis (wwwroot/medications-sync.js relays `plotly_relayout`).
+  // `showScrubber` mirrors the BP chart above it: /recent gets a spike, /history doesn't.
+  // SpikeSnap.Cursor (not .Data, unlike the BP chart's) — snapping to a medication's own
+  // start/end date would fight the position implied by the BP chart's hovered reading.
+  let private medicationsXAxis (showScrubber: bool) (rangeLow: string) (rangeHigh: string) =
+    LinearAxis.init (
+      ShowGrid = false,
+      ShowLine = true,
+      LineColor = axisLineColor,
+      Ticks = StyleParam.TickOptions.Outside,
+      TickColor = axisLineColor,
+      Layer = StyleParam.Layer.BelowTraces,
+      Range = StyleParam.Range.ofMinMax (rangeLow, rangeHigh),
+      FixedRange = true,
+      HoverFormat = "%Y-%m-%d",
+      ShowSpikes = showScrubber,
+      SpikeColor = scrubberColor,
+      SpikeThickness = 2,
+      SpikeDash = StyleParam.DrawingStyle.Solid,
+      SpikeMode = StyleParam.SpikeMode.Across,
+      SpikeSnap = StyleParam.SpikeSnap.Cursor
+    )
+
+  // Categorical rows via explicit TickVals/TickText; the reversed range (max, min instead
+  // of min, max) puts row 0 — the first medication — at the top, matching reading order.
+  let private medicationsYAxis (names: string list) =
+    let n = names.Length
+
+    LinearAxis.init (
+      ShowGrid = false,
+      ShowLine = false,
+      TickMode = StyleParam.TickMode.Array,
+      TickVals = [ 0 .. n - 1 ],
+      TickText = names,
+      Range = StyleParam.Range.MinMax(float n - 0.5, -0.5),
+      FixedRange = true
+    )
+
+  let private medicationsConfig =
+    Config.init (Responsive = true, DisplayModeBar = false, ScrollZoom = StyleParam.ScrollZoom.NoZoom)
+
+  let private renderMedications
+    (showScrubber: bool)
+    (rangeLow: string)
+    (rangeHigh: string)
+    (medications: Medication list)
+    : string =
+    if medications.IsEmpty then
+      ""
+    else
+      let sorted = medications |> List.sortBy _.StartDate
+      let names = sorted |> List.map _.Name
+      let heightPx = 36 + 26 * sorted.Length
+
+      sorted
+      |> List.mapi (medicationTrace rangeHigh)
+      |> Chart.combine
+      |> Chart.withLayout (medicationsLayout heightPx)
+      |> Chart.withXAxis (medicationsXAxis showScrubber rangeLow rangeHigh)
+      |> Chart.withYAxis (medicationsYAxis names)
+      |> Chart.withConfig medicationsConfig
+      |> toHtmlString
+
+  /// Empty string when `medications` is empty — callers should skip rendering the
+  /// Medications Timeline panel entirely in that case rather than show an empty chart.
+  let toHtmlMedications (showScrubber: bool) (rangeLow: string) (rangeHigh: string) =
+    renderMedications showScrubber rangeLow rangeHigh

@@ -14,11 +14,17 @@ open BpMonitor.Core
 open BpMonitor.Data
 open BpMonitor.Web
 
-let private buildServices (repo: IReadingRepository) (memberRepo: IFamilyMemberRepository) (tp: TimeProvider) =
+let private buildServices
+  (repo: IReadingRepository)
+  (memberRepo: IFamilyMemberRepository)
+  (medicationRepo: IMedicationRepository)
+  (tp: TimeProvider)
+  =
   let services = ServiceCollection()
   services.AddLogging() |> ignore
   services.AddSingleton<IReadingRepository>(repo) |> ignore
   services.AddSingleton<IFamilyMemberRepository>(memberRepo) |> ignore
+  services.AddSingleton<IMedicationRepository>(medicationRepo) |> ignore
   services.AddSingleton<IConfiguration>(ConfigurationBuilder().Build()) |> ignore
   services.AddSingleton<TimeProvider>(tp) |> ignore
 
@@ -54,15 +60,21 @@ let private newCtx (services: ServiceCollection) (user: ClaimsPrincipal option) 
 /// ranges + a single in-memory family member) so the real Falco handlers can be
 /// invoked directly in tests. The default member has Id=1; the user principal is
 /// pre-set so authenticatedMember resolves to member 1 without needing a DB.
+let private emptyMedicationRepo () =
+  InMemoryMedicationRepository(None) :> IMedicationRepository
+
 let context (repo: IReadingRepository) : HttpContext =
   let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
-  newCtx (buildServices repo memberRepo TimeProvider.System) (Some(buildPrincipal defaultMember))
+
+  newCtx
+    (buildServices repo memberRepo (emptyMedicationRepo ()) TimeProvider.System)
+    (Some(buildPrincipal defaultMember))
 
 /// Variant of `context` that injects a custom TimeProvider — useful for testing
 /// handlers that read the current time (e.g., newReading timestamp prefill).
 let contextWithProvider (repo: IReadingRepository) (tp: TimeProvider) : HttpContext =
   let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
-  newCtx (buildServices repo memberRepo tp) (Some(buildPrincipal defaultMember))
+  newCtx (buildServices repo memberRepo (emptyMedicationRepo ()) tp) (Some(buildPrincipal defaultMember))
 
 /// Variant of `context` that uses a custom list of family members. The user
 /// principal is set to be the first member in the list. Useful for multi-member
@@ -72,7 +84,7 @@ let contextWithMembers (repo: IReadingRepository) (members: FamilyMember list) :
     InMemoryFamilyMemberRepository(Some members) :> IFamilyMemberRepository
 
   let user = members |> List.tryHead |> Option.map buildPrincipal
-  newCtx (buildServices repo memberRepo TimeProvider.System) user
+  newCtx (buildServices repo memberRepo (emptyMedicationRepo ()) TimeProvider.System) user
 
 /// Variant of `contextWithMembers` that also injects a custom TimeProvider —
 /// useful for testing handlers that need both a non-default member (e.g., a
@@ -86,7 +98,7 @@ let contextWithMembersAndProvider
     InMemoryFamilyMemberRepository(Some members) :> IFamilyMemberRepository
 
   let user = members |> List.tryHead |> Option.map buildPrincipal
-  newCtx (buildServices repo memberRepo tp) user
+  newCtx (buildServices repo memberRepo (emptyMedicationRepo ()) tp) user
 
 /// Variant of `context` that sets a specific authenticated user. Useful for
 /// testing protected handlers with a particular member identity.
@@ -99,7 +111,17 @@ let contextWithUser (repo: IReadingRepository) (members: FamilyMember list) (log
     |> List.tryFind (fun m -> m.Id = loggedInMemberId)
     |> Option.map buildPrincipal
 
-  newCtx (buildServices repo memberRepo TimeProvider.System) user
+  newCtx (buildServices repo memberRepo (emptyMedicationRepo ()) TimeProvider.System) user
+
+/// Variant of `context` that seeds the medication repository with a custom initial
+/// list — for medication CRUD and Medications Timeline handler tests.
+let contextWithMedications (repo: IReadingRepository) (medications: Medication list) : HttpContext =
+  let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
+
+  let medicationRepo =
+    InMemoryMedicationRepository(Some medications) :> IMedicationRepository
+
+  newCtx (buildServices repo memberRepo medicationRepo TimeProvider.System) (Some(buildPrincipal defaultMember))
 
 /// Builds a context wired with a real SQLite-backed BpMonitorDbContext, for the
 /// health handler. Pass a temp-file connection string for the reachable case and

@@ -14,6 +14,23 @@ module DemoSeeder =
   let private isEmpty (members: IFamilyMemberRepository) (readings: IReadingRepository) =
     members.GetAll() |> List.forall (fun m -> readings.GetAll(m.Id).IsEmpty)
 
+  /// Ned Flanders' Fig. 5-style medication timeline (Wegier et al. 2021): an ongoing
+  /// HCTZ alongside a lisinopril course the patient ran out of, mirroring the paper's
+  /// mock-up so /recent and /history have a populated timeline to demo out of the box.
+  let private nedMedications (now: DateTimeOffset) : MedicationUnvalidated list =
+    let today = DateOnly.FromDateTime(now.ToLocalTime().Date)
+
+    [ { Name = "HCTZ"
+        FullName = Some "hydrochlorothiazide"
+        Comment = None
+        StartDate = today.AddDays(-300)
+        EndDate = None }
+      { Name = "lisinopril"
+        FullName = None
+        Comment = Some "Ran out of medication"
+        StartDate = today.AddDays(-60)
+        EndDate = Some(today.AddDays(-5)) } ]
+
   /// Seeds the Simpson family iff `enabled` is true and the store is empty.
   ///
   /// The lone auto-seeded "Me" member (created by SchemaMigrations) is repurposed
@@ -21,6 +38,7 @@ module DemoSeeder =
   let seedIfEmpty
     (members: IFamilyMemberRepository)
     (readings: IReadingRepository)
+    (medications: IMedicationRepository)
     (ranges: ReadingRanges)
     (timeProvider: TimeProvider)
     (enabled: bool)
@@ -33,6 +51,7 @@ module DemoSeeder =
     else
       let now = timeProvider.GetUtcNow()
       let simpsons = DemoData.simpsons ranges now
+      let lastIndex = simpsons.Length - 1
 
       // The auto-seeded default member list (usually just "Me", id=1).
       let existingMembers = members.GetAll()
@@ -60,4 +79,12 @@ module DemoSeeder =
             | Ok m -> members.Add(m)
             | Error NameIsEmpty -> failwith $"DemoSeeder: could not create member '{spec.Name}'"
 
-        readings.AddMany member_.Id memberReadings)
+        readings.AddMany member_.Id memberReadings
+
+        // Ned Flanders (the last Simpson-family spec) gets the demo medications —
+        // his readings already carry the Fig. 5-style narrative (DemoData.fs).
+        if i = lastIndex then
+          for unvalidated in nedMedications now do
+            match Medication.parse unvalidated with
+            | Ok medication -> medications.Add member_.Id medication
+            | Error errors -> failwith $"DemoSeeder: could not create medication: {errors}")

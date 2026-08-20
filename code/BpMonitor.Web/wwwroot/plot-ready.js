@@ -8,14 +8,22 @@
 // until the div exists AND has `.on`. Callers are responsible for only invoking
 // this on pages that actually render a chart; otherwise the poll never resolves.
 //
+// `index` picks which `.js-plotly-plot` on the page to wait for (default 0, the
+// first one in document order). /recent and /history render the BP chart before
+// the Medications Timeline chart (see ReadingViews.fs / ViewLayout — load-bearing
+// DOM order), so index 0 is always the BP chart and index 1 the timeline, when present.
+//
 // Must load before any script that calls it (see ViewLayout.fs htmlHead order).
 
-/** @param {(d: PlotlyChartElement) => void} fn */
+/**
+ * @param {(d: PlotlyChartElement) => void} fn
+ * @param {number} [index]
+ */
 // biome-ignore lint/correctness/noUnusedVariables: shared global, called by the other wwwroot chart scripts
-function whenPlotReady(fn) {
+function whenPlotReady(fn, index = 0) {
   function poll() {
     const d = /** @type {PlotlyChartElement | null} */ (
-      document.querySelector(".js-plotly-plot")
+      document.querySelectorAll(".js-plotly-plot")[index]
     );
     if (!d?.on) {
       setTimeout(poll, 50);

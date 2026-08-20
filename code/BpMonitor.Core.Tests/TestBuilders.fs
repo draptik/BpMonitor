@@ -14,6 +14,17 @@ let mkReading id memberId sys dia hr (ts: DateTimeOffset) : BloodPressureReading
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
 
+let mkMedication id memberId name (startDate: DateOnly) : Medication =
+  { Id = id
+    MemberId = memberId
+    Name = name
+    FullName = None
+    Comment = None
+    StartDate = startDate
+    EndDate = None
+    CreatedAt = DateTimeOffset.MinValue
+    ModifiedAt = DateTimeOffset.MinValue }
+
 let mkMember id name isAdmin isActive : FamilyMember =
   { Id = id
     Name = name

@@ -46,6 +46,10 @@ module Formats =
 
   let formatLocal (ts: System.DateTimeOffset) = ts.ToLocalTime().ToString(timestamp)
 
+  let date = "yyyy-MM-dd"
+
+  let formatDate (d: System.DateOnly) = d.ToString(date)
+
 module ReadingRanges =
   let defaults =
     { SystolicMin = 1

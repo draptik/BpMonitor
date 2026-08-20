@@ -18,7 +18,7 @@ declare const Plotly: any;
 // wwwroot/plot-ready.js — classic scripts share one global scope, but tsc
 // treats each file as its own module-less script, so cross-file functions
 // need an ambient declaration.
-declare function whenPlotReady(fn: (d: PlotlyChartElement) => void): void;
+declare function whenPlotReady(fn: (d: PlotlyChartElement) => void, index?: number): void;
 
 // wwwroot/theme.js assigns this onto window for the inline onclick handler.
 interface Window {

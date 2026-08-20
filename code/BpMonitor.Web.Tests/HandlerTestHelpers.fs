@@ -41,3 +41,14 @@ let assertGoalBands (goal: GoalRange) (body: string) =
 
 let repoWith readings : IReadingRepository =
   InMemoryReadingRepository(Some readings)
+
+let sampleMedication: Medication =
+  { Id = 1
+    MemberId = defaultMemberId
+    Name = "HCTZ"
+    FullName = Some "hydrochlorothiazide"
+    Comment = None
+    StartDate = DateOnly(2026, 4, 1)
+    EndDate = None
+    CreatedAt = DateTimeOffset.MinValue
+    ModifiedAt = DateTimeOffset.MinValue }

@@ -42,6 +42,11 @@ let private endpoints =
     post Routes.readings (AuthHandlers.protect ReadingHandlers.createReading)
     get "/readings/{id:int}/edit" (AuthHandlers.protect ReadingHandlers.editReading)
     post "/readings/{id:int}" (AuthHandlers.protect ReadingHandlers.updateReading)
+    // Authenticated: medication CRUD (self-service, on /settings)
+    post Routes.medications (AuthHandlers.protect MedicationHandlers.create)
+    get "/medications/{id:int}/edit" (AuthHandlers.protect MedicationHandlers.edit)
+    post "/medications/{id:int}" (AuthHandlers.protect MedicationHandlers.update)
+    post "/medications/{id:int}/delete" (AuthHandlers.protect MedicationHandlers.delete)
     // Admin-only: member management
     get Routes.members (AuthHandlers.protectAdmin MemberHandlers.members)
     post Routes.members (AuthHandlers.protectAdmin MemberHandlers.createMember)
@@ -76,6 +81,10 @@ let main args =
 
     builder.Services.AddScoped<IFamilyMemberRepository>(fun sp ->
       EfFamilyMemberRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
+    |> ignore
+
+    builder.Services.AddScoped<IMedicationRepository>(fun sp ->
+      EfMedicationRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
     |> ignore
 
     let secureCookies = builder.Configuration.GetValue<bool>("BpMonitor:SecureCookies")
@@ -142,6 +151,7 @@ let main args =
       DemoSeeder.seedIfEmpty
         (sp.GetRequiredService<IFamilyMemberRepository>())
         (sp.GetRequiredService<IReadingRepository>())
+        (sp.GetRequiredService<IMedicationRepository>())
         ranges
         TimeProvider.System
         true

@@ -15,13 +15,16 @@
   <ItemGroup>
     <Compile Include="InMemoryReadingRepository.fs" />
     <Compile Include="InMemoryFamilyMemberRepository.fs" />
+    <Compile Include="InMemoryMedicationRepository.fs" />
     <Compile Include="ReadingRecord.fs" />
     <Compile Include="MemberRecord.fs" />
+    <Compile Include="MedicationRecord.fs" />
     <Compile Include="BpMonitorDbContext.fs" />
     <Compile Include="BpMonitorDbContextFactory.fs" />
     <Compile Include="EfFamilyMemberRepository.fs" />
     <Compile Include="SchemaMigrations.fs" />
     <Compile Include="EfReadingRepository.fs" />
+    <Compile Include="EfMedicationRepository.fs" />
     <Compile Include="DemoSeeder.fs" />
   </ItemGroup>
 
