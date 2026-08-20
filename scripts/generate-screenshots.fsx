@@ -15,7 +15,7 @@
 // fsi` script with no project reference, so the two can't share a function
 // directly. Keep them in sync by hand if the self-hosting approach changes.
 
-#r "nuget: Microsoft.Playwright, 1.61.0"
+#r "nuget: Microsoft.Playwright, 1.62.0"
 
 open System
 open System.Diagnostics
