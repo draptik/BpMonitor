@@ -46,11 +46,6 @@ module MedicationHandlers =
     else
       tryDate label s |> Result.map Some
 
-  let private toOption (s: string) =
-    match s.Trim() with
-    | "" -> None
-    | s -> Some s
-
   /// Parse-level conversion (bad dates), mirroring Binding.toUnvalidated. Domain
   /// validation (empty name, end before start) happens afterward via Medication.parse.
   let private toUnvalidated (f: FormValues) : Validation<MedicationUnvalidated, string> =
@@ -60,8 +55,8 @@ module MedicationHandlers =
 
       return
         { Name = f.Name
-          FullName = toOption f.FullName
-          Comment = toOption f.Comment
+          FullName = Binding.blankToOption f.FullName
+          Comment = Binding.blankToOption f.Comment
           StartDate = startDate
           EndDate = endDate }
     }

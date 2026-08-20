@@ -82,14 +82,13 @@ module ReadingHandlers =
   /// BpChart.medicationsXAxis). Empty medication list renders nothing (see
   /// MedicationViews.timelinePanel).
   let private medicationsPanel
-    (m: FamilyMember)
-    (ctx: HttpContext)
+    (medications: Medication list)
     (showScrubber: bool)
     (rangeLow: System.DateTimeOffset)
     (rangeHigh: System.DateTimeOffset)
     : Falco.Markup.XmlNode =
     let overlapping =
-      (medicationRepo ctx).GetAll(m.Id)
+      medications
       |> Medication.overlapping (toLocalDateOnly rangeLow) (toLocalDateOnly rangeHigh)
 
     let chartHtml =
@@ -97,20 +96,35 @@ module ReadingHandlers =
 
     MedicationViews.timelinePanel chartHtml
 
+  /// Readings-only would drop medications outside their span (or collapse to a point
+  /// with no readings); union in the medications' own span. Ongoing (EndDate = None)
+  /// counts as running to `today`.
+  let private medicationsSpan
+    (tp: System.TimeProvider)
+    (readings: BloodPressureReading list)
+    (medications: Medication list)
+    : System.DateTimeOffset * System.DateTimeOffset =
+    let today = toLocalDateOnly (tp.GetUtcNow())
+
+    let dates =
+      (readings |> List.map (_.Timestamp >> toLocalDateOnly))
+      @ (medications
+         |> List.collect (fun med -> [ med.StartDate; med.EndDate |> Option.defaultValue today ]))
+
+    let toOffset (d: System.DateOnly) =
+      System.DateTimeOffset(d.ToDateTime(System.TimeOnly.MinValue), tp.GetLocalNow().Offset)
+
+    match dates with
+    | [] -> let now = tp.GetUtcNow() in now, now
+    | ds -> toOffset (List.min ds), toOffset (List.max ds)
+
   let history: HttpContext -> Task =
     withMember (fun m ctx ->
       let readings = sortedReadings m.Id ctx
       let chartHtml = BpChart.toHtml m.Goal readings
-
-      // /history's BP chart autoranges to fit the readings (no explicit window, unlike
-      // /recent), so the timeline's own range is derived from the same readings here —
-      // the closest we can get to alignment without changing BpChart.toHtml's signature.
-      let rangeLow, rangeHigh =
-        match readings |> List.sortBy _.Timestamp with
-        | [] -> let now = (timeProvider ctx).GetUtcNow() in now, now
-        | sorted -> (List.head sorted).Timestamp, (List.last sorted).Timestamp
-
-      let panel = medicationsPanel m ctx false rangeLow rangeHigh
+      let medications = (medicationRepo ctx).GetAll(m.Id)
+      let rangeLow, rangeHigh = medicationsSpan (timeProvider ctx) readings medications
+      let panel = medicationsPanel medications false rangeLow rangeHigh
       htmlResponse (ReadingViews.history m chartHtml readings panel) ctx)
 
   let private recentChartWindowDays = 30
@@ -146,7 +160,9 @@ module ReadingHandlers =
         allReadings |> List.exists (fun r -> r.Timestamp < loadWindowStart)
 
       let windowStart, chartHtml = renderRecentChart m now loadedReadings
-      let panel = medicationsPanel m ctx true windowStart now
+
+      let panel =
+        medicationsPanel ((medicationRepo ctx).GetAll(m.Id)) true windowStart now
 
       htmlResponse
         (ReadingViews.recent m chartHtml loadedReadings windowStart now recentZoomShortcutDays hasOlderHistory panel)
@@ -168,7 +184,9 @@ module ReadingHandlers =
         |> List.sortByDescending _.Timestamp
 
       let windowStart, chartHtml = renderRecentChart m now allReadings
-      let panel = medicationsPanel m ctx true windowStart now
+
+      let panel =
+        medicationsPanel ((medicationRepo ctx).GetAll(m.Id)) true windowStart now
 
       htmlResponse
         (ReadingViews.recentChartContainer m chartHtml allReadings windowStart now recentZoomShortcutDays false panel)
