@@ -89,6 +89,21 @@ let snap (page: IPage) (name: string) =
     printfn $"saved {name}.png"
   }
 
+// Its open state persists to localStorage across this script's navigations, so a later
+// page may already be open — only click if it isn't, or the click closes it again.
+let expandMedicationsTimeline (page: IPage) =
+  task {
+    let details = page.Locator ".medications-timeline"
+    let! count = details.CountAsync()
+
+    if count > 0 then
+      let! isOpen = details.EvaluateAsync<bool>("el => el.open")
+
+      if not isOpen then
+        do! details.Locator("summary").ClickAsync()
+        do! page.WaitForTimeoutAsync 300.0f
+  }
+
 // Hovers a value-strip cell partway through the series to show the
 // chart<->strip scrubber link (recent-scrubber.js) in action: boxes the strip
 // cell and drives the chart's hover spike/tooltip. Scoped to the Systolic row
@@ -174,6 +189,7 @@ task {
 
       for name, path in pages do
         do! gotoAndSettle page $"{baseUrl}{path}"
+        do! expandMedicationsTimeline page
         do! snap page $"{name}-{theme}"
 
         if name = "recent" then
