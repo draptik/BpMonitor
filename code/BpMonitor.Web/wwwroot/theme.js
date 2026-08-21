@@ -20,6 +20,17 @@ function applyChartTheme(theme) {
       'yaxis.tickcolor': axisLineColor,
       'yaxis.gridcolor': isDark ? 'rgba(194,207,214,0.12)' : 'rgba(0,0,0,0.08)'
     });
+    restyleMedicationColors(/** @type {PlotlyChartElement} */ (d), isDark);
+  });
+}
+
+// Medications Timeline traces carry "light|dark" hexes in `meta` (Charts.fs); swap in the right half.
+/** @param {PlotlyChartElement} plot @param {boolean} isDark */
+function restyleMedicationColors(plot, isDark) {
+  const metas = (plot.data || []).map((/** @type {any} */ tr) => tr.meta);
+  if (metas.length === 0 || !metas.every((/** @type {any} */ m) => typeof m === 'string' && m.includes('|'))) return;
+  Plotly.restyle(plot, {
+    'line.color': metas.map((/** @type {string} */ m) => m.split('|')[isDark ? 1 : 0])
   });
 }
 

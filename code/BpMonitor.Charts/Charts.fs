@@ -580,7 +580,45 @@ module BpChart =
   // above it (margins match `compactMargin`'s Left/Right exactly, so the two plot areas
   // line up pixel-for-pixel — wwwroot/medications-sync.js keeps them in sync on pan/hover).
 
-  let private medicationBarColor = opaque (96, 125, 139)
+  // Muted variant of the validated categorical palette (same hues/order, ~20% less chroma) to match this app's jewel-tone mood.
+  let private medicationPalette =
+    [| "#346EB7", "#417CC5"
+       "#CE6842", "#BD5A35"
+       "#3B9E74", "#348D69"
+       "#D5993B", "#B27D2E"
+       "#CE7898", "#BA5376"
+       "#20731D", "#31822E"
+       "#494195", "#847DCC"
+       "#C54F4B", "#CA6765" |]
+
+  // FNV-1a: stable across restarts, unlike String.GetHashCode (randomized per-process).
+  let private fnv1a (s: string) : uint32 =
+    let mutable hash = 2166136261u
+
+    for b in System.Text.Encoding.UTF8.GetBytes s do
+      hash <- (hash ^^^ uint32 b) * 16777619u
+
+    hash
+
+  let private medicationSlot (name: string) : int =
+    int (fnv1a (name.Trim().ToLowerInvariant()) % uint32 medicationPalette.Length)
+
+  // Hash each distinct name to a slot, then linear-probe past slots already taken by an
+  // earlier name — a restarted medication (same name, two rows) keeps a single color.
+  let private assignSlots (names: string list) : int list =
+    let taken = System.Collections.Generic.HashSet<int>()
+    let assigned = System.Collections.Generic.Dictionary<string, int>()
+
+    for name in List.distinct names do
+      let mutable slot = medicationSlot name
+
+      while taken.Contains slot do
+        slot <- (slot + 1) % medicationPalette.Length
+
+      taken.Add slot |> ignore
+      assigned[name] <- slot
+
+    names |> List.map (fun name -> assigned[name])
 
   // Medication dates are day-resolution (DateOnly); the BP chart's x-axis strings carry
   // an HH:mm component (Formats.formatLocal). Appending " 00:00" keeps both axes' strings
@@ -604,21 +642,24 @@ module BpChart =
 
     $"{namePart}<br>{dateRange}{commentPart}"
 
-  // One thick line segment per medication, `rangeHigh` is the same string passed to the
-  // BP chart's x-axis, so an ongoing medication's bar reaches exactly the chart's right edge.
-  let private medicationTrace (rangeHigh: string) (rowIdx: int) (m: Medication) : GenericChart =
+  // One thick line segment per medication; `slot` picks its color, and both hexes ride
+  // along as `meta` so theme.js can restyle it to the dark variant without a JS-side palette.
+  let private medicationTrace (rangeHigh: string) (rowIdx: int) (slot: int) (m: Medication) : GenericChart =
     let xStart = toAxisDate m.StartDate
     let xEnd = m.EndDate |> Option.map toAxisDate |> Option.defaultValue rangeHigh
     let tooltip = medicationTooltip m
+    let lightHex, darkHex = medicationPalette[slot]
 
     Chart.Line(x = [ xStart; xEnd ], y = [ rowIdx; rowIdx ], MultiText = [ tooltip; tooltip ], ShowMarkers = false)
-    |> Chart.withLineStyle (Width = 14.0, Color = medicationBarColor)
-    |> GenericChart.mapTrace (Trace2DStyle.Scatter(ShowLegend = false, HoverTemplate = "%{text}<extra></extra>"))
+    |> Chart.withLineStyle (Width = 18.0, Color = Color.fromString lightHex)
+    |> GenericChart.mapTrace (
+      Trace2DStyle.Scatter(ShowLegend = false, HoverTemplate = "%{text}<extra></extra>", Meta = $"{lightHex}|{darkHex}")
+    )
 
   // Left/Right must match `compactMargin` so the two charts' plot areas align; Top/Bottom
   // are compact since this chart carries no title, legend, or rotated tick labels.
   let private medicationsMargin =
-    Margin.init (Left = 48, Right = 16, Top = 8, Bottom = 40)
+    Margin.init (Left = 48, Right = 16, Top = 12, Bottom = 40)
 
   let private medicationsLayout (heightPx: int) =
     Layout.init (
@@ -661,6 +702,7 @@ module BpChart =
     LinearAxis.init (
       ShowGrid = false,
       ShowLine = false,
+      ZeroLine = false,
       TickMode = StyleParam.TickMode.Array,
       TickVals = [ 0 .. n - 1 ],
       TickText = names,
@@ -682,10 +724,10 @@ module BpChart =
     else
       let sorted = medications |> List.sortBy _.StartDate
       let names = sorted |> List.map _.Name
-      let heightPx = 36 + 26 * sorted.Length
+      let slots = assignSlots names
+      let heightPx = 44 + 34 * sorted.Length
 
-      sorted
-      |> List.mapi (medicationTrace rangeHigh)
+      List.map3 (fun rowIdx slot m -> medicationTrace rangeHigh rowIdx slot m) [ 0 .. sorted.Length - 1 ] slots sorted
       |> Chart.combine
       |> Chart.withLayout (medicationsLayout heightPx)
       |> Chart.withXAxis (medicationsXAxis showScrubber rangeLow rangeHigh)
