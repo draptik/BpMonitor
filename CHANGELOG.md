@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Medications Timeline: hovering anywhere along a medication's bar now shows its tooltip — previously only the two ends (start/end date) were hoverable, so long-running medications showed nothing but the scrubber line across most of the bar.
+- Settings: section headings (Goal Range, Medications, Add medication) now render smaller than page titles instead of larger, and no longer skip a heading level.
 
 ## [1.10.1] - 2026-08-15
 
