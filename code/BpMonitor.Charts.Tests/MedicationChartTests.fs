@@ -110,6 +110,25 @@ let ``toHtmlMedications gives two different medications different colors`` () =
   test <@ firstColor <> secondColor @>
 
 [<Fact>]
+let ``toHtmlMedications adds a fill-based hover target spanning the whole bar`` () =
+  let meds = [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None ]
+  let html = BpChart.toHtmlMedications false rangeLow rangeHigh meds
+  test <@ html.Contains("\"fill\":\"toself\"") @>
+  test <@ html.Contains("\"hoveron\":\"fills\"") @>
+
+[<Fact>]
+let ``toHtmlMedications tints the hover tooltip's background with the medication's own color`` () =
+  let meds = [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None ]
+  let html = BpChart.toHtmlMedications false rangeLow rangeHigh meds
+  test <@ html.Contains("\"hoverlabel\":{\"bgcolor\":\"#494195\"") @>
+
+[<Fact>]
+let ``toHtmlMedications skips native hover on the visible line trace`` () =
+  let meds = [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None ]
+  let html = BpChart.toHtmlMedications false rangeLow rangeHigh meds
+  test <@ html.Contains("\"hoverinfo\":\"skip\"") @>
+
+[<Fact>]
 let ``toHtmlMedications disables the y-axis zeroline`` () =
   let meds = [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None ]
   let html = BpChart.toHtmlMedications false rangeLow rangeHigh meds
