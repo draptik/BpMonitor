@@ -19,8 +19,8 @@ module MedicationViews =
       []
       [ Elem.td [] [ Text.enc m.Name ]
         Elem.td [] [ Text.enc (m.FullName |> Option.defaultValue "") ]
-        Elem.td [] [ Text.enc (Formats.formatDate m.StartDate) ]
-        Elem.td [] [ Text.enc (m.EndDate |> Option.map Formats.formatDate |> Option.defaultValue "") ]
+        Elem.td [] [ Text.enc (Formats.formatDateEuropean m.StartDate) ]
+        Elem.td [] [ Text.enc (m.EndDate |> Option.map Formats.formatDateEuropean |> Option.defaultValue "") ]
         Elem.td [] [ Text.enc (m.Comment |> Option.defaultValue "") ]
         Elem.td
           [ Attr.class' "member-actions" ]
@@ -56,8 +56,8 @@ module MedicationViews =
             ""
             "text"
           ViewLayout.field "Comment" FormFields.medicationComment "" "text"
-          ViewLayout.field "Start date" FormFields.medicationStartDate "" "date"
-          ViewLayout.field "End date" FormFields.medicationEndDate "" "date"
+          fieldWithHint "Start date" "dd.mm.yyyy" FormFields.medicationStartDate "" "text"
+          fieldWithHint "End date" "dd.mm.yyyy" FormFields.medicationEndDate "" "text"
           Elem.button [ Attr.type' "submit" ] [ Text.raw "Add medication" ] ] ]
 
   /// Shared add/edit form for a single medication. `action` is the POST target;
@@ -91,8 +91,8 @@ module MedicationViews =
               fullName
               "text"
             ViewLayout.field "Comment" FormFields.medicationComment comment "text"
-            ViewLayout.field "Start date" FormFields.medicationStartDate startDate "date"
-            ViewLayout.field "End date" FormFields.medicationEndDate endDate "date"
+            fieldWithHint "Start date" "dd.mm.yyyy" FormFields.medicationStartDate startDate "text"
+            fieldWithHint "End date" "dd.mm.yyyy" FormFields.medicationEndDate endDate "text"
             ViewLayout.formActions Routes.settings ] ]
 
   /// The collapsible Medications Timeline panel embedded below the BP chart on /recent

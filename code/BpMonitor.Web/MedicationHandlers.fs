@@ -1,6 +1,7 @@
 namespace BpMonitor.Web
 
 open System
+open System.Globalization
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Logging
@@ -35,10 +36,13 @@ module MedicationHandlers =
           EndDate = get FormFields.medicationEndDate }
     }
 
+  /// "d.M.yyyy" accepts 1- or 2-digit day/month; yyyy-MM-dd is accepted too for pasted ISO dates.
+  let private dateFormats = [| "d.M.yyyy"; Formats.date |]
+
   let private tryDate (label: string) (s: string) : Result<DateOnly, string> =
-    match DateOnly.TryParse(s) with
+    match DateOnly.TryParseExact(s.Trim(), dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None) with
     | true, v -> Ok v
-    | _ -> Error $"{label}: '{s}' is not a valid date"
+    | _ -> Error $"{label}: '{s}' is not a valid date (expected dd.mm.yyyy)"
 
   let private tryOptionalDate (label: string) (s: string) : Result<DateOnly option, string> =
     if String.IsNullOrWhiteSpace s then
@@ -119,8 +123,8 @@ module MedicationHandlers =
             med.Name
             (med.FullName |> Option.defaultValue "")
             (med.Comment |> Option.defaultValue "")
-            (Formats.formatDate med.StartDate)
-            (med.EndDate |> Option.map Formats.formatDate |> Option.defaultValue ""))
+            (Formats.formatDateEuropean med.StartDate)
+            (med.EndDate |> Option.map Formats.formatDateEuropean |> Option.defaultValue ""))
           ctx)
 
   let private renderEditErrors

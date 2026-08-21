@@ -19,6 +19,7 @@ let ``settings renders the medications section with existing medications`` () =
   test <@ body.Contains "HCTZ" @>
   test <@ body.Contains "hydrochlorothiazide" @>
   test <@ body.Contains "Medications" @>
+  test <@ body.Contains "01.04.2026" @>
 
 [<Fact>]
 let ``create persists a valid medication and redirects to settings`` () =
@@ -44,6 +45,69 @@ let ``create persists a valid medication and redirects to settings`` () =
   test <@ saved[0].Name = "HCTZ" @>
   test <@ saved[0].FullName = Some "hydrochlorothiazide" @>
   test <@ saved[0].EndDate = None @>
+
+[<Fact>]
+let ``create parses the start date as dd.mm.yyyy, not mm.dd.yyyy`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMedications repo []
+
+  TestHost.setForm
+    ctx
+    [ FormFields.medicationName, "HCTZ"
+      FormFields.medicationFullName, ""
+      FormFields.medicationComment, ""
+      FormFields.medicationStartDate, "01.02.2026"
+      FormFields.medicationEndDate, "" ]
+
+  TestHost.run MedicationHandlers.create ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+
+  let medicationRepo = ctx.RequestServices.GetRequiredService<IMedicationRepository>()
+  let saved = medicationRepo.GetAll(defaultMemberId)
+  test <@ saved[0].StartDate = DateOnly(2026, 2, 1) @>
+
+[<Fact>]
+let ``create accepts single-digit day and month`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMedications repo []
+
+  TestHost.setForm
+    ctx
+    [ FormFields.medicationName, "HCTZ"
+      FormFields.medicationFullName, ""
+      FormFields.medicationComment, ""
+      FormFields.medicationStartDate, "1.8.2026"
+      FormFields.medicationEndDate, "" ]
+
+  TestHost.run MedicationHandlers.create ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+
+  let medicationRepo = ctx.RequestServices.GetRequiredService<IMedicationRepository>()
+  let saved = medicationRepo.GetAll(defaultMemberId)
+  test <@ saved[0].StartDate = DateOnly(2026, 8, 1) @>
+
+[<Fact>]
+let ``create still accepts an iso-format start date`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMedications repo []
+
+  TestHost.setForm
+    ctx
+    [ FormFields.medicationName, "HCTZ"
+      FormFields.medicationFullName, ""
+      FormFields.medicationComment, ""
+      FormFields.medicationStartDate, "2026-01-01"
+      FormFields.medicationEndDate, "" ]
+
+  TestHost.run MedicationHandlers.create ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+
+  let medicationRepo = ctx.RequestServices.GetRequiredService<IMedicationRepository>()
+  let saved = medicationRepo.GetAll(defaultMemberId)
+  test <@ saved[0].StartDate = DateOnly(2026, 1, 1) @>
 
 [<Fact>]
 let ``create rejects an empty name with 422 and does not persist`` () =
@@ -116,7 +180,20 @@ let ``edit prefills the form from the existing medication`` () =
   let body = TestHost.readBody ctx
   test <@ body.Contains "value=\"HCTZ\"" @>
   test <@ body.Contains "value=\"hydrochlorothiazide\"" @>
-  test <@ body.Contains "value=\"2026-04-01\"" @>
+  test <@ body.Contains "value=\"01.04.2026\"" @>
+  test <@ body.Contains "dd.mm.yyyy" @>
+  test <@ not (body.Contains "type=\"date\"") @>
+
+[<Fact>]
+let ``settings renders the add-medication date fields with a dd.mm.yyyy hint`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMedications repo []
+  TestHost.run ReadingHandlers.settings ctx
+
+  test <@ ctx.Response.StatusCode = 200 @>
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "dd.mm.yyyy" @>
+  test <@ not (body.Contains "type=\"date\"") @>
 
 [<Fact>]
 let ``edit returns 404 for a medication belonging to a different member`` () =
