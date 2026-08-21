@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-08-21
+
 ### Added
 
 - Medications Timeline: a collapsible panel below the blood pressure chart on Recent and History showing each medication as a bar spanning its start and end dates, in the style of Wegier et al. 2021's Fig. 5. Manage medications from a new section on the Settings page, where dates are entered and shown as dd.mm.yyyy. On Recent, the timeline's scrubber line stays in sync with the blood pressure chart's as you hover or pan.
@@ -22,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Medications Timeline: hovering anywhere along a medication's bar now shows its tooltip — previously only the two ends (start/end date) were hoverable, so long-running medications showed nothing but the scrubber line across most of the bar.
 - Settings: section headings (Goal Range, Medications, Add medication) now render smaller than page titles instead of larger, and no longer skip a heading level.
+
+### Deployment
+
+- The database schema is automatically extended with a new `Medications` table on first startup — no manual migration needed.
 
 ## [1.10.1] - 2026-08-15
 
@@ -417,7 +423,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.10.1...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/draptik/BpMonitor/compare/v1.10.1...v1.11.0
 [1.10.1]: https://github.com/draptik/BpMonitor/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/draptik/BpMonitor/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/draptik/BpMonitor/compare/v1.8.0...v1.9.0
