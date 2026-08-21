@@ -19,6 +19,7 @@
     <Compile Include="LayoutViewTests.fs" />
     <Compile Include="HistoryViewTests.fs" />
     <Compile Include="MemberViewTests.fs" />
+    <Compile Include="MedicationViewTests.fs" />
     <Compile Include="LoginViewTests.fs" />
     <Compile Include="ConfigTests.fs" />
     <Compile Include="HandlerHelpersTests.fs" />
