@@ -19,12 +19,18 @@ module MedicationViews =
       []
       [ Elem.td [] [ Text.enc m.Name ]
         Elem.td [] [ Text.enc (m.FullName |> Option.defaultValue "") ]
-        Elem.td [] [ Text.enc (Formats.formatDateEuropean m.StartDate) ]
-        Elem.td [] [ Text.enc (m.EndDate |> Option.map Formats.formatDateEuropean |> Option.defaultValue "") ]
+        Elem.td [ Attr.class' "text-center" ] [ Text.enc (Formats.formatDateEuropean m.StartDate) ]
+        Elem.td
+          [ Attr.class' "text-center" ]
+          [ Text.enc (m.EndDate |> Option.map Formats.formatDateEuropean |> Option.defaultValue "") ]
         Elem.td [] [ Text.enc (m.Comment |> Option.defaultValue "") ]
         Elem.td
           [ Attr.class' "member-actions" ]
-          [ Elem.a [ Attr.href (Routes.medicationEdit m.Id); Attr.class' "outline" ] [ Text.raw "Edit" ]
+          [ Elem.a
+              [ Attr.href (Routes.medicationEdit m.Id)
+                Attr.role "button"
+                Attr.class' "outline secondary" ]
+              [ Text.raw "Edit" ]
             ViewLayout.inlinePostButton (Routes.medicationDelete m.Id) "Delete" ] ]
 
   /// The `/settings` Medications section: a table of the member's medications plus an
@@ -40,8 +46,8 @@ module MedicationViews =
                 []
                 [ Elem.th [] [ Text.raw "Name" ]
                   Elem.th [] [ Text.raw "Full name" ]
-                  Elem.th [] [ Text.raw "Start" ]
-                  Elem.th [] [ Text.raw "End" ]
+                  Elem.th [ Attr.class' "text-center" ] [ Text.raw "Start" ]
+                  Elem.th [ Attr.class' "text-center" ] [ Text.raw "End" ]
                   Elem.th [] [ Text.raw "Comment" ]
                   Elem.th [] [ Text.raw "" ] ] ]
           Elem.tbody [] (medications |> List.sortBy _.StartDate |> List.map medicationRow) ]

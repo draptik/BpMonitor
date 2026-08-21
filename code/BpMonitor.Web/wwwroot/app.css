@@ -535,7 +535,8 @@ form.inline {
   display: inline;
 }
 
-form.inline button {
+form.inline button,
+.member-actions a[role="button"] {
   --pico-nav-link-spacing-vertical: 0.25rem;
   --pico-nav-link-spacing-horizontal: 0.75rem;
   --pico-form-element-spacing-vertical: 0.25rem;
@@ -577,6 +578,10 @@ form.inline button {
   gap: 0.5rem;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.text-center {
+  text-align: center;
 }
 
 /* ── Recent page ────────────────────────────────────────────────────────── */

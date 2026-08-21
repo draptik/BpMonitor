@@ -27,7 +27,11 @@ module MemberViews =
             [ Attr.class' "member-actions" ]
             [ if isCurrent then
                 Elem.span [ Attr.class' "current-member" ] [ Text.raw "You" ]
-              Elem.a [ Attr.href (Routes.memberEdit m.Id); Attr.class' "outline" ] [ Text.raw "Edit" ]
+              Elem.a
+                [ Attr.href (Routes.memberEdit m.Id)
+                  Attr.role "button"
+                  Attr.class' "outline secondary" ]
+                [ Text.raw "Edit" ]
               ViewLayout.inlinePostButton (Routes.memberResetPassword m.Id) "Reset password" ] ]
 
     [ yield ViewLayout.errorBox errors

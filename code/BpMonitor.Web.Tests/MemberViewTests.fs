@@ -29,6 +29,12 @@ let ``members page renders Admin and Active columns and Edit link`` () =
   test <@ html.Contains $"href=\"{Routes.memberEdit 2}\"" @>
 
 [<Fact>]
+let ``members page renders Edit as a button, matching Reset password's style`` () =
+  let html = renderHtml (MemberViews.members [ defaultMember ] defaultMember [])
+
+  test <@ html.Contains $"<a href=\"{Routes.memberEdit 1}\" role=\"button\" class=\"outline secondary\">Edit</a>" @>
+
+[<Fact>]
 let ``members page shows claimed/unclaimed badge`` () =
   let claimed =
     { defaultMember with
