@@ -50,6 +50,11 @@ module Formats =
 
   let formatDate (d: System.DateOnly) = d.ToString(date)
 
+  let dateEuropean = "dd.MM.yyyy"
+
+  let formatDateEuropean (d: System.DateOnly) =
+    d.ToString(dateEuropean, System.Globalization.CultureInfo.InvariantCulture)
+
 module ReadingRanges =
   let defaults =
     { SystolicMin = 1

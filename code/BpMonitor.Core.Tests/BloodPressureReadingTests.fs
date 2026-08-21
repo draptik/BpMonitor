@@ -88,3 +88,7 @@ let ``parse sets MemberId to 0`` () =
   match BloodPressureReading.parse ranges validUnvalidated with
   | Ok reading -> test <@ reading.MemberId = 0 @>
   | Error _ -> failwith "Expected Ok"
+
+[<Fact>]
+let ``formatDateEuropean renders as dd.MM.yyyy`` () =
+  test <@ Formats.formatDateEuropean (DateOnly(2026, 4, 1)) = "01.04.2026" @>
