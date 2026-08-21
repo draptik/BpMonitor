@@ -29,6 +29,15 @@ let ``members page renders Admin and Active columns and Edit link`` () =
   test <@ html.Contains $"href=\"{Routes.memberEdit 2}\"" @>
 
 [<Fact>]
+let ``goalRangeSection wraps the section in a collapsible details element`` () =
+  let html =
+    renderHtml (Elem.div [] (MemberViews.goalRangeSection [] "90" "140" "60" "90"))
+
+  test <@ html.Contains "<details" @>
+  test <@ html.Contains "data-persist-key=\"settings-goal-range\"" @>
+  test <@ html.Contains "<summary>" @>
+
+[<Fact>]
 let ``members page renders Edit as a button, matching Reset password's style`` () =
   let html = renderHtml (MemberViews.members [ defaultMember ] defaultMember [])
 

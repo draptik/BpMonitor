@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recent page: the "Chart layout inspired by Wegier et al. 2021" citation now sits below the Medications Timeline panel instead of above it.
 - Medications Timeline: each medication now gets its own color (consistent across visits), and its bar is thicker with rounded ends. Fixed a stray white line that could appear across the top row in dark mode.
 - Settings: the medications table's Start and End columns are now center-aligned, and its Edit action now renders as a button, matching Delete. Family Members table's Edit action likewise now matches Reset password's button style.
+- Settings: the Goal Range and Medications sections are now collapsible. The Medications Delete button is now styled as a warning (red outline) and asks for confirmation, naming the medication, before it actually deletes anything. The add-medication form's fields are now labeled Required or Optional.
 
 ### Fixed
 

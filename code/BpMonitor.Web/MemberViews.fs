@@ -126,15 +126,19 @@ module MemberViews =
     (diaMin: string)
     (diaMax: string)
     : XmlNode list =
-    [ Elem.h2 [] [ Text.raw "Goal Range" ]
-      ViewLayout.errorBox errors
-      Elem.form
-        [ Attr.method "post"; Attr.action Routes.settings ]
-        [ ViewLayout.field "Systolic min" FormFields.systolicGoalMin sysMin "number"
-          ViewLayout.field "Systolic max" FormFields.systolicGoalMax sysMax "number"
-          ViewLayout.field "Diastolic min" FormFields.diastolicGoalMin diaMin "number"
-          ViewLayout.field "Diastolic max" FormFields.diastolicGoalMax diaMax "number"
-          ViewLayout.formActions Routes.history ] ]
+    [ Elem.details
+        [ Attr.class' "settings-section"
+          Attr.create "open" ""
+          Attr.create "data-persist-key" "settings-goal-range" ]
+        [ Elem.summary [] [ Elem.h2 [] [ Text.raw "Goal Range" ] ]
+          ViewLayout.errorBox errors
+          Elem.form
+            [ Attr.method "post"; Attr.action Routes.settings ]
+            [ ViewLayout.field "Systolic min" FormFields.systolicGoalMin sysMin "number"
+              ViewLayout.field "Systolic max" FormFields.systolicGoalMax sysMax "number"
+              ViewLayout.field "Diastolic min" FormFields.diastolicGoalMin diaMin "number"
+              ViewLayout.field "Diastolic max" FormFields.diastolicGoalMax diaMax "number"
+              ViewLayout.formActions Routes.history ] ] ]
 
   /// Members page: list of family members with Edit/Reset-password buttons and an add form.
   /// Pass non-empty `errors` to show validation errors above the add form.
