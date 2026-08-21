@@ -642,19 +642,61 @@ module BpChart =
 
     $"{namePart}<br>{dateRange}{commentPart}"
 
-  // One thick line segment per medication; `slot` picks its color, and both hexes ride
-  // along as `meta` so theme.js can restyle it to the dark variant without a JS-side palette.
-  let private medicationTrace (rangeHigh: string) (rowIdx: int) (slot: int) (m: Medication) : GenericChart =
+  // Half-height in y-axis units (rows are 1 apart) — covers the 18px stroke, not the next row.
+  let private hoverTargetHalfHeight = 0.3
+
+  // Invisible fill covering the bar; HoverOn.Fills makes the whole shape hoverable, not just the visible line's two endpoints.
+  let private medicationHoverTarget
+    (rangeHigh: string)
+    (rowIdx: int)
+    (lightHex: string)
+    (meta: string)
+    (m: Medication)
+    : GenericChart =
     let xStart = toAxisDate m.StartDate
     let xEnd = m.EndDate |> Option.map toAxisDate |> Option.defaultValue rangeHigh
     let tooltip = medicationTooltip m
-    let lightHex, darkHex = medicationPalette[slot]
+    let yTop = float rowIdx - hoverTargetHalfHeight
+    let yBottom = float rowIdx + hoverTargetHalfHeight
 
-    Chart.Line(x = [ xStart; xEnd ], y = [ rowIdx; rowIdx ], MultiText = [ tooltip; tooltip ], ShowMarkers = false)
-    |> Chart.withLineStyle (Width = 18.0, Color = Color.fromString lightHex)
-    |> GenericChart.mapTrace (
-      Trace2DStyle.Scatter(ShowLegend = false, HoverTemplate = "%{text}<extra></extra>", Meta = $"{lightHex}|{darkHex}")
+    // Fill-hover binds "%{text}" to a singular Text (MultiText shows "trace N" instead); Name = "" drops the redundant name chip fills-hover adds.
+    Chart.Line(
+      x = [ xStart; xEnd; xEnd; xStart; xStart ],
+      y = [ yTop; yTop; yBottom; yBottom; yTop ],
+      Name = "",
+      Text = tooltip,
+      ShowMarkers = false
     )
+    |> GenericChart.mapTrace (
+      Trace2DStyle.Scatter(
+        Mode = StyleParam.Mode.None,
+        Fill = StyleParam.Fill.ToSelf,
+        FillColor = Color.fromString "rgba(0,0,0,0)",
+        HoverOn = StyleParam.HoverOn.Fills,
+        ShowLegend = false,
+        HoverTemplate = "%{text}<extra></extra>",
+        // theme.js restyles this to the dark hex alongside `line.color` on the visible trace.
+        HoverLabel =
+          Hoverlabel.init (BgColor = Color.fromString lightHex, Font = Font.init (Color = Color.fromString "white")),
+        Meta = meta
+      )
+    )
+
+  // Thick line per medication; `meta` carries both hexes for theme.js. Native hover is off — the hover-target trace above handles it.
+  let private medicationTrace (rangeHigh: string) (rowIdx: int) (slot: int) (m: Medication) : GenericChart =
+    let xStart = toAxisDate m.StartDate
+    let xEnd = m.EndDate |> Option.map toAxisDate |> Option.defaultValue rangeHigh
+    let lightHex, darkHex = medicationPalette[slot]
+    let meta = $"{lightHex}|{darkHex}"
+
+    let visibleLine =
+      Chart.Line(x = [ xStart; xEnd ], y = [ rowIdx; rowIdx ], ShowMarkers = false)
+      |> Chart.withLineStyle (Width = 18.0, Color = Color.fromString lightHex)
+      |> GenericChart.mapTrace (
+        Trace2DStyle.Scatter(ShowLegend = false, HoverInfo = StyleParam.HoverInfo.Skip, Meta = meta)
+      )
+
+    Chart.combine [ visibleLine; medicationHoverTarget rangeHigh rowIdx lightHex meta m ]
 
   // Left/Right must match `compactMargin` so the two charts' plot areas align; Top/Bottom
   // are compact since this chart carries no title, legend, or rotated tick labels.

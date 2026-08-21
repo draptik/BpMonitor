@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recent page: the "Chart layout inspired by Wegier et al. 2021" citation now sits below the Medications Timeline panel instead of above it.
 - Medications Timeline: each medication now gets its own color (consistent across visits), and its bar is thicker with rounded ends. Fixed a stray white line that could appear across the top row in dark mode.
 
+### Fixed
+
+- Medications Timeline: hovering anywhere along a medication's bar now shows its tooltip — previously only the two ends (start/end date) were hoverable, so long-running medications showed nothing but the scrubber line across most of the bar.
+
 ## [1.10.1] - 2026-08-15
 
 ### Maintenance

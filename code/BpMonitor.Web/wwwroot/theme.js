@@ -29,9 +29,8 @@ function applyChartTheme(theme) {
 function restyleMedicationColors(plot, isDark) {
   const metas = (plot.data || []).map((/** @type {any} */ tr) => tr.meta);
   if (metas.length === 0 || !metas.every((/** @type {any} */ m) => typeof m === 'string' && m.includes('|'))) return;
-  Plotly.restyle(plot, {
-    'line.color': metas.map((/** @type {string} */ m) => m.split('|')[isDark ? 1 : 0])
-  });
+  const colors = metas.map((/** @type {string} */ m) => m.split('|')[isDark ? 1 : 0]);
+  Plotly.restyle(plot, { 'line.color': colors, 'hoverlabel.bgcolor': colors });
 }
 
 window.toggleTheme=()=> {
