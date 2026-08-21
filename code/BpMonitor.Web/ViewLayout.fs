@@ -87,6 +87,16 @@ module ViewLayout =
       [ Attr.method "post"; Attr.action action; Attr.class' "inline" ]
       [ Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw label ] ]
 
+  /// Like `inlinePostButton`, styled as destructive and gated by an `hx-confirm` prompt.
+  /// `hx-confirm` must sit on the form: htmx's boost resolves a submit to the form as the triggering element and only walks up from there.
+  let inlineDangerPostButton (action: string) (label: string) (confirmMessage: string) : XmlNode =
+    Elem.form
+      [ Attr.method "post"
+        Attr.action action
+        Attr.class' "inline"
+        Attr.create "hx-confirm" confirmMessage ]
+      [ Elem.button [ Attr.type' "submit"; Attr.class' "outline button-danger" ] [ Text.raw label ] ]
+
   /// Page shell for authenticated pages: shared <head>, nav bar with logged-in member
   /// name + logout, and hx-boosted body.
   let layout (active: string) (memberName: string) (isAdmin: bool) (title: string) (content: XmlNode list) : XmlNode =

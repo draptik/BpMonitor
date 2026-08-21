@@ -235,6 +235,56 @@ g.errorbars path.yerror {
   --color-error-bg: #fef2f2;
   --color-error-fg: #991b1b;
   --color-error-border: #991b1b;
+  --color-danger: #b7403b;
+  --color-danger-hover: #991b1b;
+}
+
+[data-theme="dark"] {
+  --color-danger: #c84f48;
+  --color-danger-hover: #ef4444;
+}
+
+/* Two classes to match pico.min.css's `:is(button,...).outline` specificity — otherwise it wins the cascade over a single-class rule. */
+.outline.button-danger {
+  --pico-color: var(--color-danger);
+  --pico-border-color: var(--color-danger);
+}
+
+.outline.button-danger:is(:hover, :focus, :active) {
+  --pico-color: var(--pico-contrast-inverse, #fff);
+  --pico-background-color: var(--color-danger-hover);
+  --pico-border-color: var(--color-danger-hover);
+}
+
+.field-badge {
+  font-size: 0.7em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.field-required {
+  color: var(--color-danger);
+}
+
+.field-optional {
+  color: var(--pico-muted-color);
+}
+
+/* Collapsible settings sections (e.g. Medications) — remembered via wwwroot/details-memory.js. */
+.settings-section {
+  margin-top: 2rem;
+}
+
+.settings-section summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+.settings-section summary h2 {
+  display: inline;
 }
 
 [data-theme="dark"] {
