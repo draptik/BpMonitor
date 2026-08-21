@@ -177,11 +177,11 @@ module ReadingViews =
        @ loadFullButton
        @ [ valueStrip
            Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
+           medicationsPanel
            Elem.p
              [ Attr.class' "chart-citation" ]
              [ Text.raw "Chart layout inspired by "
-               Elem.a [ Attr.href "https://doi.org/10.1186/s12911-021-01598-4" ] [ Text.raw "Wegier et al. 2021" ] ]
-           medicationsPanel ])
+               Elem.a [ Attr.href "https://doi.org/10.1186/s12911-021-01598-4" ] [ Text.raw "Wegier et al. 2021" ] ] ])
 
   /// Recent: chart of all readings, focused on the last 30 days, with a sys/dias value strip.
   let recent
