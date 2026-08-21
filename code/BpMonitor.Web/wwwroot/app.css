@@ -627,6 +627,11 @@ form.inline button {
   overflow: visible;
 }
 
+/* Rounded bar ends on the medication rows (Plotly draws each as an SVG line). */
+.medications-chart .scatterlayer .js-line {
+  stroke-linecap: round;
+}
+
 /* Fig. 5-style "Blood Pressure Values" strip: a 2-row data table (Systolic/
    Diastolic) listing every value currently shown in the chart window. Fixed
    table layout stretches to the same width as the chart below it and
