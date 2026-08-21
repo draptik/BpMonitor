@@ -83,7 +83,7 @@ module MedicationViews =
                       Elem.th [] [ Text.raw "Comment" ]
                       Elem.th [] [ Text.raw "" ] ] ]
               Elem.tbody [] (medications |> List.sortBy _.StartDate |> List.map medicationRow) ]
-          Elem.h3 [] [ Text.raw "Add medication" ]
+          Elem.h2 [] [ Text.raw "Add medication" ]
           Elem.form
             [ Attr.method "post"; Attr.action Routes.medications; Attr.class' "stacked" ]
             [ fieldWithHint

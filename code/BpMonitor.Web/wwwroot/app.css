@@ -544,6 +544,10 @@ main h1 {
   margin: 1.25rem 0 1rem;
 }
 
+main h2 {
+  font-size: 1.1rem;
+}
+
 footer.container {
   max-width: 700px;
   margin-top: 2rem;
