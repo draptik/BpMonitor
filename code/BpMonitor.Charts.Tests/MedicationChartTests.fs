@@ -35,7 +35,7 @@ let ``toHtmlMedications uses Name as the row label`` () =
     [ medication 1 "HCTZ" (Some "hydrochlorothiazide") None (DateOnly(2026, 1, 5)) None ]
 
   let html = BpChart.toHtmlMedications false rangeLow rangeHigh meds
-  test <@ html.Contains("\"HCTZ\"") @>
+  test <@ html.Contains("\"ticktext\":[\"HCTZ") @>
 
 [<Fact>]
 let ``toHtmlMedications hover falls back to Name when FullName is absent`` () =
@@ -133,6 +133,12 @@ let ``toHtmlMedications disables the y-axis zeroline`` () =
   let meds = [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None ]
   let html = BpChart.toHtmlMedications false rangeLow rangeHigh meds
   test <@ html.Contains("\"zeroline\":false") @>
+
+[<Fact>]
+let ``toHtmlMedications adds spacing between y-axis tick labels and the axis`` () =
+  let meds = [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None ]
+  let html = BpChart.toHtmlMedications false rangeLow rangeHigh meds
+  test <@ html.Contains("\"ticktext\":[\"HCTZ  \"]") @>
 
 [<Fact>]
 let ``toHtmlMedications carries light and dark colors in trace meta`` () =

@@ -738,6 +738,8 @@ module BpChart =
   // of min, max) puts row 0 — the first medication — at the top, matching reading order.
   let private medicationsYAxis (names: string list) =
     let n = names.Length
+    // Trailing non-breaking spaces nudge the right-anchored label away from the axis edge.
+    let tickText = names |> List.map (fun name -> name + "  ")
 
     LinearAxis.init (
       ShowGrid = false,
@@ -745,7 +747,7 @@ module BpChart =
       ZeroLine = false,
       TickMode = StyleParam.TickMode.Array,
       TickVals = [ 0 .. n - 1 ],
-      TickText = names,
+      TickText = tickText,
       Range = StyleParam.Range.MinMax(float n - 0.5, -0.5),
       FixedRange = true
     )
