@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Trends: Weekly and Yearly chart x-axis date labels now use the member's selected language instead of always showing English month abbreviations.
 - Trends: the Monthly view's month/year label for English-speaking members no longer depends on the server's OS/thread culture, so it can't accidentally render in German.
+- History: double-clicking the blood pressure chart to reset its zoom now resets the Medications Timeline chart below it too, instead of leaving it stuck at the old zoomed-in range.
 
 ## [1.11.0] - 2026-08-21
 
