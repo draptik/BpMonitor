@@ -37,7 +37,7 @@ let ``current Weekly: key is ISO week format`` () =
 [<Fact>]
 let ``current Weekly: label is 'This Week'`` () =
   let p = TrendPeriod.current Weekly now
-  test <@ p.Label = "This Week" @>
+  test <@ p.Label = ThisWeek @>
 
 [<Fact>]
 let ``current Weekly: Start is Monday midnight local`` () =
@@ -70,7 +70,7 @@ let ``current Monthly: key is YYYY-MM format`` () =
 [<Fact>]
 let ``current Monthly: label is 'This Month'`` () =
   let p = TrendPeriod.current Monthly now
-  test <@ p.Label = "This Month" @>
+  test <@ p.Label = ThisMonth @>
 
 [<Fact>]
 let ``current Monthly: Start is first of month local midnight`` () =
@@ -98,7 +98,7 @@ let ``current Yearly: key is YYYY format`` () =
 [<Fact>]
 let ``current Yearly: label is 'This Year'`` () =
   let p = TrendPeriod.current Yearly now
-  test <@ p.Label = "This Year" @>
+  test <@ p.Label = ThisYear @>
 
 [<Fact>]
 let ``current Yearly: Start is Jan 1 local midnight`` () =
@@ -121,7 +121,7 @@ let ``ofKey Weekly: parses current week key and labels 'This Week'`` () =
   let p = TrendPeriod.ofKey Weekly "2026-W24" now
   test <@ p.IsSome @>
   let label = p.Value.Label
-  test <@ label = "This Week" @>
+  test <@ label = ThisWeek @>
 
 [<Fact>]
 let ``ofKey Weekly: parses previous week key and labels 'Last Week'`` () =
@@ -129,21 +129,21 @@ let ``ofKey Weekly: parses previous week key and labels 'Last Week'`` () =
   let p = TrendPeriod.ofKey Weekly "2026-W23" now
   test <@ p.IsSome @>
   let label = p.Value.Label
-  test <@ label = "Last Week" @>
+  test <@ label = LastWeek @>
 
 [<Fact>]
 let ``ofKey Weekly: older same-year week uses CW label without year`` () =
   let p = TrendPeriod.ofKey Weekly "2026-W10" now
   test <@ p.IsSome @>
   let label = p.Value.Label
-  test <@ label = "CW 10" @>
+  test <@ label = CalendarWeek 10 @>
 
 [<Fact>]
 let ``ofKey Weekly: older different-year week appends year`` () =
   let p = TrendPeriod.ofKey Weekly "2025-W50" now
   test <@ p.IsSome @>
   let label = p.Value.Label
-  test <@ label = "CW 50/2025" @>
+  test <@ label = CalendarWeekOfYear(50, 2025) @>
 
 [<Fact>]
 let ``ofKey Weekly: invalid key returns None`` () =
@@ -155,14 +155,14 @@ let ``ofKey Monthly: parses current month key and labels 'This Month'`` () =
   let p = TrendPeriod.ofKey Monthly "2026-06" now
   test <@ p.IsSome @>
   let label = p.Value.Label
-  test <@ label = "This Month" @>
+  test <@ label = ThisMonth @>
 
 [<Fact>]
 let ``ofKey Monthly: parses previous month key and labels 'Last Month'`` () =
   let p = TrendPeriod.ofKey Monthly "2026-05" now
   test <@ p.IsSome @>
   let label = p.Value.Label
-  test <@ label = "Last Month" @>
+  test <@ label = LastMonth @>
 
 [<Fact>]
 let ``ofKey Monthly: handles January-to-December year boundary for Last Month`` () =
@@ -170,18 +170,13 @@ let ``ofKey Monthly: handles January-to-December year boundary for Last Month`` 
   let p = TrendPeriod.ofKey Monthly "2025-12" jan2026
   test <@ p.IsSome @>
   let label = p.Value.Label
-  test <@ label = "Last Month" @>
+  test <@ label = LastMonth @>
 
 [<Fact>]
-let ``ofKey Monthly: older month uses MMM yyyy label`` () =
+let ``ofKey Monthly: older month uses a MonthOfYear label`` () =
   let p = TrendPeriod.ofKey Monthly "2026-03" now
   test <@ p.IsSome @>
-  let label = p.Value.Label
-  // Should contain "2026" and a month abbreviation
-  let hasYear = label.Contains "2026"
-  let hasMar = label.Contains "Mar" || label.Contains "Mrz"
-  test <@ hasYear @>
-  test <@ hasMar @>
+  test <@ p.Value.Label = MonthOfYear(3, 2026) @>
 
 [<Fact>]
 let ``ofKey Monthly: invalid key returns None`` () =
@@ -193,21 +188,21 @@ let ``ofKey Yearly: parses current year key and labels 'This Year'`` () =
   let p = TrendPeriod.ofKey Yearly "2026" now
   test <@ p.IsSome @>
   let label = p.Value.Label
-  test <@ label = "This Year" @>
+  test <@ label = ThisYear @>
 
 [<Fact>]
 let ``ofKey Yearly: parses previous year key and labels 'Last Year'`` () =
   let p = TrendPeriod.ofKey Yearly "2025" now
   test <@ p.IsSome @>
   let label = p.Value.Label
-  test <@ label = "Last Year" @>
+  test <@ label = LastYear @>
 
 [<Fact>]
 let ``ofKey Yearly: older year uses year as label`` () =
   let p = TrendPeriod.ofKey Yearly "2024" now
   test <@ p.IsSome @>
   let label = p.Value.Label
-  test <@ label = "2024" @>
+  test <@ label = Year 2024 @>
 
 [<Fact>]
 let ``ofKey Yearly: invalid key returns None`` () =
@@ -240,31 +235,31 @@ let ``available Yearly: returns 5 periods`` () =
 let ``available Weekly: current (This Week) is last`` () =
   let result = TrendPeriod.available Weekly now
   let last = result |> List.last |> _.Label
-  test <@ last = "This Week" @>
+  test <@ last = ThisWeek @>
 
 [<Fact>]
 let ``available Monthly: current (This Month) is last`` () =
   let result = TrendPeriod.available Monthly now
   let last = result |> List.last |> _.Label
-  test <@ last = "This Month" @>
+  test <@ last = ThisMonth @>
 
 [<Fact>]
 let ``available Yearly: current (This Year) is last`` () =
   let result = TrendPeriod.available Yearly now
   let last = result |> List.last |> _.Label
-  test <@ last = "This Year" @>
+  test <@ last = ThisYear @>
 
 [<Fact>]
 let ``available Weekly: second-to-last is Last Week`` () =
   let result = TrendPeriod.available Weekly now
   let secondLast = result |> List.item (result.Length - 2) |> _.Label
-  test <@ secondLast = "Last Week" @>
+  test <@ secondLast = LastWeek @>
 
 [<Fact>]
 let ``available Monthly: second-to-last is Last Month`` () =
   let result = TrendPeriod.available Monthly now
   let secondLast = result |> List.item (result.Length - 2) |> _.Label
-  test <@ secondLast = "Last Month" @>
+  test <@ secondLast = LastMonth @>
 
 [<Fact>]
 let ``available Weekly: periods are in chronological order`` () =

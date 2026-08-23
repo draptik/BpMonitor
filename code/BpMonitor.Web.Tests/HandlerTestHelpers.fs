@@ -26,6 +26,7 @@ let sampleMember: FamilyMember =
     IsActive = true
     PasswordHash = None
     Goal = GoalRange.defaults
+    Language = English
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
 

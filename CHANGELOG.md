@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Settings: a Language section lets each family member choose their UI language (English for now; German lands in a follow-up release). The choice is per-member and also remembered on the login page.
+
 ## [1.11.0] - 2026-08-21
 
 ### Added

@@ -9,6 +9,7 @@ type FamilyMember =
     IsActive: bool
     PasswordHash: string option
     Goal: GoalRange
+    Language: Language
     CreatedAt: DateTimeOffset
     ModifiedAt: DateTimeOffset }
 
@@ -26,6 +27,7 @@ module FamilyMember =
           IsActive = true
           PasswordHash = None
           Goal = GoalRange.defaults
+          Language = Language.defaultLanguage
           CreatedAt = DateTimeOffset.MinValue
           ModifiedAt = DateTimeOffset.MinValue }
 

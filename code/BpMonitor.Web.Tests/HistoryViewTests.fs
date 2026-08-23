@@ -9,7 +9,7 @@ open ViewTestHelpers
 [<Fact>]
 let ``history renders reading values, chart div and nav links`` () =
   let html =
-    renderHtml (ReadingViews.history defaultMember "" [ sample ] (Text.raw ""))
+    renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
 
   test <@ html.Contains "123" @>
   test <@ html.Contains "after walk" @>
@@ -23,7 +23,7 @@ let ``history renders reading values, chart div and nav links`` () =
 let ``edit form is prefilled from the reading`` () =
   let html =
     renderHtml (
-      ReadingViews.readingForm "" "Me" true "Edit reading" (Routes.readingUpdate 7) [] (Binding.ofReading sample)
+      ReadingViews.readingForm s "" "Me" true "Edit reading" (Routes.readingUpdate 7) [] (Binding.ofReading sample)
     )
 
   test <@ html.Contains "name=\"Systolic\" value=\"123\"" @>
@@ -35,7 +35,7 @@ let ``form renders the validation errors it is given`` () =
   let errors = [ "Systolic 999 is out of range (1–300)" ]
 
   let html =
-    renderHtml (ReadingViews.readingForm Routes.add "Me" true "Add reading" Routes.readings errors Binding.empty)
+    renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings errors Binding.empty)
 
   test <@ html.Contains "errors" @>
   test <@ html.Contains "out of range" @>
@@ -47,7 +47,7 @@ let ``view encodes user-supplied content`` () =
         Comments = Some "<script>x</script>" }
 
   let html =
-    renderHtml (ReadingViews.history defaultMember "" [ nasty ] (Text.raw ""))
+    renderHtml (ReadingViews.history s defaultMember "" [ nasty ] (Text.raw ""))
 
   test <@ not (html.Contains "<script>x</script>") @>
   test <@ html.Contains "&lt;script&gt;" @>

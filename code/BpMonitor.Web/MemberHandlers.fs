@@ -12,11 +12,12 @@ module MemberHandlers =
   let members: HttpContext -> Task =
     withMember (fun active ctx ->
       let allMembers = (memberRepo ctx).GetAll()
-      htmlResponse (MemberViews.members allMembers active []) ctx)
+      htmlResponse (MemberViews.members (Strings.forLanguage active.Language) allMembers active []) ctx)
 
   let createMember: HttpContext -> Task =
     withMember (fun active ctx ->
       task {
+        let s = Strings.forLanguage active.Language
         let! form = ctx.Request.ReadFormAsync()
         let name = form[FormFields.name].ToString()
         let isAdmin = form.ContainsKey(FormFields.isAdmin)
@@ -25,7 +26,7 @@ module MemberHandlers =
         | Error NameIsEmpty ->
           let allMembers = (memberRepo ctx).GetAll()
           ctx.Response.StatusCode <- 422
-          do! htmlResponse (MemberViews.members allMembers active [ "Name cannot be empty" ]) ctx
+          do! htmlResponse (MemberViews.members s allMembers active [ s.Errors.NameIsEmpty ]) ctx
         | Ok m ->
           (memberRepo ctx).Add(m) |> ignore
           ctx.Response.Redirect Routes.members
@@ -34,18 +35,22 @@ module MemberHandlers =
 
   let editMember: HttpContext -> Task =
     withRouteMember "editMember" (fun m ctx ->
+      let s = authenticatedStrings ctx
+
       htmlResponse
         (MemberViews.memberForm
+          s
           Routes.members
           (authenticatedMemberName ctx)
           true
-          "Edit member"
+          s.Member.EditMemberTitle
           (Routes.memberUpdate m.Id)
           []
           m)
         ctx)
 
   let private renderMemberEditError
+    (s: Strings)
     (id: int)
     (adminName: string)
     (errors: string list)
@@ -55,10 +60,11 @@ module MemberHandlers =
     ctx.Response.StatusCode <- 422
 
     htmlResponse
-      (MemberViews.memberForm Routes.members adminName true "Edit member" (Routes.memberUpdate id) errors m)
+      (MemberViews.memberForm s Routes.members adminName true s.Member.EditMemberTitle (Routes.memberUpdate id) errors m)
       ctx
 
   let private applyMemberEdit
+    (s: Strings)
     (id: int)
     (adminName: string)
     (existing: FamilyMember)
@@ -76,7 +82,7 @@ module MemberHandlers =
               IsAdmin = isAdmin
               IsActive = isActive }
 
-        do! renderMemberEditError id adminName [ "Name cannot be empty" ] m ctx
+        do! renderMemberEditError s id adminName [ s.Errors.NameIsEmpty ] m ctx
       | Ok _ ->
         let updated =
           { existing with
@@ -89,7 +95,7 @@ module MemberHandlers =
           |> List.map (fun m -> if m.Id = id then updated else m)
 
         if not (FamilyMember.hasActiveAdmin postEditList) then
-          do! renderMemberEditError id adminName [ "At least one member must be an active admin" ] updated ctx
+          do! renderMemberEditError s id adminName [ s.Errors.AtLeastOneActiveAdmin ] updated ctx
         else
           (memberRepo ctx).Update(updated)
           ctx.Response.Redirect Routes.members
@@ -99,10 +105,12 @@ module MemberHandlers =
   let updateMember: HttpContext -> Task =
     withRouteMember "updateMember" (fun existing ctx ->
       task {
+        let s = authenticatedStrings ctx
         let! form = ctx.Request.ReadFormAsync()
 
         do!
           applyMemberEdit
+            s
             existing.Id
             (authenticatedMemberName ctx)
             existing

@@ -34,6 +34,44 @@ module HandlerHelpers =
   let logger (ctx: HttpContext) =
     ctx.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("BpMonitor.Web.Handlers")
 
+  let languageCookieName = "bpmonitor_lang"
+
+  let private languageFromCookie (ctx: HttpContext) : Language option =
+    match ctx.Request.Cookies.TryGetValue languageCookieName with
+    | true, v -> Language.tryParse v
+    | _ -> None
+
+  let private languageFromAcceptHeader (ctx: HttpContext) : Language option =
+    let header = ctx.Request.Headers.AcceptLanguage.ToString()
+
+    if String.IsNullOrWhiteSpace header then
+      None
+    else
+      header.Split(',')
+      |> Array.tryPick (fun part ->
+        let code = part.Split(';')[0]
+        Language.tryParse (code.Trim()))
+
+  /// Resolves the UI language for an unauthenticated request: cookie, then
+  /// Accept-Language, then the deployment's configured default.
+  let strings (ctx: HttpContext) : Strings =
+    let lang =
+      languageFromCookie ctx
+      |> Option.orElseWith (fun () -> languageFromAcceptHeader ctx)
+      |> Option.defaultWith (fun () ->
+        Config.readDefaultLanguage (ctx.RequestServices.GetRequiredService<IConfiguration>()))
+
+    Strings.forLanguage lang
+
+  /// Persists the member's chosen language so unauthenticated pages (e.g. /login,
+  /// reached again after signing out) render in the same language.
+  let setLanguageCookie (ctx: HttpContext) (lang: Language) : unit =
+    ctx.Response.Cookies.Append(
+      languageCookieName,
+      Language.code lang,
+      CookieOptions(HttpOnly = false, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddYears(1))
+    )
+
   let htmlResponse (node: XmlNode) (ctx: HttpContext) : Task =
     ctx.Response.ContentType <- "text/html; charset=utf-8"
     ctx.Response.WriteAsync(renderHtml node)

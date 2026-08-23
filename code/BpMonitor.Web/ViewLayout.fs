@@ -39,9 +39,7 @@ module ViewLayout =
   let private navDownloadLink (href: string) (glyph: string) (label: string) : XmlNode =
     Elem.li [] [ Elem.a [ Attr.href href; Attr.create "hx-boost" "false" ] (navIcon glyph label) ]
 
-  /// The dark/light mode toggle (icon set by theme.js/theme-label.js). `extraClass`
-  /// lets the login page add `theme-toggle--standalone` since it has no topbar/sidebar
-  /// to host it (see app.css).
+  /// The dark/light mode toggle; `extraClass` lets the login page style itself standalone.
   let private themeToggleButton (extraClass: string) : XmlNode =
     Elem.button
       [ Attr.class' ($"theme-toggle {extraClass}".Trim())
@@ -99,9 +97,16 @@ module ViewLayout =
 
   /// Page shell for authenticated pages: shared <head>, nav bar with logged-in member
   /// name + logout, and hx-boosted body.
-  let layout (active: string) (memberName: string) (isAdmin: bool) (title: string) (content: XmlNode list) : XmlNode =
+  let layout
+    (s: Strings)
+    (active: string)
+    (memberName: string)
+    (isAdmin: bool)
+    (title: string)
+    (content: XmlNode list)
+    : XmlNode =
     Elem.html
-      [ Attr.lang "en" ]
+      [ Attr.lang (Language.code s.Language) ]
       [ htmlHead
           title
           [ // htmx merges this into htmx.config on init (declarative equivalent of an
@@ -133,14 +138,14 @@ module ViewLayout =
               [ Elem.label
                   [ Attr.create "for" "nav-toggle"
                     Attr.class' "nav-burger"
-                    Attr.create "aria-label" "Menu" ]
+                    Attr.create "aria-label" s.Shell.Menu ]
                   [ Text.raw "☰" ]
                 Elem.a [ Attr.class' "topbar-title"; Attr.href Routes.home ] [ Text.raw "BpMonitor" ]
                 Elem.div
                   [ Attr.class' "topbar-right" ]
                   [ Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ]
                     themeToggleButton ""
-                    inlinePostButton Routes.logout "Logout" ] ]
+                    inlinePostButton Routes.logout s.Shell.Logout ] ]
             // Second label for same checkbox: acts as the backdrop — clicking it unchecks
             // the checkbox and closes the drawer.
             Elem.label [ Attr.create "for" "nav-toggle"; Attr.class' "nav-backdrop" ] []
@@ -148,17 +153,17 @@ module ViewLayout =
               [ Attr.class' "sidebar" ]
               [ Elem.ul
                   []
-                  [ navActionLink active Routes.add "➕" "Add"
-                    navLink active Routes.recent "🕒" "Recent"
-                    navLink active Routes.trends "📈" "Trends"
-                    navLink active Routes.history "📜" "History" ]
+                  [ navActionLink active Routes.add "➕" s.Shell.NavAdd
+                    navLink active Routes.recent "🕒" s.Shell.NavRecent
+                    navLink active Routes.trends "📈" s.Shell.NavTrends
+                    navLink active Routes.history "📜" s.Shell.NavHistory ]
                 Elem.ul
                   [ Attr.class' "sidebar-bottom" ]
-                  [ navDownloadLink Routes.exportJson "⬇️" "Export JSON"
-                    navDownloadLink Routes.exportCsv "⬇️" "Export CSV"
-                    navLink active Routes.settings "⚙️" "Settings"
+                  [ navDownloadLink Routes.exportJson "⬇️" s.Shell.NavExportJson
+                    navDownloadLink Routes.exportCsv "⬇️" s.Shell.NavExportCsv
+                    navLink active Routes.settings "⚙️" s.Shell.NavSettings
                     if isAdmin then
-                      navLink active Routes.members "👥" "Members" ] ]
+                      navLink active Routes.members "👥" s.Shell.NavMembers ] ]
             Elem.div
               [ Attr.class' "content" ]
               [ Elem.main [ Attr.class' "container" ] content
@@ -167,9 +172,9 @@ module ViewLayout =
             Elem.script [ Attr.src "/theme-label.js" ] [] ] ]
 
   /// Minimal page shell for unauthenticated pages (login). No nav, no logout.
-  let loginLayout (title: string) (content: XmlNode list) : XmlNode =
+  let loginLayout (s: Strings) (title: string) (content: XmlNode list) : XmlNode =
     Elem.html
-      [ Attr.lang "en" ]
+      [ Attr.lang (Language.code s.Language) ]
       [ htmlHead title []
         Elem.body
           [ Attr.create "hx-boost" "false" ]
@@ -179,7 +184,7 @@ module ViewLayout =
               ([ Elem.header
                    []
                    [ Elem.h1 [] [ Text.raw "BpMonitor" ]
-                     Elem.p [] [ Text.raw "Blood pressure tracker" ] ] ]
+                     Elem.p [] [ Text.raw s.Shell.AppTagline ] ] ]
                @ content)
             Elem.footer [ Attr.class' "container" ] [ Elem.small [] (versionFooter ()) ]
             Elem.script [ Attr.src "/theme-label.js" ] [] ] ]
@@ -193,11 +198,11 @@ module ViewLayout =
         [ Elem.ul [] (errors |> List.map (fun e -> Elem.li [] [ Text.enc e ])) ]
 
   /// The shared form save/cancel row. `cancelHref` is the Cancel link destination.
-  let formActions (cancelHref: string) : XmlNode =
+  let formActions (s: Strings) (cancelHref: string) : XmlNode =
     Elem.div
       [ Attr.class' "actions" ]
-      [ Elem.button [ Attr.type' "submit" ] [ Text.raw "Save" ]
-        Elem.a [ Attr.href cancelHref; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw "Cancel" ] ]
+      [ Elem.button [ Attr.type' "submit" ] [ Text.raw s.Shell.Save ]
+        Elem.a [ Attr.href cancelHref; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw s.Shell.Cancel ] ]
 
   /// A single labeled form field: `<div class="field"><label/><input/></div>`.
   /// Shared by readingForm, memberForm, and settingsForm.
@@ -209,17 +214,17 @@ module ViewLayout =
 
   /// The readings' table; wrapped in an id'd container so it can be targeted for
   /// partial swaps later.
-  let readingsTable (readings: BloodPressureReading list) : XmlNode =
+  let readingsTable (s: Strings) (readings: BloodPressureReading list) : XmlNode =
     let header =
       Elem.thead
         []
         [ Elem.tr
             []
-            [ Elem.th [ Attr.class' "col-timestamp" ] [ Text.raw "Timestamp" ]
-              Elem.th [ Attr.class' "col-center" ] [ Text.raw "Systolic" ]
-              Elem.th [ Attr.class' "col-center" ] [ Text.raw "Diastolic" ]
-              Elem.th [ Attr.class' "col-center" ] [ Text.raw "Heart Rate" ]
-              Elem.th [] [ Text.raw "Comment" ]
+            [ Elem.th [ Attr.class' "col-timestamp" ] [ Text.raw s.Table.Timestamp ]
+              Elem.th [ Attr.class' "col-center" ] [ Text.raw s.Table.Systolic ]
+              Elem.th [ Attr.class' "col-center" ] [ Text.raw s.Table.Diastolic ]
+              Elem.th [ Attr.class' "col-center" ] [ Text.raw s.Table.HeartRate ]
+              Elem.th [] [ Text.raw s.Shell.Comment ]
               Elem.th [] [ Text.raw "" ] ] ]
 
     let row (r: BloodPressureReading) =
@@ -230,6 +235,6 @@ module ViewLayout =
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.Diastolic) ]
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.HeartRate) ]
           Elem.td [] [ Text.enc (r.Comments |> Option.defaultValue "") ]
-          Elem.td [] [ Elem.a [ Attr.href (Routes.readingEdit r.Id) ] [ Text.raw "Edit" ] ] ]
+          Elem.td [] [ Elem.a [ Attr.href (Routes.readingEdit r.Id) ] [ Text.raw s.Shell.Edit ] ] ]
 
     Elem.div [ Attr.id "readings" ] [ Elem.table [] [ header; Elem.tbody [] (readings |> List.map row) ] ]

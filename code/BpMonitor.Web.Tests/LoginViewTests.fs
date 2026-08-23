@@ -8,7 +8,7 @@ open ViewTestHelpers
 
 [<Fact>]
 let ``loginPage renders sign-in form with username and password fields`` () =
-  let html = renderHtml (LoginViews.loginPage [])
+  let html = renderHtml (LoginViews.loginPage s [])
 
   test <@ html.Contains "Sign in" @>
   test <@ html.Contains "Username" @>
@@ -16,7 +16,7 @@ let ``loginPage renders sign-in form with username and password fields`` () =
 
 [<Fact>]
 let ``loginPage renders an unchecked remember-me checkbox`` () =
-  let html = renderHtml (LoginViews.loginPage [])
+  let html = renderHtml (LoginViews.loginPage s [])
 
   test <@ html.Contains "RememberMe" @>
   test <@ html.Contains "type=\"checkbox\"" @>
@@ -24,13 +24,13 @@ let ``loginPage renders an unchecked remember-me checkbox`` () =
 
 [<Fact>]
 let ``loginPage renders errors when provided`` () =
-  let html = renderHtml (LoginViews.loginPage [ "Invalid name or password" ])
+  let html = renderHtml (LoginViews.loginPage s [ "Invalid name or password" ])
 
   test <@ html.Contains "Invalid name or password" @>
 
 [<Fact>]
 let ``loginMember shows claim form for unclaimed member`` () =
-  let html = renderHtml (LoginViews.loginMember defaultMember [])
+  let html = renderHtml (LoginViews.loginMember s defaultMember [])
 
   test <@ html.Contains "PasswordConfirm" @>
   test <@ html.Contains "Claim account" @>
@@ -41,14 +41,14 @@ let ``loginMember shows password form for claimed member`` () =
     { defaultMember with
         PasswordHash = Some "x" }
 
-  let html = renderHtml (LoginViews.loginMember claimed [])
+  let html = renderHtml (LoginViews.loginMember s claimed [])
 
   test <@ not (html.Contains "PasswordConfirm") @>
   test <@ html.Contains "Login" @>
 
 [<Fact>]
 let ``loginMember renders an unchecked remember-me checkbox`` () =
-  let html = renderHtml (LoginViews.loginMember defaultMember [])
+  let html = renderHtml (LoginViews.loginMember s defaultMember [])
 
   test <@ html.Contains "RememberMe" @>
   test <@ html.Contains "type=\"checkbox\"" @>
@@ -57,6 +57,6 @@ let ``loginMember renders an unchecked remember-me checkbox`` () =
 [<Fact>]
 let ``loginMember renders errors`` () =
   let html =
-    renderHtml (LoginViews.loginMember defaultMember [ "Passwords do not match" ])
+    renderHtml (LoginViews.loginMember s defaultMember [ "Passwords do not match" ])
 
   test <@ html.Contains "Passwords do not match" @>

@@ -126,11 +126,15 @@ type RememberMeUncheckedCookieTests(fixture: WebAppFixture) =
 
       let! signInResp = client.PostAsync(claimUrl, step2Body)
 
-      let setCookieHeader =
-        signInResp.Headers.GetValues("Set-Cookie") |> String.concat " " |> _.ToLower()
+      // Only the auth cookie is asserted: `bpmonitor_lang` is a language *preference*,
+      // not a session token, so it is deliberately persistent regardless of remember-me.
+      let authCookie =
+        signInResp.Headers.GetValues("Set-Cookie")
+        |> Seq.find (fun c -> c.StartsWith(".AspNetCore.Cookies="))
+        |> _.ToLower()
 
-      Assert.DoesNotContain("expires=", setCookieHeader)
-      Assert.DoesNotContain("max-age=", setCookieHeader)
+      Assert.DoesNotContain("expires=", authCookie)
+      Assert.DoesNotContain("max-age=", authCookie)
     }
 
 /// Verifies that checking "remember me" yields a persistent cookie (an Expires

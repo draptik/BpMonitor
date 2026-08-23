@@ -39,23 +39,23 @@ module MedicationHandlers =
   /// "d.M.yyyy" accepts 1- or 2-digit day/month; yyyy-MM-dd is accepted too for pasted ISO dates.
   let private dateFormats = [| "d.M.yyyy"; Formats.date |]
 
-  let private tryDate (label: string) (s: string) : Result<DateOnly, string> =
-    match DateOnly.TryParseExact(s.Trim(), dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None) with
-    | true, v -> Ok v
-    | _ -> Error $"{label}: '{s}' is not a valid date (expected dd.mm.yyyy)"
+  let private tryDate (s: Strings) (label: string) (v: string) : Result<DateOnly, string> =
+    match DateOnly.TryParseExact(v.Trim(), dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None) with
+    | true, d -> Ok d
+    | _ -> Error(s.Errors.NotAValidDate label v)
 
-  let private tryOptionalDate (label: string) (s: string) : Result<DateOnly option, string> =
-    if String.IsNullOrWhiteSpace s then
+  let private tryOptionalDate (s: Strings) (label: string) (v: string) : Result<DateOnly option, string> =
+    if String.IsNullOrWhiteSpace v then
       Ok None
     else
-      tryDate label s |> Result.map Some
+      tryDate s label v |> Result.map Some
 
   /// Parse-level conversion (bad dates), mirroring Binding.toUnvalidated. Domain
   /// validation (empty name, end before start) happens afterward via Medication.parse.
-  let private toUnvalidated (f: FormValues) : Validation<MedicationUnvalidated, string> =
+  let private toUnvalidated (s: Strings) (f: FormValues) : Validation<MedicationUnvalidated, string> =
     validation {
-      let! startDate = tryDate "Start date" f.StartDate |> Validation.ofResult
-      and! endDate = tryOptionalDate "End date" f.EndDate |> Validation.ofResult
+      let! startDate = tryDate s s.Medication.StartDateLabel f.StartDate |> Validation.ofResult
+      and! endDate = tryOptionalDate s s.Medication.EndDateLabel f.EndDate |> Validation.ofResult
 
       return
         { Name = f.Name
@@ -65,21 +65,23 @@ module MedicationHandlers =
           EndDate = endDate }
     }
 
-  let private medicationErrorMessage (error: MedicationError) =
+  let private medicationErrorMessage (s: Strings) (error: MedicationError) =
     match error with
-    | MedicationError.NameIsEmpty -> "Name cannot be empty"
-    | MedicationError.EndDateBeforeStartDate -> "End date must be on or after the start date"
+    | MedicationError.NameIsEmpty -> s.Medication.NameIsEmpty
+    | MedicationError.EndDateBeforeStartDate -> s.Medication.EndDateBeforeStartDate
 
   /// Re-renders `/settings` (goal-range section unchanged) with the given medication
   /// errors, after a failed add.
-  let private renderSettingsWithErrors (m: FamilyMember) (errors: string list) (ctx: HttpContext) : Task =
+  let private renderSettingsWithErrors (s: Strings) (m: FamilyMember) (errors: string list) (ctx: HttpContext) : Task =
     ctx.Response.StatusCode <- 422
     let medications = (medicationRepo ctx).GetAll(m.Id)
 
     htmlResponse
       (SettingsViews.settings
+        s
         m.Name
         m.IsAdmin
+        m.Language
         []
         (string m.Goal.SystolicMin)
         (string m.Goal.SystolicMax)
@@ -92,21 +94,24 @@ module MedicationHandlers =
   let create: HttpContext -> Task =
     withMember (fun m ctx ->
       task {
+        let s = Strings.forLanguage m.Language
         let! form = readForm ctx
 
-        match toUnvalidated form with
-        | Error errors -> do! renderSettingsWithErrors m errors ctx
+        match toUnvalidated s form with
+        | Error errors -> do! renderSettingsWithErrors s m errors ctx
         | Ok unvalidated ->
           match Medication.parse unvalidated with
           | Ok medication ->
             (medicationRepo ctx).Add m.Id medication
             ctx.Response.Redirect Routes.settings
-          | Error errors -> do! renderSettingsWithErrors m (errors |> List.map medicationErrorMessage) ctx
+          | Error errors -> do! renderSettingsWithErrors s m (errors |> List.map (medicationErrorMessage s)) ctx
       }
       :> Task)
 
   let edit: HttpContext -> Task =
     withMemberAndRouteId "editMedication" (fun m id ctx ->
+      let s = Strings.forLanguage m.Language
+
       match (medicationRepo ctx).GetAll(m.Id) |> List.tryFind (fun x -> x.Id = id) with
       | None ->
         let log = logger ctx
@@ -115,9 +120,10 @@ module MedicationHandlers =
       | Some med ->
         htmlResponse
           (MedicationViews.medicationForm
+            s
             m.Name
             m.IsAdmin
-            "Edit medication"
+            s.Medication.EditMedicationTitle
             (Routes.medicationUpdate id)
             []
             med.Name
@@ -128,6 +134,7 @@ module MedicationHandlers =
           ctx)
 
   let private renderEditErrors
+    (s: Strings)
     (id: int)
     (m: FamilyMember)
     (errors: string list)
@@ -138,9 +145,10 @@ module MedicationHandlers =
 
     htmlResponse
       (MedicationViews.medicationForm
+        s
         m.Name
         m.IsAdmin
-        "Edit medication"
+        s.Medication.EditMedicationTitle
         (Routes.medicationUpdate id)
         errors
         f.Name
@@ -153,6 +161,8 @@ module MedicationHandlers =
   let update: HttpContext -> Task =
     withMemberAndRouteId "updateMedication" (fun m id ctx ->
       task {
+        let s = Strings.forLanguage m.Language
+
         match (medicationRepo ctx).GetAll(m.Id) |> List.tryFind (fun x -> x.Id = id) with
         | None ->
           let log = logger ctx
@@ -161,8 +171,8 @@ module MedicationHandlers =
         | Some existing ->
           let! form = readForm ctx
 
-          match toUnvalidated form with
-          | Error errors -> do! renderEditErrors id m errors form ctx
+          match toUnvalidated s form with
+          | Error errors -> do! renderEditErrors s id m errors form ctx
           | Ok unvalidated ->
             match Medication.parse unvalidated with
             | Ok medication ->
@@ -175,7 +185,7 @@ module MedicationHandlers =
                 )
 
               ctx.Response.Redirect Routes.settings
-            | Error errors -> do! renderEditErrors id m (errors |> List.map medicationErrorMessage) form ctx
+            | Error errors -> do! renderEditErrors s id m (errors |> List.map (medicationErrorMessage s)) form ctx
       }
       :> Task)
 

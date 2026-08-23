@@ -5,7 +5,12 @@ open BpMonitor.Core
 
 /// Server-rendered HTML views for family-member management pages.
 module MemberViews =
-  let private membersList (allMembers: FamilyMember list) (active: FamilyMember) (errors: string list) : XmlNode list =
+  let private membersList
+    (s: Strings)
+    (allMembers: FamilyMember list)
+    (active: FamilyMember)
+    (errors: string list)
+    : XmlNode list =
     let badge (text: string) (cls: string) =
       Elem.span [ Attr.class' cls ] [ Text.raw text ]
 
@@ -15,24 +20,34 @@ module MemberViews =
       Elem.tr
         []
         [ Elem.td [] [ Text.enc m.Name ]
-          Elem.td [] [ if m.IsAdmin then badge "Admin" "badge" else Text.raw "—" ]
-          Elem.td [] [ if m.IsActive then badge "Active" "badge" else Text.raw "—" ]
+          Elem.td
+            []
+            [ if m.IsAdmin then
+                badge s.Member.AdminBadge "badge"
+              else
+                Text.raw s.Member.NoneBadge ]
+          Elem.td
+            []
+            [ if m.IsActive then
+                badge s.Member.ActiveBadge "badge"
+              else
+                Text.raw s.Member.NoneBadge ]
           Elem.td
             []
             [ if FamilyMember.isClaimed m then
-                badge "Claimed" "badge badge-claimed"
+                badge s.Member.ClaimedBadge "badge badge-claimed"
               else
-                badge "Unclaimed" "badge badge-unclaimed" ]
+                badge s.Member.UnclaimedBadge "badge badge-unclaimed" ]
           Elem.td
             [ Attr.class' "member-actions" ]
             [ if isCurrent then
-                Elem.span [ Attr.class' "current-member" ] [ Text.raw "You" ]
+                Elem.span [ Attr.class' "current-member" ] [ Text.raw s.Member.You ]
               Elem.a
                 [ Attr.href (Routes.memberEdit m.Id)
                   Attr.role "button"
                   Attr.class' "outline secondary" ]
-                [ Text.raw "Edit" ]
-              ViewLayout.inlinePostButton (Routes.memberResetPassword m.Id) "Reset password" ] ]
+                [ Text.raw s.Shell.Edit ]
+              ViewLayout.inlinePostButton (Routes.memberResetPassword m.Id) s.Member.ResetPassword ] ]
 
     [ yield ViewLayout.errorBox errors
       yield
@@ -42,19 +57,19 @@ module MemberViews =
               []
               [ Elem.tr
                   []
-                  [ Elem.th [] [ Text.raw "Name" ]
-                    Elem.th [] [ Text.raw "Admin" ]
-                    Elem.th [] [ Text.raw "Active" ]
-                    Elem.th [] [ Text.raw "Password" ]
+                  [ Elem.th [] [ Text.raw s.Shell.Name ]
+                    Elem.th [] [ Text.raw s.Member.AdminHeader ]
+                    Elem.th [] [ Text.raw s.Member.ActiveHeader ]
+                    Elem.th [] [ Text.raw s.Member.PasswordHeader ]
                     Elem.th [] [ Text.raw "" ] ] ]
             Elem.tbody [] (allMembers |> List.map memberRow) ]
-      yield Elem.h2 [] [ Text.raw "Add family member" ]
+      yield Elem.h2 [] [ Text.raw s.Member.AddFamilyMember ]
       yield
         Elem.form
           [ Attr.method "post"; Attr.action Routes.members; Attr.class' "stacked" ]
           [ Elem.div
               [ Attr.class' "field" ]
-              [ Elem.label [ Attr.for' FormFields.name ] [ Text.raw "Name" ]
+              [ Elem.label [ Attr.for' FormFields.name ] [ Text.raw s.Shell.Name ]
                 Elem.input [ Attr.type' "text"; Attr.id FormFields.name; Attr.name FormFields.name ] ]
             Elem.label
               [ Attr.for' FormFields.isAdmin ]
@@ -62,12 +77,13 @@ module MemberViews =
                   [ Attr.type' "checkbox"
                     Attr.id FormFields.isAdmin
                     Attr.name FormFields.isAdmin ]
-                Text.raw " Admin" ]
-            Elem.button [ Attr.type' "submit" ] [ Text.raw "Add member" ] ] ]
+                Text.raw s.Member.AdminCheckboxLabel ]
+            Elem.button [ Attr.type' "submit" ] [ Text.raw s.Member.AddMember ] ] ]
 
   /// Shared add/edit form for family members. `action` is the POST target; `errors`
   /// are rendered above the fields when re-displaying after a failed submit.
   let memberForm
+    (s: Strings)
     (active: string)
     (memberName: string)
     (isAdmin: bool)
@@ -83,6 +99,7 @@ module MemberViews =
         [ Attr.type' "checkbox" ]
 
     ViewLayout.layout
+      s
       active
       memberName
       isAdmin
@@ -91,7 +108,7 @@ module MemberViews =
         ViewLayout.errorBox errors
         Elem.form
           [ Attr.method "post"; Attr.action action ]
-          [ ViewLayout.field "Name" FormFields.name m.Name "text"
+          [ ViewLayout.field s.Shell.Name FormFields.name m.Name "text"
             Elem.div
               [ Attr.class' "field" ]
               [ Elem.label
@@ -100,7 +117,7 @@ module MemberViews =
                       checkedAttr m.IsAdmin
                       @ [ Attr.id FormFields.isAdmin; Attr.name FormFields.isAdmin ]
                     )
-                    Text.raw " Admin" ] ]
+                    Text.raw s.Member.AdminCheckboxLabel ] ]
             Elem.div
               [ Attr.class' "field" ]
               [ Elem.label
@@ -109,17 +126,43 @@ module MemberViews =
                       checkedAttr m.IsActive
                       @ [ Attr.id FormFields.isActive; Attr.name FormFields.isActive ]
                     )
-                    Text.raw " Active" ] ]
-            ViewLayout.formActions Routes.members ] ]
+                    Text.raw s.Member.ActiveCheckboxLabel ] ]
+            ViewLayout.formActions s Routes.members ] ]
 
-  /// Self-service goal-range settings fragment: lets the logged-in member edit their
-  /// own systolic/diastolic goal range, rendered as color-coded bands on their charts.
-  /// Field values are raw strings (not a validated GoalRange) so that a failed submit
-  /// redisplays exactly what the user typed — mirroring ReadingViews.readingForm's
-  /// Binding.FormModel redisplay — instead of falling back to the stale persisted goal.
-  /// A fragment (not a full page) so `/settings` can compose it with
-  /// `MedicationViews.medicationsSection` under one page shell (`SettingsViews.settings`).
+  /// Self-service language picker fragment: submits a `<select>` of every `Language.all`
+  /// entry (each labeled by its own `Language.nativeName`) to `/settings/language`.
+  let languageSection (s: Strings) (current: Language) : XmlNode list =
+    let option (lang: Language) =
+      let attrs =
+        [ yield Attr.value (Language.code lang)
+          if lang = current then
+            yield Attr.create "selected" "selected" ]
+
+      Elem.option attrs [ Text.raw (Language.nativeName lang) ]
+
+    [ Elem.details
+        [ Attr.class' "settings-section"
+          Attr.create "open" ""
+          Attr.create "data-persist-key" "settings-language" ]
+        [ Elem.summary [] [ Elem.h2 [] [ Text.raw s.Member.LanguageTitle ] ]
+          // hx-boost="false": submitting must be a full page load, not an htmx body-only
+          // swap — otherwise <html lang> (set at the outer document level) never updates.
+          Elem.form
+            [ Attr.method "post"
+              Attr.action Routes.settingsLanguage
+              Attr.create "hx-boost" "false" ]
+            [ Elem.div
+                [ Attr.class' "field" ]
+                [ Elem.label [ Attr.for' FormFields.language ] [ Text.raw s.Member.LanguageTitle ]
+                  Elem.select
+                    [ Attr.id FormFields.language; Attr.name FormFields.language ]
+                    (Language.all |> List.map option) ]
+              ViewLayout.formActions s Routes.settings ] ] ]
+
+  /// Self-service goal-range settings fragment: a fragment (not a full page) so `/settings`
+  /// can compose it with `MedicationViews.medicationsSection` under one shell.
   let goalRangeSection
+    (s: Strings)
     (errors: string list)
     (sysMin: string)
     (sysMax: string)
@@ -130,22 +173,24 @@ module MemberViews =
         [ Attr.class' "settings-section"
           Attr.create "open" ""
           Attr.create "data-persist-key" "settings-goal-range" ]
-        [ Elem.summary [] [ Elem.h2 [] [ Text.raw "Goal Range" ] ]
+        [ Elem.summary [] [ Elem.h2 [] [ Text.raw s.Member.GoalRangeTitle ] ]
           ViewLayout.errorBox errors
           Elem.form
             [ Attr.method "post"; Attr.action Routes.settings ]
-            [ ViewLayout.field "Systolic min" FormFields.systolicGoalMin sysMin "number"
-              ViewLayout.field "Systolic max" FormFields.systolicGoalMax sysMax "number"
-              ViewLayout.field "Diastolic min" FormFields.diastolicGoalMin diaMin "number"
-              ViewLayout.field "Diastolic max" FormFields.diastolicGoalMax diaMax "number"
-              ViewLayout.formActions Routes.history ] ] ]
+            [ ViewLayout.field s.Member.SystolicMin FormFields.systolicGoalMin sysMin "number"
+              ViewLayout.field s.Member.SystolicMax FormFields.systolicGoalMax sysMax "number"
+              ViewLayout.field s.Member.DiastolicMin FormFields.diastolicGoalMin diaMin "number"
+              ViewLayout.field s.Member.DiastolicMax FormFields.diastolicGoalMax diaMax "number"
+              ViewLayout.formActions s Routes.history ] ] ]
 
   /// Members page: list of family members with Edit/Reset-password buttons and an add form.
   /// Pass non-empty `errors` to show validation errors above the add form.
-  let members (allMembers: FamilyMember list) (active: FamilyMember) (errors: string list) : XmlNode =
+  let members (s: Strings) (allMembers: FamilyMember list) (active: FamilyMember) (errors: string list) : XmlNode =
     ViewLayout.layout
+      s
       Routes.members
       active.Name
       active.IsAdmin
-      "Family Members"
-      (Elem.h1 [] [ Text.raw "Family Members" ] :: membersList allMembers active errors)
+      s.Member.FamilyMembersTitle
+      (Elem.h1 [] [ Text.raw s.Member.FamilyMembersTitle ]
+       :: membersList s allMembers active errors)

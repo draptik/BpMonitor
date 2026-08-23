@@ -13,10 +13,24 @@ type Granularity =
   | Monthly
   | Yearly
 
+/// A period's display label, structured so rendering (and translation) happens at the
+/// view layer via `Strings.Trend`, not as English prose baked into the domain.
+type PeriodLabel =
+  | ThisWeek
+  | LastWeek
+  | CalendarWeek of week: int
+  | CalendarWeekOfYear of week: int * year: int
+  | ThisMonth
+  | LastMonth
+  | MonthOfYear of month: int * year: int
+  | ThisYear
+  | LastYear
+  | Year of int
+
 type TrendPeriod =
   { Granularity: Granularity
     Key: string // URL-safe: "2026-W24" | "2026-06" | "2026"
-    Label: string // Display: "This Week" | "Last Week" | "CW 22" | "June 2026" | "2026"
+    Label: PeriodLabel
     Start: System.DateTimeOffset // inclusive, local midnight
     EndExclusive: System.DateTimeOffset }
 
@@ -70,20 +84,20 @@ module TrendPeriod =
     let prevMonday = (IsoWeek.monday w).AddDays(-7.0)
     IsoWeek.ofDate prevMonday
 
-  let private weekLabel (period: IsoWeek) (now: IsoWeek) : string =
+  let private weekLabel (period: IsoWeek) (now: IsoWeek) : PeriodLabel =
     if period = now then
-      "This Week"
+      ThisWeek
     else
       let prev = previousIsoWeek now
 
       if period = prev then
-        "Last Week"
+        LastWeek
       elif period.Year <> now.Year then
-        $"CW {period.Week}/{period.Year}"
+        CalendarWeekOfYear(period.Week, period.Year)
       else
-        $"CW {period.Week}"
+        CalendarWeek period.Week
 
-  let private monthLabel (ym: YearMonth) (now: DateTimeOffset) : string =
+  let private monthLabel (ym: YearMonth) (now: DateTimeOffset) : PeriodLabel =
     let local = now.ToLocalTime()
 
     let nowYm =
@@ -91,7 +105,7 @@ module TrendPeriod =
         Month = local.Month }
 
     if ym = nowYm then
-      "This Month"
+      ThisMonth
     else
       let prevDate = DateTime(local.Year, local.Month, 1).AddMonths(-1)
 
@@ -100,16 +114,16 @@ module TrendPeriod =
           Month = prevDate.Month }
 
       if ym = prevYm then
-        "Last Month"
+        LastMonth
       else
-        DateTime(ym.Year, ym.Month, 1).ToString("MMM yyyy")
+        MonthOfYear(ym.Month, ym.Year)
 
-  let private yearLabel (year: int) (now: DateTimeOffset) : string =
+  let private yearLabel (year: int) (now: DateTimeOffset) : PeriodLabel =
     let local = now.ToLocalTime()
 
-    if year = local.Year then "This Year"
-    elif year = local.Year - 1 then "Last Year"
-    else string year
+    if year = local.Year then ThisYear
+    elif year = local.Year - 1 then LastYear
+    else Year year
 
   // ── public API ──────────────────────────────────────────────────────────────
 
@@ -136,7 +150,7 @@ module TrendPeriod =
 
       { Granularity = Weekly
         Key = isoWeekKey w
-        Label = "This Week"
+        Label = ThisWeek
         Start = localMidnight monday
         EndExclusive = localMidnight (monday.AddDays 7.0) }
 
@@ -149,7 +163,7 @@ module TrendPeriod =
 
       { Granularity = Monthly
         Key = monthKey ym
-        Label = "This Month"
+        Label = ThisMonth
         Start = localMidnight start
         EndExclusive = localMidnight (start.AddMonths 1) }
 
@@ -158,7 +172,7 @@ module TrendPeriod =
 
       { Granularity = Yearly
         Key = string y
-        Label = "This Year"
+        Label = ThisYear
         Start = localMidnight (DateTime(y, 1, 1))
         EndExclusive = localMidnight (DateTime(y + 1, 1, 1)) }
 

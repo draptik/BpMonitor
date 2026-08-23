@@ -8,12 +8,13 @@ open Xunit
 open Swensen.Unquote
 open Falco.Markup
 open BpMonitor.Web
+open ViewTestHelpers
 
 let private defaultMember = HandlerTestHelpers.sampleMember
 
 [<Fact>]
 let ``layout loads plotly.js from a local path, not the CDN`` () =
-  let html = renderHtml (ReadingViews.landing defaultMember)
+  let html = renderHtml (ReadingViews.landing s defaultMember)
 
   test <@ not (html.Contains "cdn.plot.ly") @>
   test <@ html.Contains "src=\"/plotly-2.27.1.min.js\"" @>

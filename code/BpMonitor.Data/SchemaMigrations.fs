@@ -55,6 +55,7 @@ module SchemaMigrations =
         "IsAdmin" INTEGER NOT NULL DEFAULT 0,
         "IsActive" INTEGER NOT NULL DEFAULT 1,
         "PasswordHash" TEXT NOT NULL DEFAULT '',
+        "Language" TEXT NOT NULL DEFAULT '{Language.code Language.defaultLanguage}',
         "SystolicGoalMin" INTEGER NOT NULL DEFAULT {goal.SystolicMin},
         "SystolicGoalMax" INTEGER NOT NULL DEFAULT {goal.SystolicMax},
         "DiastolicGoalMin" INTEGER NOT NULL DEFAULT {goal.DiastolicMin},
@@ -75,8 +76,10 @@ module SchemaMigrations =
       let now = System.DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss zzz")
       let goal = GoalRange.defaults
 
+      let lang = Language.code Language.defaultLanguage
+
       ctx.Database.ExecuteSqlRaw(
-        $"INSERT INTO \"Members\" (\"Name\", \"IsAdmin\", \"IsActive\", \"PasswordHash\", \"SystolicGoalMin\", \"SystolicGoalMax\", \"DiastolicGoalMin\", \"DiastolicGoalMax\", \"CreatedAt\", \"ModifiedAt\") VALUES ('Me', 1, 1, '', {goal.SystolicMin}, {goal.SystolicMax}, {goal.DiastolicMin}, {goal.DiastolicMax}, '{now}', '{now}')"
+        $"INSERT INTO \"Members\" (\"Name\", \"IsAdmin\", \"IsActive\", \"PasswordHash\", \"Language\", \"SystolicGoalMin\", \"SystolicGoalMax\", \"DiastolicGoalMin\", \"DiastolicGoalMax\", \"CreatedAt\", \"ModifiedAt\") VALUES ('Me', 1, 1, '', '{lang}', {goal.SystolicMin}, {goal.SystolicMax}, {goal.DiastolicMin}, {goal.DiastolicMax}, '{now}', '{now}')"
       )
       |> ignore
 
@@ -137,6 +140,8 @@ module SchemaMigrations =
     addColumnIfMissing ctx "Members" "IsActive" "INTEGER" "1"
     // Add PasswordHash for per-member login (empty string = unclaimed account).
     addColumnIfMissing ctx "Members" "PasswordHash" "TEXT" ""
+    // Add Language for per-member UI language (defaults to English on legacy DBs).
+    addColumnIfMissing ctx "Members" "Language" "TEXT" (Language.code Language.defaultLanguage)
     // Add goal-range columns, preset to the paper's recommended range (GoalRange.defaults).
     let goal = GoalRange.defaults
     addColumnIfMissing ctx "Members" "SystolicGoalMin" "INTEGER" (string goal.SystolicMin)
