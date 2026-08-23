@@ -65,7 +65,7 @@ module ReadingHandlers =
   // ── App pages ──
 
   let landing: HttpContext -> Task =
-    withMember (fun m ctx -> htmlResponse (ReadingViews.landing (LocalizedStrings.forLanguage m.Language) m) ctx)
+    withMember (fun m ctx -> htmlResponse (ReadingViews.landing (stringsForMember m) m) ctx)
 
   // ── Medications Timeline (Wegier et al. 2021 Fig. 5): shared by /history and /recent ──
 
@@ -113,7 +113,7 @@ module ReadingHandlers =
 
   let history: HttpContext -> Task =
     withMember (fun m ctx ->
-      let s = LocalizedStrings.forLanguage m.Language
+      let s = stringsForMember m
       let readings = sortedReadings m.Id ctx
       let chartHtml = BpChart.toHtml s.Charts m.Goal readings
       let medications = (medicationRepo ctx).GetAll(m.Id)
@@ -144,7 +144,7 @@ module ReadingHandlers =
 
   let recent: HttpContext -> Task =
     withMember (fun m ctx ->
-      let s = LocalizedStrings.forLanguage m.Language
+      let s = stringsForMember m
       let now = (timeProvider ctx).GetUtcNow()
       let allReadings = (repo ctx).GetAll(m.Id)
       let loadWindowStart = now.AddDays(-float recentLoadWindowDays)
@@ -178,7 +178,7 @@ module ReadingHandlers =
   // "Load full history" target: htmx fragment re-rendering the container with all history.
   let recentFull: HttpContext -> Task =
     withMember (fun m ctx ->
-      let s = LocalizedStrings.forLanguage m.Language
+      let s = stringsForMember m
       let now = (timeProvider ctx).GetUtcNow()
 
       // Excludes future-dated readings (clock skew, or a manually entered future
@@ -237,7 +237,7 @@ module ReadingHandlers =
 
   let trends: HttpContext -> Task =
     withMember (fun m ctx ->
-      let s = LocalizedStrings.forLanguage m.Language
+      let s = stringsForMember m
       let now = (timeProvider ctx).GetUtcNow()
       let allReadings = (repo ctx).GetAll(m.Id)
       let period = TrendPeriod.current Weekly now
@@ -252,7 +252,7 @@ module ReadingHandlers =
       match routeStr ctx "gran" |> Option.bind TrendPeriod.parseGranularity with
       | None -> badRequest ctx
       | Some gran ->
-        let s = LocalizedStrings.forLanguage m.Language
+        let s = stringsForMember m
         let now = (timeProvider ctx).GetUtcNow()
         let allReadings = (repo ctx).GetAll(m.Id)
 
@@ -270,7 +270,7 @@ module ReadingHandlers =
 
   let settings: HttpContext -> Task =
     withMember (fun m ctx ->
-      let s = LocalizedStrings.forLanguage m.Language
+      let s = stringsForMember m
       let medications = (medicationRepo ctx).GetAll(m.Id)
 
       htmlResponse
@@ -307,7 +307,7 @@ module ReadingHandlers =
   let updateSettings: HttpContext -> Task =
     withMember (fun m ctx ->
       task {
-        let s = LocalizedStrings.forLanguage m.Language
+        let s = stringsForMember m
         let! form = ctx.Request.ReadFormAsync()
         let raw key = form[key].ToString()
 
@@ -363,7 +363,7 @@ module ReadingHandlers =
 
   let newReading: HttpContext -> Task =
     withMember (fun m ctx ->
-      let s = LocalizedStrings.forLanguage m.Language
+      let s = stringsForMember m
 
       let prefill =
         { Binding.empty with
@@ -375,7 +375,7 @@ module ReadingHandlers =
 
   let createReading: HttpContext -> Task =
     withMember (fun m ctx ->
-      let s = LocalizedStrings.forLanguage m.Language
+      let s = stringsForMember m
 
       submit
         ctx
@@ -390,7 +390,7 @@ module ReadingHandlers =
 
   let editReading: HttpContext -> Task =
     withMemberAndRouteId "editReading" (fun m id ctx ->
-      let s = LocalizedStrings.forLanguage m.Language
+      let s = stringsForMember m
 
       match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
       | Some r ->
@@ -412,7 +412,7 @@ module ReadingHandlers =
 
   let updateReading: HttpContext -> Task =
     withMemberAndRouteId "updateReading" (fun m id ctx ->
-      let s = LocalizedStrings.forLanguage m.Language
+      let s = stringsForMember m
 
       match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
       | None ->

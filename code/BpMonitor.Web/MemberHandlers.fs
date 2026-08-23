@@ -12,12 +12,12 @@ module MemberHandlers =
   let members: HttpContext -> Task =
     withMember (fun active ctx ->
       let allMembers = (memberRepo ctx).GetAll()
-      htmlResponse (MemberViews.members (LocalizedStrings.forLanguage active.Language) allMembers active []) ctx)
+      htmlResponse (MemberViews.members (stringsForMember active) allMembers active []) ctx)
 
   let createMember: HttpContext -> Task =
     withMember (fun active ctx ->
       task {
-        let s = LocalizedStrings.forLanguage active.Language
+        let s = stringsForMember active
         let! form = ctx.Request.ReadFormAsync()
         let name = form[FormFields.name].ToString()
         let isAdmin = form.ContainsKey(FormFields.isAdmin)
