@@ -146,7 +146,9 @@ type ChartStrings =
     DiastolicTrend: string
     Comments: string
     AxisTitle: string
-    CalendarWeekTick: int -> string }
+    CalendarWeekTick: int -> string
+    DayMonthTick: System.DateTime -> string
+    MonthTick: System.DateTime -> string }
 
 /// All user-facing text for one language. Every language must supply every field —
 /// the compiler enforces completeness, which is the point of this type over `.resx`.
@@ -301,7 +303,9 @@ module LocalizedStrings =
           DiastolicTrend = "Diastolic (trend)"
           Comments = "Comments"
           AxisTitle = "blood pressure [mmHg]"
-          CalendarWeekTick = fun week -> $"W{week}" } }
+          CalendarWeekTick = fun week -> $"W{week}"
+          DayMonthTick = fun date -> date.ToString("d MMM", System.Globalization.CultureInfo("en-US"))
+          MonthTick = fun date -> date.ToString("MMM", System.Globalization.CultureInfo("en-US")) } }
 
   let de: LocalizedStrings =
     { Language = German
@@ -443,7 +447,9 @@ module LocalizedStrings =
           DiastolicTrend = "Diastolisch (Trend)"
           Comments = "Kommentare"
           AxisTitle = "Blutdruck [mmHg]"
-          CalendarWeekTick = fun week -> $"KW{week}" } }
+          CalendarWeekTick = fun week -> $"KW{week}"
+          DayMonthTick = fun date -> date.ToString("d. MMM", System.Globalization.CultureInfo("de-DE"))
+          MonthTick = fun date -> date.ToString("MMM", System.Globalization.CultureInfo("de-DE")) } }
 
   /// Every language routes through here, so a third language is one new value
   /// plus one match arm.

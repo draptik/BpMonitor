@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - History and Trends: the Edit action in the readings table now renders as a button, matching the style and sizing already used on Settings and Members.
 - Medications Timeline: added a small gap between the medication name labels and the y-axis so they no longer sit flush against it.
 
+### Fixed
+
+- Trends: Weekly and Yearly chart x-axis date labels now use the member's selected language instead of always showing English month abbreviations.
+
 ## [1.11.0] - 2026-08-21
 
 ### Added
