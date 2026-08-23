@@ -281,7 +281,9 @@ module LocalizedStrings =
           CalendarWeekOfYear = fun week year -> $"CW {week}/{year}"
           ThisMonth = "This Month"
           LastMonth = "Last Month"
-          MonthOfYear = fun month year -> System.DateTime(year, month, 1).ToString("MMM yyyy")
+          MonthOfYear =
+            fun month year ->
+              System.DateTime(year, month, 1).ToString("MMM yyyy", System.Globalization.CultureInfo("en-US"))
           ThisYear = "This Year"
           LastYear = "Last Year"
           Year = fun year -> string year }
