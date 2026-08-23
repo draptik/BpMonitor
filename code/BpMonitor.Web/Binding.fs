@@ -22,6 +22,14 @@ module Binding =
       Timestamp = ""
       Comments = "" }
 
+  /// Raw (unvalidated) goal-range form fields — grouped so the four adjacent
+  /// same-typed strings can't be silently transposed at a call site.
+  type GoalRangeFormModel =
+    { SysMin: string
+      SysMax: string
+      DiaMin: string
+      DiaMax: string }
+
   let ofReading (r: BloodPressureReading) =
     { Systolic = string r.Systolic
       Diastolic = string r.Diastolic

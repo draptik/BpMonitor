@@ -280,10 +280,10 @@ module ReadingHandlers =
           m.IsAdmin
           m.Language
           []
-          (string m.Goal.SystolicMin)
-          (string m.Goal.SystolicMax)
-          (string m.Goal.DiastolicMin)
-          (string m.Goal.DiastolicMax)
+          { Binding.SysMin = string m.Goal.SystolicMin
+            Binding.SysMax = string m.Goal.SystolicMax
+            Binding.DiaMin = string m.Goal.DiastolicMin
+            Binding.DiaMax = string m.Goal.DiastolicMax }
           medications
           [])
         ctx)
@@ -328,10 +328,10 @@ module ReadingHandlers =
               m.IsAdmin
               m.Language
               errors
-              sysMinRaw
-              sysMaxRaw
-              diaMinRaw
-              diaMaxRaw
+              { Binding.SysMin = sysMinRaw
+                Binding.SysMax = sysMaxRaw
+                Binding.DiaMin = diaMinRaw
+                Binding.DiaMax = diaMaxRaw }
               medications
               [])
             ctx

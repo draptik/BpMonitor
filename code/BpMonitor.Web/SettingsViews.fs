@@ -12,10 +12,7 @@ module SettingsViews =
     (isAdmin: bool)
     (language: Language)
     (goalErrors: string list)
-    (sysMin: string)
-    (sysMax: string)
-    (diaMin: string)
-    (diaMax: string)
+    (goalInput: Binding.GoalRangeFormModel)
     (medications: Medication list)
     (medicationErrors: string list)
     : XmlNode =
@@ -27,5 +24,5 @@ module SettingsViews =
       s.Shell.NavSettings
       (Elem.h1 [] [ Text.raw s.Shell.NavSettings ]
        :: MemberViews.languageSection s language
-       @ MemberViews.goalRangeSection s goalErrors sysMin sysMax diaMin diaMax
+       @ MemberViews.goalRangeSection s goalErrors goalInput
        @ MedicationViews.medicationsSection s medications medicationErrors)

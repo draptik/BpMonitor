@@ -164,10 +164,7 @@ module MemberViews =
   let goalRangeSection
     (s: LocalizedStrings)
     (errors: string list)
-    (sysMin: string)
-    (sysMax: string)
-    (diaMin: string)
-    (diaMax: string)
+    (goalInput: Binding.GoalRangeFormModel)
     : XmlNode list =
     [ Elem.details
         [ Attr.class' "settings-section"
@@ -177,10 +174,10 @@ module MemberViews =
           ViewLayout.errorBox errors
           Elem.form
             [ Attr.method "post"; Attr.action Routes.settings ]
-            [ ViewLayout.field s.Member.SystolicMin FormFields.systolicGoalMin sysMin "number"
-              ViewLayout.field s.Member.SystolicMax FormFields.systolicGoalMax sysMax "number"
-              ViewLayout.field s.Member.DiastolicMin FormFields.diastolicGoalMin diaMin "number"
-              ViewLayout.field s.Member.DiastolicMax FormFields.diastolicGoalMax diaMax "number"
+            [ ViewLayout.field s.Member.SystolicMin FormFields.systolicGoalMin goalInput.SysMin "number"
+              ViewLayout.field s.Member.SystolicMax FormFields.systolicGoalMax goalInput.SysMax "number"
+              ViewLayout.field s.Member.DiastolicMin FormFields.diastolicGoalMin goalInput.DiaMin "number"
+              ViewLayout.field s.Member.DiastolicMax FormFields.diastolicGoalMax goalInput.DiaMax "number"
               ViewLayout.formActions s Routes.history ] ] ]
 
   /// Members page: list of family members with Edit/Reset-password buttons and an add form.

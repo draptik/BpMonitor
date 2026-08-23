@@ -54,7 +54,17 @@ let ``languageSection marks the member's current language as selected`` () =
 [<Fact>]
 let ``goalRangeSection wraps the section in a collapsible details element`` () =
   let html =
-    renderHtml (Elem.div [] (MemberViews.goalRangeSection s [] "90" "140" "60" "90"))
+    renderHtml (
+      Elem.div
+        []
+        (MemberViews.goalRangeSection
+          s
+          []
+          { Binding.SysMin = "90"
+            Binding.SysMax = "140"
+            Binding.DiaMin = "60"
+            Binding.DiaMax = "90" })
+    )
 
   test <@ html.Contains "<details" @>
   test <@ html.Contains "data-persist-key=\"settings-goal-range\"" @>
