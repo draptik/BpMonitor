@@ -323,7 +323,7 @@ let ``summarizeRange: period metadata is stamped on the result`` () =
   let label = s.Label
   test <@ gran = Weekly @>
   test <@ key = currentWeeklyPeriod.Key @>
-  test <@ label = "This Week" @>
+  test <@ label = ThisWeek @>
 
 [<Fact>]
 let ``summarizeRange: single reading yields correct averages`` () =

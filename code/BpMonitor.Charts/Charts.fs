@@ -133,7 +133,7 @@ module BpChart =
   // FixedRange disables zoom on this axis — the y-axis is pinned to a clinical 0-200 mmHg
   // scale (the goal-range bands assume it), so zoom/box-select/zoom-in/zoom-out can only
   // ever change the x-axis, never stretch or compress the y-axis out of that scale.
-  let private yAxis =
+  let private yAxis (s: ChartStrings) =
     LinearAxis.init (
       GridColor = lightGridLine,
       Range = StyleParam.Range.MinMax(0, 200),
@@ -143,7 +143,7 @@ module BpChart =
       LineColor = axisLineColor,
       Ticks = StyleParam.TickOptions.Outside,
       TickColor = axisLineColor,
-      Title = Title.init (Text = "blood pressure [mmHg]")
+      Title = Title.init (Text = s.AxisTitle)
     )
 
   // Plotly's stroke helper sets stroke-opacity as an inline style on every path.yerror
@@ -197,11 +197,11 @@ module BpChart =
 
     escaped
 
-  let private finish (chart: GenericChart) =
+  let private finish (s: ChartStrings) (chart: GenericChart) =
     chart
     |> Chart.withLayout (layout ())
     |> Chart.withXAxis xAxis
-    |> Chart.withYAxis yAxis
+    |> Chart.withYAxis (yAxis s)
     |> Chart.withConfig interactiveConfig
     |> toHtmlString
 
@@ -229,11 +229,11 @@ module BpChart =
       YAnchor = StyleParam.YAnchorPosition.Top
     )
 
-  let private finishRecent (rangeLow: string) (rangeHigh: string) (chart: GenericChart) =
+  let private finishRecent (s: ChartStrings) (rangeLow: string) (rangeHigh: string) (chart: GenericChart) =
     chart
     |> Chart.withLayout (finishRecentLayout ())
     |> Chart.withXAxis (recentXAxis rangeLow rangeHigh)
-    |> Chart.withYAxis yAxis
+    |> Chart.withYAxis (yAxis s)
     |> Chart.withConfig interactiveConfig
     |> toHtmlString
 
@@ -265,11 +265,11 @@ module BpChart =
   let private trendsConfig =
     Config.init (Responsive = true, DisplayModeBar = false, ScrollZoom = StyleParam.ScrollZoom.NoZoom)
 
-  let private finishTrends (chart: GenericChart) =
+  let private finishTrends (s: ChartStrings) (chart: GenericChart) =
     chart
     |> Chart.withLayout (trendsLayout ())
     |> Chart.withXAxis trendsXAxis
-    |> Chart.withYAxis yAxis
+    |> Chart.withYAxis (yAxis s)
     |> Chart.withConfig trendsConfig
     |> withBottomLegend
     |> toHtmlString
@@ -286,7 +286,7 @@ module BpChart =
   /// Comment markers plotted on the x-axis baseline (y=0), one per commented reading —
   /// styled after Wegier et al. 2021 Fig. 5's annotation row: a dark-red hexagon, not
   /// clipped by the x-axis line it sits on (ClipOnAxis = false).
-  let private commentTraces (sorted: BloodPressureReading list) : GenericChart list =
+  let private commentTraces (s: ChartStrings) (sorted: BloodPressureReading list) : GenericChart list =
     let commented = sorted |> List.filter _.Comments.IsSome
 
     if commented.IsEmpty then
@@ -296,10 +296,8 @@ module BpChart =
       let cBaseline = commented |> List.map (fun _ -> 0)
       let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
 
-      // A HoverTemplate (rather than HoverInfo.Text) shows the comment itself, then the
-      // reading's timestamp dimmed below it; the empty <extra> box drops Plotly's default
-      // trace-name prefix ("Comments").
-      [ Chart.Point(x = cTimestamps, y = cBaseline, Name = "Comments", MultiText = cTexts)
+      // HoverTemplate shows the comment then a dimmed timestamp; empty <extra> drops the trace name.
+      [ Chart.Point(x = cTimestamps, y = cBaseline, Name = s.Comments, MultiText = cTexts)
         |> Chart.withMarkerStyle (Symbol = StyleParam.MarkerSymbol.Hexagon, Size = 11, Color = commentColor)
         |> GenericChart.mapTrace (
           Trace2DStyle.Scatter(
@@ -322,26 +320,31 @@ module BpChart =
   let private hoverYOnly = withHoverTemplate "%{y}<extra></extra>"
 
   /// Classic x/y plot — one point per reading. Used by /history.
-  let private renderIndividual (goal: GoalRange) (readings: BloodPressureReading list) : string =
+  let private renderIndividual (s: ChartStrings) (goal: GoalRange) (readings: BloodPressureReading list) : string =
     let readings, timestamps, systolic, diastolic = seriesOf readings
 
-    [ Chart.Line(x = timestamps, y = systolic, Name = "Systolic", ShowMarkers = true)
+    [ Chart.Line(x = timestamps, y = systolic, Name = s.Systolic, ShowMarkers = true)
       |> Chart.withLineStyle (Color = systolicColor)
       |> hoverXY
-      Chart.Line(x = timestamps, y = diastolic, Name = "Diastolic", ShowMarkers = true)
+      Chart.Line(x = timestamps, y = diastolic, Name = s.Diastolic, ShowMarkers = true)
       |> Chart.withLineStyle (Color = diastolicColor)
       |> hoverXY
-      yield! commentTraces readings ]
+      yield! commentTraces s readings ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
     |> withBottomLegend
-    |> finish
+    |> finish s
 
   /// Dashed line chart — one point per aggregated period, connected by a dashed line.
   /// Circle marker = single reading in that period; Diamond marker = average of multiple readings.
   /// X-axis labels adapt to granularity: Weekly → date, Monthly → ISO week, Yearly → month name.
   /// Used by /trends for all granularities.
-  let private renderDashed (goal: GoalRange) (gran: Granularity) (aggregated: AggregatedReading list) : string =
+  let private renderDashed
+    (s: ChartStrings)
+    (goal: GoalRange)
+    (gran: Granularity)
+    (aggregated: AggregatedReading list)
+    : string =
     let aggregated = aggregated |> List.sortBy _.Reading.Timestamp
 
     let xLabel (r: BloodPressureReading) =
@@ -349,9 +352,7 @@ module BpChart =
 
       match gran with
       | Weekly -> local.Date.ToString("d MMM")
-      | Monthly ->
-        let week = ISOWeek.GetWeekOfYear(local.Date)
-        $"W{week}"
+      | Monthly -> s.CalendarWeekTick(ISOWeek.GetWeekOfYear(local.Date))
       | Yearly -> local.Date.ToString("MMM")
 
     let toSymbol count =
@@ -411,14 +412,14 @@ module BpChart =
         Color = lineColor
       )
 
-    [ line "Systolic" systolicColor systolic sysHover sysUpper sysLower
-      line "Diastolic" diastolicColor diastolic diaHover diaUpper diaLower ]
+    [ line s.Systolic systolicColor systolic sysHover sysUpper sysLower
+      line s.Diastolic diastolicColor diastolic diaHover diaUpper diaLower ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
-    |> finishTrends
+    |> finishTrends s
 
-  let toHtml (goal: GoalRange) = renderIndividual goal
-  let toHtmlDashed (goal: GoalRange) (gran: Granularity) = renderDashed goal gran
+  let toHtml (s: ChartStrings) (goal: GoalRange) = renderIndividual s goal
+  let toHtmlDashed (s: ChartStrings) (goal: GoalRange) (gran: Granularity) = renderDashed s goal gran
 
   // ── /recent: missing-data-aware solid/dashed line styling ──────────────────
   // Wegier et al. 2021 (docs/resources/12911_2021_Article_1598.pdf, "Missing data"):
@@ -535,6 +536,7 @@ module BpChart =
         |> GenericChart.mapTrace (Trace2DStyle.Scatter(HoverInfo = StyleParam.HoverInfo.Skip)) ]
 
   let private renderRecent
+    (s: ChartStrings)
     (goal: GoalRange)
     (windowDays: int)
     (windowStart: System.DateTimeOffset)
@@ -546,33 +548,29 @@ module BpChart =
     let rangeLow = Formats.formatLocal windowStart
     let rangeHigh = Formats.formatLocal windowEnd
 
-    [ yield! seriesTraces systolicFadedColor "Systolic" dashes timestamps systolic
-      yield! seriesTraces diastolicFadedColor "Diastolic" dashes timestamps diastolic
-      yield! smoothTrace systolicColor "Systolic (trend)" readings timestamps systolic
-      yield! smoothTrace diastolicColor "Diastolic (trend)" readings timestamps diastolic
-      // /recent's unified hover (HoverMode.X) would otherwise surface the comment
-      // whenever the cursor is anywhere near its x-column, not just directly on the
-      // marker; skipping it here lets recent-scrubber.js drive a custom tooltip that
-      // only fires on direct proximity to the hexagon.
+    [ yield! seriesTraces systolicFadedColor s.Systolic dashes timestamps systolic
+      yield! seriesTraces diastolicFadedColor s.Diastolic dashes timestamps diastolic
+      yield! smoothTrace systolicColor s.SystolicTrend readings timestamps systolic
+      yield! smoothTrace diastolicColor s.DiastolicTrend readings timestamps diastolic
+      // Skipped here so recent-scrubber.js's custom tooltip owns proximity-only comment hover.
       yield!
-        commentTraces readings
+        commentTraces s readings
         |> List.map (GenericChart.mapTrace (Trace2DStyle.Scatter(HoverInfo = StyleParam.HoverInfo.Skip))) ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
     |> withBottomLegend
-    |> finishRecent rangeLow rangeHigh
+    |> finishRecent s rangeLow rangeHigh
 
-  // `windowStart`/`windowEnd` are computed once by the caller (the same instant the
-  // value strip's out-of-range cutoff is computed from) rather than re-derived here from
-  // `now`/`windowDays`, so the chart's visible range and the value strip's hidden cells
-  // can never drift apart from a duplicated AddDays computation.
+  /// `windowStart`/`windowEnd` are computed once by the caller so the chart's visible range and
+  /// the value strip's hidden cells never drift apart.
   let toHtmlRecent
+    (s: ChartStrings)
     (goal: GoalRange)
     (windowDays: int)
     (windowStart: System.DateTimeOffset)
     (windowEnd: System.DateTimeOffset)
     =
-    renderRecent goal windowDays windowStart windowEnd
+    renderRecent s goal windowDays windowStart windowEnd
 
   // ── /recent and /history: Medications Timeline (Wegier et al. 2021 Fig. 5) ─────────────
   // A second, short Plotly chart stacked below the BP chart: one horizontal bar per

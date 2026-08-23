@@ -19,6 +19,7 @@ module private MemberMapping =
           SystolicMax = r.SystolicGoalMax
           DiastolicMin = r.DiastolicGoalMin
           DiastolicMax = r.DiastolicGoalMax }
+      Language = r.Language |> Language.tryParse |> Option.defaultValue Language.defaultLanguage
       CreatedAt = r.CreatedAt
       ModifiedAt = r.ModifiedAt }
 
@@ -28,6 +29,7 @@ module private MemberMapping =
       IsAdmin = m.IsAdmin
       IsActive = m.IsActive
       PasswordHash = m.PasswordHash |> Option.defaultValue ""
+      Language = Language.code m.Language
       SystolicGoalMin = m.Goal.SystolicMin
       SystolicGoalMax = m.Goal.SystolicMax
       DiastolicGoalMin = m.Goal.DiastolicMin

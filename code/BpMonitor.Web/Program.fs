@@ -39,6 +39,7 @@ let private endpoints =
     get Routes.exportCsv (AuthHandlers.protect ReadingHandlers.exportCsv)
     get Routes.settings (AuthHandlers.protect ReadingHandlers.settings)
     post Routes.settings (AuthHandlers.protect ReadingHandlers.updateSettings)
+    post Routes.settingsLanguage (AuthHandlers.protect ReadingHandlers.updateLanguage)
     post Routes.readings (AuthHandlers.protect ReadingHandlers.createReading)
     get "/readings/{id:int}/edit" (AuthHandlers.protect ReadingHandlers.editReading)
     post "/readings/{id:int}" (AuthHandlers.protect ReadingHandlers.updateReading)

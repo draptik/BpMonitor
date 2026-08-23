@@ -8,7 +8,7 @@ open ViewTestHelpers
 
 [<Fact>]
 let ``layout renders a topbar with menu button, title and theme toggle`` () =
-  let html = renderHtml (ReadingViews.landing defaultMember)
+  let html = renderHtml (ReadingViews.landing s defaultMember)
 
   test <@ html.Contains "class=\"topbar\"" @>
   test <@ html.Contains "for=\"nav-toggle\"" @>
@@ -20,19 +20,19 @@ let ``layout renders a topbar with menu button, title and theme toggle`` () =
 [<Fact>]
 let ``admin sees Members nav link`` () =
   let admin = { defaultMember with IsAdmin = true }
-  let html = renderHtml (ReadingViews.landing admin)
+  let html = renderHtml (ReadingViews.landing s admin)
   test <@ html.Contains $"href=\"{Routes.members}\"" @>
 
 [<Fact>]
 let ``non-admin does not see Members nav link`` () =
   let nonAdmin = { defaultMember with IsAdmin = false }
-  let html = renderHtml (ReadingViews.landing nonAdmin)
+  let html = renderHtml (ReadingViews.landing s nonAdmin)
   test <@ not (html.Contains $"href=\"{Routes.members}\"") @>
 
 [<Fact>]
 let ``sidebar nav links appear in order: Add, Recent, Trends, History, Export JSON, Export CSV, Settings, Members`` () =
   let admin = { defaultMember with IsAdmin = true }
-  let html = renderHtml (ReadingViews.landing admin)
+  let html = renderHtml (ReadingViews.landing s admin)
 
   let indexOf (href: string) = html.IndexOf $"href=\"{href}\""
 
@@ -53,9 +53,9 @@ let ``sidebar nav links appear in order: Add, Recent, Trends, History, Export JS
 [<Fact>]
 let ``every page has a BpMonitor footer`` () =
   let pages =
-    [ renderHtml (ReadingViews.landing defaultMember)
-      renderHtml (ReadingViews.history defaultMember "" [ sample ] (Text.raw ""))
-      renderHtml (ReadingViews.readingForm Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty) ]
+    [ renderHtml (ReadingViews.landing s defaultMember)
+      renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
+      renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty) ]
 
   for html in pages do
     test <@ html.Contains "<footer" @>
@@ -64,9 +64,9 @@ let ``every page has a BpMonitor footer`` () =
 [<Fact>]
 let ``every authenticated page shows the logout button`` () =
   let pages =
-    [ renderHtml (ReadingViews.landing defaultMember)
-      renderHtml (ReadingViews.history defaultMember "" [ sample ] (Text.raw ""))
-      renderHtml (ReadingViews.readingForm Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty) ]
+    [ renderHtml (ReadingViews.landing s defaultMember)
+      renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
+      renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty) ]
 
   for html in pages do
     test <@ html.Contains $"action=\"{Routes.logout}\"" @>
@@ -74,7 +74,7 @@ let ``every authenticated page shows the logout button`` () =
 
 [<Fact>]
 let ``every authenticated page shows the member name`` () =
-  let html = renderHtml (ReadingViews.landing defaultMember)
+  let html = renderHtml (ReadingViews.landing s defaultMember)
   test <@ html.Contains "Me" @>
 
 [<Fact>]
@@ -83,7 +83,7 @@ let ``page title HTML-encodes member name to prevent title injection`` () =
     { defaultMember with
         Name = "</title><script>alert(1)</script>" }
 
-  let html = renderHtml (LoginViews.loginMember hostile [])
+  let html = renderHtml (LoginViews.loginMember s hostile [])
 
   // The raw injection string must not appear (it would break out of the <title> element)
   test <@ not (html.Contains "</title><script>") @>

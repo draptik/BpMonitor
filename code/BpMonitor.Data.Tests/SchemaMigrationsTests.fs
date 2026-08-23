@@ -46,6 +46,69 @@ let ``apply seeds a default member named Me with admin rights`` () =
   test <@ members[0].IsActive = true @>
 
 [<Fact>]
+let ``apply seeds the default member with English as the language`` () =
+  use ctx = createRawContext ()
+  SchemaMigrations.apply ctx
+
+  let m = ctx.Members |> Seq.exactlyOne
+  test <@ m.Language = "en" @>
+
+[<Fact>]
+let ``apply adds the Language column with an English default to a legacy Members table`` () =
+  let connection = new SqliteConnection("DataSource=:memory:")
+  connection.Open()
+
+  // Simulate a legacy DB: Members table predating the Language column.
+  use setupCmd = connection.CreateCommand()
+
+  setupCmd.CommandText <-
+    """CREATE TABLE "Members" (
+         "Id" INTEGER NOT NULL CONSTRAINT "PK_Members" PRIMARY KEY AUTOINCREMENT,
+         "Name" TEXT NOT NULL,
+         "IsAdmin" INTEGER NOT NULL DEFAULT 0,
+         "IsActive" INTEGER NOT NULL DEFAULT 1,
+         "PasswordHash" TEXT NOT NULL DEFAULT '',
+         "SystolicGoalMin" INTEGER NOT NULL DEFAULT 90,
+         "SystolicGoalMax" INTEGER NOT NULL DEFAULT 140,
+         "DiastolicGoalMin" INTEGER NOT NULL DEFAULT 60,
+         "DiastolicGoalMax" INTEGER NOT NULL DEFAULT 90,
+         "CreatedAt" TEXT NOT NULL,
+         "ModifiedAt" TEXT NOT NULL
+       )"""
+
+  setupCmd.ExecuteNonQuery() |> ignore
+
+  use readingsCmd = connection.CreateCommand()
+
+  readingsCmd.CommandText <-
+    """CREATE TABLE "Readings" (
+         "Id" INTEGER NOT NULL CONSTRAINT "PK_Readings" PRIMARY KEY AUTOINCREMENT,
+         "Systolic" INTEGER NOT NULL,
+         "Diastolic" INTEGER NOT NULL,
+         "HeartRate" INTEGER NOT NULL,
+         "Timestamp" TEXT NOT NULL,
+         "Comments" TEXT
+       )"""
+
+  readingsCmd.ExecuteNonQuery() |> ignore
+
+  use insertCmd = connection.CreateCommand()
+
+  insertCmd.CommandText <-
+    "INSERT INTO \"Members\" (\"Name\", \"IsAdmin\", \"IsActive\", \"CreatedAt\", \"ModifiedAt\") VALUES ('Me', 1, 1, '2026-01-01 09:00:00 +00:00', '2026-01-01 09:00:00 +00:00')"
+
+  insertCmd.ExecuteNonQuery() |> ignore
+
+  let options =
+    DbContextOptionsBuilder<BpMonitorDbContext>().UseSqlite(connection).Options
+
+  use ctx = new BpMonitorDbContext(options)
+  SchemaMigrations.apply ctx
+
+  let m = ctx.Members |> Seq.exactlyOne
+  test <@ m.Language = "en" @>
+
+[<Fact>]
 let ``apply seeds the default member with the paper's preset goal range`` () =
   use ctx = createRawContext ()
   SchemaMigrations.apply ctx

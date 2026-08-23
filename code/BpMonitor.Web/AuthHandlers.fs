@@ -13,9 +13,7 @@ open HandlerHelpers
 
 /// Authentication combinators and login/logout handlers.
 module AuthHandlers =
-  // ---------------------------------------------------------------------------
-  // Auth: resolve identity from the authenticated principal
-  // ---------------------------------------------------------------------------
+  // ── Auth: resolve identity from the authenticated principal ──
 
   /// Resolves the authenticated member from the principal's NameIdentifier claim.
   /// Only valid inside a `protect`ed route — the principal is guaranteed to be present.
@@ -33,6 +31,13 @@ module AuthHandlers =
   let authenticatedMemberName (ctx: HttpContext) : string =
     authenticatedMember ctx |> Option.map _.Name |> Option.defaultValue ""
 
+  /// LocalizedStrings in the authenticated member's language, falling back to `strings ctx`
+  /// (cookie/Accept-Language/config) if unauthenticated.
+  let authenticatedStrings (ctx: HttpContext) : LocalizedStrings =
+    match authenticatedMember ctx with
+    | Some m -> LocalizedStrings.forLanguage m.Language
+    | None -> strings ctx
+
   /// Builds the auth claims principal for a member.
   let claimsPrincipal (m: FamilyMember) : ClaimsPrincipal =
     let claims =
@@ -46,9 +51,7 @@ module AuthHandlers =
 
     ClaimsPrincipal(identity)
 
-  // ---------------------------------------------------------------------------
-  // Auth combinators
-  // ---------------------------------------------------------------------------
+  // ── Auth combinators ──
 
   /// Wraps a handler so it requires an authenticated user. Unauthenticated
   /// requests are redirected to /login.
@@ -92,19 +95,18 @@ module AuthHandlers =
     : HttpContext -> Task =
     withMember (fun m ctx -> (withRouteId handlerName (fun id ctx -> handler m id ctx)) ctx)
 
-  // ---------------------------------------------------------------------------
-  // Login / logout
-  // ---------------------------------------------------------------------------
+  // ── Login / logout ──
 
-  let loginPage: HttpContext -> Task = htmlResponse (LoginViews.loginPage [])
+  let loginPage: HttpContext -> Task =
+    fun ctx -> htmlResponse (LoginViews.loginPage (strings ctx) []) ctx
 
-  // `onFailure` lets callers choose what to render on a bad password (loginPage vs. loginMember).
+  /// `onFailure` lets callers choose what to render on a bad password (loginPage vs. loginMember).
   let private claimedLogin
     (m: FamilyMember)
     (password: string)
     (hash: string)
     (rememberMe: bool)
-    (onFailure: XmlNode)
+    (onFailure: LocalizedStrings -> XmlNode)
     (ctx: HttpContext)
     : Task =
     task {
@@ -112,6 +114,7 @@ module AuthHandlers =
 
       if PasswordHashing.verify password hash then
         log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
+        setLanguageCookie ctx m.Language
 
         do!
           ctx.SignInAsync(
@@ -124,7 +127,7 @@ module AuthHandlers =
       else
         log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
         ctx.Response.StatusCode <- 401
-        do! htmlResponse onFailure ctx
+        do! htmlResponse (onFailure (strings ctx)) ctx
     }
     :> Task
 
@@ -137,18 +140,20 @@ module AuthHandlers =
     : Task =
     task {
       let log = logger ctx
+      let s = strings ctx
 
       if String.IsNullOrWhiteSpace(password) then
         ctx.Response.StatusCode <- 422
-        do! htmlResponse (LoginViews.loginMember m [ "Password cannot be empty" ]) ctx
+        do! htmlResponse (LoginViews.loginMember s m [ s.Login.PasswordCannotBeEmpty ]) ctx
       elif password <> confirm then
         ctx.Response.StatusCode <- 422
-        do! htmlResponse (LoginViews.loginMember m [ "Passwords do not match" ]) ctx
+        do! htmlResponse (LoginViews.loginMember s m [ s.Login.PasswordsDoNotMatch ]) ctx
       else
         let hashed = PasswordHashing.hash password
         let claimed = { m with PasswordHash = Some hashed }
         (memberRepo ctx).Update(claimed)
         log.LogInformation("Member {Name} (Id={Id}) claimed their account", m.Name, m.Id)
+        setLanguageCookie ctx claimed.Language
 
         do!
           ctx.SignInAsync(
@@ -164,6 +169,7 @@ module AuthHandlers =
   let loginWithCredentials: HttpContext -> Task =
     fun ctx ->
       task {
+        let s = strings ctx
         let! form = ctx.Request.ReadFormAsync()
         let username = form[FormFields.username].ToString().Trim()
         let password = form[FormFields.password].ToString()
@@ -176,11 +182,18 @@ module AuthHandlers =
         match found with
         | None ->
           ctx.Response.StatusCode <- 401
-          do! htmlResponse (LoginViews.loginPage [ "Invalid name or password" ]) ctx
+          do! htmlResponse (LoginViews.loginPage s [ s.Login.InvalidNameOrPassword ]) ctx
         | Some m ->
           match m.PasswordHash with
           | Some hash ->
-            do! claimedLogin m password hash rememberMe (LoginViews.loginPage [ "Invalid name or password" ]) ctx
+            do!
+              claimedLogin
+                m
+                password
+                hash
+                rememberMe
+                (fun s -> LoginViews.loginPage s [ s.Login.InvalidNameOrPassword ])
+                ctx
           | None ->
             // Unclaimed: redirect to per-member claim page
             ctx.Response.Redirect(Routes.loginMember m.Id)
@@ -189,18 +202,22 @@ module AuthHandlers =
 
   let loginMember: HttpContext -> Task =
     withRouteMember "loginMember" (fun m ctx ->
+      let s = strings ctx
+
       if not m.IsActive then
         ctx.Response.StatusCode <- 403
-        ctx.Response.WriteAsync("This account is inactive")
+        ctx.Response.WriteAsync(s.Login.AccountInactive)
       else
-        htmlResponse (LoginViews.loginMember m []) ctx)
+        htmlResponse (LoginViews.loginMember s m []) ctx)
 
   let loginSubmit: HttpContext -> Task =
     withRouteMember "loginSubmit" (fun m ctx ->
       task {
+        let s = strings ctx
+
         if not m.IsActive then
           ctx.Response.StatusCode <- 403
-          do! ctx.Response.WriteAsync("This account is inactive")
+          do! ctx.Response.WriteAsync(s.Login.AccountInactive)
         else
           let! form = ctx.Request.ReadFormAsync()
           let password = form[FormFields.password].ToString()
@@ -208,7 +225,14 @@ module AuthHandlers =
 
           match m.PasswordHash with
           | Some hash ->
-            do! claimedLogin m password hash rememberMe (LoginViews.loginMember m [ "Incorrect password" ]) ctx
+            do!
+              claimedLogin
+                m
+                password
+                hash
+                rememberMe
+                (fun s -> LoginViews.loginMember s m [ s.Login.IncorrectPassword ])
+                ctx
           | None -> do! unclaimedLogin m password (form[FormFields.passwordConfirm].ToString()) rememberMe ctx
       }
       :> Task)

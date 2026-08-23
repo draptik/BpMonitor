@@ -41,11 +41,18 @@ module Config =
 
     parsed |> max 1 |> min 400
 
+  /// The deployment's fallback UI language when no member/cookie/browser preference
+  /// resolves one. Defaults to English on an unset or unsupported config value.
+  let readDefaultLanguage (config: IConfiguration) : Language =
+    match config["BpMonitor:DefaultLanguage"] with
+    | null -> Language.defaultLanguage
+    | v -> Language.tryParse v |> Option.defaultValue Language.defaultLanguage
+
   /// Human-readable validation messages for range errors.
-  let formatValidationErrors (ranges: ReadingRanges) (errors: ValidationError list) =
+  let formatValidationErrors (s: LocalizedStrings) (ranges: ReadingRanges) (errors: ValidationError list) =
     errors
     |> List.map (fun e ->
       match e with
-      | SystolicOutOfRange v -> $"Systolic {v} is out of range ({ranges.SystolicMin}–{ranges.SystolicMax})"
-      | DiastolicOutOfRange v -> $"Diastolic {v} is out of range ({ranges.DiastolicMin}–{ranges.DiastolicMax})"
-      | HeartRateOutOfRange v -> $"Heart rate {v} is out of range ({ranges.HeartRateMin}–{ranges.HeartRateMax})")
+      | SystolicOutOfRange v -> s.Errors.SystolicOutOfRange v ranges.SystolicMin ranges.SystolicMax
+      | DiastolicOutOfRange v -> s.Errors.DiastolicOutOfRange v ranges.DiastolicMin ranges.DiastolicMax
+      | HeartRateOutOfRange v -> s.Errors.HeartRateOutOfRange v ranges.HeartRateMin ranges.HeartRateMax)

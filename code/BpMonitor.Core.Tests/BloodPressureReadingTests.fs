@@ -18,6 +18,30 @@ let private validUnvalidated: BloodPressureReadingUnvalidated =
 let private ranges = ReadingRanges.defaults
 
 [<Fact>]
+let ``formatLocal is unaffected by the ambient culture`` () =
+  let ts = Timestamp.local 2026 3 3 9 5 0
+  let original = Threading.Thread.CurrentThread.CurrentCulture
+
+  try
+    let invariant = Formats.formatLocal ts
+    Threading.Thread.CurrentThread.CurrentCulture <- Globalization.CultureInfo("ar-SA")
+    test <@ Formats.formatLocal ts = invariant @>
+  finally
+    Threading.Thread.CurrentThread.CurrentCulture <- original
+
+[<Fact>]
+let ``formatDate is unaffected by the ambient culture`` () =
+  let d = DateOnly(2026, 3, 3)
+  let original = Threading.Thread.CurrentThread.CurrentCulture
+
+  try
+    let invariant = Formats.formatDate d
+    Threading.Thread.CurrentThread.CurrentCulture <- Globalization.CultureInfo("ar-SA")
+    test <@ Formats.formatDate d = invariant @>
+  finally
+    Threading.Thread.CurrentThread.CurrentCulture <- original
+
+[<Fact>]
 let ``parse returns Ok when input is valid`` () =
   test <@ BloodPressureReading.parse ranges validUnvalidated |> Result.isOk @>
 

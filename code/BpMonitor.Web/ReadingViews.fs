@@ -19,55 +19,54 @@ module ReadingViews =
       [ Elem.span [ Attr.class' "icon" ] [ Text.raw glyph ]; Text.raw label ]
 
   /// Landing page: a simple hub linking to the app's main destinations.
-  let landing (m: FamilyMember) : XmlNode =
+  let landing (s: LocalizedStrings) (m: FamilyMember) : XmlNode =
     ViewLayout.layout
+      s
       Routes.home
       m.Name
       m.IsAdmin
-      "BpMonitor"
-      [ Elem.h1 [] [ Text.raw "BpMonitor" ]
-        Elem.p [] [ Text.raw "Track and review your blood pressure readings." ]
+      s.Reading.LandingTitle
+      [ Elem.h1 [] [ Text.raw s.Reading.LandingTitle ]
+        Elem.p [] [ Text.raw s.Reading.LandingTagline ]
         Elem.div
           [ Attr.class' "home-actions" ]
-          [ actionButton Routes.add "➕" "Add reading"
-            actionButton Routes.recent "🕒" "Recent"
-            actionButton Routes.trends "📈" "Trends"
-            actionButton Routes.history "📜" "History" ]
+          [ actionButton Routes.add "➕" s.Reading.AddReadingTitle
+            actionButton Routes.recent "🕒" s.Shell.NavRecent
+            actionButton Routes.trends "📈" s.Shell.NavTrends
+            actionButton Routes.history "📜" s.Shell.NavHistory ]
         Elem.div
           [ Attr.class' "home-actions home-actions-secondary" ]
-          [ downloadActionButton Routes.exportJson "⬇️" "Export JSON"
-            downloadActionButton Routes.exportCsv "⬇️" "Export CSV"
-            actionButton Routes.settings "⚙️" "Settings"
+          [ downloadActionButton Routes.exportJson "⬇️" s.Shell.NavExportJson
+            downloadActionButton Routes.exportCsv "⬇️" s.Shell.NavExportCsv
+            actionButton Routes.settings "⚙️" s.Shell.NavSettings
             if m.IsAdmin then
-              actionButton Routes.members "👥" "Members" ] ]
+              actionButton Routes.members "👥" s.Shell.NavMembers ] ]
 
-  /// History: chart above the readings' table, with the collapsible Medications Timeline
-  /// (Wegier et al. 2021 Fig. 5) rendered right below it, in document order — load-bearing
-  /// for wwwroot/plot-ready.js, whose `whenPlotReady` resolves the first `.js-plotly-plot`
-  /// it finds, so the BP chart must stay first.
+  /// History: chart, then the Medications Timeline — order matters for plot-ready.js.
   let history
+    (s: LocalizedStrings)
     (activeMember: FamilyMember)
     (chartHtml: string)
     (readings: BloodPressureReading list)
     (medicationsPanel: XmlNode)
     : XmlNode =
     ViewLayout.layout
+      s
       Routes.history
       activeMember.Name
       activeMember.IsAdmin
-      "History"
-      [ Elem.h1 [] [ Text.raw "History" ]
+      s.Reading.HistoryTitle
+      [ Elem.h1 [] [ Text.raw s.Reading.HistoryTitle ]
         Elem.details
           []
-          [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw "Blood Pressure Graph" ]
+          [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw s.Reading.BloodPressureGraph ]
             Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ]
         medicationsPanel
-        ViewLayout.readingsTable readings ]
+        ViewLayout.readingsTable s readings ]
 
   /// The swappable chart container: zoom/load-full buttons, value strip, chart, citation.
-  /// Rendered as a fragment for htmx swaps (GET /recent/full); also used directly by the
-  /// full /recent page, so the buttons are always inside the swapped region.
   let recentChartContainer
+    (s: LocalizedStrings)
     (activeMember: FamilyMember)
     (chartHtml: string)
     (allReadings: BloodPressureReading list)
@@ -78,19 +77,10 @@ module ReadingViews =
     (medicationsPanel: XmlNode)
     : XmlNode =
     let valueStrip =
-      // The strip lists every loaded reading (the chart's load window, see ReadingHandlers
-      // — bounded but wider than the visible focus); cells older than `windowStart` start
-      // hidden via `out-of-range` (see scrubberScript below, which un-hides them in sync as
-      // the user pans).
+      // Lists every loaded reading; cells older than `windowStart` start hidden via `out-of-range`.
       let chronological = allReadings |> List.sortBy _.Timestamp
 
-      // Each cell is tagged with the same x-label the chart uses for this reading
-      // (Charts.fs `seriesOf` formats x as Formats.formatLocal r.Timestamp), so the
-      // scrubber script below can match a hovered chart point back to its strip column.
-      //
-      // Fig. 5's data table color-codes each value by where it falls relative to the
-      // member's goal range (Wegier et al. 2021): out-of-range values are highlighted,
-      // in-range values stay neutral. See app.css `.value-strip-value.above/.below`.
+      // Fig. 5 color-codes each value by goal-range position (Wegier et al. 2021); see app.css.
       let cellClass (position: RangePosition) =
         match position with
         | Above -> "value-strip-value above"
@@ -103,11 +93,7 @@ module ReadingViews =
           [ yield Elem.th [ Attr.scope "row"; Attr.class' "value-strip-label" ] [ Text.raw label ]
             for r in chronological ->
               let v = value r
-
-              // Cells outside the 30-day focus window start hidden (`out-of-range`, same
-              // class the relayout listener below toggles on pan/zoom), so the initial
-              // view matches the chart's initial x-axis range even though all readings
-              // are loaded.
+              // Cells outside the 30-day focus window start hidden; pan/zoom toggles this.
               let staleClass = if r.Timestamp < windowStart then " out-of-range" else ""
 
               Elem.td
@@ -121,22 +107,13 @@ module ReadingViews =
             []
             [ Elem.tbody
                 []
-                [ row "Systolic" _.Systolic (GoalRange.classifySystolic activeMember.Goal)
-                  row "Diastolic" _.Diastolic (GoalRange.classifyDiastolic activeMember.Goal) ] ] ]
+                [ row s.Table.Systolic _.Systolic (GoalRange.classifySystolic activeMember.Goal)
+                  row s.Table.Diastolic _.Diastolic (GoalRange.classifyDiastolic activeMember.Goal) ] ] ]
 
-    // Shortcut buttons that snap the chart's x-axis to a fixed window via
-    // Plotly.relayout (wwwroot/recent-zoom.js). Each button's range is rendered
-    // server-side from the same `now` the handler passed to the chart, so the format
-    // (Formats.formatLocal) and anchor always match exactly. The existing
-    // recent-scrubber.js `plotly_relayout` listener re-syncs the value strip's
-    // out-of-range cells automatically when relayout fires.
+    // Snaps the chart's x-axis via Plotly.relayout (wwwroot/recent-zoom.js).
     let hiFormatted = Formats.formatLocal now
 
-    // The button whose range starts at `windowStart` matches the chart's initial focus
-    // (both `recent` and `recentFull` render `windowStart = now.AddDays(-30)`), so it's
-    // rendered as the active pill on load; recent-zoom.js re-toggles `aria-pressed` on click.
-    // Pico's `outline` class gives the resting (inactive) look — app.css only styles the
-    // active filled state.
+    // The button matching `windowStart` renders as the active pill on load.
     let zoomButton (label: string) (days: float) =
       let lo = now.AddDays(-days)
 
@@ -151,10 +128,7 @@ module ReadingViews =
     let zoomButtons =
       Elem.div [ Attr.class' "recent-zoom-buttons" ] [ for label, days in zoomShortcutDays -> zoomButton label days ]
 
-    // Shown only while the load window (ReadingHandlers `recentLoadWindowDays`) is
-    // hiding older readings; clicking it htmx-swaps this whole container for one
-    // rendered from the member's entire history (GET /recent/full), same pattern as
-    // /trends' panel swap.
+    // Shown while older readings are hidden; htmx-swaps in the full history (GET /recent/full).
     let loadFullButton =
       if not showLoadFull then
         []
@@ -165,12 +139,9 @@ module ReadingViews =
               Attr.create "hx-get" Routes.recentFull
               Attr.create "hx-target" "#recent-chart"
               Attr.create "hx-swap" "outerHTML" ]
-            [ Text.raw "Load full history" ] ]
+            [ Text.raw s.Reading.LoadFullHistory ] ]
 
-    // Fig. 5's scrubber bar (Wegier et al. 2021): the chart's x-axis spike (Charts.fs
-    // `recentXAxis`) already draws the moving vertical line; this links it to the value
-    // strip by boxing the hovered column. Behavior lives in wwwroot/recent-scrubber.js
-    // (loaded globally by ViewLayout, self-guards on `.value-strip`'s presence).
+    // Fig. 5's scrubber bar: boxes the hovered column in sync with the chart's x-axis spike.
     Elem.div
       [ Attr.id "recent-chart"; Attr.class' "chart-container" ]
       ([ zoomButtons ]
@@ -180,11 +151,12 @@ module ReadingViews =
            medicationsPanel
            Elem.p
              [ Attr.class' "chart-citation" ]
-             [ Text.raw "Chart layout inspired by "
+             [ Text.raw s.Reading.ChartCitationPrefix
                Elem.a [ Attr.href "https://doi.org/10.1186/s12911-021-01598-4" ] [ Text.raw "Wegier et al. 2021" ] ] ])
 
   /// Recent: chart of all readings, focused on the last 30 days, with a sys/dias value strip.
   let recent
+    (s: LocalizedStrings)
     (activeMember: FamilyMember)
     (chartHtml: string)
     (allReadings: BloodPressureReading list)
@@ -195,12 +167,14 @@ module ReadingViews =
     (medicationsPanel: XmlNode)
     : XmlNode =
     ViewLayout.layout
+      s
       Routes.recent
       activeMember.Name
       activeMember.IsAdmin
-      "Recent"
-      [ Elem.h1 [] [ Text.raw "Recent" ]
+      s.Reading.RecentTitle
+      [ Elem.h1 [] [ Text.raw s.Reading.RecentTitle ]
         recentChartContainer
+          s
           activeMember
           chartHtml
           allReadings
@@ -213,6 +187,7 @@ module ReadingViews =
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
   /// above the fields when re-displaying after a failed submit.
   let readingForm
+    (s: LocalizedStrings)
     (active: string)
     (memberName: string)
     (isAdmin: bool)
@@ -229,6 +204,7 @@ module ReadingViews =
           Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ] ]
 
     ViewLayout.layout
+      s
       active
       memberName
       isAdmin
@@ -237,9 +213,9 @@ module ReadingViews =
         ViewLayout.errorBox errors
         Elem.form
           [ Attr.method "post"; Attr.action action ]
-          [ fieldWithHint "Timestamp" "yyyy-MM-dd HH:mm" FormFields.timestamp m.Timestamp "text"
-            fieldWithHint "Systolic" "mmHg" FormFields.systolic m.Systolic "number"
-            fieldWithHint "Diastolic" "mmHg" FormFields.diastolic m.Diastolic "number"
-            fieldWithHint "Heart Rate" "bpm" FormFields.heartRate m.HeartRate "number"
-            ViewLayout.field "Comment" FormFields.comments m.Comments "text"
-            ViewLayout.formActions Routes.history ] ]
+          [ fieldWithHint s.Table.Timestamp s.Reading.TimestampHint FormFields.timestamp m.Timestamp "text"
+            fieldWithHint s.Table.Systolic s.Table.MmHg FormFields.systolic m.Systolic "number"
+            fieldWithHint s.Table.Diastolic s.Table.MmHg FormFields.diastolic m.Diastolic "number"
+            fieldWithHint s.Table.HeartRate s.Table.Bpm FormFields.heartRate m.HeartRate "number"
+            ViewLayout.field s.Shell.Comment FormFields.comments m.Comments "text"
+            ViewLayout.formActions s Routes.history ] ]

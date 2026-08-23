@@ -3,6 +3,8 @@ module ViewTestHelpers
 open System
 open BpMonitor.Core
 
+let s: LocalizedStrings = LocalizedStrings.en
+
 let defaultMember: FamilyMember =
   { Id = 1
     Name = "Me"
@@ -10,6 +12,7 @@ let defaultMember: FamilyMember =
     IsActive = true
     PasswordHash = None
     Goal = GoalRange.defaults
+    Language = English
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
 

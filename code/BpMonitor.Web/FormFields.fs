@@ -19,6 +19,8 @@ module FormFields =
   let password = "Password"
   let passwordConfirm = "PasswordConfirm"
   let rememberMe = "RememberMe"
+  // Settings / language form
+  let language = "Language"
   // Settings / goal-range form
   let systolicGoalMin = "SystolicGoalMin"
   let systolicGoalMax = "SystolicGoalMax"

@@ -15,6 +15,7 @@ module Routes =
   let exportJson = "/export"
   let exportCsv = "/export.csv"
   let settings = "/settings"
+  let settingsLanguage = "/settings/language"
   let medications = "/medications"
   let health = "/health"
 

@@ -3,6 +3,7 @@ module ConfigTests
 open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.Configuration
+open BpMonitor.Core
 open BpMonitor.Web
 
 let private configWith (pairs: (string * string) list) : IConfiguration =
@@ -34,3 +35,18 @@ let ``readRememberMeDays clamps values above the 400-day browser cap`` () =
 let ``readRememberMeDays clamps non-positive values up to 1`` () =
   let config = configWith [ "BpMonitor:RememberMeDays", "0" ]
   test <@ Config.readRememberMeDays config = 1 @>
+
+[<Fact>]
+let ``readDefaultLanguage defaults to English when unset`` () =
+  let config = configWith []
+  test <@ Config.readDefaultLanguage config = English @>
+
+[<Fact>]
+let ``readDefaultLanguage parses a configured language code`` () =
+  let config = configWith [ "BpMonitor:DefaultLanguage", "de" ]
+  test <@ Config.readDefaultLanguage config = German @>
+
+[<Fact>]
+let ``readDefaultLanguage falls back to English on an unsupported code`` () =
+  let config = configWith [ "BpMonitor:DefaultLanguage", "fr" ]
+  test <@ Config.readDefaultLanguage config = English @>

@@ -14,7 +14,7 @@ type AggregatedReading =
 type WindowSummary =
   { Granularity: Granularity
     PeriodKey: string
-    Label: string
+    Label: PeriodLabel
     Count: int
     MinSystolic: int
     AvgSystolic: int

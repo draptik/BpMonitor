@@ -4,17 +4,17 @@ open Falco.Markup
 open BpMonitor.Core
 
 /// Server-rendered HTML views for medications: the `/settings` CRUD section and the
-/// collapsible Medications Timeline panel embedded below the BP chart on /recent and
-/// /history (Wegier et al. 2021 Fig. 5).
+/// collapsible Medications Timeline panel embedded below the BP chart on /recent and /history.
 module MedicationViews =
   /// Required/optional badge shown next to a field's label.
-  let private requirementBadge (required: bool) : XmlNode =
+  let private requirementBadge (s: LocalizedStrings) (required: bool) : XmlNode =
     if required then
-      Elem.span [ Attr.class' "field-badge field-required" ] [ Text.raw "Required" ]
+      Elem.span [ Attr.class' "field-badge field-required" ] [ Text.raw s.Medication.Required ]
     else
-      Elem.span [ Attr.class' "field-badge field-optional" ] [ Text.raw "Optional" ]
+      Elem.span [ Attr.class' "field-badge field-optional" ] [ Text.raw s.Medication.Optional ]
 
   let private field
+    (s: LocalizedStrings)
     (labelText: string)
     (hint: string option)
     (required: bool)
@@ -24,13 +24,14 @@ module MedicationViews =
     =
     Elem.div
       [ Attr.class' "field" ]
-      [ Elem.label [ Attr.for' name ] [ Text.raw labelText; requirementBadge required ]
+      [ Elem.label [ Attr.for' name ] [ Text.raw labelText; requirementBadge s required ]
         match hint with
         | Some h -> Elem.small [ Attr.class' "field-hint" ] [ Text.raw h ]
         | None -> Text.raw ""
         Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ] ]
 
   let private fieldWithHint
+    (s: LocalizedStrings)
     (labelText: string)
     (hint: string)
     (required: bool)
@@ -38,9 +39,9 @@ module MedicationViews =
     (value: string)
     (inputType: string)
     =
-    field labelText (Some hint) required name value inputType
+    field s labelText (Some hint) required name value inputType
 
-  let private medicationRow (m: Medication) : XmlNode =
+  let private medicationRow (s: LocalizedStrings) (m: Medication) : XmlNode =
     Elem.tr
       []
       [ Elem.td [] [ Text.enc m.Name ]
@@ -56,19 +57,19 @@ module MedicationViews =
               [ Attr.href (Routes.medicationEdit m.Id)
                 Attr.role "button"
                 Attr.class' "outline secondary" ]
-              [ Text.raw "Edit" ]
+              [ Text.raw s.Shell.Edit ]
             ViewLayout.inlineDangerPostButton
               (Routes.medicationDelete m.Id)
-              "Delete"
-              $"Delete {m.Name}? This cannot be undone." ] ]
+              s.Shell.Delete
+              (s.Medication.DeleteConfirm m.Name) ] ]
 
   /// The `/settings` Medications section: a collapsible table plus inline add form.
-  let medicationsSection (medications: Medication list) (errors: string list) : XmlNode list =
+  let medicationsSection (s: LocalizedStrings) (medications: Medication list) (errors: string list) : XmlNode list =
     [ Elem.details
         [ Attr.class' "settings-section"
           Attr.create "open" ""
           Attr.create "data-persist-key" "settings-medications" ]
-        [ Elem.summary [] [ Elem.h2 [] [ Text.raw "Medications" ] ]
+        [ Elem.summary [] [ Elem.h2 [] [ Text.raw s.Medication.MedicationsTitle ] ]
           ViewLayout.errorBox errors
           Elem.table
             []
@@ -76,38 +77,48 @@ module MedicationViews =
                 []
                 [ Elem.tr
                     []
-                    [ Elem.th [] [ Text.raw "Name" ]
-                      Elem.th [] [ Text.raw "Full name" ]
-                      Elem.th [ Attr.class' "text-center" ] [ Text.raw "Start" ]
-                      Elem.th [ Attr.class' "text-center" ] [ Text.raw "End" ]
-                      Elem.th [] [ Text.raw "Comment" ]
+                    [ Elem.th [] [ Text.raw s.Shell.Name ]
+                      Elem.th [] [ Text.raw s.Medication.FullNameHeader ]
+                      Elem.th [ Attr.class' "text-center" ] [ Text.raw s.Medication.StartHeader ]
+                      Elem.th [ Attr.class' "text-center" ] [ Text.raw s.Medication.EndHeader ]
+                      Elem.th [] [ Text.raw s.Shell.Comment ]
                       Elem.th [] [ Text.raw "" ] ] ]
-              Elem.tbody [] (medications |> List.sortBy _.StartDate |> List.map medicationRow) ]
-          Elem.h2 [] [ Text.raw "Add medication" ]
+              Elem.tbody [] (medications |> List.sortBy _.StartDate |> List.map (medicationRow s)) ]
+          Elem.h2 [] [ Text.raw s.Medication.AddMedicationTitle ]
           Elem.form
             [ Attr.method "post"; Attr.action Routes.medications; Attr.class' "stacked" ]
-            [ fieldWithHint
-                "Name"
-                "Short label shown on the timeline, e.g. HCTZ"
-                true
-                FormFields.medicationName
-                ""
-                "text"
+            [ fieldWithHint s s.Shell.Name s.Medication.NameHint true FormFields.medicationName "" "text"
               fieldWithHint
-                "Full name"
-                "Long form, shown in the timeline's hover tooltip"
+                s
+                s.Medication.FullNameHeader
+                s.Medication.FullNameHint
                 false
                 FormFields.medicationFullName
                 ""
                 "text"
-              field "Comment" None false FormFields.medicationComment "" "text"
-              fieldWithHint "Start date" "dd.mm.yyyy" true FormFields.medicationStartDate "" "text"
-              fieldWithHint "End date" "dd.mm.yyyy" false FormFields.medicationEndDate "" "text"
-              Elem.button [ Attr.type' "submit" ] [ Text.raw "Add medication" ] ] ] ]
+              field s s.Shell.Comment None false FormFields.medicationComment "" "text"
+              fieldWithHint
+                s
+                s.Medication.StartDateLabel
+                s.Medication.StartDateHint
+                true
+                FormFields.medicationStartDate
+                ""
+                "text"
+              fieldWithHint
+                s
+                s.Medication.EndDateLabel
+                s.Medication.EndDateHint
+                false
+                FormFields.medicationEndDate
+                ""
+                "text"
+              Elem.button [ Attr.type' "submit" ] [ Text.raw s.Medication.AddMedicationTitle ] ] ] ]
 
   /// Shared add/edit form for a single medication. `action` is the POST target;
   /// `errors` are rendered above the fields when re-displaying after a failed submit.
   let medicationForm
+    (s: LocalizedStrings)
     (memberName: string)
     (isAdmin: bool)
     (title: string)
@@ -120,6 +131,7 @@ module MedicationViews =
     (endDate: string)
     : XmlNode =
     ViewLayout.layout
+      s
       Routes.settings
       memberName
       isAdmin
@@ -128,39 +140,43 @@ module MedicationViews =
         ViewLayout.errorBox errors
         Elem.form
           [ Attr.method "post"; Attr.action action ]
-          [ fieldWithHint
-              "Name"
-              "Short label shown on the timeline, e.g. HCTZ"
-              true
-              FormFields.medicationName
-              name
-              "text"
+          [ fieldWithHint s s.Shell.Name s.Medication.NameHint true FormFields.medicationName name "text"
             fieldWithHint
-              "Full name"
-              "Long form, shown in the timeline's hover tooltip"
+              s
+              s.Medication.FullNameHeader
+              s.Medication.FullNameHint
               false
               FormFields.medicationFullName
               fullName
               "text"
-            field "Comment" None false FormFields.medicationComment comment "text"
-            fieldWithHint "Start date" "dd.mm.yyyy" true FormFields.medicationStartDate startDate "text"
-            fieldWithHint "End date" "dd.mm.yyyy" false FormFields.medicationEndDate endDate "text"
-            ViewLayout.formActions Routes.settings ] ]
+            field s s.Shell.Comment None false FormFields.medicationComment comment "text"
+            fieldWithHint
+              s
+              s.Medication.StartDateLabel
+              s.Medication.StartDateHint
+              true
+              FormFields.medicationStartDate
+              startDate
+              "text"
+            fieldWithHint
+              s
+              s.Medication.EndDateLabel
+              s.Medication.EndDateHint
+              false
+              FormFields.medicationEndDate
+              endDate
+              "text"
+            ViewLayout.formActions s Routes.settings ] ]
 
   /// The collapsible Medications Timeline panel embedded below the BP chart on /recent
-  /// and /history. Renders nothing when there's no chart to show (BpChart.toHtmlMedications
-  /// returns "" for an empty medication list) — an empty collapsible panel would just be
-  /// visual clutter. `data-persist-key` lets wwwroot/details-memory.js remember whether the
-  /// member left it open across page loads.
-  let timelinePanel (chartHtml: string) : XmlNode =
+  /// and /history. Renders nothing when there's no chart to show.
+  let timelinePanel (s: LocalizedStrings) (chartHtml: string) : XmlNode =
     if chartHtml = "" then
       Text.raw ""
     else
       Elem.details
         [ Attr.class' "medications-timeline"
           Attr.create "data-persist-key" "medications-timeline" ]
-        [ Elem.summary [] [ Text.raw "Medications Timeline" ]
-          // Not the plain `.chart` class: that fixes height to `--chart-height` (420px)
-          // for the BP chart, which would stretch/clip this chart's own short, explicit
-          // height (Charts.fs medicationsLayout — set to fit its row count).
+        [ Elem.summary [] [ Text.raw s.Medication.MedicationsTimelineTitle ]
+          // Not the plain `.chart` class: that fixes height to `--chart-height` for the BP chart.
           Elem.div [ Attr.class' "chart medications-chart" ] [ Text.raw chartHtml ] ]

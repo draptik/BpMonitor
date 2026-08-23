@@ -44,11 +44,13 @@ module Timestamp =
 module Formats =
   let timestamp = "yyyy-MM-dd HH:mm"
 
-  let formatLocal (ts: System.DateTimeOffset) = ts.ToLocalTime().ToString(timestamp)
+  let formatLocal (ts: System.DateTimeOffset) =
+    ts.ToLocalTime().ToString(timestamp, System.Globalization.CultureInfo.InvariantCulture)
 
   let date = "yyyy-MM-dd"
 
-  let formatDate (d: System.DateOnly) = d.ToString(date)
+  let formatDate (d: System.DateOnly) =
+    d.ToString(date, System.Globalization.CultureInfo.InvariantCulture)
 
   let dateEuropean = "dd.MM.yyyy"
 

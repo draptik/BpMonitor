@@ -8,6 +8,44 @@ open BpMonitor.Web
 open HandlerTestHelpers
 
 [<Fact>]
+let ``updateLanguage persists the chosen language and redirects to settings`` () =
+  let repo = repoWith []
+  let ctx = TestHost.context repo
+
+  TestHost.setForm ctx [ FormFields.language, "de" ]
+  TestHost.run ReadingHandlers.updateLanguage ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.settings @>
+
+  let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+  let updated = (memberRepo.GetById defaultMemberId).Value
+  test <@ updated.Language = German @>
+
+[<Fact>]
+let ``updateLanguage sets the language cookie so an unauthenticated visit keeps the choice`` () =
+  let repo = repoWith []
+  let ctx = TestHost.context repo
+
+  TestHost.setForm ctx [ FormFields.language, "de" ]
+  TestHost.run ReadingHandlers.updateLanguage ctx
+
+  let setCookie = ctx.Response.Headers.SetCookie.ToString()
+  test <@ setCookie.Contains "bpmonitor_lang=de" @>
+
+[<Fact>]
+let ``updateLanguage keeps the member's current language on an unrecognized code`` () =
+  let repo = repoWith []
+  let ctx = TestHost.context repo
+
+  TestHost.setForm ctx [ FormFields.language, "fr" ]
+  TestHost.run ReadingHandlers.updateLanguage ctx
+
+  let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+  let updated = (memberRepo.GetById defaultMemberId).Value
+  test <@ updated.Language = English @>
+
+[<Fact>]
 let ``settings renders the authenticated member's current goal range`` () =
   let repo = repoWith []
   let ctx = TestHost.context repo

@@ -9,6 +9,7 @@ type MemberRecord =
     IsAdmin: bool
     IsActive: bool
     PasswordHash: string
+    Language: string
     SystolicGoalMin: int
     SystolicGoalMax: int
     DiastolicGoalMin: int

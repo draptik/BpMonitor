@@ -183,6 +183,23 @@ let ``Add persists a custom goal range and Update round-trips changes to it`` ()
   test <@ (repo.GetById added.Id).Value.Goal = newGoal @>
 
 [<Fact>]
+let ``Add persists Language and Update round-trips a changed Language`` () =
+  use ctx = createContext ()
+
+  let repo = createRepo ctx
+
+  let added =
+    repo.Add
+      { newMember "Alice" true with
+          Language = German }
+
+  test <@ added.Language = German @>
+  test <@ (repo.GetById added.Id).Value.Language = German @>
+
+  repo.Update { added with Language = English }
+  test <@ (repo.GetById added.Id).Value.Language = English @>
+
+[<Fact>]
 let ``GetById translates Id filter to SQL WHERE clause`` () =
   let log = ResizeArray<string>()
   use ctx = createContextWithLog log

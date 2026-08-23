@@ -12,6 +12,12 @@ let ``create seeds default goal range`` () =
   | Ok m -> test <@ m.Goal = GoalRange.defaults @>
 
 [<Fact>]
+let ``create defaults the language to English`` () =
+  match FamilyMember.create "Alice" true with
+  | Error _ -> failwith "unexpected error"
+  | Ok m -> test <@ m.Language = English @>
+
+[<Fact>]
 let ``create with isAdmin=true yields admin active member`` () =
   match FamilyMember.create "Alice" true with
   | Error _ -> failwith "unexpected error"

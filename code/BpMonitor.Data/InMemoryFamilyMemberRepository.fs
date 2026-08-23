@@ -11,6 +11,7 @@ module private MemberDefaults =
         IsActive = true
         PasswordHash = None
         Goal = GoalRange.defaults
+        Language = Language.defaultLanguage
         CreatedAt = DateTimeOffset.MinValue
         ModifiedAt = DateTimeOffset.MinValue } ]
 

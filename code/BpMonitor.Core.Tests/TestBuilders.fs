@@ -32,5 +32,6 @@ let mkMember id name isAdmin isActive : FamilyMember =
     IsActive = isActive
     PasswordHash = None
     Goal = GoalRange.defaults
+    Language = English
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }

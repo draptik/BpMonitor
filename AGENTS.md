@@ -53,7 +53,7 @@ The following are available as slash commands (defined in `.claude/skills/`):
 ```text
 code/
 ├── BpMonitor.slnx
-├── BpMonitor.Core              # Domain models (BloodPressureReading + FamilyMember), interfaces, PasswordHashing, business logic
+├── BpMonitor.Core              # Domain models (BloodPressureReading + FamilyMember), interfaces, PasswordHashing, business logic; owns the LocalizedStrings/Language string table (see ADR 0008)
 ├── BpMonitor.Core.Tests
 ├── BpMonitor.Data              # EF Core + SQLite, member-scoped repository implementations
 ├── BpMonitor.Data.Tests

@@ -22,28 +22,28 @@ let private sampleMedication: Medication =
 [<Fact>]
 let ``medicationsSection center-aligns the Start and End columns`` () =
   let html =
-    renderHtml (Elem.div [] (MedicationViews.medicationsSection [ sampleMedication ] []))
+    renderHtml (Elem.div [] (MedicationViews.medicationsSection s [ sampleMedication ] []))
 
   test <@ html.Contains "class=\"text-center\"" @>
 
 [<Fact>]
 let ``medicationsSection renders Edit as an outline secondary button`` () =
   let html =
-    renderHtml (Elem.div [] (MedicationViews.medicationsSection [ sampleMedication ] []))
+    renderHtml (Elem.div [] (MedicationViews.medicationsSection s [ sampleMedication ] []))
 
   test <@ html.Contains $"<a href=\"{Routes.medicationEdit 5}\" role=\"button\" class=\"outline secondary\">Edit</a>" @>
 
 [<Fact>]
 let ``medicationsSection renders Delete with a danger class, unlike Edit`` () =
   let html =
-    renderHtml (Elem.div [] (MedicationViews.medicationsSection [ sampleMedication ] []))
+    renderHtml (Elem.div [] (MedicationViews.medicationsSection s [ sampleMedication ] []))
 
   test <@ html.Contains "class=\"outline button-danger\"" @>
 
 [<Fact>]
 let ``medicationsSection wraps the section in a collapsible details element`` () =
   let html =
-    renderHtml (Elem.div [] (MedicationViews.medicationsSection [ sampleMedication ] []))
+    renderHtml (Elem.div [] (MedicationViews.medicationsSection s [ sampleMedication ] []))
 
   test <@ html.Contains "<details" @>
   test <@ html.Contains "data-persist-key=\"settings-medications\"" @>
@@ -52,7 +52,7 @@ let ``medicationsSection wraps the section in a collapsible details element`` ()
 [<Fact>]
 let ``medicationsSection marks the required and optional add-medication fields`` () =
   let html =
-    renderHtml (Elem.div [] (MedicationViews.medicationsSection [ sampleMedication ] []))
+    renderHtml (Elem.div [] (MedicationViews.medicationsSection s [ sampleMedication ] []))
 
   test <@ html.Contains "field-required" @>
   test <@ html.Contains "field-optional" @>
@@ -60,6 +60,6 @@ let ``medicationsSection marks the required and optional add-medication fields``
 [<Fact>]
 let ``medicationsSection asks for confirmation before deleting, naming the medication`` () =
   let html =
-    renderHtml (Elem.div [] (MedicationViews.medicationsSection [ sampleMedication ] []))
+    renderHtml (Elem.div [] (MedicationViews.medicationsSection s [ sampleMedication ] []))
 
   test <@ html.Contains "hx-confirm=\"Delete HCTZ? This cannot be undone.\"" @>
