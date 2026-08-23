@@ -7,14 +7,14 @@ open BpMonitor.Core
 /// collapsible Medications Timeline panel embedded below the BP chart on /recent and /history.
 module MedicationViews =
   /// Required/optional badge shown next to a field's label.
-  let private requirementBadge (s: Strings) (required: bool) : XmlNode =
+  let private requirementBadge (s: LocalizedStrings) (required: bool) : XmlNode =
     if required then
       Elem.span [ Attr.class' "field-badge field-required" ] [ Text.raw s.Medication.Required ]
     else
       Elem.span [ Attr.class' "field-badge field-optional" ] [ Text.raw s.Medication.Optional ]
 
   let private field
-    (s: Strings)
+    (s: LocalizedStrings)
     (labelText: string)
     (hint: string option)
     (required: bool)
@@ -31,7 +31,7 @@ module MedicationViews =
         Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ] ]
 
   let private fieldWithHint
-    (s: Strings)
+    (s: LocalizedStrings)
     (labelText: string)
     (hint: string)
     (required: bool)
@@ -41,7 +41,7 @@ module MedicationViews =
     =
     field s labelText (Some hint) required name value inputType
 
-  let private medicationRow (s: Strings) (m: Medication) : XmlNode =
+  let private medicationRow (s: LocalizedStrings) (m: Medication) : XmlNode =
     Elem.tr
       []
       [ Elem.td [] [ Text.enc m.Name ]
@@ -64,7 +64,7 @@ module MedicationViews =
               (s.Medication.DeleteConfirm m.Name) ] ]
 
   /// The `/settings` Medications section: a collapsible table plus inline add form.
-  let medicationsSection (s: Strings) (medications: Medication list) (errors: string list) : XmlNode list =
+  let medicationsSection (s: LocalizedStrings) (medications: Medication list) (errors: string list) : XmlNode list =
     [ Elem.details
         [ Attr.class' "settings-section"
           Attr.create "open" ""
@@ -118,7 +118,7 @@ module MedicationViews =
   /// Shared add/edit form for a single medication. `action` is the POST target;
   /// `errors` are rendered above the fields when re-displaying after a failed submit.
   let medicationForm
-    (s: Strings)
+    (s: LocalizedStrings)
     (memberName: string)
     (isAdmin: bool)
     (title: string)
@@ -170,7 +170,7 @@ module MedicationViews =
 
   /// The collapsible Medications Timeline panel embedded below the BP chart on /recent
   /// and /history. Renders nothing when there's no chart to show.
-  let timelinePanel (s: Strings) (chartHtml: string) : XmlNode =
+  let timelinePanel (s: LocalizedStrings) (chartHtml: string) : XmlNode =
     if chartHtml = "" then
       Text.raw ""
     else

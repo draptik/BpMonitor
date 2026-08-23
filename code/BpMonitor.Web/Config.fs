@@ -49,7 +49,7 @@ module Config =
     | v -> Language.tryParse v |> Option.defaultValue Language.defaultLanguage
 
   /// Human-readable validation messages for range errors.
-  let formatValidationErrors (s: Strings) (ranges: ReadingRanges) (errors: ValidationError list) =
+  let formatValidationErrors (s: LocalizedStrings) (ranges: ReadingRanges) (errors: ValidationError list) =
     errors
     |> List.map (fun e ->
       match e with

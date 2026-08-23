@@ -12,12 +12,12 @@ module MemberHandlers =
   let members: HttpContext -> Task =
     withMember (fun active ctx ->
       let allMembers = (memberRepo ctx).GetAll()
-      htmlResponse (MemberViews.members (Strings.forLanguage active.Language) allMembers active []) ctx)
+      htmlResponse (MemberViews.members (LocalizedStrings.forLanguage active.Language) allMembers active []) ctx)
 
   let createMember: HttpContext -> Task =
     withMember (fun active ctx ->
       task {
-        let s = Strings.forLanguage active.Language
+        let s = LocalizedStrings.forLanguage active.Language
         let! form = ctx.Request.ReadFormAsync()
         let name = form[FormFields.name].ToString()
         let isAdmin = form.ContainsKey(FormFields.isAdmin)
@@ -50,7 +50,7 @@ module MemberHandlers =
         ctx)
 
   let private renderMemberEditError
-    (s: Strings)
+    (s: LocalizedStrings)
     (id: int)
     (adminName: string)
     (errors: string list)
@@ -64,7 +64,7 @@ module MemberHandlers =
       ctx
 
   let private applyMemberEdit
-    (s: Strings)
+    (s: LocalizedStrings)
     (id: int)
     (adminName: string)
     (existing: FamilyMember)

@@ -16,7 +16,7 @@ follow-up PR once this infrastructure lands, and a third language costing one ne
 
 ## Decision
 
-**A typed F# `Strings` record in `BpMonitor.Core`, not `.resx` + `IStringLocalizer`.** The app
+**A typed F# `LocalizedStrings` record in `BpMonitor.Core`, not `.resx` + `IStringLocalizer`.** The app
 has no template engine — views are plain F# functions building `Falco.Markup.XmlNode` — so
 `IStringLocalizer`'s main advantage (`@Localizer["Key"]` inside Razor) buys nothing here; it
 would just be a dictionary lookup called from F#. Against that, the record gives:
@@ -25,7 +25,7 @@ would just be a dictionary lookup called from F#. Against that, the record gives
   every field. `.resx` silently renders the raw key at runtime on a missing translation.
 - **Typed parameterized messages.** `SystolicOutOfRange: int -> int -> int -> string` has its
   arity and argument types checked; `loc["Key", v, min, max]` does not.
-- **No dependency reaching into Core.** `Strings`/`Language` are plain data, so
+- **No dependency reaching into Core.** `LocalizedStrings`/`Language` are plain data, so
   `BpMonitor.Charts` (which may only reference Core per the Clean Architecture rules in
   `BpMonitor.Arch.Tests`) can render localized chart labels without a new package reference.
 
@@ -40,20 +40,20 @@ also localized. Resolution order: authenticated member's `Language` → cookie �
 (`HandlerHelpers.strings`/`AuthHandlers.authenticatedStrings`), matching the rest of the app's
 all-explicit style rather than introducing ambient ASP.NET Core culture state.
 
-**`Strings` passed as an explicit first parameter** to every view and handler that needs it,
+**`LocalizedStrings` passed as an explicit first parameter** to every view and handler that needs it,
 not read from an ambient `CurrentUICulture` — same reasoning as the resolution order above.
 
 **`TrendPeriod.Label` restructured from a `string` to a `PeriodLabel` DU** (`ThisWeek`,
 `CalendarWeek of int`, `MonthOfYear of int * int`, …), rendered at the view layer via
-`Strings.Trend`. This removes English prose that had leaked into the domain layer, rather than
+`LocalizedStrings.Trend`. This removes English prose that had leaked into the domain layer, rather than
 translating around it.
 
 ## Consequences
 
-- Adding German (or a third language) is one `Strings` record value plus one `Language` case;
+- Adding German (or a third language) is one `LocalizedStrings` record value plus one `Language` case;
   the build fails loudly until every field is supplied.
 - Every view function in `BpMonitor.Web` and the four public `BpMonitor.Charts.BpChart` chart
-  functions gained a `Strings`/`ChartStrings` parameter — a mechanical but real signature change
+  functions gained a `LocalizedStrings`/`ChartStrings` parameter — a mechanical but real signature change
   across ~30 functions.
 - `Members` gained a `Language TEXT NOT NULL DEFAULT 'en'` column, backfilled via
   `SchemaMigrations.addColumnIfMissing` for existing databases.

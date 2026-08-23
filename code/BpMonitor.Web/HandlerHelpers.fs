@@ -54,14 +54,14 @@ module HandlerHelpers =
 
   /// Resolves the UI language for an unauthenticated request: cookie, then
   /// Accept-Language, then the deployment's configured default.
-  let strings (ctx: HttpContext) : Strings =
+  let strings (ctx: HttpContext) : LocalizedStrings =
     let lang =
       languageFromCookie ctx
       |> Option.orElseWith (fun () -> languageFromAcceptHeader ctx)
       |> Option.defaultWith (fun () ->
         Config.readDefaultLanguage (ctx.RequestServices.GetRequiredService<IConfiguration>()))
 
-    Strings.forLanguage lang
+    LocalizedStrings.forLanguage lang
 
   /// Persists the member's chosen language so unauthenticated pages (e.g. /login,
   /// reached again after signing out) render in the same language.

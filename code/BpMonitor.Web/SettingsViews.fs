@@ -7,7 +7,7 @@ open BpMonitor.Core
 /// and the medications CRUD section (`MedicationViews.medicationsSection`) under one shell.
 module SettingsViews =
   let settings
-    (s: Strings)
+    (s: LocalizedStrings)
     (memberName: string)
     (isAdmin: bool)
     (language: Language)

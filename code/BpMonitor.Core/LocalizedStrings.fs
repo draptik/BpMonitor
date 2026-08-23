@@ -150,7 +150,7 @@ type ChartStrings =
 
 /// All user-facing text for one language. Every language must supply every field —
 /// the compiler enforces completeness, which is the point of this type over `.resx`.
-type Strings =
+type LocalizedStrings =
   { Language: Language
     Shell: ShellStrings
     Table: ReadingTableStrings
@@ -162,8 +162,8 @@ type Strings =
     Errors: ErrorStrings
     Charts: ChartStrings }
 
-module Strings =
-  let en: Strings =
+module LocalizedStrings =
+  let en: LocalizedStrings =
     { Language = English
       Shell =
         { AppTagline = "Blood pressure tracker"

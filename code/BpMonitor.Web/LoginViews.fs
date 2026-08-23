@@ -6,7 +6,7 @@ open BpMonitor.Core
 /// Server-rendered HTML views for unauthenticated login pages.
 module LoginViews =
   /// Login page: username + password form.
-  let loginPage (s: Strings) (errors: string list) : XmlNode =
+  let loginPage (s: LocalizedStrings) (errors: string list) : XmlNode =
     ViewLayout.loginLayout
       s
       $"{s.Login.PageTitle} — BpMonitor"
@@ -42,7 +42,7 @@ module LoginViews =
 
   /// Login form for a specific member. Shows a claim form (password + confirm) for
   /// unclaimed accounts, or a simple password form for claimed ones.
-  let loginMember (s: Strings) (m: FamilyMember) (errors: string list) : XmlNode =
+  let loginMember (s: LocalizedStrings) (m: FamilyMember) (errors: string list) : XmlNode =
     let isClaimed = FamilyMember.isClaimed m
 
     let passwordFields =

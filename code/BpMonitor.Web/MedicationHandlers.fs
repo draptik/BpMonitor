@@ -39,12 +39,12 @@ module MedicationHandlers =
   /// "d.M.yyyy" accepts 1- or 2-digit day/month; yyyy-MM-dd is accepted too for pasted ISO dates.
   let private dateFormats = [| "d.M.yyyy"; Formats.date |]
 
-  let private tryDate (s: Strings) (label: string) (v: string) : Result<DateOnly, string> =
+  let private tryDate (s: LocalizedStrings) (label: string) (v: string) : Result<DateOnly, string> =
     match DateOnly.TryParseExact(v.Trim(), dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None) with
     | true, d -> Ok d
     | _ -> Error(s.Errors.NotAValidDate label v)
 
-  let private tryOptionalDate (s: Strings) (label: string) (v: string) : Result<DateOnly option, string> =
+  let private tryOptionalDate (s: LocalizedStrings) (label: string) (v: string) : Result<DateOnly option, string> =
     if String.IsNullOrWhiteSpace v then
       Ok None
     else
@@ -52,7 +52,7 @@ module MedicationHandlers =
 
   /// Parse-level conversion (bad dates), mirroring Binding.toUnvalidated. Domain
   /// validation (empty name, end before start) happens afterward via Medication.parse.
-  let private toUnvalidated (s: Strings) (f: FormValues) : Validation<MedicationUnvalidated, string> =
+  let private toUnvalidated (s: LocalizedStrings) (f: FormValues) : Validation<MedicationUnvalidated, string> =
     validation {
       let! startDate = tryDate s s.Medication.StartDateLabel f.StartDate |> Validation.ofResult
       and! endDate = tryOptionalDate s s.Medication.EndDateLabel f.EndDate |> Validation.ofResult
@@ -65,14 +65,19 @@ module MedicationHandlers =
           EndDate = endDate }
     }
 
-  let private medicationErrorMessage (s: Strings) (error: MedicationError) =
+  let private medicationErrorMessage (s: LocalizedStrings) (error: MedicationError) =
     match error with
     | MedicationError.NameIsEmpty -> s.Medication.NameIsEmpty
     | MedicationError.EndDateBeforeStartDate -> s.Medication.EndDateBeforeStartDate
 
   /// Re-renders `/settings` (goal-range section unchanged) with the given medication
   /// errors, after a failed add.
-  let private renderSettingsWithErrors (s: Strings) (m: FamilyMember) (errors: string list) (ctx: HttpContext) : Task =
+  let private renderSettingsWithErrors
+    (s: LocalizedStrings)
+    (m: FamilyMember)
+    (errors: string list)
+    (ctx: HttpContext)
+    : Task =
     ctx.Response.StatusCode <- 422
     let medications = (medicationRepo ctx).GetAll(m.Id)
 
@@ -94,7 +99,7 @@ module MedicationHandlers =
   let create: HttpContext -> Task =
     withMember (fun m ctx ->
       task {
-        let s = Strings.forLanguage m.Language
+        let s = LocalizedStrings.forLanguage m.Language
         let! form = readForm ctx
 
         match toUnvalidated s form with
@@ -110,7 +115,7 @@ module MedicationHandlers =
 
   let edit: HttpContext -> Task =
     withMemberAndRouteId "editMedication" (fun m id ctx ->
-      let s = Strings.forLanguage m.Language
+      let s = LocalizedStrings.forLanguage m.Language
 
       match (medicationRepo ctx).GetAll(m.Id) |> List.tryFind (fun x -> x.Id = id) with
       | None ->
@@ -134,7 +139,7 @@ module MedicationHandlers =
           ctx)
 
   let private renderEditErrors
-    (s: Strings)
+    (s: LocalizedStrings)
     (id: int)
     (m: FamilyMember)
     (errors: string list)
@@ -161,7 +166,7 @@ module MedicationHandlers =
   let update: HttpContext -> Task =
     withMemberAndRouteId "updateMedication" (fun m id ctx ->
       task {
-        let s = Strings.forLanguage m.Language
+        let s = LocalizedStrings.forLanguage m.Language
 
         match (medicationRepo ctx).GetAll(m.Id) |> List.tryFind (fun x -> x.Id = id) with
         | None ->

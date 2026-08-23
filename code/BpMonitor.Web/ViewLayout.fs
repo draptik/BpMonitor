@@ -98,7 +98,7 @@ module ViewLayout =
   /// Page shell for authenticated pages: shared <head>, nav bar with logged-in member
   /// name + logout, and hx-boosted body.
   let layout
-    (s: Strings)
+    (s: LocalizedStrings)
     (active: string)
     (memberName: string)
     (isAdmin: bool)
@@ -172,7 +172,7 @@ module ViewLayout =
             Elem.script [ Attr.src "/theme-label.js" ] [] ] ]
 
   /// Minimal page shell for unauthenticated pages (login). No nav, no logout.
-  let loginLayout (s: Strings) (title: string) (content: XmlNode list) : XmlNode =
+  let loginLayout (s: LocalizedStrings) (title: string) (content: XmlNode list) : XmlNode =
     Elem.html
       [ Attr.lang (Language.code s.Language) ]
       [ htmlHead title []
@@ -198,7 +198,7 @@ module ViewLayout =
         [ Elem.ul [] (errors |> List.map (fun e -> Elem.li [] [ Text.enc e ])) ]
 
   /// The shared form save/cancel row. `cancelHref` is the Cancel link destination.
-  let formActions (s: Strings) (cancelHref: string) : XmlNode =
+  let formActions (s: LocalizedStrings) (cancelHref: string) : XmlNode =
     Elem.div
       [ Attr.class' "actions" ]
       [ Elem.button [ Attr.type' "submit" ] [ Text.raw s.Shell.Save ]
@@ -214,7 +214,7 @@ module ViewLayout =
 
   /// The readings' table; wrapped in an id'd container so it can be targeted for
   /// partial swaps later.
-  let readingsTable (s: Strings) (readings: BloodPressureReading list) : XmlNode =
+  let readingsTable (s: LocalizedStrings) (readings: BloodPressureReading list) : XmlNode =
     let header =
       Elem.thead
         []

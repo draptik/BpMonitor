@@ -78,7 +78,7 @@ let ``toHtml renders a goal-range band shaped rectangle for systolic and diastol
       DiastolicMin = 60
       DiastolicMax = 90 }
 
-  let html = BpChart.toHtml Strings.en.Charts goal readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts goal readings
   test <@ html.Contains("\"type\":\"rect\"") @>
   test <@ html.Contains("\"y0\":90") @>
   test <@ html.Contains("\"y1\":140") @>
@@ -87,7 +87,7 @@ let ``toHtml renders a goal-range band shaped rectangle for systolic and diastol
 
 [<Fact>]
 let ``toHtml sets a denser y-axis tick interval than plotly's default`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ html.Contains("\"dtick\":20") @>
 
 [<Fact>]
@@ -95,28 +95,28 @@ let ``toHtml renders a visible y-axis line with a theme-neutral default color`` 
   // "#444" is the same neutral gray used as the light-theme font color in theme.js;
   // the client overrides it per-theme on load via Plotly.relayout, so the server-rendered
   // default only needs to be readable, not theme-aware.
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ html.Contains("\"showline\":true") @>
   test <@ html.Contains("\"linecolor\":\"#444\"") @>
 
 [<Fact>]
 let ``toHtml renders a visible x-axis line`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ Regex.IsMatch(html, "\"xaxis\":\\{[^}]*\"showline\":true") @>
 
 [<Fact>]
 let ``toHtml draws the x-axis line below traces, so comment markers sitting on it (y=0) aren't covered`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ Regex.IsMatch(html, "\"xaxis\":\\{[^}]*\"layer\":\"below traces\"") @>
 
 [<Fact>]
 let ``toHtml labels the y-axis with blood pressure and the mmHg unit`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ html.Contains("\"title\":{\"text\":\"blood pressure [mmHg]\"}") @>
 
 [<Fact>]
 let ``toHtml renders tick marks on both axes`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   let tickCount = Regex.Matches(html, "\"ticks\":\"outside\"").Count
   test <@ tickCount = 2 @>
 
@@ -124,19 +124,19 @@ let ``toHtml renders tick marks on both axes`` () =
 let ``toHtml gives tick marks the same theme-neutral color as the axis line, so they stay visible in dark mode`` () =
   // Axis lines already use "#444" and get relayouted per-theme by theme.js; ticks need the
   // same starting color, otherwise they keep Plotly's near-invisible-on-dark default.
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   let tickColorCount = Regex.Matches(html, "\"tickcolor\":\"#444\"").Count
   test <@ tickColorCount = 2 @>
 
 [<Fact>]
 let ``toHtml renders a marker at every systolic and diastolic data point`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   let modeCount = Regex.Matches(html, "\"mode\":\"lines\\+markers\"").Count
   test <@ modeCount = 2 @> // Systolic + Diastolic; heart rate is never included via toHtml
 
 [<Fact>]
 let ``toHtml plots comment markers on the x-axis baseline (y=0), not at the reading's value`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   let m = Regex.Match(html, "\"name\":\"Comments\".*?\"y\":\\[([^\\]]*)\\]")
   test <@ m.Success @>
   let yValues = m.Groups[1].Value.Split(',') |> Array.map int
@@ -145,7 +145,7 @@ let ``toHtml plots comment markers on the x-axis baseline (y=0), not at the read
 
 [<Fact>]
 let ``toHtml renders comment markers as a dark-red hexagon, matching Wegier et al. 2021 Fig. 5`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   let m = Regex.Match(html, "\"name\":\"Comments\".*?\"marker\":\\{([^}]*)\\}")
   test <@ m.Success @>
   let markerJson = m.Groups[1].Value
@@ -157,27 +157,27 @@ let ``toHtml renders comment markers as a dark-red hexagon, matching Wegier et a
 
 [<Fact>]
 let ``toHtml does not clip comment markers against the x-axis`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   let m = Regex.Match(html, "\"name\":\"Comments\".*?\"cliponaxis\":(true|false)")
   test <@ m.Success @>
   test <@ m.Groups[1].Value = "false" @>
 
 [<Fact>]
 let ``toHtml does not show "Comments" as a y-axis tick label even when comment markers are present`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ not (html.Contains("ticktext")) @>
 
 [<Fact>]
 let ``toHtml renders timestamps in ascending order regardless of input order`` () =
   let reversed = List.rev readings
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults reversed
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults reversed
   let pos1 = html.IndexOf("2026-01-01")
   let pos30 = html.IndexOf("2026-01-30")
   test <@ pos1 < pos30 @>
 
 [<Fact>]
 let ``toHtml includes comment text as hover info for commented readings`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ html.Contains("After coffee") @>
   test <@ html.Contains("Stressful day") @>
   test <@ html.Contains("After walk") @>
@@ -187,7 +187,7 @@ let ``toHtml includes comment text as hover info for commented readings`` () =
 let ``toHtml shows the comment text on hover, with the reading's timestamp dimmed below it, and no "Comments" trace name``
   ()
   =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   // The template's own style attribute embeds escaped quotes (\"...\") in the
   // serialized JSON, so the capture group must tolerate backslash-escaped chars
   // rather than stopping at the first one.
@@ -203,17 +203,20 @@ let ``toHtml shows the comment text on hover, with the reading's timestamp dimme
 [<Fact>]
 let ``toHtml does not include None comment readings in comments trace`` () =
   let noCommentOnly = [ reading 1 120 80 70 1 9 None ]
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults noCommentOnly
+
+  let html =
+    BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults noCommentOnly
+
   test <@ not (html.Contains("Comments")) @>
 
 [<Fact>]
 let ``toHtml uses compact margins, like the trends chart, now that it has no title`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":72}") @>
 
 [<Fact>]
 let ``toHtml renders a horizontal centered legend at the bottom, like the trends chart`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
 
   test
     <@
@@ -224,13 +227,15 @@ let ``toHtml renders a horizontal centered legend at the bottom, like the trends
 
 [<Fact>]
 let ``toHtml hover omits the redundant "Systolic"/"Diastolic" trace name, since the legend already shows it`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ hasNamelessHover html "Systolic" @>
   test <@ hasNamelessHover html "Diastolic" @>
 
 [<Fact>]
 let ``toHtml matches snapshot`` () : Task =
-  let html: string = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html: string =
+    BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
+
   verifyHtml html
 
 /// Wrap a list of readings as single-reading aggregated points (Count = 1 each).
@@ -250,7 +255,7 @@ let ``toHtmlRecent renders a dashed line segment when a gap exceeds 10% of the w
   let sparse = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 7 9 None ]
 
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 10 windowStart10 now sparse
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now sparse
 
   test <@ html.Contains("\"dash\":\"dash\"") @>
 
@@ -260,7 +265,7 @@ let ``toHtmlRecent connects readings with a solid line when the gap stays within
   let dense = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 2 9 None ]
 
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 10 windowStart10 now dense
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now dense
 
   test <@ not (html.Contains("\"dash\":\"dash\"")) @>
 
@@ -272,14 +277,14 @@ let ``toHtmlRecent judges gaps by calendar days, not raw elapsed time`` () =
   let readings = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 5 10 None ]
 
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   test <@ not (html.Contains("\"dash\":\"dash\"")) @>
 
 [<Fact>]
 let ``toHtmlRecent names each line trace after its series for the legend`` () =
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 10 windowStart10 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now readings
 
   let lineNameCount =
     Regex.Matches(html, "\"name\":\"(Systolic|Diastolic)\",\"showlegend\":[a-z]*,\"mode\":\"lines\\+markers\"").Count
@@ -289,7 +294,7 @@ let ``toHtmlRecent names each line trace after its series for the legend`` () =
 [<Fact>]
 let ``toHtmlRecent hover omits the redundant "Systolic"/"Diastolic" trace name, since the legend already shows it`` () =
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 10 windowStart10 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now readings
 
   test <@ hasNamelessHover html "Systolic" @>
   test <@ hasNamelessHover html "Diastolic" @>
@@ -307,7 +312,7 @@ let ``toHtmlRecent does not drop any reading, even when split across dash/solid 
       reading 6 125 80 70 12 9 None ]
 
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   let coveredLabels (name: string) =
     Regex.Matches(html, $"\"name\":\"{name}\".*?\"x\":\\[([^\\]]*)\\]")
@@ -322,7 +327,7 @@ let ``toHtmlRecent does not drop any reading, even when split across dash/solid 
 [<Fact>]
 let ``toHtmlRecent renders a horizontal centered legend at the bottom, like the trends chart`` () =
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   test
     <@
@@ -334,7 +339,7 @@ let ``toHtmlRecent renders a horizontal centered legend at the bottom, like the 
 [<Fact>]
 let ``toHtmlRecent uses compact margins, like the trends chart, now that it has no title`` () =
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":72}") @>
 
@@ -349,7 +354,7 @@ let ``toHtmlRecent shows exactly one legend entry per series, even when split ac
       reading 6 125 80 70 12 9 None ]
 
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   // "name" and "showlegend" are always serialized as adjacent fields, so matching them
   // directly avoids relying on which field happens to close the trace object last.
@@ -362,7 +367,7 @@ let ``toHtmlRecent shows exactly one legend entry per series, even when split ac
 [<Fact>]
 let ``toHtmlRecent renders a smoothed trend line for systolic and diastolic`` () =
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   test <@ html.Contains("\"name\":\"Systolic (trend)\"") @>
   test <@ html.Contains("\"name\":\"Diastolic (trend)\"") @>
@@ -370,7 +375,7 @@ let ``toHtmlRecent renders a smoothed trend line for systolic and diastolic`` ()
 [<Fact>]
 let ``toHtmlRecent skips hover for the LOWESS trend trace, since its value is smoothed not measured`` () =
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   let hasHoverSkip (exactName: string) =
     Regex.IsMatch(html, $"\"name\":\"{Regex.Escape(exactName)}\".*?\"hoverinfo\":\"skip\"")
@@ -386,7 +391,7 @@ let ``toHtmlRecent skips the comment trace from unified hover, so it only appear
   // client (recent-scrubber.js) drive a custom tooltip that only fires on direct
   // proximity to the marker.
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   test <@ Regex.IsMatch(html, "\"name\":\"Comments\".*?\"hoverinfo\":\"skip\"") @>
 
@@ -395,7 +400,7 @@ let ``toHtmlRecent omits the trend line when there are too few readings to smoot
   let sparse = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 2 9 None ]
 
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 10 windowStart10 now sparse
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now sparse
 
   test <@ not (html.Contains("(trend)")) @>
 
@@ -405,7 +410,7 @@ let ``toHtmlRecent fades the raw measurement line so the LOWESS trend line stand
   // then faded slightly to help the smoothing line stand out." — the raw series should
   // render at reduced opacity (rgba alpha < 1) while the trend series keeps full color.
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   let traceLineColor (exactName: string) =
     let m =
@@ -424,7 +429,7 @@ let ``toHtmlRecent shows a spikeline on the x-axis, to scrub through the chart a
   // Wegier et al. 2021, "Scrubber bar": a vertical line tracks the cursor's horizontal
   // position across the display. Plotly's x-axis spikes give this for free.
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   test <@ html.Contains("\"showspikes\":true") @>
 
@@ -433,7 +438,7 @@ let ``toHtmlRecent opens focused on the last windowDays, even though all reading
   // The chart loads every reading (so panning left reveals older history), but its
   // initial x-axis range only spans [now-windowDays, now] rather than autoranging.
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   let rangeLow = Formats.formatLocal (now.AddDays(-30.0))
   let rangeHigh = Formats.formatLocal now
@@ -443,24 +448,24 @@ let ``toHtmlRecent opens focused on the last windowDays, even though all reading
 let ``toHtml (history) does not show a spikeline`` () =
   // The scrubber bar is a /recent-only affordance (it links to the value strip, which
   // only /recent has) — /history's chart keeps its plain x-axis.
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ not (html.Contains("\"showspikes\":true")) @>
 
 [<Fact>]
 let ``toHtml removes the lasso, autoscale and box-select modebar buttons, so the y-axis scale can't be visually distorted``
   ()
   =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ html.Contains("\"modeBarButtonsToRemove\":[\"lasso2d\",\"autoScale2d\",\"select2d\"]") @>
 
 [<Fact>]
 let ``toHtml pre-selects the pan tool in the modebar, instead of defaulting to zoom-box drag`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ html.Contains("\"dragmode\":\"pan\"") @>
 
 [<Fact>]
 let ``toHtml locks the y-axis range so zoom/select tools can only ever change the x-axis`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   // The y-axis object nests a "title" object of its own, so a [^}]* lookahead would stop
   // at that inner brace; anchor on "range" (which precedes "fixedrange") instead.
   test <@ Regex.IsMatch(html, "\"yaxis\":\\{.*?\"range\":\\[0,200\\],\"fixedrange\":true") @>
@@ -470,28 +475,28 @@ let ``toHtmlRecent removes the lasso, autoscale and box-select modebar buttons, 
   ()
   =
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   test <@ html.Contains("\"modeBarButtonsToRemove\":[\"lasso2d\",\"autoScale2d\",\"select2d\"]") @>
 
 [<Fact>]
 let ``toHtmlRecent pre-selects the pan tool in the modebar, instead of defaulting to zoom-box drag`` () =
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   test <@ html.Contains("\"dragmode\":\"pan\"") @>
 
 [<Fact>]
 let ``toHtmlRecent locks the y-axis range so zoom/select tools can only ever change the x-axis`` () =
   let html =
-    BpChart.toHtmlRecent Strings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   test <@ Regex.IsMatch(html, "\"yaxis\":\\{.*?\"range\":\\[0,200\\],\"fixedrange\":true") @>
 
 [<Fact>]
 let ``toHtmlDashed matches snapshot`` () : Task =
   let html: string =
-    BpChart.toHtmlDashed Strings.en.Charts GoalRange.defaults Weekly (asAggregated readings)
+    BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly (asAggregated readings)
 
   verifyHtml html
 
@@ -507,7 +512,7 @@ let ``toHtmlDashed: multi-reading period uses diamond marker (size 11) and 'read
         MaxDiastolic = readings[0].Diastolic + 5 } ]
 
   let html =
-    BpChart.toHtmlDashed Strings.en.Charts GoalRange.defaults Weekly aggregated
+    BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly aggregated
 
   test <@ html.Contains("readings") @>
   test <@ html.Contains("\"size\":[11]") @> // diamond is rendered larger than circle
@@ -525,7 +530,7 @@ let ``toHtmlDashed: single-reading period uses circle marker (size 8) and '1 rea
         MaxDiastolic = readings[0].Diastolic } ]
 
   let html =
-    BpChart.toHtmlDashed Strings.en.Charts GoalRange.defaults Weekly aggregated
+    BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly aggregated
 
   test <@ html.Contains("1 reading") @>
   test <@ html.Contains("\"size\":[8]") @> // circle is smaller than diamond
@@ -543,7 +548,7 @@ let ``toHtmlDashed: multi-reading period renders error_y with non-zero spread`` 
         MaxDiastolic = 90 } ]
 
   let html =
-    BpChart.toHtmlDashed Strings.en.Charts GoalRange.defaults Weekly aggregated
+    BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly aggregated
 
   test <@ html.Contains("\"error_y\"") @>
   test <@ html.Contains("\"type\":\"data\"") @>
@@ -561,7 +566,7 @@ let ``toHtmlDashed: single-reading period has zero-spread error_y`` () =
         MaxDiastolic = readings[0].Diastolic } ]
 
   let html =
-    BpChart.toHtmlDashed Strings.en.Charts GoalRange.defaults Weekly aggregated
+    BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly aggregated
   // error_y present but array values are all 0
   test <@ html.Contains("\"error_y\"") @>
   test <@ html.Contains("\"array\":[0]") @>
@@ -578,7 +583,7 @@ let ``toHtmlDashed: multi-reading systolic tooltip shows count and range`` () =
         MaxDiastolic = 85 } ]
 
   let html =
-    BpChart.toHtmlDashed Strings.en.Charts GoalRange.defaults Weekly aggregated
+    BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly aggregated
   // Systolic trace hover: "2 readings · 110–130"
   test <@ html.Contains("2 readings") @>
   test <@ html.Contains("110") @>
@@ -587,7 +592,7 @@ let ``toHtmlDashed: multi-reading systolic tooltip shows count and range`` () =
 [<Fact>]
 let ``toHtmlDashed hover omits the redundant "Systolic"/"Diastolic" trace name, since the legend already shows it`` () =
   let html =
-    BpChart.toHtmlDashed Strings.en.Charts GoalRange.defaults Weekly (asAggregated readings)
+    BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly (asAggregated readings)
 
   test <@ hasNamelessHover html "Systolic" @>
   test <@ hasNamelessHover html "Diastolic" @>
@@ -598,7 +603,7 @@ let ``toHtmlDashed Monthly: x-axis labels use ISO week format`` () =
   let aggregated = asAggregated [ reading 1 120 80 70 8 9 None ]
 
   let html =
-    BpChart.toHtmlDashed Strings.en.Charts GoalRange.defaults Monthly aggregated
+    BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Monthly aggregated
 
   test <@ html.Contains("W2") @>
 
@@ -608,13 +613,13 @@ let ``toHtmlDashed Yearly: x-axis labels use month-name format`` () =
   let aggregated = asAggregated [ reading 1 120 80 70 8 9 None ]
 
   let html =
-    BpChart.toHtmlDashed Strings.en.Charts GoalRange.defaults Yearly aggregated
+    BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Yearly aggregated
 
   test <@ html.Contains("Jan") @>
 
 [<Fact>]
 let ``toHtml does not embed chart behavior scripts — they live in wwwroot/chart-hover.js`` () =
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults readings
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   // "g.errorbars" only ever appeared in the inline error-bar hover script;
   // the chart HTML must carry data + Plotly.newPlot only.
   test <@ not (html.Contains "g.errorbars") @>
@@ -623,7 +628,7 @@ let ``toHtml does not embed chart behavior scripts — they live in wwwroot/char
 [<Fact>]
 let ``toHtml escapes </script> in comment text to prevent inline script injection`` () =
   let hostile = reading 1 120 80 70 1 9 (Some "</script><img src=x onerror=alert(1)>")
-  let html = BpChart.toHtml Strings.en.Charts GoalRange.defaults [ hostile ]
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults [ hostile ]
 
   // The raw injection string must not appear — it would close the <script> block early
   // and allow HTML to be injected into the page DOM

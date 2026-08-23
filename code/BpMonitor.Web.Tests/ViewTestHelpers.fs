@@ -3,7 +3,7 @@ module ViewTestHelpers
 open System
 open BpMonitor.Core
 
-let s: Strings = Strings.en
+let s: LocalizedStrings = LocalizedStrings.en
 
 let defaultMember: FamilyMember =
   { Id = 1

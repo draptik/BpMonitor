@@ -31,12 +31,12 @@ module Binding =
 
   /// Parses `s` as an int, or an `Errors.NotAnInteger` message.
   /// Shared by reading and goal-range form parsing.
-  let tryInt (strings: Strings) (label: string) (s: string) : Result<int, string> =
+  let tryInt (strings: LocalizedStrings) (label: string) (s: string) : Result<int, string> =
     match Int32.TryParse(s) with
     | true, v -> Ok v
     | _ -> Error(strings.Errors.NotAnInteger label s)
 
-  let private tryTimestamp (strings: Strings) (s: string) : Result<DateTimeOffset, string> =
+  let private tryTimestamp (strings: LocalizedStrings) (s: string) : Result<DateTimeOffset, string> =
     match DateTimeOffset.TryParse(s) with
     | true, v -> Ok v
     | _ -> Error(strings.Errors.NotAValidDateTime s)
@@ -49,7 +49,7 @@ module Binding =
 
   /// Parse-level conversion. Returns the unvalidated reading or the list of
   /// parse errors (range checks happen afterward via BloodPressureReading.parse).
-  let toUnvalidated (strings: Strings) (m: FormModel) : Validation<BloodPressureReadingUnvalidated, string> =
+  let toUnvalidated (strings: LocalizedStrings) (m: FormModel) : Validation<BloodPressureReadingUnvalidated, string> =
     validation {
       let! sys = tryInt strings strings.Table.Systolic m.Systolic |> Validation.ofResult
       and! dia = tryInt strings strings.Table.Diastolic m.Diastolic |> Validation.ofResult

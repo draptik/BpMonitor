@@ -19,7 +19,7 @@ module ReadingViews =
       [ Elem.span [ Attr.class' "icon" ] [ Text.raw glyph ]; Text.raw label ]
 
   /// Landing page: a simple hub linking to the app's main destinations.
-  let landing (s: Strings) (m: FamilyMember) : XmlNode =
+  let landing (s: LocalizedStrings) (m: FamilyMember) : XmlNode =
     ViewLayout.layout
       s
       Routes.home
@@ -44,7 +44,7 @@ module ReadingViews =
 
   /// History: chart, then the Medications Timeline — order matters for plot-ready.js.
   let history
-    (s: Strings)
+    (s: LocalizedStrings)
     (activeMember: FamilyMember)
     (chartHtml: string)
     (readings: BloodPressureReading list)
@@ -66,7 +66,7 @@ module ReadingViews =
 
   /// The swappable chart container: zoom/load-full buttons, value strip, chart, citation.
   let recentChartContainer
-    (s: Strings)
+    (s: LocalizedStrings)
     (activeMember: FamilyMember)
     (chartHtml: string)
     (allReadings: BloodPressureReading list)
@@ -156,7 +156,7 @@ module ReadingViews =
 
   /// Recent: chart of all readings, focused on the last 30 days, with a sys/dias value strip.
   let recent
-    (s: Strings)
+    (s: LocalizedStrings)
     (activeMember: FamilyMember)
     (chartHtml: string)
     (allReadings: BloodPressureReading list)
@@ -187,7 +187,7 @@ module ReadingViews =
   /// Shared add/edit form. `action` is the POST target; `errors` are rendered
   /// above the fields when re-displaying after a failed submit.
   let readingForm
-    (s: Strings)
+    (s: LocalizedStrings)
     (active: string)
     (memberName: string)
     (isAdmin: bool)

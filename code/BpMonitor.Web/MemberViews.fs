@@ -6,7 +6,7 @@ open BpMonitor.Core
 /// Server-rendered HTML views for family-member management pages.
 module MemberViews =
   let private membersList
-    (s: Strings)
+    (s: LocalizedStrings)
     (allMembers: FamilyMember list)
     (active: FamilyMember)
     (errors: string list)
@@ -83,7 +83,7 @@ module MemberViews =
   /// Shared add/edit form for family members. `action` is the POST target; `errors`
   /// are rendered above the fields when re-displaying after a failed submit.
   let memberForm
-    (s: Strings)
+    (s: LocalizedStrings)
     (active: string)
     (memberName: string)
     (isAdmin: bool)
@@ -131,7 +131,7 @@ module MemberViews =
 
   /// Self-service language picker fragment: submits a `<select>` of every `Language.all`
   /// entry (each labeled by its own `Language.nativeName`) to `/settings/language`.
-  let languageSection (s: Strings) (current: Language) : XmlNode list =
+  let languageSection (s: LocalizedStrings) (current: Language) : XmlNode list =
     let option (lang: Language) =
       let attrs =
         [ yield Attr.value (Language.code lang)
@@ -162,7 +162,7 @@ module MemberViews =
   /// Self-service goal-range settings fragment: a fragment (not a full page) so `/settings`
   /// can compose it with `MedicationViews.medicationsSection` under one shell.
   let goalRangeSection
-    (s: Strings)
+    (s: LocalizedStrings)
     (errors: string list)
     (sysMin: string)
     (sysMax: string)
@@ -185,7 +185,12 @@ module MemberViews =
 
   /// Members page: list of family members with Edit/Reset-password buttons and an add form.
   /// Pass non-empty `errors` to show validation errors above the add form.
-  let members (s: Strings) (allMembers: FamilyMember list) (active: FamilyMember) (errors: string list) : XmlNode =
+  let members
+    (s: LocalizedStrings)
+    (allMembers: FamilyMember list)
+    (active: FamilyMember)
+    (errors: string list)
+    : XmlNode =
     ViewLayout.layout
       s
       Routes.members

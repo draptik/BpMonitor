@@ -14,7 +14,7 @@ type Granularity =
   | Yearly
 
 /// A period's display label, structured so rendering (and translation) happens at the
-/// view layer via `Strings.Trend`, not as English prose baked into the domain.
+/// view layer via `LocalizedStrings.Trend`, not as English prose baked into the domain.
 type PeriodLabel =
   | ThisWeek
   | LastWeek

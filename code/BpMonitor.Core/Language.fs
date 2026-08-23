@@ -1,6 +1,6 @@
 namespace BpMonitor.Core
 
-/// A UI language supported by the app. See `Strings` for the translated text itself.
+/// A UI language supported by the app. See `LocalizedStrings` for the translated text itself.
 type Language =
   | English
   | German

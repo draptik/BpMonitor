@@ -5,8 +5,8 @@ open BpMonitor.Core
 
 /// Server-rendered HTML views for the Trends pages.
 module TrendViews =
-  /// Renders a `PeriodLabel` DU value through `Strings.Trend`.
-  let renderPeriodLabel (s: Strings) (label: PeriodLabel) : string =
+  /// Renders a `PeriodLabel` DU value through `LocalizedStrings.Trend`.
+  let renderPeriodLabel (s: LocalizedStrings) (label: PeriodLabel) : string =
     match label with
     | ThisWeek -> s.Trend.ThisWeek
     | LastWeek -> s.Trend.LastWeek
@@ -22,7 +22,7 @@ module TrendViews =
   /// The swappable panel: granularity toggle + sub-period strip + stats + inline chart.
   /// Rendered as a fragment for htmx swaps and used directly by the full /trends page.
   let trendsPanel
-    (s: Strings)
+    (s: LocalizedStrings)
     (summary: WindowSummary)
     (periods: TrendPeriod list)
     (periodsWithData: Set<string>)
@@ -133,7 +133,7 @@ module TrendViews =
 
   /// The /trends full page. Pre-renders the Weekly/current panel (including toggle buttons).
   let trends
-    (s: Strings)
+    (s: LocalizedStrings)
     (m: FamilyMember)
     (summary: WindowSummary)
     (periods: TrendPeriod list)

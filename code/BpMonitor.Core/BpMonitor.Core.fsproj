@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <Compile Include="Language.fs" />
-    <Compile Include="Strings.fs" />
+    <Compile Include="LocalizedStrings.fs" />
     <Compile Include="GoalRange.fs" />
     <Compile Include="FamilyMember.fs" />
     <Compile Include="Medication.fs" />

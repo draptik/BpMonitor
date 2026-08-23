@@ -31,11 +31,11 @@ module AuthHandlers =
   let authenticatedMemberName (ctx: HttpContext) : string =
     authenticatedMember ctx |> Option.map _.Name |> Option.defaultValue ""
 
-  /// Strings in the authenticated member's language, falling back to `strings ctx`
+  /// LocalizedStrings in the authenticated member's language, falling back to `strings ctx`
   /// (cookie/Accept-Language/config) if unauthenticated.
-  let authenticatedStrings (ctx: HttpContext) : Strings =
+  let authenticatedStrings (ctx: HttpContext) : LocalizedStrings =
     match authenticatedMember ctx with
-    | Some m -> Strings.forLanguage m.Language
+    | Some m -> LocalizedStrings.forLanguage m.Language
     | None -> strings ctx
 
   /// Builds the auth claims principal for a member.
@@ -106,7 +106,7 @@ module AuthHandlers =
     (password: string)
     (hash: string)
     (rememberMe: bool)
-    (onFailure: Strings -> XmlNode)
+    (onFailure: LocalizedStrings -> XmlNode)
     (ctx: HttpContext)
     : Task =
     task {
