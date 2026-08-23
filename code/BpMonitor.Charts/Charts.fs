@@ -351,9 +351,9 @@ module BpChart =
       let local = r.Timestamp.ToLocalTime()
 
       match gran with
-      | Weekly -> local.Date.ToString("d MMM")
+      | Weekly -> s.DayMonthTick(local.Date)
       | Monthly -> s.CalendarWeekTick(ISOWeek.GetWeekOfYear(local.Date))
-      | Yearly -> local.Date.ToString("MMM")
+      | Yearly -> s.MonthTick(local.Date)
 
     let toSymbol count =
       if count = 1 then

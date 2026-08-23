@@ -54,6 +54,7 @@ let private sharedAcrossLanguages =
       ".Medication.Optional" // "Optional" — used as a loanword in German too
       ".Medication.StartHeader" // "Start" — identical cognate in both languages
       ".Trend.MonthOfYear" // false positive: placeholder arg month=1 abbreviates to "Jan" in both
+      ".Charts.MonthTick" // false positive: null DateTime arg defaults to Jan 1, "Jan" in both
       ".Trend.Year" ] // numeric only
 
 [<Fact>]

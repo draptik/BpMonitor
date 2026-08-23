@@ -598,6 +598,20 @@ let ``toHtmlDashed hover omits the redundant "Systolic"/"Diastolic" trace name, 
   test <@ hasNamelessHover html "Diastolic" @>
 
 [<Fact>]
+let ``toHtmlDashed Weekly: x-axis labels use German date format for German members`` () =
+  // May 1, 2026 → "1. Mai" in German, "1 May" in English
+  let mayFirst =
+    { reading 1 120 80 70 8 9 None with
+        Timestamp = Timestamp.local 2026 5 1 9 0 0 }
+
+  let aggregated = asAggregated [ mayFirst ]
+
+  let html =
+    BpChart.toHtmlDashed LocalizedStrings.de.Charts GoalRange.defaults Weekly aggregated
+
+  test <@ html.Contains("Mai") @>
+
+[<Fact>]
 let ``toHtmlDashed Monthly: x-axis labels use ISO week format`` () =
   // Jan 8, 2026 is a Thursday in ISO week 2
   let aggregated = asAggregated [ reading 1 120 80 70 8 9 None ]
@@ -616,6 +630,20 @@ let ``toHtmlDashed Yearly: x-axis labels use month-name format`` () =
     BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Yearly aggregated
 
   test <@ html.Contains("Jan") @>
+
+[<Fact>]
+let ``toHtmlDashed Yearly: x-axis labels use German month-name format for German members`` () =
+  // March 8, 2026 → "Mär" in German, "Mar" in English
+  let march =
+    { reading 1 120 80 70 8 9 None with
+        Timestamp = Timestamp.local 2026 3 8 9 0 0 }
+
+  let aggregated = asAggregated [ march ]
+
+  let html =
+    BpChart.toHtmlDashed LocalizedStrings.de.Charts GoalRange.defaults Yearly aggregated
+
+  test <@ html.Contains("Mär") @>
 
 [<Fact>]
 let ``toHtml does not embed chart behavior scripts — they live in wwwroot/chart-hover.js`` () =
