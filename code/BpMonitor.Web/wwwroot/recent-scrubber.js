@@ -21,20 +21,6 @@ function setupRecentScrubber() {
   const strip = document.querySelector(".value-strip");
   if (!strip) return;
 
-  // Resolves the chart's axis converters and drag-layer bounding rect — shared by the
-  // comment-tooltip mousemove handler and the strip → chart mouseover handler below,
-  // both of which need to convert a data x-value to a viewport pixel position. Queried
-  // fresh on each call (not cached) since the drag-layer rect can shift on scroll/resize.
-  /** @param {PlotlyChartElement} d */
-  function chartGeometry(d) {
-    const xaxis = d._fullLayout?.xaxis;
-    const yaxis = d._fullLayout?.yaxis;
-    if (!xaxis?.d2l || !xaxis?.l2p) return null;
-    const dragRect = d.querySelector(".draglayer .xy > rect");
-    if (!dragRect) return null;
-    return { xaxis, yaxis, dragRect, br: dragRect.getBoundingClientRect() };
-  }
-
   whenPlotReady((d) => {
     // Setup runs on every htmx:afterSettle; skip plots already wired so a settle
     // that doesn't swap the chart can't stack duplicate handlers on the same div.

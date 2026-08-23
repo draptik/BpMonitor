@@ -13,16 +13,6 @@ function setupMedicationsSync() {
   );
   if (!timelineDetails) return;
 
-  /** @param {PlotlyChartElement} d */
-  function chartGeometry(d) {
-    const xaxis = d._fullLayout?.xaxis;
-    const yaxis = d._fullLayout?.yaxis;
-    if (!xaxis?.d2l || !xaxis?.l2p) return null;
-    const dragRect = d.querySelector(".draglayer .xy > rect");
-    if (!dragRect) return null;
-    return { xaxis, yaxis, dragRect, br: dragRect.getBoundingClientRect() };
-  }
-
   /**
    * @param {PlotlyChartElement} target
    * @param {string} x
@@ -112,6 +102,12 @@ function setupMedicationsSync() {
         if (lo === undefined && Array.isArray(e["xaxis.range"])) {
           lo = e["xaxis.range"][0];
           hi = e["xaxis.range"][1];
+        }
+
+        // Double-click reset emits `xaxis.autorange` instead of a range — fall back to
+        // the BP chart's now-current range so the timeline follows the reset too.
+        if (lo === undefined && e["xaxis.autorange"] && bpPlot._fullLayout?.xaxis?.range) {
+          [lo, hi] = bpPlot._fullLayout.xaxis.range;
         }
 
         if (lo === undefined || hi === undefined) return;

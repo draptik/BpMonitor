@@ -35,3 +35,15 @@ function whenPlotReady(fn, index = 0) {
   // later in the body) gets a chance to run first.
   setTimeout(poll, 0);
 }
+
+// Resolves a plot's axis converters and drag-layer rect for data-x → pixel conversion; shared by recent-scrubber.js and medications-sync.js.
+/** @param {PlotlyChartElement} d */
+// biome-ignore lint/correctness/noUnusedVariables: shared global, called by the other wwwroot chart scripts
+function chartGeometry(d) {
+  const xaxis = d._fullLayout?.xaxis;
+  const yaxis = d._fullLayout?.yaxis;
+  if (!xaxis?.d2l || !xaxis?.l2p) return null;
+  const dragRect = d.querySelector(".draglayer .xy > rect");
+  if (!dragRect) return null;
+  return { xaxis, yaxis, dragRect, br: dragRect.getBoundingClientRect() };
+}
