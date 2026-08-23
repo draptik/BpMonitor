@@ -590,7 +590,8 @@ form.inline {
 }
 
 form.inline button,
-.member-actions a[role="button"] {
+.member-actions a[role="button"],
+.reading-actions a[role="button"] {
   --pico-nav-link-spacing-vertical: 0.25rem;
   --pico-nav-link-spacing-horizontal: 0.75rem;
   --pico-form-element-spacing-vertical: 0.25rem;
