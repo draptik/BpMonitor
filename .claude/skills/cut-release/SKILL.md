@@ -72,6 +72,19 @@ gh pr list --state merged --base main --limit 30 --json number,title,mergedAt \
        '[.[] | select(.mergedAt > $since)]'
 ```
 
+Check for database schema changes since the last tag — these must be called out
+as a `**Deployment:**` bullet in Step 4, never silently folded into a feature
+description:
+
+```bash
+git log "${LAST_TAG}..HEAD" --oneline -- code/BpMonitor.Data/SchemaMigrations.fs
+```
+
+If this returns any commits, read the diff (`git diff "${LAST_TAG}..HEAD" --
+code/BpMonitor.Data/SchemaMigrations.fs`) to describe what changed (new table,
+new column, etc.) and whether it's an automatic in-place migration or needs
+operator action.
+
 ## Step 4 — Draft the end-user summary
 
 Write concise markdown covering **only what matters to end users and operators**.
@@ -79,7 +92,10 @@ Write concise markdown covering **only what matters to end users and operators**
 **Include:**
 - New user-facing features
 - Deployment notes: breaking changes, schema/data migrations, new required env
-  vars or config keys, renamed artifacts or changed URLs
+  vars or config keys, renamed artifacts or changed URLs. **Any database schema
+  change found in Step 3 is mandatory here** — never omit it, even if it's a
+  purely additive, zero-downtime migration; say so explicitly (e.g. "no manual
+  migration needed") rather than leaving it out.
 
 **Exclude:** refactors, test-only changes, internal chores, CI tweaks, doc fixes,
 dependency bumps (unless they change runtime behaviour).
@@ -209,3 +225,7 @@ not become `/releases/latest` — correct behaviour for RCs.
 - NEVER skip the preflight; failing CI on `main` means the release isn't ready.
 - NEVER tag before the `CHANGELOG.md` PR (Step 5a) is merged; the tag annotation
   and the `CHANGELOG.md` version section must match.
+- NEVER omit a database schema change (any commit touching
+  `code/BpMonitor.Data/SchemaMigrations.fs` since the last tag) from the
+  summary — it always gets a `**Deployment:**` bullet, even when the migration
+  is automatic and needs no operator action.
