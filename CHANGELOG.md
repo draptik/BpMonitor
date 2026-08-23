@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - German translation: BpMonitor is now fully available in German — Settings > Language lets each family member switch between English and Deutsch. The choice is per-member and also remembered on the login page.
 
+### Changed
+
+- History and Trends: the Edit action in the readings table now renders as a button, matching the style and sizing already used on Settings and Members.
+
 ## [1.11.0] - 2026-08-21
 
 ### Added

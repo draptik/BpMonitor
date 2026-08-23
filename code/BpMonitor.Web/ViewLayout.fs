@@ -235,6 +235,12 @@ module ViewLayout =
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.Diastolic) ]
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.HeartRate) ]
           Elem.td [] [ Text.enc (r.Comments |> Option.defaultValue "") ]
-          Elem.td [] [ Elem.a [ Attr.href (Routes.readingEdit r.Id) ] [ Text.raw s.Shell.Edit ] ] ]
+          Elem.td
+            [ Attr.class' "reading-actions" ]
+            [ Elem.a
+                [ Attr.href (Routes.readingEdit r.Id)
+                  Attr.role "button"
+                  Attr.class' "outline secondary" ]
+                [ Text.raw s.Shell.Edit ] ] ]
 
     Elem.div [ Attr.id "readings" ] [ Elem.table [] [ header; Elem.tbody [] (readings |> List.map row) ] ]

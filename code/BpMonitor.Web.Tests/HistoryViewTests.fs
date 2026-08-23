@@ -16,6 +16,9 @@ let ``history renders reading values, chart div and nav links`` () =
   test <@ html.Contains "class=\"chart\"" @>
   test <@ html.Contains $"href=\"{Routes.add}\"" @>
   test <@ html.Contains(Routes.readingEdit 7) @>
+  // Edit renders as a Pico button sized like the members page's Edit action
+  test <@ html.Contains "class=\"reading-actions\"" @>
+  test <@ html.Contains "role=\"button\" class=\"outline secondary\"" @>
   // the History nav link is marked active on the history page
   test <@ html.Contains $"href=\"{Routes.history}\" aria-current=\"page\"" @>
 
