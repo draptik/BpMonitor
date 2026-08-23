@@ -33,6 +33,7 @@
     <Compile Include="MedicationHandlerTests.fs" />
     <Compile Include="HealthHandlerTests.fs" />
     <Compile Include="PlotlyVendoringTests.fs" />
+    <Compile Include="GermanRenderingTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

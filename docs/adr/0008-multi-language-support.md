@@ -11,8 +11,9 @@ messages, and chart labels) is an inline literal at its call site. There is no `
 `AddLocalization`/`RequestLocalizationMiddleware`, and no `Accept-Language` handling anywhere.
 The app is a self-hosted single-household tool (ADR 0005), and its maintainer is German —
 `Formats.dateEuropean = "dd.MM.yyyy"` already existed in Core as evidence of that pull. The goal
-is to let each family member read the app in English or German, with German added in a
-follow-up PR once this infrastructure lands, and a third language costing one new file.
+is to let each family member read the app in English or German, landed as two PRs — the
+infrastructure, then the German translations themselves — with a third language costing one
+new file going forward.
 
 ## Decision
 
@@ -50,7 +51,7 @@ translating around it.
 
 ## Consequences
 
-- Adding German (or a third language) is one `LocalizedStrings` record value plus one `Language` case;
+- Adding a further language is one `LocalizedStrings` record value plus one `Language` case;
   the build fails loudly until every field is supplied.
 - Every view function in `BpMonitor.Web` and the four public `BpMonitor.Charts.BpChart` chart
   functions gained a `LocalizedStrings`/`ChartStrings` parameter — a mechanical but real signature change
