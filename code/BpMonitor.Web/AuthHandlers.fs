@@ -31,11 +31,15 @@ module AuthHandlers =
   let authenticatedMemberName (ctx: HttpContext) : string =
     authenticatedMember ctx |> Option.map _.Name |> Option.defaultValue ""
 
+  /// LocalizedStrings for an already-resolved member — avoids re-fetching from the
+  /// repo when the caller already has the member in scope (e.g. inside withMember).
+  let stringsForMember (m: FamilyMember) : LocalizedStrings = LocalizedStrings.forLanguage m.Language
+
   /// LocalizedStrings in the authenticated member's language, falling back to `strings ctx`
   /// (cookie/Accept-Language/config) if unauthenticated.
   let authenticatedStrings (ctx: HttpContext) : LocalizedStrings =
     match authenticatedMember ctx with
-    | Some m -> LocalizedStrings.forLanguage m.Language
+    | Some m -> stringsForMember m
     | None -> strings ctx
 
   /// Builds the auth claims principal for a member.

@@ -99,7 +99,7 @@ module MedicationHandlers =
   let create: HttpContext -> Task =
     withMember (fun m ctx ->
       task {
-        let s = LocalizedStrings.forLanguage m.Language
+        let s = stringsForMember m
         let! form = readForm ctx
 
         match toUnvalidated s form with
@@ -115,7 +115,7 @@ module MedicationHandlers =
 
   let edit: HttpContext -> Task =
     withMemberAndRouteId "editMedication" (fun m id ctx ->
-      let s = LocalizedStrings.forLanguage m.Language
+      let s = stringsForMember m
 
       match (medicationRepo ctx).GetAll(m.Id) |> List.tryFind (fun x -> x.Id = id) with
       | None ->
@@ -166,7 +166,7 @@ module MedicationHandlers =
   let update: HttpContext -> Task =
     withMemberAndRouteId "updateMedication" (fun m id ctx ->
       task {
-        let s = LocalizedStrings.forLanguage m.Language
+        let s = stringsForMember m
 
         match (medicationRepo ctx).GetAll(m.Id) |> List.tryFind (fun x -> x.Id = id) with
         | None ->
