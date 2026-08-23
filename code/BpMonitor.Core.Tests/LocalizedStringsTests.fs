@@ -93,3 +93,14 @@ let ``de differs from en on every field not in the shared-vocabulary allowlist``
     |> List.map fst
 
   test <@ unexpectedlyIdentical = [] @>
+
+[<Fact>]
+let ``en Trend.MonthOfYear formats with English month names regardless of the ambient thread culture`` () =
+  let original = System.Threading.Thread.CurrentThread.CurrentCulture
+
+  try
+    System.Threading.Thread.CurrentThread.CurrentCulture <- System.Globalization.CultureInfo("de-DE")
+    let label = LocalizedStrings.en.Trend.MonthOfYear 3 2026
+    test <@ label = "Mar 2026" @>
+  finally
+    System.Threading.Thread.CurrentThread.CurrentCulture <- original
