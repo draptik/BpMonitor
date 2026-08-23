@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-08-24
+
 ### Added
 
 - German translation: BpMonitor is now fully available in German — Settings > Language lets each family member switch between English and Deutsch. The choice is per-member and also remembered on the login page.
@@ -14,13 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - History and Trends: the Edit action in the readings table now renders as a button, matching the style and sizing already used on Settings and Members.
-- Medications Timeline: added a small gap between the medication name labels and the y-axis so they no longer sit flush against it.
-
-### Fixed
-
-- Trends: Weekly and Yearly chart x-axis date labels now use the member's selected language instead of always showing English month abbreviations.
-- Trends: the Monthly view's month/year label for English-speaking members no longer depends on the server's OS/thread culture, so it can't accidentally render in German.
-- History: double-clicking the blood pressure chart to reset its zoom now resets the Medications Timeline chart below it too, instead of leaving it stuck at the old zoomed-in range.
 
 ## [1.11.0] - 2026-08-21
 
@@ -438,7 +433,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/draptik/BpMonitor/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/draptik/BpMonitor/compare/v1.10.1...v1.11.0
 [1.10.1]: https://github.com/draptik/BpMonitor/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/draptik/BpMonitor/compare/v1.9.0...v1.10.0
