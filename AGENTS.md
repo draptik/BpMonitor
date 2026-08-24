@@ -133,16 +133,16 @@ dotnet test --configuration Release --max-parallel-test-modules 2
 
 `BpMonitor.Arch.Tests` uses `DoNotResideInNamespaceMatching("Microsoft\\.CodeCoverage.*")` in its type filters to exclude coverage-injected tracker types from ArchUnitNET dependency checks.
 
-`BpMonitor.Web.E2E.Tests` boots a real `BpMonitor.Web` instance out-of-process (`dotnet run`, fresh temp SQLite file, demo seeding off) on a free port, then drives it with a real Playwright Chromium browser. First run needs Chromium installed locally — run `mise run test:e2e-setup` (builds the test project, then installs Chromium via `playwright.ps1` if `pwsh` is available, otherwise via `dotnet fsi` calling `Microsoft.Playwright.Program.Main([| "install"; "chromium" |])`).
+`BpMonitor.Web.E2E.Tests` boots a real `BpMonitor.Web` instance out-of-process (`dotnet run`, fresh temp SQLite file, demo seeding off) on a free port, then drives it with a real Playwright browser — Chromium by default (`WebAppFixture`), or Firefox (`FirefoxWebAppFixture`) for regressions Chromium tolerates silently but Firefox enforces per-spec (e.g. non-finite `MouseEventInit` fields). First run needs both installed locally — run `mise run test:e2e-setup` (builds the test project, then installs them via `playwright.ps1` if `pwsh` is available, otherwise via `dotnet fsi` calling `Microsoft.Playwright.Program.Main([| "install"; "chromium"; "firefox" |])`).
 
 ## Dev Tooling
 
-All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also hosts one-time dev setup tasks like the Playwright Chromium install. Run `mise install` once after cloning.
+All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also hosts one-time dev setup tasks like the Playwright browser install. Run `mise install` once after cloning.
 
 - `biome.json` — Biome JS linter config (scoped to the hand-written `wwwroot/` files: `theme.js`, `theme-label.js`, `plot-ready.js`, `chart-hover.js`, `recent-scrubber.js`, `trends-scroll.js`, `recent-zoom.js`, `medications-sync.js`, `details-memory.js`)
 - `tsconfig.json` + `typings/globals.d.ts` — zero-build TypeScript checking of the same `wwwroot/` JS via JSDoc (`tsc --checkJs`); the JS ships as-is, no bundler
 - `.markdownlint-cli2.yaml` — markdownlint config
 - Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:shell` individually
-- Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium)
+- Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium and Firefox)
 - Run `mise exec -- biome check --write` to auto-fix JS issues
 - Run `mise run screenshots` to regenerate `docs/screenshots/*.png` from a fresh self-seeded demo instance (`scripts/generate-screenshots.fsx`, logged in as Ned Flanders for his outlier-rich narrative) — part of the `cut-release` skill's changelog step, otherwise only needed after a UI change worth reflecting in the README

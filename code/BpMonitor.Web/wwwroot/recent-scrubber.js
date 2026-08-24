@@ -142,6 +142,8 @@ function setupRecentScrubber() {
       const { xaxis, dragRect, br } = geo;
       const xPx = xaxis.l2p(xaxis.d2l(x));
       const yPx = geo.yaxis?.l2p?.(120) ?? br.height / 2;
+      // A collapsed target chart is zero-width, so l2p yields NaN — Firefox throws on that.
+      if (!Number.isFinite(xPx) || !Number.isFinite(yPx)) return;
       dragRect.dispatchEvent(
         new MouseEvent("mousemove", {
           bubbles: true,

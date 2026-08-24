@@ -100,15 +100,15 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('code/Directory.Packages.props') }}
+          key: playwright-chromium-firefox-${{ runner.os }}-${{ hashFiles('code/Directory.Packages.props') }}
 
       - name: Install Playwright OS dependencies
-        run: pwsh bin/Release/net10.0/playwright.ps1 install-deps chromium
+        run: pwsh bin/Release/net10.0/playwright.ps1 install-deps chromium firefox
         working-directory: code/BpMonitor.Web.E2E.Tests
 
-      - name: Install Playwright browser
+      - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pwsh bin/Release/net10.0/playwright.ps1 install chromium
+        run: pwsh bin/Release/net10.0/playwright.ps1 install chromium firefox
         working-directory: code/BpMonitor.Web.E2E.Tests
 
       - name: Test
