@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Recent: on Firefox, the value strip's scrubber (the box that highlights the hovered reading) only lit up on every other column when the Medications Timeline panel was collapsed — hovering now works reliably regardless of the panel's state.
+
 ## [1.12.0] - 2026-08-24
 
 ### Added

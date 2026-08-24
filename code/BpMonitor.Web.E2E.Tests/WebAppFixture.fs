@@ -45,10 +45,8 @@ module private RepoLayout =
   let codeDir () : string =
     (findUpwards "BpMonitor.slnx" (DirectoryInfo(AppContext.BaseDirectory))).FullName
 
-/// Boots a real BpMonitor.Web instance as a child process (out-of-process, real
-/// HTTP, real SQLite file) and drives it with a Playwright Chromium browser.
-/// Each test class gets its own instance + fresh temp database via xunit's
-/// `IClassFixture`.
+/// Boots a real out-of-process BpMonitor.Web instance (real HTTP, fresh temp SQLite
+/// file) and drives it with a Playwright Chromium browser; one per `IClassFixture`.
 type WebAppFixture() =
   let mutable webProcess: Process = null
   let mutable playwright: IPlaywright = null
@@ -65,6 +63,10 @@ type WebAppFixture() =
 
   member val BaseUrl = "" with get, set
   member _.Browser: IBrowser = browser
+
+  /// Overridden by FirefoxWebAppFixture to catch engine-specific regressions.
+  abstract member LaunchBrowserAsync: IPlaywright -> Task<IBrowser>
+  default _.LaunchBrowserAsync(pw: IPlaywright) = pw.Chromium.LaunchAsync()
 
   member private _.WaitUntilReadyAsync() : Task =
     task {
@@ -128,7 +130,7 @@ type WebAppFixture() =
 
         let! pw = Playwright.CreateAsync()
         playwright <- pw
-        let! b = playwright.Chromium.LaunchAsync()
+        let! b = this.LaunchBrowserAsync pw
         browser <- b
       }
       |> ValueTask
@@ -149,3 +151,9 @@ type WebAppFixture() =
           File.Delete(dbPath)
       }
       |> ValueTask
+
+/// Same as WebAppFixture but on Firefox, for regressions Chromium tolerates silently
+/// (e.g. a non-finite MouseEventInit field, which Firefox validates per-spec and throws on).
+type FirefoxWebAppFixture() =
+  inherit WebAppFixture()
+  override _.LaunchBrowserAsync(pw: IPlaywright) = pw.Firefox.LaunchAsync()
