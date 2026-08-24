@@ -25,6 +25,9 @@ function setupMedicationsSync() {
     const yPx = geo.yaxis?.l2p?.(0) ?? br.height / 2;
     // A collapsed target chart is zero-width, so l2p yields NaN — Firefox throws on that.
     if (!Number.isFinite(xPx) || !Number.isFinite(yPx)) return;
+    // Resets Plotly's own hover state first — back-to-back mousemove dispatches without
+    // this made Plotly's internal throttle emit every other one with an empty points array.
+    dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
     dragRect.dispatchEvent(
       new MouseEvent("mousemove", {
         bubbles: true,
@@ -77,9 +80,11 @@ function setupMedicationsSync() {
         });
       }
 
-      // BP chart → timeline: mirror the spike position.
+      // BP chart → timeline: mirror the spike position. A relayout-driven hover replay
+      // (e.g. theme.js's applyChartTheme) can fire with no points.
       bpPlot.on("plotly_hover", (e) => {
-        hoverAt(timelinePlot, e.points[0].x);
+        const x = e.points?.[0]?.x;
+        if (x !== undefined) hoverAt(timelinePlot, x);
       });
       bpPlot.on("plotly_unhover", () => {
         unhover(timelinePlot);
@@ -88,7 +93,8 @@ function setupMedicationsSync() {
       // Timeline → BP chart: hovering a medication bar moves the BP chart's spike (and,
       // via recent-scrubber.js's existing plotly_hover listener, the value strip's box).
       timelinePlot.on("plotly_hover", (e) => {
-        hoverAt(bpPlot, e.points[0].x);
+        const x = e.points?.[0]?.x;
+        if (x !== undefined) hoverAt(bpPlot, x);
       });
       timelinePlot.on("plotly_unhover", () => {
         unhover(bpPlot);

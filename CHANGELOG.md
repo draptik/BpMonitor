@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Recent: the value strip's scrubber still only lit up on every other column after v1.12.1's fix — a second, more direct cause of the same symptom is now fixed too, so hovering works reliably regardless of reading count or Medications Timeline state.
+
 ## [1.12.1] - 2026-08-24
 
 ### Fixed
