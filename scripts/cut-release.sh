@@ -114,6 +114,12 @@ edit_summary() {
     echo "# land). Trim anything that isn't user/operator-facing. Lines starting with '#' are"
     echo "# stripped; save and exit when done."
     echo "#"
+    if [ -n "$(git log "${last_tag}..HEAD" --oneline -- code/BpMonitor.Data/SchemaMigrations.fs)" ]; then
+      echo "# ⚠ Database schema changed since ${last_tag} — this MUST get a **Deployment:**"
+      echo "# bullet below (say so even if it's an automatic, zero-downtime migration):"
+      git log "${last_tag}..HEAD" --oneline -- code/BpMonitor.Data/SchemaMigrations.fs | sed 's/^/#   /'
+      echo "#"
+    fi
     echo "# Commits since ${last_tag} (for reference, in case Unreleased is incomplete):"
     git log "${last_tag}..HEAD" --oneline | sed 's/^/# /'
     echo "#"
