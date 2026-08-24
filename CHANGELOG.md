@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.2] - 2026-08-24
+
 ### Fixed
 
 - Recent: the value strip's scrubber still only lit up on every other column after v1.12.1's fix — a second, more direct cause of the same symptom is now fixed too, so hovering works reliably regardless of reading count or Medications Timeline state.
@@ -443,7 +445,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.12.1...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.12.2...HEAD
+[1.12.2]: https://github.com/draptik/BpMonitor/compare/v1.12.1...v1.12.2
 [1.12.1]: https://github.com/draptik/BpMonitor/compare/v1.12.0...v1.12.1
 [1.12.0]: https://github.com/draptik/BpMonitor/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/draptik/BpMonitor/compare/v1.10.1...v1.11.0
