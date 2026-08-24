@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.1] - 2026-08-24
+
 ### Fixed
 
 - Recent: on Firefox, the value strip's scrubber (the box that highlights the hovered reading) only lit up on every other column when the Medications Timeline panel was collapsed — hovering now works reliably regardless of the panel's state.
@@ -437,7 +439,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.12.1...HEAD
+[1.12.1]: https://github.com/draptik/BpMonitor/compare/v1.12.0...v1.12.1
 [1.12.0]: https://github.com/draptik/BpMonitor/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/draptik/BpMonitor/compare/v1.10.1...v1.11.0
 [1.10.1]: https://github.com/draptik/BpMonitor/compare/v1.10.0...v1.10.1
