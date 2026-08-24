@@ -29,7 +29,9 @@ function setupRecentScrubber() {
 
     // chart → strip: box the value-strip column matching the hovered chart point.
     d.on("plotly_hover", (e) => {
-      const x = e.points[0].x;
+      // A relayout-driven hover replay (e.g. theme.js's applyChartTheme) can fire with no points.
+      const x = e.points?.[0]?.x;
+      if (x === undefined) return;
       document.querySelectorAll(".value-strip td.scrubbed").forEach((c) => {
         c.classList.remove("scrubbed");
       });
@@ -144,6 +146,9 @@ function setupRecentScrubber() {
       const yPx = geo.yaxis?.l2p?.(120) ?? br.height / 2;
       // A collapsed target chart is zero-width, so l2p yields NaN — Firefox throws on that.
       if (!Number.isFinite(xPx) || !Number.isFinite(yPx)) return;
+      // Resets Plotly's own hover state first — back-to-back mousemove dispatches without
+      // this made Plotly's internal throttle emit every other one with an empty points array.
+      dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
       dragRect.dispatchEvent(
         new MouseEvent("mousemove", {
           bubbles: true,

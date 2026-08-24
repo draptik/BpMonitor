@@ -25,7 +25,9 @@ function setupChartHover() {
     Plotly.Plots.resize(d);
 
     d.on("plotly_hover", (e) => {
-      const p = e.points[0];
+      // A relayout-driven hover replay (e.g. theme.js's applyChartTheme) can fire with no points.
+      const p = e.points?.[0];
+      if (!p) return;
       const gs = d.querySelectorAll("g.errorbars")[p.curveNumber];
       if (!gs) return;
       const bar = gs.querySelectorAll("g.errorbar")[p.pointIndex];
