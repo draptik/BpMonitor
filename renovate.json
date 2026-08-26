@@ -12,6 +12,11 @@
       "description": "Pinned at 18.0.6: every later release requires Microsoft.Testing.Platform >= 2.0.0, but xunit.v3 3.2.2 (latest stable) pins Microsoft.Testing.Platform.MSBuild to 1.9.1, which only supports Microsoft.Testing.Platform 1.x — mixing them throws a TypeLoadException on IDataConsumer at test-host startup. Re-enable once xunit.v3 ships a stable release with an updated Microsoft.Testing.Platform.MSBuild dependency."
     },
     {
+      "matchPackageNames": ["FsCheck.Xunit.v3"],
+      "enabled": false,
+      "description": "Pinned at 3.3.4: 3.4.0 requires xunit.v3.extensibility.core >= 4.0.0, but xunit.v3 is pinned at 3.2.2 (see above) and Verify.XunitV3 only supports xunit.v3 v4 via a 32.0.0-beta.* prerelease. Re-enable once Verify.XunitV3 ships a stable release supporting xunit.v3 v4."
+    },
+    {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true,
       "automergeType": "pr",
