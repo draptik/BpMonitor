@@ -738,8 +738,9 @@ module BpChart =
   // of min, max) puts row 0 — the first medication — at the top, matching reading order.
   let private medicationsYAxis (names: string list) =
     let n = names.Length
-    // Trailing non-breaking spaces nudge the right-anchored label away from the axis edge.
-    let tickText = names |> List.map (fun name -> name + "  ")
+    // Plotly renders tick text with `white-space: pre`, so plain trailing spaces (not
+    // non-breaking ones) survive to nudge the right-anchored label away from the axis edge.
+    let tickText = names |> List.map (fun name -> name + "  ")
 
     LinearAxis.init (
       ShowGrid = false,

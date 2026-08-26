@@ -138,7 +138,7 @@ let ``toHtmlMedications disables the y-axis zeroline`` () =
 let ``toHtmlMedications adds spacing between y-axis tick labels and the axis`` () =
   let meds = [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None ]
   let html = BpChart.toHtmlMedications false rangeLow rangeHigh meds
-  test <@ html.Contains("\"ticktext\":[\"HCTZ  \"]") @>
+  test <@ html.Contains("\"ticktext\":[\"HCTZ  \"]") @>
 
 [<Fact>]
 let ``toHtmlMedications carries light and dark colors in trace meta`` () =
