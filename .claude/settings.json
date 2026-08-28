@@ -27,6 +27,12 @@
             "if": "Bash(gh *)",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-claude-attribution.sh\"",
             "statusMessage": "Checking for Claude attribution..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(dotnet *)",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/dotnet-test-mtp-filter.sh\"",
+            "statusMessage": "Checking dotnet test filter syntax..."
           }
         ]
       },
