@@ -104,3 +104,18 @@ let ``en Trend.MonthOfYear formats with English month names regardless of the am
     test <@ label = "Mar 2026" @>
   finally
     System.Threading.Thread.CurrentThread.CurrentCulture <- original
+
+// ShortWeekdays is a `string list`, invisible to the reflection-based introspection above.
+[<Fact>]
+let ``en and de ShortWeekdays each have exactly 7 non-blank abbreviations`` () =
+  for s in [ LocalizedStrings.en.Charts; LocalizedStrings.de.Charts ] do
+    test <@ List.length s.ShortWeekdays = 7 @>
+    test <@ s.ShortWeekdays |> List.forall (String.IsNullOrWhiteSpace >> not) @>
+
+[<Fact>]
+let ``ShortWeekdays is Sunday-first, matching JS Date.getDay() and the recentXAxis %a hover format`` () =
+  // Index 2 = Tuesday under Sunday-first ordering: the reported bug showed "Tue"
+  // untranslated on a Recent-chart hover, the exact spot a Sunday/Monday-first mixup would flip.
+  let tuesday = 2
+  test <@ LocalizedStrings.en.Charts.ShortWeekdays.[tuesday] = "Tue" @>
+  test <@ LocalizedStrings.de.Charts.ShortWeekdays.[tuesday] = "Di" @>
