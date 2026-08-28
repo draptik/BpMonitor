@@ -109,6 +109,11 @@ let ``members page does NOT show Switch button`` () =
   test <@ not (html.Contains "/members/switch") @>
 
 [<Fact>]
+let ``members page wraps its content in the dense-page density scope`` () =
+  let html = renderHtml (MemberViews.members s [ defaultMember ] defaultMember [])
+  test <@ html.Contains "dense-page" @>
+
+[<Fact>]
 let ``memberForm prefills name and reflects IsAdmin and IsActive`` () =
   let m =
     { Id = 3

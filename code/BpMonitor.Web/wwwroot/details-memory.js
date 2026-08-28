@@ -11,9 +11,8 @@ function restoreDetailsState() {
     if (!key || el.dataset.persistBound) return;
     el.dataset.persistBound = "1";
 
-    if (localStorage.getItem(`details-open:${key}`) === "1") {
-      el.open = true;
-    }
+    const stored = localStorage.getItem(`details-open:${key}`);
+    if (stored !== null) el.open = stored === "1";
 
     el.addEventListener("toggle", () => {
       localStorage.setItem(`details-open:${key}`, el.open ? "1" : "0");

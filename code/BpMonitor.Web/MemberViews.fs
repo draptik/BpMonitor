@@ -194,5 +194,7 @@ module MemberViews =
       active.Name
       active.IsAdmin
       s.Member.FamilyMembersTitle
-      (Elem.h1 [] [ Text.raw s.Member.FamilyMembersTitle ]
-       :: membersList s allMembers active errors)
+      [ Elem.div
+          [ Attr.class' "dense-page" ]
+          (Elem.h1 [] [ Text.raw s.Member.FamilyMembersTitle ]
+           :: membersList s allMembers active errors) ]
