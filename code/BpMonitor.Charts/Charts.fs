@@ -627,13 +627,13 @@ module BpChart =
 
   /// Hover text: full name when given (else the short row label), the date span, then
   /// the comment on its own line — mirrors the paper's medication timeline tooltip.
-  let private medicationTooltip (m: Medication) : string =
+  let private medicationTooltip (s: ChartStrings) (m: Medication) : string =
     let namePart = m.FullName |> Option.defaultValue m.Name
 
     let dateRange =
       match m.EndDate with
       | Some e -> $"{Formats.formatDate m.StartDate} → {Formats.formatDate e}"
-      | None -> $"{Formats.formatDate m.StartDate} → ongoing"
+      | None -> $"{Formats.formatDate m.StartDate} → {s.Ongoing}"
 
     let commentPart =
       m.Comment |> Option.map (fun c -> $"<br>{c}") |> Option.defaultValue ""
@@ -645,6 +645,7 @@ module BpChart =
 
   // Invisible fill covering the bar; HoverOn.Fills makes the whole shape hoverable, not just the visible line's two endpoints.
   let private medicationHoverTarget
+    (s: ChartStrings)
     (rangeHigh: string)
     (rowIdx: int)
     (lightHex: string)
@@ -653,7 +654,7 @@ module BpChart =
     : GenericChart =
     let xStart = toAxisDate m.StartDate
     let xEnd = m.EndDate |> Option.map toAxisDate |> Option.defaultValue rangeHigh
-    let tooltip = medicationTooltip m
+    let tooltip = medicationTooltip s m
     let yTop = float rowIdx - hoverTargetHalfHeight
     let yBottom = float rowIdx + hoverTargetHalfHeight
 
@@ -681,7 +682,13 @@ module BpChart =
     )
 
   // Thick line per medication; `meta` carries both hexes for theme.js. Native hover is off — the hover-target trace above handles it.
-  let private medicationTrace (rangeHigh: string) (rowIdx: int) (slot: int) (m: Medication) : GenericChart =
+  let private medicationTrace
+    (s: ChartStrings)
+    (rangeHigh: string)
+    (rowIdx: int)
+    (slot: int)
+    (m: Medication)
+    : GenericChart =
     let xStart = toAxisDate m.StartDate
     let xEnd = m.EndDate |> Option.map toAxisDate |> Option.defaultValue rangeHigh
     let lightHex, darkHex = medicationPalette[slot]
@@ -694,7 +701,7 @@ module BpChart =
         Trace2DStyle.Scatter(ShowLegend = false, HoverInfo = StyleParam.HoverInfo.Skip, Meta = meta)
       )
 
-    Chart.combine [ visibleLine; medicationHoverTarget rangeHigh rowIdx lightHex meta m ]
+    Chart.combine [ visibleLine; medicationHoverTarget s rangeHigh rowIdx lightHex meta m ]
 
   // Left/Right must match `compactMargin` so the two charts' plot areas align; Top/Bottom
   // are compact since this chart carries no title, legend, or rotated tick labels.
@@ -757,6 +764,7 @@ module BpChart =
     Config.init (Responsive = true, DisplayModeBar = false, ScrollZoom = StyleParam.ScrollZoom.NoZoom)
 
   let private renderMedications
+    (s: ChartStrings)
     (showScrubber: bool)
     (rangeLow: string)
     (rangeHigh: string)
@@ -770,7 +778,7 @@ module BpChart =
       let slots = assignSlots names
       let heightPx = 44 + 34 * sorted.Length
 
-      List.map3 (fun rowIdx slot m -> medicationTrace rangeHigh rowIdx slot m) [ 0 .. sorted.Length - 1 ] slots sorted
+      List.map3 (fun rowIdx slot m -> medicationTrace s rangeHigh rowIdx slot m) [ 0 .. sorted.Length - 1 ] slots sorted
       |> Chart.combine
       |> Chart.withLayout (medicationsLayout heightPx)
       |> Chart.withXAxis (medicationsXAxis showScrubber rangeLow rangeHigh)
@@ -780,5 +788,5 @@ module BpChart =
 
   /// Empty string when `medications` is empty — callers should skip rendering the
   /// Medications Timeline panel entirely in that case rather than show an empty chart.
-  let toHtmlMedications (showScrubber: bool) (rangeLow: string) (rangeHigh: string) =
-    renderMedications showScrubber rangeLow rangeHigh
+  let toHtmlMedications (s: ChartStrings) (showScrubber: bool) (rangeLow: string) (rangeHigh: string) =
+    renderMedications s showScrubber rangeLow rangeHigh
