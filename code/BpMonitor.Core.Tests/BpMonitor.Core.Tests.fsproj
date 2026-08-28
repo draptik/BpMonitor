@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <Compile Include="Generators.fs" />
-    <Compile Include="TestBuilders.fs" />
     <Compile Include="LanguageTests.fs" />
     <Compile Include="LocalizedStringsTests.fs" />
     <Compile Include="GoalRangeTests.fs" />
@@ -36,6 +35,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BpMonitor.Core\BpMonitor.Core.fsproj" />
+    <ProjectReference Include="..\BpMonitor.TestSupport\BpMonitor.TestSupport.fsproj" />
   </ItemGroup>
 
 </Project>

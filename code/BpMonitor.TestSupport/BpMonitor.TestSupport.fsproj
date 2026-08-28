@@ -3,11 +3,16 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Verifier.fs" />
+    <Compile Include="TestBuilders.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FSharp.Core" />
     <PackageReference Include="Verify.XunitV3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BpMonitor.Core\BpMonitor.Core.fsproj" />
   </ItemGroup>
 
 </Project>

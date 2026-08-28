@@ -3,7 +3,7 @@ module MedicationRepositoryContractTests
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
-open TestBuilders
+open BpMonitor.TestSupport.TestBuilders
 
 type private StubRepository(initial: Medication list) =
   let medications = ResizeArray<Medication>(initial)

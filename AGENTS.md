@@ -65,7 +65,7 @@ code/
 ├── BpMonitor.Web.Tests
 ├── BpMonitor.Web.E2E.Tests     # Playwright .NET browser smoke tests against a real out-of-process BpMonitor.Web instance
 ├── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules
-└── BpMonitor.TestSupport       # Shared test infrastructure (Verify snapshot settings) for *.Tests projects
+└── BpMonitor.TestSupport       # Shared test infrastructure (Verify snapshot settings, domain record builders) for *.Tests projects
 docs/                           # Product vision, architecture, ADRs
 scripts/                        # Dev tooling scripts (e.g. extract-plotly-js.fsx, release-notes.sh)
 ```
