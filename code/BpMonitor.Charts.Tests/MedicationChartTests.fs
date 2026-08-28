@@ -88,6 +88,17 @@ let ``toHtmlMedications ends a completed medication's bar at its EndDate`` () =
   test <@ html.Contains("2026-01-20 00:00") @>
 
 [<Fact>]
+let ``toHtmlMedications keeps a medication's true start date even when it predates rangeLow`` () =
+  // rangeLow only sets the axis's initial visible window (like the BP chart above it) —
+  // it doesn't clip trace data, so panning back still reveals medications that started earlier.
+  let meds = [ medication 1 "HCTZ" None None (DateOnly(2025, 12, 15)) None ]
+
+  let html =
+    BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
+
+  test <@ html.Contains("2025-12-15 00:00") @>
+
+[<Fact>]
 let ``toHtmlMedications renders a spike (scrubber) when showScrubber is true`` () =
   let meds = [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None ]
 
