@@ -11,6 +11,7 @@
     <Compile Include="SmokeTests.fs" />
     <Compile Include="MedicationsSyncFirefoxTests.fs" />
     <Compile Include="RecentScrubberFirefoxTests.fs" />
+    <Compile Include="MedicationsScrubberTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
