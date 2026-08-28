@@ -111,8 +111,10 @@ edit_summary() {
   {
     echo "# Edit the release notes below, grouped under ### Added / ### Changed / ### Fixed."
     echo "# Pre-filled from the current ## [Unreleased] section (PRs add bullets there as they"
-    echo "# land). Trim anything that isn't user/operator-facing. Lines starting with '#' are"
-    echo "# stripped; save and exit when done."
+    echo "# land). Trim anything that isn't user/operator-facing. Merge any Added/Fixed pair"
+    echo "# describing the same never-shipped feature into one bullet (drop the Fixed one),"
+    echo "# and write every bullet in present tense. Lines starting with '#' are stripped;"
+    echo "# save and exit when done."
     echo "#"
     if [ -n "$(git log "${last_tag}..HEAD" --oneline -- code/BpMonitor.Data/SchemaMigrations.fs)" ]; then
       echo "# ⚠ Database schema changed since ${last_tag} — this MUST get a **Deployment:**"

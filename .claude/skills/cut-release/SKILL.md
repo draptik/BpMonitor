@@ -100,6 +100,13 @@ Write concise markdown covering **only what matters to end users and operators**
 **Exclude:** refactors, test-only changes, internal chores, CI tweaks, doc fixes,
 dependency bumps (unless they change runtime behaviour).
 
+**Consolidate:** scan the gathered `[Unreleased]` bullets for an `Added`/`Changed`
+entry and a `Fixed` entry describing the same feature that has never shipped —
+merge them into one bullet describing the final, correct behavior and drop the
+`Fixed` one. A user who never saw the bug doesn't need to read about it. Also
+normalize every bullet to present tense ("renders", not "rendered"; "is now
+localized", not "was fixed to localize").
+
 Suggested shape — a single flat list so bullets render without gaps. Prefix
 operator items with `**Deployment:**` (omit if nothing actionable):
 

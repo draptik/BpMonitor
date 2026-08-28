@@ -138,6 +138,14 @@ a user-visible change — group it under `### Added`, `### Changed`, `### Fixed`
 `### Security`, or `### Maintenance` as appropriate. Internal-only changes
 (refactors, test-only, CI tweaks) do not need a changelog entry.
 
+Write each bullet in present tense, describing current behavior — not the
+sequence of PRs that got there ("the hover label is now localized", not "the
+hover label was broken, then fixed"). If a bug is introduced and fixed before
+either change ever ships, it has no user-facing history: fold the fix into the
+original `Added`/`Changed` bullet's description instead of adding a separate
+`Fixed` one. `/cut-release`'s Step 4 re-reviews the full `[Unreleased]` list
+for exactly this before a release ships, in case a PR misses it.
+
 When a release is cut (see below), `/cut-release` promotes the `[Unreleased]`
 entries into the new version section automatically.
 
