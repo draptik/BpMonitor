@@ -189,22 +189,25 @@ nav a[aria-current="page"] {
 }
 
 /* ── Collapsible sections ──────────────────────────────────────────────────
-   Shared header-bar treatment for every <details data-persist-key="..."> in
-   the app (History's chart toggle, Settings sections, Medications Timeline,
+   Shared card treatment for every <details data-persist-key="..."> in the
+   app (History's chart toggle, Settings sections, Medications Timeline,
    Recent's readings list) — see wwwroot/details-memory.js for persistence.
    Pico only styles the marker/chevron; without this the summary is just
    muted text with no visual sign it's clickable. */
 .collapsible {
   margin-bottom: 0.5rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
 }
 
+/* Matches the parent's radius rather than clipping with overflow: hidden,
+   which would also cut off the focus-visible outline's offset below. */
 .collapsible > summary {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   min-height: 2.75rem;
   padding: 0.4rem 0.75rem;
-  border: 1px solid var(--pico-muted-border-color);
   border-radius: var(--pico-border-radius);
   background: var(--pico-card-sectioning-background-color);
   color: var(--pico-color);
@@ -242,12 +245,16 @@ nav a[aria-current="page"] {
   outline-offset: 2px;
 }
 
-/* Flattened bottom corners while open, so the bar reads as attached to its
-   content rather than floating above it. */
+/* Body is inset within the card (padding on the parent, not margin on each
+   child, so it stays symmetric and a child's own margin-top can't escape). */
+.collapsible[open] {
+  padding: 0 0.75rem 0.75rem;
+}
+
 .collapsible[open] > summary {
-  margin-bottom: 0.5rem;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+  margin: 0 -0.75rem 0.75rem;
+  border-radius: var(--pico-border-radius) var(--pico-border-radius) 0 0;
+  border-bottom: 1px solid var(--pico-muted-border-color);
 }
 
 :root {
@@ -336,21 +343,6 @@ g.errorbars path.yerror {
 .settings-section summary h2 {
   display: inline;
   margin: 0;
-}
-
-/* Indent a section's body to line up under its header bar's own padding
-   (0.75rem, set on .collapsible > summary above), instead of sitting flush
-   with the page edge. */
-.settings-section > :not(summary) {
-  margin-left: 0.75rem;
-}
-
-/* .dense-page h2 (below) resets margin, including margin-left, on every h2.
-   Same specificity as the rule above but declared later, so without a more
-   specific override here it wins for a section's own sub-heading (e.g.
-   Medications' "Add Medication"), pulling it back out of the indent. */
-.dense-page .settings-section > h2 {
-  margin-left: 0.75rem;
 }
 
 /* Density scope for pages that are mostly stacked forms/tables and waste vertical
