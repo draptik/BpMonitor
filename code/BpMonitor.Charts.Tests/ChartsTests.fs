@@ -401,6 +401,16 @@ let ``toHtmlRecent skips the comment trace from unified hover, so it only appear
   test <@ Regex.IsMatch(html, "\"name\":\"Comments\".*?\"hoverinfo\":\"skip\"") @>
 
 [<Fact>]
+let ``toHtmlRecent renders a single reading as a point, since there's no gap to style dashed or solid`` () =
+  let single = [ reading 1 120 80 70 1 9 None ]
+
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now single
+
+  test <@ html.Contains("\"mode\":\"markers\"") @>
+  test <@ html.Contains("Plotly.newPlot") @>
+
+[<Fact>]
 let ``toHtmlRecent omits the trend line when there are too few readings to smooth meaningfully`` () =
   let sparse = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 2 9 None ]
 
