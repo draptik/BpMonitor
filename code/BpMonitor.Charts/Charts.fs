@@ -294,7 +294,10 @@ module BpChart =
     else
       let cTimestamps = commented |> List.map (_.Timestamp >> Formats.formatLocal)
       let cBaseline = commented |> List.map (fun _ -> 0)
-      let cTexts = commented |> List.map (fun r -> r.Comments |> Option.defaultValue "")
+
+      let cTexts =
+        commented
+        |> List.map (fun r -> r.Comments |> Option.defaultValue "" |> System.Net.WebUtility.HtmlEncode)
 
       // HoverTemplate shows the comment then a dimmed timestamp; empty <extra> drops the trace name.
       [ Chart.Point(x = cTimestamps, y = cBaseline, Name = s.Comments, MultiText = cTexts)
@@ -628,7 +631,8 @@ module BpChart =
   /// Hover text: full name when given (else the short row label), the date span, then
   /// the comment on its own line — mirrors the paper's medication timeline tooltip.
   let private medicationTooltip (s: ChartStrings) (m: Medication) : string =
-    let namePart = m.FullName |> Option.defaultValue m.Name
+    let namePart =
+      m.FullName |> Option.defaultValue m.Name |> System.Net.WebUtility.HtmlEncode
 
     let dateRange =
       match m.EndDate with
@@ -636,7 +640,9 @@ module BpChart =
       | None -> $"{Formats.formatDate m.StartDate} → {s.Ongoing}"
 
     let commentPart =
-      m.Comment |> Option.map (fun c -> $"<br>{c}") |> Option.defaultValue ""
+      m.Comment
+      |> Option.map (fun c -> $"<br>{System.Net.WebUtility.HtmlEncode c}")
+      |> Option.defaultValue ""
 
     $"{namePart}<br>{dateRange}{commentPart}"
 
