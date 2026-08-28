@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Settings and Family members are much more compact, especially on desktop: tighter headings, form fields, table rows, and buttons.
+- Collapsible sections (History's chart, Settings, Medications Timeline, Recent's readings list) now look like clickable header bars instead of plain muted text, and History's chart now remembers whether you left it open or closed.
 
 ### Fixed
 

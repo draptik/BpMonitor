@@ -188,12 +188,66 @@ nav a[aria-current="page"] {
   z-index: 200;
 }
 
-.chart-toggle {
-  min-height: 2.75rem;
+/* ── Collapsible sections ──────────────────────────────────────────────────
+   Shared header-bar treatment for every <details data-persist-key="..."> in
+   the app (History's chart toggle, Settings sections, Medications Timeline,
+   Recent's readings list) — see wwwroot/details-memory.js for persistence.
+   Pico only styles the marker/chevron; without this the summary is just
+   muted text with no visual sign it's clickable. */
+.collapsible {
+  margin-bottom: 0.5rem;
+}
+
+.collapsible > summary {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  background: var(--pico-card-sectioning-background-color);
+  color: var(--pico-color);
   cursor: pointer;
   user-select: none;
+  transition:
+    background-color var(--pico-transition),
+    color var(--pico-transition);
+}
+
+/* Pico floats the chevron right, which a flex summary ignores — it ends up
+   hugging the title instead. Push it to the end of the flex row instead. */
+.collapsible > summary::after {
+  margin-inline-start: auto;
+  float: none;
+}
+
+.collapsible > summary:hover {
+  background: var(--pico-secondary-background);
+}
+
+/* Pico renders an *open* summary in the muted color; that reads as "less
+   active" right when the section is expanded. Keep both states equally
+   readable — (0,2,1) specificity beats Pico's details[open]>summary rule. */
+.collapsible[open] > summary:not([role]):not(:focus) {
+  color: var(--pico-color);
+}
+
+.collapsible > summary:focus {
+  outline: 0;
+}
+
+.collapsible > summary:focus-visible {
+  outline: var(--pico-outline-width) solid var(--pico-primary-focus);
+  outline-offset: 2px;
+}
+
+/* Flattened bottom corners while open, so the bar reads as attached to its
+   content rather than floating above it. */
+.collapsible[open] > summary {
+  margin-bottom: 0.5rem;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 :root {
@@ -273,15 +327,10 @@ g.errorbars path.yerror {
   color: var(--pico-muted-color);
 }
 
-/* Collapsible settings sections (e.g. Medications) — remembered via wwwroot/details-memory.js. */
+/* Collapsible settings sections (e.g. Medications) — remembered via wwwroot/details-memory.js.
+   Header-bar styling itself is shared: see .collapsible above. */
 .settings-section {
   margin-top: 0.75rem;
-}
-
-.settings-section summary {
-  cursor: pointer;
-  user-select: none;
-  padding: 0.25rem 0;
 }
 
 .settings-section summary h2 {
@@ -408,16 +457,8 @@ g.errorbars path.yerror {
     justify-content: center;
   }
 
-  /* Settings sections get the same 2.75rem tap-target treatment already used by
-     .medications-timeline and .recent-readings; .settings-section never got it. */
   .settings-section {
     margin-top: 1.25rem;
-  }
-
-  .settings-section summary {
-    min-height: 2.75rem;
-    display: flex;
-    align-items: center;
   }
 
   .dense-page h1 {
@@ -756,17 +797,10 @@ form.inline button,
 
 /* ── Medications Timeline (Wegier et al. 2021 Fig. 5) ──────────────────────
    Collapsible <details> below the BP chart on /recent and /history — collapsed
-   by default, remembered across loads via wwwroot/details-memory.js. */
+   by default, remembered across loads via wwwroot/details-memory.js.
+   Header-bar styling itself is shared: see .collapsible above. */
 .medications-timeline {
   margin-top: 1rem;
-}
-
-.medications-timeline summary {
-  cursor: pointer;
-  user-select: none;
-  min-height: 2.75rem;
-  display: flex;
-  align-items: center;
 }
 
 /* Overrides `.chart`'s fixed --chart-height: the timeline's own height is
@@ -894,17 +928,9 @@ form.inline button,
 /* Collapsible readings list below the chart on /recent, filtered to the visible
    x-range by recent-scrubber.js's `plotly_relayout` handler (same data-x/out-of-range
    mechanism as the value strip above). Collapsed by default, remembered via
-   wwwroot/details-memory.js. */
+   wwwroot/details-memory.js. Header-bar styling itself is shared: see .collapsible above. */
 .recent-readings {
   margin-top: 1rem;
-}
-
-.recent-readings summary {
-  cursor: pointer;
-  user-select: none;
-  min-height: 2.75rem;
-  display: flex;
-  align-items: center;
 }
 
 .recent-readings-table tr.out-of-range {

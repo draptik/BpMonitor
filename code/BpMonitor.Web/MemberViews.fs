@@ -141,7 +141,7 @@ module MemberViews =
       Elem.option attrs [ Text.raw (Language.nativeName lang) ]
 
     [ Elem.details
-        [ Attr.class' "settings-section"
+        [ Attr.class' "collapsible settings-section"
           Attr.create "open" ""
           Attr.create "data-persist-key" "settings-language" ]
         [ Elem.summary [] [ Elem.h2 [] [ Text.raw s.Member.LanguageTitle ] ]
@@ -167,7 +167,7 @@ module MemberViews =
     (goalInput: Binding.GoalRangeFormModel)
     : XmlNode list =
     [ Elem.details
-        [ Attr.class' "settings-section"
+        [ Attr.class' "collapsible settings-section"
           Attr.create "open" ""
           Attr.create "data-persist-key" "settings-goal-range" ]
         [ Elem.summary [] [ Elem.h2 [] [ Text.raw s.Member.GoalRangeTitle ] ]
