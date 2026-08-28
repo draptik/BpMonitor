@@ -153,9 +153,10 @@ module MemberViews =
               Attr.create "hx-boost" "false" ]
             [ Elem.div
                 [ Attr.class' "field" ]
-                [ Elem.label [ Attr.for' FormFields.language ] [ Text.raw s.Member.LanguageTitle ]
-                  Elem.select
-                    [ Attr.id FormFields.language; Attr.name FormFields.language ]
+                [ Elem.select
+                    [ Attr.id FormFields.language
+                      Attr.name FormFields.language
+                      Attr.create "aria-label" s.Member.LanguageTitle ]
                     (Language.all |> List.map option) ]
               ViewLayout.formActions s Routes.settings ] ] ]
 
