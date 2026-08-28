@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reading and medication comments are now HTML-encoded before being embedded in chart hover tooltips, closing a stored-HTML-injection hole where a comment containing an `<a href="javascript:...">` tag would render as a clickable link inside the tooltip.
 - Recent: the scrubber's hover label showed the weekday abbreviation in English (e.g. "Tue") regardless of language — now localized (German: "Di").
 - Settings: collapsing a Language/Goal Range/Medications section now stays collapsed after reloading the page, instead of always reopening.
+- Settings: each section's fields/table are now indented under its header bar instead of sitting flush with the page edge, and the Language section no longer shows a redundant "Language" label above the dropdown.
 
 ## [1.12.3] - 2026-08-28
 

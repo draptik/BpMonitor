@@ -338,6 +338,13 @@ g.errorbars path.yerror {
   margin: 0;
 }
 
+/* Indent a section's body to line up under its header bar's own padding
+   (0.75rem, set on .collapsible > summary above), instead of sitting flush
+   with the page edge. */
+.settings-section > :not(summary) {
+  margin-left: 0.75rem;
+}
+
 /* Density scope for pages that are mostly stacked forms/tables and waste vertical
    space at Pico's default spacing (Settings, Family members). Scoped rather than
    global so the reading add/edit form and other full-size forms are unaffected. */
