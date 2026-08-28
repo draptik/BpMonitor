@@ -1,0 +1,26 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Rejects a commit whose gitmoji doesn't match its type — keep in sync with .claude/skills/git-workflow/SKILL.md
+
+msg_file="$1"
+first_line=$(head -n1 "$msg_file")
+
+emoji="${first_line%% *}"
+rest="${first_line#* }"
+type=$(printf '%s' "$rest" | grep -oE '^[a-z]+')
+
+case "$emoji $type" in
+  "✨ feat" | "🐛 fix" | "🔒 fix" | "♻️ refactor" | "✅ test" | "📝 docs" \
+    | "🔧 chore" | "🗑️ chore" | "⬆️ chore" | "🎉 chore" | "💄 style" \
+    | "👷 ci" | "⚡️ perf" | "🚀 chore")
+    exit 0
+    ;;
+  *)
+    echo "ERROR: commit message emoji/type mismatch: '$emoji $type'"
+    echo "Allowed pairs (see .claude/skills/git-workflow/SKILL.md):"
+    echo "  ✨ feat   🐛 fix   🔒 fix   ♻️ refactor   ✅ test   📝 docs"
+    echo "  🔧 chore  🗑️ chore  ⬆️ chore  🎉 chore  💄 style  👷 ci  ⚡️ perf  🚀 chore"
+    exit 1
+    ;;
+esac
