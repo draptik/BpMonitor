@@ -237,6 +237,24 @@ let ``trendsPanel with invalid gran string returns 400`` () =
   test <@ ctx.Response.StatusCode = 400 @>
 
 [<Fact>]
+let ``trendsPanel with an unparseable key falls back to the current period`` () =
+  let tp = FakeTimeProvider(trendsNow)
+
+  let r =
+    { sample with
+        Timestamp = trendsNow.AddDays(-1.0) // current week
+        Systolic = 130 }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  setRouteGranKey ctx (TrendPeriod.slug Weekly) "not-a-key"
+  TestHost.run ReadingHandlers.trendsPanel ctx
+
+  test <@ ctx.Response.StatusCode = 200 @>
+  let body = TestHost.readBody ctx
+  // Falls back to TrendPeriod.current, so the current-week reading is in range
+  test <@ body.Contains "130" @>
+
+[<Fact>]
 let ``trendsPanel period pills without data are aria-disabled and have no href`` () =
   let tp = FakeTimeProvider(trendsNow)
 

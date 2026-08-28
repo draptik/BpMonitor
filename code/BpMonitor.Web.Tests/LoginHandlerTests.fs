@@ -78,6 +78,22 @@ let ``loginWithCredentials returns 401 for unknown user`` () =
   test <@ ctx.Response.StatusCode = 401 @>
 
 [<Fact>]
+let ``loginWithCredentials returns 401 for an inactive claimed member, even with the correct password`` () =
+  let hash = PasswordHashing.hash "correct"
+
+  let inactive =
+    { claimedMember hash with
+        Name = "Me"
+        IsActive = false }
+
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ inactive ]
+  TestHost.setForm ctx [ FormFields.username, "Me"; FormFields.password, "correct" ]
+  TestHost.run AuthHandlers.loginWithCredentials ctx
+
+  test <@ ctx.Response.StatusCode = 401 @>
+
+[<Fact>]
 let ``loginWithCredentials redirects to claim page for unclaimed member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]

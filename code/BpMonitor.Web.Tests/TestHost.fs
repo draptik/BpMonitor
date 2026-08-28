@@ -101,6 +101,12 @@ let contextWithMembersAndProvider
   let user = members |> List.tryHead |> Option.map buildPrincipal
   newCtx (buildServices repo memberRepo (emptyMedicationRepo ()) tp) user
 
+/// Variant of `context` with no signed-in user — for testing the `protect`/`protectAdmin`
+/// auth combinators against an unauthenticated request.
+let contextUnauthenticated (repo: IReadingRepository) : HttpContext =
+  let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
+  newCtx (buildServices repo memberRepo (emptyMedicationRepo ()) TimeProvider.System) None
+
 /// Variant of `context` that sets a specific authenticated user. Useful for
 /// testing protected handlers with a particular member identity.
 let contextWithUser (repo: IReadingRepository) (members: FamilyMember list) (loggedInMemberId: int) : HttpContext =
@@ -123,6 +129,20 @@ let contextWithMedications (repo: IReadingRepository) (medications: Medication l
     InMemoryMedicationRepository(Some medications) :> IMedicationRepository
 
   newCtx (buildServices repo memberRepo medicationRepo TimeProvider.System) (Some(buildPrincipal defaultMember))
+
+/// Variant of `contextWithMedications` that also injects a custom TimeProvider —
+/// useful for testing medicationsSpan's "ongoing medication runs to today" behavior.
+let contextWithMedicationsAndProvider
+  (repo: IReadingRepository)
+  (medications: Medication list)
+  (tp: TimeProvider)
+  : HttpContext =
+  let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
+
+  let medicationRepo =
+    InMemoryMedicationRepository(Some medications) :> IMedicationRepository
+
+  newCtx (buildServices repo memberRepo medicationRepo tp) (Some(buildPrincipal defaultMember))
 
 /// Builds a context wired with a real SQLite-backed BpMonitorDbContext, for the
 /// health handler. Pass a temp-file connection string for the reachable case and

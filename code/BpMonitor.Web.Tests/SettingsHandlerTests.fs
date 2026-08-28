@@ -123,6 +123,27 @@ let ``updateSettings rejects a systolic min greater than or equal to max with 42
   test <@ unchanged.Goal = memberWithCustomGoal.Goal @>
 
 [<Fact>]
+let ``updateSettings rejects a diastolic min greater than or equal to max with 422 and does not persist`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ memberWithCustomGoal ]
+
+  TestHost.setForm
+    ctx
+    [ FormFields.systolicGoalMin, "100"
+      FormFields.systolicGoalMax, "130"
+      FormFields.diastolicGoalMin, "85"
+      FormFields.diastolicGoalMax, "65" ]
+
+  TestHost.run ReadingHandlers.updateSettings ctx
+
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ (TestHost.readBody ctx).Contains "Diastolic min must be less than diastolic max" @>
+
+  let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+  let unchanged = (memberRepo.GetById defaultMemberId).Value
+  test <@ unchanged.Goal = memberWithCustomGoal.Goal @>
+
+[<Fact>]
 let ``updateSettings redisplays the submitted values, not the stale persisted goal, on validation failure`` () =
   let repo = repoWith []
   let ctx = TestHost.context repo

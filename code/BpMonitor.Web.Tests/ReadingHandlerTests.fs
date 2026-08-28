@@ -172,6 +172,16 @@ let ``editReading returns 404 for an unknown id`` () =
   test <@ ctx.Response.StatusCode = 404 @>
 
 [<Fact>]
+let ``editReading returns 404 for a reading belonging to a different member`` () =
+  let other = { sample with MemberId = 999 }
+  let repo = repoWith [ other ]
+  let ctx = TestHost.context repo
+  TestHost.setRouteId ctx other.Id
+  TestHost.run ReadingHandlers.editReading ctx
+
+  test <@ ctx.Response.StatusCode = 404 @>
+
+[<Fact>]
 let ``updateReading saves changes and redirects`` () =
   let repo = repoWith [ sample ]
   let ctx = TestHost.context repo
@@ -209,3 +219,23 @@ let ``updateReading returns 404 for an unknown id`` () =
   TestHost.run ReadingHandlers.updateReading ctx
 
   test <@ ctx.Response.StatusCode = 404 @>
+
+[<Fact>]
+let ``updateReading does not modify a reading belonging to a different member`` () =
+  let other = { sample with MemberId = 999 }
+  let repo = repoWith [ other ]
+  let ctx = TestHost.context repo
+  TestHost.setRouteId ctx other.Id
+
+  TestHost.setForm
+    ctx
+    [ FormFields.timestamp, "2026-05-01 09:00"
+      FormFields.systolic, "111"
+      FormFields.diastolic, "70"
+      FormFields.heartRate, "60"
+      FormFields.comments, "" ]
+
+  TestHost.run ReadingHandlers.updateReading ctx
+
+  test <@ ctx.Response.StatusCode = 404 @>
+  test <@ (repo.GetAll(999) |> List.exactlyOne).Systolic = other.Systolic @>
