@@ -102,6 +102,25 @@ let ``Add preserves FullName as None when absent`` () =
   test <@ repo.GetAll(defaultMemberId).[0].FullName = None @>
 
 [<Fact>]
+let ``Add preserves Comment when present`` () =
+  use ctx = createContext ()
+  let repo = createRepo ctx
+
+  repo.Add
+    defaultMemberId
+    { sample with
+        Comment = Some "Ran out of medication" }
+
+  test <@ repo.GetAll(defaultMemberId).[0].Comment = Some "Ran out of medication" @>
+
+[<Fact>]
+let ``Add preserves Comment as None when absent`` () =
+  use ctx = createContext ()
+  let repo = createRepo ctx
+  repo.Add defaultMemberId sample
+  test <@ repo.GetAll(defaultMemberId).[0].Comment = None @>
+
+[<Fact>]
 let ``Add preserves EndDate when present`` () =
   use ctx = createContext ()
   let repo = createRepo ctx
