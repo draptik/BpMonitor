@@ -43,6 +43,18 @@ let ``toUnvalidated accumulates every parse error`` () =
   | Ok _ -> failwith "expected Error"
   | Error errs -> test <@ List.length errs = 4 @>
 
+[<Fact>]
+let ``toUnvalidated accepts a negative systolic value — range checks are BloodPressureReading.parse's job`` () =
+  match Binding.toUnvalidated LocalizedStrings.en (form "-5" "80" "66" "2026-05-01 09:00" "") with
+  | Ok u -> test <@ u.Systolic = -5 @>
+  | Error e -> failwith $"expected Ok, got {e}"
+
+[<Fact>]
+let ``toUnvalidated accepts a date-only timestamp with no time component`` () =
+  match Binding.toUnvalidated LocalizedStrings.en (form "120" "80" "66" "2026-05-01" "") with
+  | Ok u -> test <@ u.Timestamp.Hour = 0 && u.Timestamp.Minute = 0 @>
+  | Error e -> failwith $"expected Ok, got {e}"
+
 [<Property>]
 let ``well-formed numeric strings round-trip to their ints`` (sys: int) (dia: int) (hr: int) =
   let m = form (string sys) (string dia) (string hr) "2026-01-01 00:00" ""
