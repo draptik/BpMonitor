@@ -154,17 +154,22 @@ module BpChart =
   // !important that takes precedence; removeProperty on unhover falls back to the CSS rule.
   // g.errorbar (singular, per point) lives inside g.errorbars (plural, per trace).
   //
-  // /history and /recent are interactive (unlike /trends, which disables the modebar
-  // outright): lasso, autoscale and box-select are removed because they let a reader
-  // visually distort the blood-pressure scale (Wegier et al. 2021's goal-range bands
-  // assume a fixed y-axis).
+  // Removed so a reader can't distort the fixed-scale y-axis (Wegier et al. 2021).
+  let private interactiveModeBarButtonsToRemove =
+    [ StyleParam.ModeBarButton.Lasso2d
+      StyleParam.ModeBarButton.AutoScale2d
+      StyleParam.ModeBarButton.Select2d ]
+
   let private interactiveConfig =
+    Config.init (Responsive = true, ModeBarButtonsToRemove = interactiveModeBarButtonsToRemove)
+
+  // "app" (not a real ISO code, since this locale only defines shortDays) so `%a` in recentXAxis's HoverFormat renders in the member's language.
+  let private recentLocaleConfig (s: ChartStrings) =
     Config.init (
       Responsive = true,
-      ModeBarButtonsToRemove =
-        [ StyleParam.ModeBarButton.Lasso2d
-          StyleParam.ModeBarButton.AutoScale2d
-          StyleParam.ModeBarButton.Select2d ]
+      ModeBarButtonsToRemove = interactiveModeBarButtonsToRemove,
+      Locale = "app",
+      Locales = box (dict [ "app", box (dict [ "format", box (dict [ "shortDays", box s.ShortWeekdays ]) ]) ])
     )
 
   let private toHtmlString (chart: GenericChart) =
@@ -234,7 +239,7 @@ module BpChart =
     |> Chart.withLayout (finishRecentLayout ())
     |> Chart.withXAxis (recentXAxis rangeLow rangeHigh)
     |> Chart.withYAxis (yAxis s)
-    |> Chart.withConfig interactiveConfig
+    |> Chart.withConfig (recentLocaleConfig s)
     |> toHtmlString
 
   // Trends-specific tuning for mobile:

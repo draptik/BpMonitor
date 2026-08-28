@@ -544,6 +544,25 @@ let ``toHtmlRecent locks the y-axis range so zoom/select tools can only ever cha
   test <@ Regex.IsMatch(html, "\"yaxis\":\\{.*?\"range\":\\[0,200\\],\"fixedrange\":true") @>
 
 [<Fact>]
+let ``toHtmlRecent's scrubber hover uses the localized weekday abbreviations, not Plotly's hardcoded English ones`` () =
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.de.Charts GoalRange.defaults 30 windowStart30 now readings
+
+  test <@ html.Contains("\"shortDays\":[\"So\",\"Mo\",\"Di\",\"Mi\",\"Do\",\"Fr\",\"Sa\"]") @>
+
+[<Fact>]
+let ``toHtmlRecent's scrubber hover registers English weekday abbreviations too, not just non-English locales`` () =
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
+
+  test <@ html.Contains("\"shortDays\":[\"Sun\",\"Mon\",\"Tue\",\"Wed\",\"Thu\",\"Fri\",\"Sat\"]") @>
+
+[<Fact>]
+let ``toHtml (history) does not register a Plotly locale, since it has no %a hover format to translate`` () =
+  let html = BpChart.toHtml LocalizedStrings.de.Charts GoalRange.defaults readings
+  test <@ not (html.Contains("\"locale\"")) @>
+
+[<Fact>]
 let ``toHtmlDashed renders valid Plotly HTML for a period with no aggregated readings`` () =
   let html =
     BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly []

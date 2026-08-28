@@ -141,7 +141,8 @@ type ErrorStrings =
     HeartRateOutOfRange: int -> int -> int -> string }
 
 type ChartStrings =
-  { Systolic: string
+  {
+    Systolic: string
     Diastolic: string
     SystolicTrend: string
     DiastolicTrend: string
@@ -150,7 +151,10 @@ type ChartStrings =
     AxisTitle: string
     CalendarWeekTick: int -> string
     DayMonthTick: System.DateTime -> string
-    MonthTick: System.DateTime -> string }
+    MonthTick: System.DateTime -> string
+    /// Sunday-first abbreviated weekday names, for Plotly's locale mechanism (see Charts.fs).
+    ShortWeekdays: string list
+  }
 
 /// All user-facing text for one language. Every language must supply every field —
 /// the compiler enforces completeness, which is the point of this type over `.resx`.
@@ -311,7 +315,10 @@ module LocalizedStrings =
           AxisTitle = "blood pressure [mmHg]"
           CalendarWeekTick = fun week -> $"W{week}"
           DayMonthTick = fun date -> date.ToString("d MMM", System.Globalization.CultureInfo("en-US"))
-          MonthTick = fun date -> date.ToString("MMM", System.Globalization.CultureInfo("en-US")) } }
+          MonthTick = fun date -> date.ToString("MMM", System.Globalization.CultureInfo("en-US"))
+          ShortWeekdays =
+            System.Globalization.CultureInfo("en-US").DateTimeFormat.AbbreviatedDayNames
+            |> Array.toList } }
 
   let de: LocalizedStrings =
     { Language = German
@@ -457,7 +464,10 @@ module LocalizedStrings =
           AxisTitle = "Blutdruck [mmHg]"
           CalendarWeekTick = fun week -> $"KW{week}"
           DayMonthTick = fun date -> date.ToString("d. MMM", System.Globalization.CultureInfo("de-DE"))
-          MonthTick = fun date -> date.ToString("MMM", System.Globalization.CultureInfo("de-DE")) } }
+          MonthTick = fun date -> date.ToString("MMM", System.Globalization.CultureInfo("de-DE"))
+          ShortWeekdays =
+            System.Globalization.CultureInfo("de-DE").DateTimeFormat.AbbreviatedDayNames
+            |> Array.toList } }
 
   /// Every language routes through here, so a third language is one new value
   /// plus one match arm.
