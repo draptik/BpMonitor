@@ -144,6 +144,28 @@ let ``toHtmlMedications gives two different medications different colors`` () =
   test <@ firstColor <> secondColor @>
 
 [<Fact>]
+let ``toHtmlMedications gives colliding hash slots different colors via linear probing`` () =
+  // "Medication0" and "Medication22" both hash (FNV-1a mod 16) to the same palette slot.
+  let meds =
+    [ medication 1 "Medication0" None None (DateOnly(2026, 1, 5)) None
+      medication 2 "Medication22" None None (DateOnly(2026, 1, 10)) None ]
+
+  let html =
+    BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
+
+  let marker = "\"line\":{\"color\":\""
+
+  let firstColor =
+    let start = html.IndexOf(marker) + marker.Length
+    html.Substring(start, 7)
+
+  let secondColor =
+    let start = html.IndexOf(marker, html.IndexOf(marker) + 1) + marker.Length
+    html.Substring(start, 7)
+
+  test <@ firstColor <> secondColor @>
+
+[<Fact>]
 let ``toHtmlMedications adds a fill-based hover target spanning the whole bar`` () =
   let meds = [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None ]
 
