@@ -17,6 +17,11 @@
       "description": "Pinned at 3.3.4: 3.4.0 requires xunit.v3.extensibility.core >= 4.0.0, but xunit.v3 is pinned at 3.2.2 (see above) and Verify.XunitV3 only supports xunit.v3 v4 via a 32.0.0-beta.* prerelease. Re-enable once Verify.XunitV3 ships a stable release supporting xunit.v3 v4."
     },
     {
+      "matchPackageNames": ["xunit.v3"],
+      "enabled": false,
+      "description": "Pinned at 3.2.2: xunit.v3 4.0.0 is only supported by Verify.XunitV3 via a 32.0.0-beta.* prerelease (see FsCheck.Xunit.v3 pin above). Re-enable once Verify.XunitV3 ships a stable release supporting xunit.v3 v4."
+    },
+    {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true,
       "automergeType": "pr",
