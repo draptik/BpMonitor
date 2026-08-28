@@ -41,6 +41,20 @@ let ``serialize produces one data row per reading`` () =
   test <@ lines.Length = 3 @>
 
 [<Fact>]
+let ``serialize preserves each reading's own data in its own row and input order`` () =
+  let first = { reading with Id = 1; Systolic = 120 }
+  let second = { reading with Id = 2; Systolic = 140 }
+  let csv = serialize [ first; second ]
+
+  let lines =
+    csv.Split('\n') |> Array.filter (fun l -> l.Trim() <> "") |> Array.skip 1 // drop header
+
+  test <@ lines[0].StartsWith "1," @>
+  test <@ lines[0].Contains "120" @>
+  test <@ lines[1].StartsWith "2," @>
+  test <@ lines[1].Contains "140" @>
+
+[<Fact>]
 let ``serialize quotes a comment containing a comma`` () =
   let r = { reading with Comments = Some "a,b" }
   let csv = serialize [ r ]
