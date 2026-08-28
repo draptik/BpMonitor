@@ -218,3 +218,48 @@ type MedicationsScrubberOffscreenSnapTests(fixture: WebAppFixture) =
         $"spike [{spikeLeft}, {spikeRight}] rendered outside the visible plot [{chartLeft}, {chartRight}]"
       )
     }
+
+/// The timeline's x-axis is FixedRange (Charts.fs medicationsXAxis) — it only ever follows
+/// the BP chart's own range, via medications-sync.js's bpPlot.on("plotly_relayout", ...).
+type MedicationsScrubberZoomSyncTests(fixture: WebAppFixture) =
+  interface IClassFixture<WebAppFixture>
+
+  [<Fact>]
+  member _.``clicking the Last 7 days button also narrows the timeline's x-axis range``() : Task =
+    task {
+      let! page =
+        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+
+      do! TestAccount.claimAndLogin fixture.BaseUrl page
+
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
+      do! page.FillAsync("#MedicationName", "Lisinopril")
+      do! page.FillAsync("#MedicationStartDate", "01.01.2026")
+      do! page.ClickAsync("form[action='/medications'] button[type=submit]")
+      let! _ = page.WaitForSelectorAsync("text=Lisinopril")
+
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
+      do! page.FillAsync("#Timestamp", DateTime.Now.ToString("yyyy-MM-dd HH:mm"))
+      do! page.FillAsync("#Systolic", "118")
+      do! page.FillAsync("#Diastolic", "76")
+      do! page.FillAsync("#HeartRate", "62")
+      do! page.ClickAsync("form[action='/readings'] button[type=submit]")
+      do! page.WaitForURLAsync($"{fixture.BaseUrl}/recent")
+
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/recent")
+      let! _ = page.WaitForSelectorAsync(".chart .plot-container")
+      do! page.ClickAsync(".medications-timeline summary")
+      let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
+      do! page.WaitForTimeoutAsync(300.0f)
+
+      let xaxisRange (selector: string) =
+        page.EvalOnSelectorAsync<string[]>(selector, "d => d._fullLayout.xaxis.range.map(String)")
+
+      let! _ = page.ClickAsync("button:text('Last 7 days')")
+      do! page.WaitForTimeoutAsync(300.0f)
+
+      let! bpRange = xaxisRange ".chart .js-plotly-plot"
+      let! timelineRange = xaxisRange ".medications-chart .js-plotly-plot"
+
+      Assert.Equal<string[]>(bpRange, timelineRange)
+    }
