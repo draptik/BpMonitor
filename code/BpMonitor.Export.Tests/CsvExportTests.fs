@@ -108,6 +108,16 @@ let ``serialize prefixes formula-trigger comments to prevent spreadsheet injecti
   test <@ csv.Contains $",'{comment}," @>
 
 [<Fact>]
+let ``serialize does not prefix a comment where the trigger character appears mid-string`` () =
+  let r =
+    { reading with
+        Comments = Some "hello=world" }
+
+  let csv = serialize [ r ]
+
+  test <@ csv.Contains ",hello=world," @>
+
+[<Fact>]
 let ``serialize quotes and prefixes a formula-trigger comment that also contains a comma`` () =
   let r = { reading with Comments = Some "=a,b" }
   let csv = serialize [ r ]
