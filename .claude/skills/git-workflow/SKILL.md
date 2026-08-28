@@ -41,20 +41,41 @@ Format:
 <emoji> <type>[optional scope]: <short description in imperative mood>
 ```
 
+This is a strict whitelist, mechanically enforced by `.husky/commit-msg` —
+each row is the *only* legal pairing for that emoji, and each type has
+exactly one emoji (fix's two rows are the one deliberate exception: 🔒 is a
+security-flavored `fix`, always still typed `fix`). No emoji outside this
+table is permitted, and an emoji may never appear next to a different type
+than the one listed here — mixing them (e.g. `💄 chore`, `♻️ test`, `🔧
+refactor`) is exactly the drift this table exists to prevent.
+
 | Emoji | Code | Conventional Type | Use for |
 | --- | --- | --- | --- |
 | ✨ | `:sparkles:` | `feat` | New feature |
 | 🐛 | `:bug:` | `fix` | Bug fix |
-| ♻️ | `:recycle:` | `refactor` | Refactor |
-| ✅ | `:white_check_mark:` | `test` | Add or update tests |
+| 🔒 | `:lock:` | `fix` | Security fix |
+| ♻️ | `:recycle:` | `refactor` | Behavior-preserving restructuring — including splitting/deduplicating test files with no assertion changes |
+| ✅ | `:white_check_mark:` | `test` | Add or change what a test asserts / covers |
 | 📝 | `:memo:` | `docs` | Documentation |
 | 🔧 | `:wrench:` | `chore` | Configuration / tooling |
 | 🗑️ | `:wastebasket:` | `chore` | Remove code or files |
 | ⬆️ | `:arrow_up:` | `chore` | Upgrade dependencies |
 | 🎉 | `:tada:` | `chore` | Initial commit |
-| 🔒 | `:lock:` | `fix` | Security fix |
-| 💄 | `:lipstick:` | `style` | UI / style changes |
+| 💄 | `:lipstick:` | `style` | Visual-only change, no logic change |
+| 👷 | `:construction_worker:` | `ci` | CI pipeline changes |
+| ⚡️ | `:zap:` | `perf` | Performance improvement (always with the ️ variation selector — not bare ⚡) |
 | 🚀 | `:rocket:` | `chore` | Deploy |
+
+Picking the type decides the emoji, not the other way around — never choose
+an emoji because it "feels right" for the change. In particular:
+
+- Reorganizing or splitting test files without changing what they assert is
+  `♻️ refactor(test)`, not `✅ test` — `✅ test` is reserved for commits that
+  add or change actual coverage.
+- A CSS/markup-only fix to a broken layout is still `🐛 fix`, not `💄 style`
+  — `style` is for changes with no functional intent at all (e.g. a
+  find-alignment tweak someone already asked for), `fix` is for correcting
+  something that was wrong.
 
 Examples:
 
@@ -63,6 +84,8 @@ Examples:
 🐛 fix: fix timestamp not saving in UTC
 ♻️ refactor: extract reading validation into domain service
 ✅ test: add tests for out-of-range systolic values
+♻️ refactor(test): split oversized test file, no assertion changes
+👷 ci: run E2E tests in their own step
 ```
 
 ## Pull Request Workflow
@@ -100,3 +123,4 @@ PR body:
 - Keep PRs small and focused — one concern per PR
 - Write commit messages in imperative mood ("Add", not "Added" or "Adding")
 - After every merge: `git fetch --prune` then `git branch -D <branch>`
+- NEVER bypass `.husky/commit-msg`'s emoji/type check with `--no-verify` — fix the message instead
