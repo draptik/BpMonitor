@@ -430,6 +430,31 @@ let ``toHtmlRecent omits the trend line when there are too few readings to smoot
   test <@ not (html.Contains("(trend)")) @>
 
 [<Fact>]
+let ``toHtmlRecent still omits the trend line at 3 readings, one below the 4-reading minimum`` () =
+  let threeReadings =
+    [ reading 1 120 80 70 1 9 None
+      reading 2 130 85 74 2 9 None
+      reading 3 125 82 72 3 9 None ]
+
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now threeReadings
+
+  test <@ not (html.Contains("(trend)")) @>
+
+[<Fact>]
+let ``toHtmlRecent renders the trend line at 4 readings, the minimum required to smooth`` () =
+  let fourReadings =
+    [ reading 1 120 80 70 1 9 None
+      reading 2 130 85 74 2 9 None
+      reading 3 125 82 72 3 9 None
+      reading 4 128 83 73 4 9 None ]
+
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now fourReadings
+
+  test <@ html.Contains("(trend)") @>
+
+[<Fact>]
 let ``toHtmlRecent fades the raw measurement line so the LOWESS trend line stands out as the visual focus`` () =
   // Wegier et al. 2021, "Smoothing data": "The line graph of (raw) measurements was
   // then faded slightly to help the smoothing line stand out." — the raw series should
