@@ -86,7 +86,12 @@ module ReadingHandlers =
       |> Medication.overlapping (toLocalDateOnly rangeLow) (toLocalDateOnly rangeHigh)
 
     let chartHtml =
-      BpChart.toHtmlMedications showScrubber (Formats.formatLocal rangeLow) (Formats.formatLocal rangeHigh) overlapping
+      BpChart.toHtmlMedications
+        s.Charts
+        showScrubber
+        (Formats.formatLocal rangeLow)
+        (Formats.formatLocal rangeHigh)
+        overlapping
 
     MedicationViews.timelinePanel s chartHtml
 

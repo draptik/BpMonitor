@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Medications Timeline: an ongoing medication's hover tooltip always said "ongoing" in English regardless of language — now localized (German: "laufend").
+
 ## [1.12.2] - 2026-08-24
 
 ### Fixed

@@ -145,6 +145,7 @@ type ChartStrings =
     SystolicTrend: string
     DiastolicTrend: string
     Comments: string
+    Ongoing: string
     AxisTitle: string
     CalendarWeekTick: int -> string
     DayMonthTick: System.DateTime -> string
@@ -304,6 +305,7 @@ module LocalizedStrings =
           SystolicTrend = "Systolic (trend)"
           DiastolicTrend = "Diastolic (trend)"
           Comments = "Comments"
+          Ongoing = "ongoing"
           AxisTitle = "blood pressure [mmHg]"
           CalendarWeekTick = fun week -> $"W{week}"
           DayMonthTick = fun date -> date.ToString("d MMM", System.Globalization.CultureInfo("en-US"))
@@ -448,6 +450,7 @@ module LocalizedStrings =
           SystolicTrend = "Systolisch (Trend)"
           DiastolicTrend = "Diastolisch (Trend)"
           Comments = "Kommentare"
+          Ongoing = "laufend"
           AxisTitle = "Blutdruck [mmHg]"
           CalendarWeekTick = fun week -> $"KW{week}"
           DayMonthTick = fun date -> date.ToString("d. MMM", System.Globalization.CultureInfo("de-DE"))
