@@ -53,6 +53,18 @@ let ``serialize doubles embedded double-quotes in comments`` () =
   test <@ csv.Contains "\"a\"\"b\"" @>
 
 [<Fact>]
+let ``serialize quotes a comment containing a bare newline`` () =
+  let r = { reading with Comments = Some "a\nb" }
+  let csv = serialize [ r ]
+  test <@ csv.Contains "\"a\nb\"" @>
+
+[<Fact>]
+let ``serialize quotes a comment containing a bare carriage return`` () =
+  let r = { reading with Comments = Some "a\rb" }
+  let csv = serialize [ r ]
+  test <@ csv.Contains "\"a\rb\"" @>
+
+[<Fact>]
 let ``serialize emits an empty field for None comments`` () =
   let r = { reading with Comments = None }
   let csv = serialize [ r ]
