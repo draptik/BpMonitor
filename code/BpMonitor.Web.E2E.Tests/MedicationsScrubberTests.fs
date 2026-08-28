@@ -331,3 +331,70 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: WebAppFixture) =
         "expected the mirrored spike to clear once the BP chart is no longer hovered"
       )
     }
+
+/// /history has no value-strip and a collapsed BP chart — axis-sync must work once opened, without scrubbing a value-strip that doesn't exist there.
+type MedicationsScrubberHistoryPageTests(fixture: WebAppFixture) =
+  interface IClassFixture<WebAppFixture>
+
+  [<Fact>]
+  member _.``opening the collapsed BP chart on /history still syncs the timeline's axis, without scrubbing``() : Task =
+    task {
+      let! page =
+        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+
+      do! TestAccount.claimAndLogin fixture.BaseUrl page
+
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
+      do! page.FillAsync("#MedicationName", "Lisinopril")
+      do! page.FillAsync("#MedicationStartDate", "01.01.2026")
+      do! page.ClickAsync("form[action='/medications'] button[type=submit]")
+      let! _ = page.WaitForSelectorAsync("text=Lisinopril")
+
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
+      do! page.FillAsync("#Timestamp", DateTime.Now.ToString("yyyy-MM-dd HH:mm"))
+      do! page.FillAsync("#Systolic", "118")
+      do! page.FillAsync("#Diastolic", "76")
+      do! page.FillAsync("#HeartRate", "62")
+      do! page.ClickAsync("form[action='/readings'] button[type=submit]")
+      do! page.WaitForURLAsync($"{fixture.BaseUrl}/recent")
+
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/history")
+      let! valueStripCount = page.Locator(".value-strip").CountAsync()
+      Assert.Equal(0, valueStripCount)
+
+      // The BP chart's own <details> starts collapsed on /history — open it, exercising
+      // medications-sync.js's bpDetails "toggle" resize+resync path.
+      do! page.ClickAsync(".chart-toggle")
+      let! _ = page.WaitForSelectorAsync(".chart .plot-container")
+      do! page.ClickAsync(".medications-timeline summary")
+      let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
+      do! page.WaitForTimeoutAsync(300.0f)
+
+      let xaxisRange (selector: string) =
+        page.EvalOnSelectorAsync<string[]>(selector, "d => d._fullLayout.xaxis.range.map(String)")
+
+      let! bpRange = xaxisRange ".chart .js-plotly-plot"
+      let! timelineRange = xaxisRange ".medications-chart .js-plotly-plot"
+      Assert.Equal<string[]>(bpRange, timelineRange)
+
+      // Hover a medication bar — with no value-strip on this page, medications-sync.js's
+      // `hasValueStrip` guard must skip mirroring the hover onto the BP chart's spike.
+      let pixelFor (selector: string) (x: string) =
+        page.EvalOnSelectorAsync<float[]>(
+          selector,
+          "(d, x) => { const xa = d._fullLayout.xaxis; const ya = d._fullLayout.yaxis; \
+           const rect = d.querySelector('.draglayer .xy > rect').getBoundingClientRect(); \
+           return [rect.left + xa.l2p(xa.d2l(x)), rect.top + ya.l2p(0)]; }",
+          x
+        )
+
+      let nowLocal = DateTime.Now.ToString("yyyy-MM-dd HH:mm")
+      let! point = pixelFor ".medications-chart .js-plotly-plot" nowLocal
+
+      do! page.Mouse.MoveAsync(float32 point[0], float32 point[1])
+      do! page.WaitForTimeoutAsync(300.0f)
+
+      let! bpHasSpike = page.EvalOnSelectorAsync<bool>(".chart .js-plotly-plot", "d => !!d.querySelector('.spikeline')")
+
+      Assert.False(bpHasSpike, "expected /history's BP chart to never receive a mirrored spike (no value-strip there)")
+    }
