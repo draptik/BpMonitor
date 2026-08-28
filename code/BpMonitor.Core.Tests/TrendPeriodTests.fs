@@ -151,6 +151,14 @@ let ``ofKey Weekly: invalid key returns None`` () =
   test <@ TrendPeriod.ofKey Weekly "2026-M10" now = None @>
 
 [<Fact>]
+let ``ofKey Weekly: week 0 returns None`` () =
+  test <@ TrendPeriod.ofKey Weekly "2026-W00" now = None @>
+
+[<Fact>]
+let ``ofKey Weekly: week 54 returns None`` () =
+  test <@ TrendPeriod.ofKey Weekly "2026-W54" now = None @>
+
+[<Fact>]
 let ``ofKey Monthly: parses current month key and labels 'This Month'`` () =
   let p = TrendPeriod.ofKey Monthly "2026-06" now
   test <@ p.IsSome @>

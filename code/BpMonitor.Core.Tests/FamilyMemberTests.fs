@@ -1,9 +1,19 @@
 module FamilyMemberTests
 
+open System
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
 open TestBuilders
+
+[<Fact>]
+let ``create sets Id to 0 and CreatedAt/ModifiedAt to MinValue`` () =
+  match FamilyMember.create "Alice" true with
+  | Error _ -> failwith "unexpected error"
+  | Ok m ->
+    test <@ m.Id = 0 @>
+    test <@ m.CreatedAt = DateTimeOffset.MinValue @>
+    test <@ m.ModifiedAt = DateTimeOffset.MinValue @>
 
 [<Fact>]
 let ``create seeds default goal range`` () =

@@ -45,6 +45,66 @@ let ``formatDate is unaffected by the ambient culture`` () =
 let ``parse returns Ok when input is valid`` () =
   test <@ BloodPressureReading.parse ranges validUnvalidated |> Result.isOk @>
 
+[<Fact>]
+let ``parse accepts systolic exactly at the min and max boundaries`` () =
+  test
+    <@
+      BloodPressureReading.parse
+        ranges
+        { validUnvalidated with
+            Systolic = ranges.SystolicMin }
+      |> Result.isOk
+    @>
+
+  test
+    <@
+      BloodPressureReading.parse
+        ranges
+        { validUnvalidated with
+            Systolic = ranges.SystolicMax }
+      |> Result.isOk
+    @>
+
+[<Fact>]
+let ``parse accepts diastolic exactly at the min and max boundaries`` () =
+  test
+    <@
+      BloodPressureReading.parse
+        ranges
+        { validUnvalidated with
+            Diastolic = ranges.DiastolicMin }
+      |> Result.isOk
+    @>
+
+  test
+    <@
+      BloodPressureReading.parse
+        ranges
+        { validUnvalidated with
+            Diastolic = ranges.DiastolicMax }
+      |> Result.isOk
+    @>
+
+[<Fact>]
+let ``parse accepts heart rate exactly at the min and max boundaries`` () =
+  test
+    <@
+      BloodPressureReading.parse
+        ranges
+        { validUnvalidated with
+            HeartRate = ranges.HeartRateMin }
+      |> Result.isOk
+    @>
+
+  test
+    <@
+      BloodPressureReading.parse
+        ranges
+        { validUnvalidated with
+            HeartRate = ranges.HeartRateMax }
+      |> Result.isOk
+    @>
+
 [<Theory>]
 [<InlineData(0)>]
 [<InlineData(-1)>]

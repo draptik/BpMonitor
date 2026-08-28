@@ -152,3 +152,23 @@ let ``overlapping includes a medication whose start date equals the window end``
     Medication.overlapping (DateOnly(2026, 2, 1)) (DateOnly(2026, 3, 1)) [ m ]
 
   test <@ result = [ m ] @>
+
+[<Fact>]
+let ``overlapping filters a mixed list down to only the medications that overlap the window`` () =
+  let ongoing = med 1 "HCTZ" (DateOnly(2026, 1, 1)) None
+
+  let endedBefore =
+    med 2 "Amlodipine" (DateOnly(2025, 1, 1)) (Some(DateOnly(2025, 6, 1)))
+
+  let startsAfter = med 3 "Losartan" (DateOnly(2026, 4, 1)) None
+
+  let withinWindow =
+    med 4 "Lisinopril" (DateOnly(2026, 2, 10)) (Some(DateOnly(2026, 2, 20)))
+
+  let result =
+    Medication.overlapping
+      (DateOnly(2026, 2, 1))
+      (DateOnly(2026, 3, 1))
+      [ ongoing; endedBefore; startsAfter; withinWindow ]
+
+  test <@ result = [ ongoing; withinWindow ] @>
