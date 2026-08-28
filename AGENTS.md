@@ -130,6 +130,10 @@ dotnet test --configuration Release --results-directory ./TestResults -- --cover
 
 # Limit parallelism (e.g. on a 2-core machine)
 dotnet test --configuration Release --max-parallel-test-modules 2
+
+# Run a subset of tests: MTP, not VSTest — there is no top-level --filter.
+# Target one project directly and pass the filter after `--`:
+dotnet test BpMonitor.Web.Tests -- --filter-method "*SomeTestName*"
 ```
 
 `BpMonitor.Arch.Tests` uses `DoNotResideInNamespaceMatching("Microsoft\\.CodeCoverage.*")` in its type filters to exclude coverage-injected tracker types from ArchUnitNET dependency checks.
