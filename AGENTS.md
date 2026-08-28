@@ -117,14 +117,14 @@ commits on `main`.
 
 ## Testing
 
-Tests run on **Microsoft.Testing.Platform (MTP)** — all 8 test projects execute in parallel (default: CPU count concurrent modules):
+Tests run on **Microsoft.Testing.Platform (MTP)** — all 7 test projects execute in parallel (default: CPU count concurrent modules):
 
 ```bash
 # Run all tests in parallel (local dev)
 dotnet test --configuration Release
 
-# Run with coverage (CI runs the same, but as two steps — E2E split out via
-# --filter-namespace so it isn't fighting the rest for CPU)
+# Run with coverage (CI runs the same, but as two --filter-namespace-split
+# steps with --ignore-exit-code 8, so E2E isn't fighting the rest for CPU)
 dotnet test --configuration Release --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
 # → produces one GUID-named *.cobertura.xml per project under TestResults/
 
