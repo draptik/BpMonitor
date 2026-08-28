@@ -263,3 +263,71 @@ type MedicationsScrubberZoomSyncTests(fixture: WebAppFixture) =
 
       Assert.Equal<string[]>(bpRange, timelineRange)
     }
+
+/// medications-sync.js mirrors the BP chart's own spike onto the timeline too
+/// (bpPlot.on("plotly_hover", ...) / "plotly_unhover"), not just timeline→BP.
+type MedicationsScrubberBpToTimelineHoverTests(fixture: WebAppFixture) =
+  interface IClassFixture<WebAppFixture>
+
+  [<Fact>]
+  member _.``hovering the BP chart mirrors a spike onto the timeline, and unhovering clears it``() : Task =
+    task {
+      let! page =
+        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+
+      do! TestAccount.claimAndLogin fixture.BaseUrl page
+
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
+      do! page.FillAsync("#MedicationName", "Lisinopril")
+      do! page.FillAsync("#MedicationStartDate", "01.01.2026")
+      do! page.ClickAsync("form[action='/medications'] button[type=submit]")
+      let! _ = page.WaitForSelectorAsync("text=Lisinopril")
+
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
+      do! page.FillAsync("#Timestamp", DateTime.Now.ToString("yyyy-MM-dd HH:mm"))
+      do! page.FillAsync("#Systolic", "118")
+      do! page.FillAsync("#Diastolic", "76")
+      do! page.FillAsync("#HeartRate", "62")
+      do! page.ClickAsync("form[action='/readings'] button[type=submit]")
+      do! page.WaitForURLAsync($"{fixture.BaseUrl}/recent")
+
+      let! _ = page.GotoAsync($"{fixture.BaseUrl}/recent")
+      let! _ = page.WaitForSelectorAsync(".chart .plot-container")
+      do! page.ClickAsync(".medications-timeline summary")
+      let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
+      do! page.WaitForTimeoutAsync(300.0f)
+
+      let! x = page.Locator(".value-strip tr:first-child td[data-x]").First.GetAttributeAsync("data-x")
+
+      // BP-chart y=0 (mmHg) is far below the plotted range, unlike the timeline's category
+      // axis — use the draglayer's vertical center instead so the real mouse move lands on-chart.
+      let pixelFor (selector: string) (x: string) =
+        page.EvalOnSelectorAsync<float[]>(
+          selector,
+          "(d, x) => { const xa = d._fullLayout.xaxis; \
+           const rect = d.querySelector('.draglayer .xy > rect').getBoundingClientRect(); \
+           return [rect.left + xa.l2p(xa.d2l(x)), rect.top + rect.height / 2]; }",
+          x
+        )
+
+      let hasTimelineSpike () =
+        page.EvalOnSelectorAsync<bool>(".medications-chart .js-plotly-plot", "d => !!d.querySelector('.spikeline')")
+
+      let! bpPoint = pixelFor ".chart .js-plotly-plot" x
+      do! page.Mouse.MoveAsync(float32 bpPoint[0], float32 bpPoint[1])
+      do! page.WaitForTimeoutAsync(300.0f)
+
+      let! spikeShownWhileHovering = hasTimelineSpike ()
+      Assert.True(spikeShownWhileHovering, "expected the timeline to show a mirrored spike while hovering the BP chart")
+
+      // Move off the chart entirely so Plotly emits plotly_unhover.
+      do! page.Mouse.MoveAsync(10.0f, 10.0f)
+      do! page.WaitForTimeoutAsync(300.0f)
+
+      let! spikeShownAfterUnhover = hasTimelineSpike ()
+
+      Assert.False(
+        spikeShownAfterUnhover,
+        "expected the mirrored spike to clear once the BP chart is no longer hovered"
+      )
+    }
