@@ -75,6 +75,28 @@ let ``serialize emits an array entry per reading in input order`` () =
   test <@ secondId = 2 @>
   test <@ secondSystolic = 140 @>
 
+[<Theory>]
+[<InlineData("a \"quoted\" word")>]
+[<InlineData("a \\ backslash")>]
+[<InlineData("Blutdruck 血圧 давление")>]
+let ``serialize round-trips special characters in comments`` (comment: string) =
+  let reading =
+    { Id = 1
+      MemberId = 1
+      Systolic = 120
+      Diastolic = 80
+      HeartRate = 70
+      Timestamp = Timestamp.utc 2024 10 15 9 0 0
+      Comments = Some comment
+      CreatedAt = Timestamp.utc 2024 10 15 9 0 0
+      ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
+
+  let json = serialize [ reading ]
+  let root = JsonDocument.Parse(json).RootElement
+  let roundTripped = root.[0].GetProperty("comments").GetString()
+
+  test <@ roundTripped = comment @>
+
 [<Fact>]
 let ``tryWriteToFile writes serialized readings to the given path`` () =
   let reading =
