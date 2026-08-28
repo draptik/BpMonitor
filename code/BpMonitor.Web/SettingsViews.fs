@@ -22,7 +22,9 @@ module SettingsViews =
       memberName
       isAdmin
       s.Shell.NavSettings
-      (Elem.h1 [] [ Text.raw s.Shell.NavSettings ]
-       :: MemberViews.languageSection s language
-       @ MemberViews.goalRangeSection s goalErrors goalInput
-       @ MedicationViews.medicationsSection s medications medicationErrors)
+      [ Elem.div
+          [ Attr.class' "dense-page" ]
+          (Elem.h1 [] [ Text.raw s.Shell.NavSettings ]
+           :: MemberViews.languageSection s language
+           @ MemberViews.goalRangeSection s goalErrors goalInput
+           @ MedicationViews.medicationsSection s medications medicationErrors) ]

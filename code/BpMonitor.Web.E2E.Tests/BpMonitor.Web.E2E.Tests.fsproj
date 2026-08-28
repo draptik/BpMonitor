@@ -13,6 +13,7 @@
     <Compile Include="RecentScrubberFirefoxTests.fs" />
     <Compile Include="MedicationsScrubberTests.fs" />
     <Compile Include="RecentReadingsListTests.fs" />
+    <Compile Include="SettingsSectionMemoryTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

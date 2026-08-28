@@ -58,6 +58,14 @@ let ``settings renders the authenticated member's current goal range`` () =
   test <@ body.Contains "value=\"60\"" @>
 
 [<Fact>]
+let ``settings wraps its content in the dense-page density scope`` () =
+  let repo = repoWith []
+  let ctx = TestHost.context repo
+  TestHost.run ReadingHandlers.settings ctx
+
+  test <@ (TestHost.readBody ctx).Contains "dense-page" @>
+
+[<Fact>]
 let ``updateSettings persists a valid goal range and redirects to history`` () =
   let repo = repoWith []
   let ctx = TestHost.context repo
