@@ -212,9 +212,14 @@ module ViewLayout =
       [ Elem.label [ Attr.for' name ] [ Text.raw labelText ]
         Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ] ]
 
-  /// The readings' table; wrapped in an id'd container so it can be targeted for
-  /// partial swaps later.
-  let readingsTable (s: LocalizedStrings) (readings: BloodPressureReading list) : XmlNode =
+  /// The readings table's markup, with the container and each row's extra attributes
+  /// left to the caller — e.g. tagging rows with `data-x` for chart-zoom syncing.
+  let readingsTableWith
+    (s: LocalizedStrings)
+    (containerAttrs: XmlAttribute list)
+    (rowAttrs: BloodPressureReading -> XmlAttribute list)
+    (readings: BloodPressureReading list)
+    : XmlNode =
     let header =
       Elem.thead
         []
@@ -229,7 +234,7 @@ module ViewLayout =
 
     let row (r: BloodPressureReading) =
       Elem.tr
-        []
+        (rowAttrs r)
         [ Elem.td [ Attr.class' "col-timestamp" ] [ Text.enc (Formats.formatLocal r.Timestamp) ]
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.Systolic) ]
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.Diastolic) ]
@@ -243,4 +248,9 @@ module ViewLayout =
                   Attr.class' "outline secondary" ]
                 [ Text.raw s.Shell.Edit ] ] ]
 
-    Elem.div [ Attr.id "readings" ] [ Elem.table [] [ header; Elem.tbody [] (readings |> List.map row) ] ]
+    Elem.div containerAttrs [ Elem.table [] [ header; Elem.tbody [] (readings |> List.map row) ] ]
+
+  /// The readings' table; wrapped in an id'd container so it can be targeted for
+  /// partial swaps later.
+  let readingsTable (s: LocalizedStrings) (readings: BloodPressureReading list) : XmlNode =
+    readingsTableWith s [ Attr.id "readings" ] (fun _ -> []) readings

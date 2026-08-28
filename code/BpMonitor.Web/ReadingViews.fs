@@ -141,6 +141,22 @@ module ReadingViews =
               Attr.create "hx-swap" "outerHTML" ]
             [ Text.raw s.Reading.LoadFullHistory ] ]
 
+    // Collapsed by default; mirrors the value strip's data-x/out-of-range tagging so
+    // recent-scrubber.js's plotly_relayout handler keeps both in sync with the x-axis.
+    let readingsSection =
+      Elem.details
+        [ Attr.class' "recent-readings"
+          Attr.create "data-persist-key" "recent-readings" ]
+        [ Elem.summary [] [ Text.raw s.Reading.RecentReadingsSection ]
+          ViewLayout.readingsTableWith
+            s
+            [ Attr.class' "recent-readings-table" ]
+            (fun r ->
+              [ Attr.create "data-x" (Formats.formatLocal r.Timestamp)
+                if r.Timestamp < windowStart then
+                  Attr.class' "out-of-range" ])
+            allReadings ]
+
     // Fig. 5's scrubber bar: boxes the hovered column in sync with the chart's x-axis spike.
     Elem.div
       [ Attr.id "recent-chart"; Attr.class' "chart-container" ]
@@ -152,7 +168,8 @@ module ReadingViews =
            Elem.p
              [ Attr.class' "chart-citation" ]
              [ Text.raw s.Reading.ChartCitationPrefix
-               Elem.a [ Attr.href "https://doi.org/10.1186/s12911-021-01598-4" ] [ Text.raw "Wegier et al. 2021" ] ] ])
+               Elem.a [ Attr.href "https://doi.org/10.1186/s12911-021-01598-4" ] [ Text.raw "Wegier et al. 2021" ] ]
+           readingsSection ])
 
   /// Recent: chart of all readings, focused on the last 30 days, with a sys/dias value strip.
   let recent

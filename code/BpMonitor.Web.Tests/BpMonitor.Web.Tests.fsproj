@@ -32,6 +32,7 @@
     <Compile Include="RecentTestFixtures.fs" />
     <Compile Include="RecentHandlerTests.fs" />
     <Compile Include="RecentValueStripTests.fs" />
+    <Compile Include="RecentReadingsListTests.fs" />
     <Compile Include="SettingsHandlerTests.fs" />
     <Compile Include="MedicationHandlerTests.fs" />
     <Compile Include="MedicationsTimelineHandlerTests.fs" />

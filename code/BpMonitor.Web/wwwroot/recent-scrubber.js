@@ -9,9 +9,7 @@
 // so a hovered chart point can be matched back to its strip column via `data-x`.
 //
 // Columns outside the visible focus window start hidden via `out-of-range` (see
-// ReadingViews.fs `valueStrip`); `plotly_relayout` fires with `xaxis.range[0]`/`[1]`
-// on zoom/pan, or `xaxis.autorange` on a reset (e.g. double-click), and this keeps
-// the value strip in sync as the user pans/zooms the chart.
+// ReadingViews.fs `valueStrip` and the readings section); `plotly_relayout` syncs both.
 //
 // The link is symmetric: hovering the strip drives the chart's spike via
 // Plotly.Fx.hover (strip → chart), mirroring the existing chart → strip direction.
@@ -171,8 +169,9 @@ function setupRecentScrubber() {
     });
 
     d.on("plotly_relayout", (e) => {
-      const cells = /** @type {NodeListOf<HTMLElement>} */ (
-        document.querySelectorAll(".value-strip td[data-x]")
+      // Both the value strip's cells and the readings list's rows carry a data-x key.
+      const elements = /** @type {NodeListOf<HTMLElement>} */ (
+        document.querySelectorAll(".value-strip td[data-x], .recent-readings tr[data-x]")
       );
       let lo = e["xaxis.range[0]"];
       let hi = e["xaxis.range[1]"];
@@ -192,8 +191,8 @@ function setupRecentScrubber() {
       }
 
       if (lo === undefined || hi === undefined) {
-        cells.forEach((c) => {
-          c.classList.remove("out-of-range");
+        elements.forEach((el) => {
+          el.classList.remove("out-of-range");
         });
         return;
       }
@@ -202,12 +201,12 @@ function setupRecentScrubber() {
       const hiT = new Date(String(hi).replace(" ", "T")).getTime();
       if (Number.isNaN(loT) || Number.isNaN(hiT)) return;
 
-      cells.forEach((c) => {
-        const cellX = c.dataset.x;
-        if (!cellX) return;
-        const t = new Date(cellX.replace(" ", "T")).getTime();
+      elements.forEach((el) => {
+        const elX = el.dataset.x;
+        if (!elX) return;
+        const t = new Date(elX.replace(" ", "T")).getTime();
         if (Number.isNaN(t)) return;
-        c.classList.toggle("out-of-range", t < loT || t > hiT);
+        el.classList.toggle("out-of-range", t < loT || t > hiT);
       });
     });
   });
