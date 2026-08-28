@@ -361,6 +361,18 @@ g.errorbars path.yerror {
   line-height: 1.2;
 }
 
+/* Pico's default form-element padding is sized for touch targets; shrink it on
+   desktop only (mobile keeps Pico's default). --pico-line-height must be
+   overridden too — Pico sizes <input> height from it directly, not from the
+   line-height property. */
+@media (min-width: 601px) {
+  .dense-page .field :is(input, select) {
+    --pico-form-element-spacing-vertical: 0.35rem;
+    --pico-form-element-spacing-horizontal: 0.6rem;
+    --pico-line-height: 1.2;
+  }
+}
+
 .dense-page .field label {
   margin-bottom: 0.15rem;
 }
