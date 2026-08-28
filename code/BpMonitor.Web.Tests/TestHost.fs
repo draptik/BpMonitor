@@ -35,7 +35,9 @@ let private buildServices
 
 let buildPrincipal (m: FamilyMember) : ClaimsPrincipal = AuthHandlers.claimsPrincipal m
 
-let private defaultMember: FamilyMember =
+/// A default active admin member with Id=1, used as the pre-set signed-in user
+/// for context builders that don't take an explicit member list.
+let defaultMember: FamilyMember =
   { Id = 1
     Name = "Me"
     IsAdmin = true

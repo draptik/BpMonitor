@@ -5,16 +5,7 @@ open BpMonitor.Core
 
 let s: LocalizedStrings = LocalizedStrings.en
 
-let defaultMember: FamilyMember =
-  { Id = 1
-    Name = "Me"
-    IsAdmin = true
-    IsActive = true
-    PasswordHash = None
-    Goal = GoalRange.defaults
-    Language = English
-    CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+let defaultMember: FamilyMember = TestHost.defaultMember
 
 let sample: BloodPressureReading =
   { Id = 7
