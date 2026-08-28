@@ -72,7 +72,10 @@ let ``recent renders the chart without a details wrapper`` () =
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  test <@ not (body.Contains "<details") && body.Contains "class=\"chart-container\"" @>
+  // Unlike /history, the chart itself isn't collapsible; the readings section's
+  // <details> (below the chart) is a separate, later element.
+  test <@ body.Contains "class=\"chart-container\"" @>
+  test <@ body.IndexOf "<details" > body.IndexOf "<div class=\"chart\"" @>
 
 [<Fact>]
 let ``recent renders the chart with the authenticated member's goal range`` () =

@@ -34,9 +34,12 @@ let ``recent loads a reading older than 30 days but marks its value-strip cell o
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
+  let stripStart = body.IndexOf "value-strip"
+  let stripEnd = body.IndexOf("</table>", stripStart)
+  let strip = body.Substring(stripStart, stripEnd - stripStart)
 
   let cells =
-    System.Text.RegularExpressions.Regex.Matches(body, "<td class=\"([^\"]*)\"[^>]*>(\\d+)</td>")
+    System.Text.RegularExpressions.Regex.Matches(strip, "<td class=\"([^\"]*)\"[^>]*>(\\d+)</td>")
     |> Seq.map (fun m -> m.Groups[2].Value, m.Groups[1].Value)
     |> Map.ofSeq
 

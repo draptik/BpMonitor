@@ -801,6 +801,26 @@ form.inline button,
   font-size: smaller;
 }
 
+/* Collapsible readings list below the chart on /recent, filtered to the visible
+   x-range by recent-scrubber.js's `plotly_relayout` handler (same data-x/out-of-range
+   mechanism as the value strip above). Collapsed by default, remembered via
+   wwwroot/details-memory.js. */
+.recent-readings {
+  margin-top: 1rem;
+}
+
+.recent-readings summary {
+  cursor: pointer;
+  user-select: none;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.recent-readings-table tr.out-of-range {
+  display: none;
+}
+
 /* ── Trends page ────────────────────────────────────────────────────────── */
 
 /* Granularity selector row (Weekly / Monthly / Yearly). Shared with the Recent

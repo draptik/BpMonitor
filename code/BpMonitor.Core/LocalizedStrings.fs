@@ -57,6 +57,7 @@ type ReadingPageStrings =
     ChartCitationPrefix: string
     Last7Days: string
     Last30Days: string
+    RecentReadingsSection: string
     AddReadingTitle: string
     EditReadingTitle: string
     TimestampHint: string }
@@ -220,6 +221,7 @@ module LocalizedStrings =
           ChartCitationPrefix = "Chart layout inspired by "
           Last7Days = "Last 7 days"
           Last30Days = "Last 30 days"
+          RecentReadingsSection = "Readings in view"
           AddReadingTitle = "Add reading"
           EditReadingTitle = "Edit reading"
           TimestampHint = "yyyy-MM-dd HH:mm" }
@@ -365,6 +367,7 @@ module LocalizedStrings =
           ChartCitationPrefix = "Diagramm-Layout inspiriert von "
           Last7Days = "Letzte 7 Tage"
           Last30Days = "Letzte 30 Tage"
+          RecentReadingsSection = "Angezeigte Messwerte"
           AddReadingTitle = "Messung hinzufügen"
           EditReadingTitle = "Messung bearbeiten"
           TimestampHint = "yyyy-MM-dd HH:mm" }

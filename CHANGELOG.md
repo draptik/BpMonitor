@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Recent: a collapsible "Readings in view" section below the chart lists the readings currently in view (same columns and Edit button as History), and narrows automatically as you pan or zoom the chart.
+
 ### Fixed
 
 - Reading and medication comments are now HTML-encoded before being embedded in chart hover tooltips, closing a stored-HTML-injection hole where a comment containing an `<a href="javascript:...">` tag would render as a clickable link inside the tooltip.
