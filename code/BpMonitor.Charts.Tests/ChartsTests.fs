@@ -275,6 +275,16 @@ let ``toHtmlRecent connects readings with a solid line when the gap stays within
   test <@ not (html.Contains("\"dash\":\"dash\"")) @>
 
 [<Fact>]
+let ``toHtmlRecent stays solid when the gap sits exactly on the 10%-of-window threshold`` () =
+  // Window = 20 days; threshold = 2.0 missing days. Gap of 3 days → 2 missing days == threshold, still solid (only `>` dashes).
+  let atThreshold = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 4 9 None ]
+
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 20 (now.AddDays(-20.0)) now atThreshold
+
+  test <@ not (html.Contains("\"dash\":\"dash\"")) @>
+
+[<Fact>]
 let ``toHtmlRecent judges gaps by calendar days, not raw elapsed time`` () =
   // Window = 30 days; threshold = 3.0 missing days. Day 1 → Day 5 is a 4-calendar-day gap
   // (missingDays = 3, not > 3), so it must render solid even though the readings are
