@@ -544,6 +544,13 @@ let ``toHtmlRecent locks the y-axis range so zoom/select tools can only ever cha
   test <@ Regex.IsMatch(html, "\"yaxis\":\\{.*?\"range\":\\[0,200\\],\"fixedrange\":true") @>
 
 [<Fact>]
+let ``toHtmlDashed renders valid Plotly HTML for a period with no aggregated readings`` () =
+  let html =
+    BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly []
+
+  test <@ html.Contains("Plotly.newPlot") @>
+
+[<Fact>]
 let ``toHtmlDashed matches snapshot`` () : Task =
   let html: string =
     BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly (asAggregated readings)
