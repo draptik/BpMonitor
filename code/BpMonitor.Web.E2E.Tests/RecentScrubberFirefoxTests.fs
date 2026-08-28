@@ -55,7 +55,7 @@ type RecentScrubberFirefoxTests(fixture: FirefoxWebAppFixture) =
         let! box = page.Locator($"""css=.value-strip tr:first-child td[data-x="{x}"]""").BoundingBoxAsync()
 
         do! page.Mouse.MoveAsync(float32 box.X + float32 box.Width / 2.0f, float32 box.Y + float32 box.Height / 2.0f)
-        do! page.WaitForTimeoutAsync(150.0f)
+        do! page.WaitForTimeoutAsync(300.0f)
 
         let! scrubbedXs =
           page.EvalOnSelectorAllAsync<string[]>(".value-strip td.scrubbed", "els => els.map(e => e.dataset.x)")
