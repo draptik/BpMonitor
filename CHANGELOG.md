@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Medications Timeline: an ongoing medication's hover tooltip always said "ongoing" in English regardless of language — now localized (German: "laufend").
+- Recent: hovering a medication bar in the Medications Timeline now moves the scrubber in the BP chart and value strip too, instead of doing nothing — and no longer occasionally jumps the BP chart's scrubber off-screen when hovering a sparse date near the visible window's edge.
 
 ## [1.12.2] - 2026-08-24
 

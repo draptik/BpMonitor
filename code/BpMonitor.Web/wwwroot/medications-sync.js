@@ -4,19 +4,18 @@
 // plots via whenPlotReady (plot-ready.js) — index 0 is always the BP chart, index 1 the
 // timeline, per the DOM order ReadingViews.fs renders them in.
 //
-// /history has no scrubber (Charts.fs medicationsXAxis's spike is BP-chart-driven only via
-// /recent's `showScrubber`), so only the axis-sync half of this file does anything there;
-// the hover-mirroring handlers below are harmless no-ops without a spike to move.
+// /history has no scrubber, so the timeline→BP hover-mirroring below is gated on
+// `.value-strip` — only the axis-sync half does anything there.
 function setupMedicationsSync() {
   const timelineDetails = /** @type {HTMLDetailsElement | null} */ (
     document.querySelector(".medications-timeline")
   );
   if (!timelineDetails) return;
 
-  /**
-   * @param {PlotlyChartElement} target
-   * @param {string} x
-   */
+  // Set during a synthetic dispatch below, so the mirrored plotly_hover doesn't bounce back and recurse.
+  let syncing = false;
+
+  /** @param {PlotlyChartElement} target @param {string} x */
   function hoverAt(target, x) {
     const geo = chartGeometry(target);
     if (!geo) return;
@@ -25,23 +24,54 @@ function setupMedicationsSync() {
     const yPx = geo.yaxis?.l2p?.(0) ?? br.height / 2;
     // A collapsed target chart is zero-width, so l2p yields NaN — Firefox throws on that.
     if (!Number.isFinite(xPx) || !Number.isFinite(yPx)) return;
-    // Resets Plotly's own hover state first — back-to-back mousemove dispatches without
-    // this made Plotly's internal throttle emit every other one with an empty points array.
-    dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-    dragRect.dispatchEvent(
-      new MouseEvent("mousemove", {
-        bubbles: true,
-        cancelable: true,
-        clientX: br.left + xPx,
-        clientY: br.top + yPx,
-      }),
-    );
+    syncing = true;
+    try {
+      // Resets Plotly's own hover state first — back-to-back mousemove dispatches without
+      // this made Plotly's internal throttle emit every other one with an empty points array.
+      dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+      dragRect.dispatchEvent(
+        new MouseEvent("mousemove", {
+          bubbles: true,
+          cancelable: true,
+          clientX: br.left + xPx,
+          clientY: br.top + yPx,
+        }),
+      );
+
+      // SpikeSnap.Data snaps to the nearest reading across all loaded data, not just the
+      // visible range — a sparse spot near the edge can snap off-screen. Cancel that.
+      const spike = target.querySelector(".spikeline");
+      if (spike) {
+        const spikeRect = spike.getBoundingClientRect();
+        if (spikeRect.right < br.left || spikeRect.left > br.left + br.width) {
+          dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+        }
+      }
+    } finally {
+      syncing = false;
+    }
   }
 
   /** @param {PlotlyChartElement} target */
   function unhover(target) {
     const dragRect = chartGeometry(target)?.dragRect;
-    if (dragRect) dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+    if (!dragRect) return;
+    syncing = true;
+    try {
+      dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+    } finally {
+      syncing = false;
+    }
+  }
+
+  // Outside the draglayer, p2d extrapolates past the visible range — reject it.
+  /** @param {PlotlyChartElement} plot @param {number} clientX @returns {string | undefined} */
+  function pointerX(plot, clientX) {
+    const geo = chartGeometry(plot);
+    if (!geo) return undefined;
+    const relX = clientX - geo.br.left;
+    if (relX < 0 || relX > geo.br.width) return undefined;
+    return geo.xaxis.p2d(relX);
   }
 
   whenPlotReady((bpPlot) => {
@@ -83,21 +113,50 @@ function setupMedicationsSync() {
       // BP chart → timeline: mirror the spike position. A relayout-driven hover replay
       // (e.g. theme.js's applyChartTheme) can fire with no points.
       bpPlot.on("plotly_hover", (e) => {
+        if (syncing) return;
         const x = e.points?.[0]?.x;
         if (x !== undefined) hoverAt(timelinePlot, x);
       });
       bpPlot.on("plotly_unhover", () => {
-        unhover(timelinePlot);
+        if (!syncing) unhover(timelinePlot);
       });
 
       // Timeline → BP chart: hovering a medication bar moves the BP chart's spike (and,
       // via recent-scrubber.js's existing plotly_hover listener, the value strip's box).
+      // fills-hover fires once on entry, not per move — mousemove below tracks while `hoveringBar`.
+      const hasValueStrip = !!document.querySelector(".value-strip"); // /recent-only; /history has no spike
+      let hoveringBar = false;
+
+      // hoverAt's mouseout-then-mousemove reset can outrace its own redraw when fired on
+      // every raw mousemove — coalescing to one dispatch per frame avoids that flicker.
+      let pendingX = /** @type {string | undefined} */ (undefined);
+      let rafScheduled = false;
+      /** @param {string} x */
+      function scheduleHoverAt(x) {
+        pendingX = x;
+        if (rafScheduled) return;
+        rafScheduled = true;
+        requestAnimationFrame(() => {
+          rafScheduled = false;
+          if (pendingX !== undefined) hoverAt(bpPlot, pendingX);
+        });
+      }
+
       timelinePlot.on("plotly_hover", (e) => {
-        const x = e.points?.[0]?.x;
-        if (x !== undefined) hoverAt(bpPlot, x);
+        if (!hasValueStrip || syncing) return;
+        hoveringBar = true;
+        const x = e.points?.[0]?.x ?? (e.event && pointerX(timelinePlot, e.event.clientX));
+        if (x !== undefined) scheduleHoverAt(x);
       });
       timelinePlot.on("plotly_unhover", () => {
-        unhover(bpPlot);
+        hoveringBar = false;
+        pendingX = undefined;
+        if (hasValueStrip && !syncing) unhover(bpPlot);
+      });
+      timelinePlot.addEventListener("mousemove", (e) => {
+        if (!hasValueStrip || syncing || !hoveringBar) return;
+        const x = pointerX(timelinePlot, e.clientX);
+        if (x !== undefined) scheduleHoverAt(x);
       });
 
       // Pan/zoom (including the Last 7/30 days buttons, via recent-zoom.js's
