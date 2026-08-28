@@ -44,10 +44,18 @@ type MedicationsSyncFirefoxTests(fixture: FirefoxWebAppFixture) =
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.WaitForTimeoutAsync(500.0f)
 
-      let! box = page.Locator("css=.value-strip tr:first-child td[data-x]").First.BoundingBoxAsync()
+      let cell = page.Locator("css=.value-strip tr:first-child td[data-x]").First
+      let! x = cell.GetAttributeAsync("data-x")
+      let! box = cell.BoundingBoxAsync()
 
       do! page.Mouse.MoveAsync(float32 box.X + float32 box.Width / 2.0f, float32 box.Y + float32 box.Height / 2.0f)
-      do! page.WaitForTimeoutAsync(300.0f)
+
+      // Waits for the main chart's own hover to land (unaffected by the collapsed
+      // timeline's guard, which only skips the mirrored dispatch onto that chart).
+      let! _ =
+        page.WaitForFunctionAsync(
+          $"""() => document.querySelector('.value-strip td.scrubbed[data-x="{x}"]') !== null"""
+        )
 
       Assert.Empty(pageErrors)
     }
