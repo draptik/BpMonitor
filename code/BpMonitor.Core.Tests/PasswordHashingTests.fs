@@ -33,6 +33,18 @@ let ``verify returns false on malformed encoded string`` () =
   test <@ not (PasswordHashing.verify "any" "only.twoparts") @>
 
 [<Fact>]
+let ``verify returns false when the iteration count is non-numeric`` () =
+  test <@ not (PasswordHashing.verify "any" "abc.def.ghi") @>
+
+[<Fact>]
+let ``verify returns false when the salt segment is not valid base64`` () =
+  test <@ not (PasswordHashing.verify "any" "310000.not-valid-base64!.AAAA") @>
+
+[<Fact>]
+let ``verify returns false when the hash segment is not valid base64`` () =
+  test <@ not (PasswordHashing.verify "any" "310000.AAAA.not-valid-base64!") @>
+
+[<Fact>]
 let ``verify returns false when hash section is tampered`` () =
   let encoded = PasswordHashing.hash "secret"
   let parts = encoded.Split('.')
