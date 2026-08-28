@@ -4,7 +4,7 @@ open System
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
-open TestBuilders
+open BpMonitor.TestSupport.TestBuilders
 
 [<Fact>]
 let ``create sets Id to 0 and CreatedAt/ModifiedAt to MinValue`` () =

@@ -18,17 +18,8 @@ let sample: BloodPressureReading =
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue }
 
-/// A default admin member with Id=defaultMemberId. Mirrors the member pre-set in TestHost.context.
-let sampleMember: FamilyMember =
-  { Id = defaultMemberId
-    Name = "Me"
-    IsAdmin = true
-    IsActive = true
-    PasswordHash = None
-    Goal = GoalRange.defaults
-    Language = English
-    CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+/// A default admin member with Id=defaultMemberId. Same member TestHost.context pre-sets as the signed-in user.
+let sampleMember: FamilyMember = TestHost.defaultMember
 
 /// Creates an active admin member with a custom goal range for chart-assertion tests.
 let memberWithGoal (goal: GoalRange) : FamilyMember = { sampleMember with Goal = goal }

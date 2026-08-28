@@ -4,7 +4,7 @@ open System
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
-open TestBuilders
+open BpMonitor.TestSupport.TestBuilders
 
 let private now = DateTimeOffset(2026, 6, 9, 12, 0, 0, TimeSpan.Zero)
 

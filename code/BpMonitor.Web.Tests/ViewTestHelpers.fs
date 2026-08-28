@@ -5,17 +5,10 @@ open BpMonitor.Core
 
 let s: LocalizedStrings = LocalizedStrings.en
 
-let defaultMember: FamilyMember =
-  { Id = 1
-    Name = "Me"
-    IsAdmin = true
-    IsActive = true
-    PasswordHash = None
-    Goal = GoalRange.defaults
-    Language = English
-    CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+let defaultMember: FamilyMember = TestHost.defaultMember
 
+/// Distinct from HandlerTestHelpers.sample: Id=7 and its Comments text are asserted
+/// on directly in view-rendering tests (e.g. HistoryViewTests' edit-form/route checks).
 let sample: BloodPressureReading =
   { Id = 7
     MemberId = 1

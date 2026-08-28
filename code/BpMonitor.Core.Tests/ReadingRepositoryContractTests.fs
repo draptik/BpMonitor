@@ -3,7 +3,7 @@ module ReadingRepositoryContractTests
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
-open TestBuilders
+open BpMonitor.TestSupport.TestBuilders
 
 type private StubRepository(initial: BloodPressureReading list) =
   let readings = ResizeArray<BloodPressureReading>(initial)

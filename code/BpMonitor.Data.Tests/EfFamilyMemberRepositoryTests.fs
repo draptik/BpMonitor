@@ -3,36 +3,12 @@ module EfFamilyMemberRepositoryTests
 open System
 open Xunit
 open Swensen.Unquote
-open Microsoft.Data.Sqlite
-open Microsoft.EntityFrameworkCore
 open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
 open BpMonitor.Data
 
-let private createContext () =
-  let connection = new SqliteConnection("DataSource=:memory:")
-  connection.Open()
-
-  let options =
-    DbContextOptionsBuilder<BpMonitorDbContext>().UseSqlite(connection).Options
-
-  let ctx = new BpMonitorDbContext(options)
-  ctx.Database.EnsureCreated() |> ignore
-  ctx
-
-let private createContextWithLog (log: ResizeArray<string>) =
-  let connection = new SqliteConnection("DataSource=:memory:")
-  connection.Open()
-
-  let options =
-    DbContextOptionsBuilder<BpMonitorDbContext>()
-      .UseSqlite(connection)
-      .LogTo(System.Action<string>(fun s -> log.Add(s)))
-      .Options
-
-  let ctx = new BpMonitorDbContext(options)
-  ctx.Database.EnsureCreated() |> ignore
-  ctx
+let private createContext = EfTestContext.createContext
+let private createContextWithLog = EfTestContext.createContextWithLog
 
 let private createRepo (ctx: BpMonitorDbContext) : IFamilyMemberRepository =
   EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
@@ -208,6 +184,4 @@ let ``GetById translates Id filter to SQL WHERE clause`` () =
   log.Clear()
   repo.GetById(added.Id) |> ignore
 
-  let selectSql = log |> Seq.filter _.Contains("SELECT") |> String.concat " "
-
-  Assert.Contains("WHERE", selectSql)
+  EfTestContext.assertWhereClauseUsed log
