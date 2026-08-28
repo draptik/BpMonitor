@@ -15,7 +15,7 @@ let ``recent page renders a collapsible readings section below the chart citatio
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  test <@ body.Contains "<details class=\"recent-readings\" data-persist-key=\"recent-readings\">" @>
+  test <@ body.Contains "<details class=\"collapsible recent-readings\" data-persist-key=\"recent-readings\">" @>
 
 [<Fact>]
 let ``recent readings section lists heart rate, comment and an edit link per reading`` () =
@@ -71,7 +71,7 @@ let ``recent full fragment includes the readings section too`` () =
   TestHost.run ReadingHandlers.recentFull ctx
 
   let body = TestHost.readBody ctx
-  test <@ body.Contains "<details class=\"recent-readings\" data-persist-key=\"recent-readings\">" @>
+  test <@ body.Contains "<details class=\"collapsible recent-readings\" data-persist-key=\"recent-readings\">" @>
 
 [<Fact>]
 let ``recent readings section lists rows newest first, like History`` () =

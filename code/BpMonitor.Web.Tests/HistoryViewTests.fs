@@ -23,6 +23,13 @@ let ``history renders reading values, chart div and nav links`` () =
   test <@ html.Contains $"href=\"{Routes.history}\" aria-current=\"page\"" @>
 
 [<Fact>]
+let ``history chart section is a collapsible that persists its open state`` () =
+  let html =
+    renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
+
+  test <@ html.Contains "<details class=\"collapsible\" data-persist-key=\"history-chart\">" @>
+
+[<Fact>]
 let ``edit form is prefilled from the reading`` () =
   let html =
     renderHtml (

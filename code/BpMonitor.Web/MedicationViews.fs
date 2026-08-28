@@ -66,7 +66,7 @@ module MedicationViews =
   /// The `/settings` Medications section: a collapsible table plus inline add form.
   let medicationsSection (s: LocalizedStrings) (medications: Medication list) (errors: string list) : XmlNode list =
     [ Elem.details
-        [ Attr.class' "settings-section"
+        [ Attr.class' "collapsible settings-section"
           Attr.create "open" ""
           Attr.create "data-persist-key" "settings-medications" ]
         [ Elem.summary [] [ Elem.h2 [] [ Text.raw s.Medication.MedicationsTitle ] ]
@@ -175,7 +175,7 @@ module MedicationViews =
       Text.raw ""
     else
       Elem.details
-        [ Attr.class' "medications-timeline"
+        [ Attr.class' "collapsible medications-timeline"
           Attr.create "data-persist-key" "medications-timeline" ]
         [ Elem.summary [] [ Text.raw s.Medication.MedicationsTimelineTitle ]
           // Not the plain `.chart` class: that fixes height to `--chart-height` for the BP chart.

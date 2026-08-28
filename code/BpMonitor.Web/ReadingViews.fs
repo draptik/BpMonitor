@@ -58,8 +58,8 @@ module ReadingViews =
       s.Reading.HistoryTitle
       [ Elem.h1 [] [ Text.raw s.Reading.HistoryTitle ]
         Elem.details
-          []
-          [ Elem.summary [ Attr.class' "chart-toggle" ] [ Text.raw s.Reading.BloodPressureGraph ]
+          [ Attr.class' "collapsible"; Attr.create "data-persist-key" "history-chart" ]
+          [ Elem.summary [] [ Text.raw s.Reading.BloodPressureGraph ]
             Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ] ]
         medicationsPanel
         ViewLayout.readingsTable s readings ]
@@ -145,7 +145,7 @@ module ReadingViews =
     // recent-scrubber.js's plotly_relayout handler keeps both in sync with the x-axis.
     let readingsSection =
       Elem.details
-        [ Attr.class' "recent-readings"
+        [ Attr.class' "collapsible recent-readings"
           Attr.create "data-persist-key" "recent-readings" ]
         [ Elem.summary [] [ Text.raw s.Reading.RecentReadingsSection ]
           ViewLayout.readingsTableWith
