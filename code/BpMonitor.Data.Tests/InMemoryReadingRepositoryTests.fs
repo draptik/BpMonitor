@@ -72,6 +72,41 @@ let ``AddMany assigns sequential Ids`` () =
   test <@ readings[1].Id = 2 @>
 
 [<Fact>]
+let ``Update modifies the stored reading`` () =
+  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
+  repo.Add defaultMemberId sample
+  let added = repo.GetAll(defaultMemberId)[0]
+  repo.Update { added with Systolic = 130 }
+  test <@ repo.GetAll(defaultMemberId).[0].Systolic = 130 @>
+
+[<Fact>]
+let ``Update of a non-existent reading is a no-op`` () =
+  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
+  repo.Add defaultMemberId sample
+
+  let ghost =
+    { sample with
+        Id = 999
+        MemberId = defaultMemberId }
+
+  repo.Update(ghost)
+  test <@ repo.GetAll(defaultMemberId).Length = 1 @>
+
+[<Fact>]
+let ``Update does not affect a reading belonging to a different member`` () =
+  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
+  repo.Add 1 sample
+  let added = repo.GetAll(1)[0]
+
+  repo.Update(
+    { added with
+        Systolic = 999
+        MemberId = 2 }
+  )
+
+  test <@ repo.GetAll(1).[0].Systolic = 120 @>
+
+[<Fact>]
 let ``GetAll returns only readings for the requested member`` () =
   let r1 = { sample with Id = 1; MemberId = 1 }
 

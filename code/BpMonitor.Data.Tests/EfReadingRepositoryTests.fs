@@ -182,6 +182,22 @@ let ``Update preserves CreatedAt and sets ModifiedAt to current time`` () =
   test <@ result.ModifiedAt = updatedAt @>
 
 [<Fact>]
+let ``Update of a non-existent reading is a no-op`` () =
+  use ctx = createContext ()
+
+  let repo = createRepo ctx
+
+  repo.Add defaultMemberId sample
+
+  let ghost =
+    { sample with
+        Id = 999
+        MemberId = defaultMemberId }
+
+  repo.Update(ghost)
+  test <@ repo.GetAll(defaultMemberId).Length = 1 @>
+
+[<Fact>]
 let ``Update does not affect a reading belonging to a different member`` () =
   use ctx = createContext ()
 

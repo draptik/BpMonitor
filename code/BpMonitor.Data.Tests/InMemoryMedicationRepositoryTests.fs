@@ -39,9 +39,68 @@ let ``Add stamps the medication with the given memberId`` () =
   test <@ repo.GetAll(defaultMemberId).Length = 0 @>
 
 [<Fact>]
+let ``GetAll returns only medications for the requested member`` () =
+  let repo = InMemoryMedicationRepository(Some []) :> IMedicationRepository
+  repo.Add 1 sample
+  repo.Add 2 { sample with Name = "lisinopril" }
+  test <@ repo.GetAll(1).Length = 1 @>
+  test <@ repo.GetAll(2).Length = 1 @>
+  test <@ repo.GetAll(1).[0].MemberId = 1 @>
+
+[<Fact>]
+let ``Update modifies the stored medication`` () =
+  let repo = InMemoryMedicationRepository(Some []) :> IMedicationRepository
+  repo.Add defaultMemberId sample
+  let added = repo.GetAll(defaultMemberId)[0]
+  repo.Update { added with Name = "HCTZ 25mg" }
+  test <@ repo.GetAll(defaultMemberId).[0].Name = "HCTZ 25mg" @>
+
+[<Fact>]
+let ``Update of a non-existent medication is a no-op`` () =
+  let repo = InMemoryMedicationRepository(Some []) :> IMedicationRepository
+  repo.Add defaultMemberId sample
+
+  let ghost =
+    { sample with
+        Id = 999
+        MemberId = defaultMemberId }
+
+  repo.Update(ghost)
+  test <@ repo.GetAll(defaultMemberId).Length = 1 @>
+
+[<Fact>]
+let ``Update does not affect a medication belonging to a different member`` () =
+  let repo = InMemoryMedicationRepository(Some []) :> IMedicationRepository
+  repo.Add 1 sample
+  let added = repo.GetAll(1)[0]
+
+  repo.Update(
+    { added with
+        Name = "renamed"
+        MemberId = 2 }
+  )
+
+  test <@ repo.GetAll(1).[0].Name = "HCTZ" @>
+
+[<Fact>]
 let ``Delete removes the medication`` () =
   let repo = InMemoryMedicationRepository(Some []) :> IMedicationRepository
   repo.Add defaultMemberId sample
   let added = repo.GetAll(defaultMemberId)[0]
   repo.Delete defaultMemberId added.Id
   test <@ repo.GetAll(defaultMemberId) = [] @>
+
+[<Fact>]
+let ``Delete of a non-existent medication is a no-op`` () =
+  let repo = InMemoryMedicationRepository(Some []) :> IMedicationRepository
+  repo.Add defaultMemberId sample
+  repo.Delete defaultMemberId 999
+  test <@ repo.GetAll(defaultMemberId).Length = 1 @>
+
+[<Fact>]
+let ``Delete does not affect a medication belonging to a different member`` () =
+  let repo = InMemoryMedicationRepository(Some []) :> IMedicationRepository
+  repo.Add 1 sample
+  let added = repo.GetAll(1)[0]
+  repo.Delete 2 added.Id
+  test <@ repo.GetAll(1).Length = 1 @>
