@@ -210,6 +210,11 @@ let ``toHtml does not include None comment readings in comments trace`` () =
   test <@ not (html.Contains("Comments")) @>
 
 [<Fact>]
+let ``toHtml renders valid Plotly HTML for a member with no readings yet`` () =
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults []
+  test <@ html.Contains("Plotly.newPlot") @>
+
+[<Fact>]
 let ``toHtml uses compact margins, like the trends chart, now that it has no title`` () =
   let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":72}") @>
