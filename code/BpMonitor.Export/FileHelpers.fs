@@ -10,3 +10,4 @@ let tryWriteString (path: string) (content: string) : Result<unit, string> =
   with
   | :? IOException as ex -> Error ex.Message
   | :? UnauthorizedAccessException as ex -> Error ex.Message
+  | :? ArgumentException as ex -> Error ex.Message
