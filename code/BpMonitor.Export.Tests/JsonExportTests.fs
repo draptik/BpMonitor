@@ -30,6 +30,22 @@ let ``serialize readings to JSON matches snapshot`` () : Task =
   verifyJson json
 
 [<Fact>]
+let ``serialize readings with no comments matches snapshot`` () : Task =
+  let reading =
+    { Id = 1
+      MemberId = 1
+      Systolic = 120
+      Diastolic = 80
+      HeartRate = 70
+      Timestamp = Timestamp.utc 2024 10 15 9 0 0
+      Comments = None
+      CreatedAt = Timestamp.utc 2024 10 15 9 0 0
+      ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
+
+  let json = serialize [ reading ]
+  verifyJson json
+
+[<Fact>]
 let ``tryWriteToFile writes serialized readings to the given path`` () =
   let reading =
     { Id = 1
