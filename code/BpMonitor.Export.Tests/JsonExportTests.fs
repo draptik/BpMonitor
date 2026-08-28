@@ -13,19 +13,19 @@ open Xunit
 let private thisFile = Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__)
 let private verifyJson = Verifier.verifyJson thisFile
 
+let private reading =
+  { Id = 1
+    MemberId = 1
+    Systolic = 120
+    Diastolic = 80
+    HeartRate = 70
+    Timestamp = Timestamp.utc 2024 10 15 9 0 0
+    Comments = Some "morning"
+    CreatedAt = Timestamp.utc 2024 10 15 9 0 0
+    ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
+
 [<Fact>]
 let ``serialize readings to JSON matches snapshot`` () : Task =
-  let reading =
-    { Id = 1
-      MemberId = 1
-      Systolic = 120
-      Diastolic = 80
-      HeartRate = 70
-      Timestamp = Timestamp.utc 2024 10 15 9 0 0
-      Comments = Some "morning"
-      CreatedAt = Timestamp.utc 2024 10 15 9 0 0
-      ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
-
   let json = serialize [ reading ]
   verifyJson json
 
@@ -36,33 +36,12 @@ let ``serialize produces an empty array for no readings`` () =
 
 [<Fact>]
 let ``serialize readings with no comments matches snapshot`` () : Task =
-  let reading =
-    { Id = 1
-      MemberId = 1
-      Systolic = 120
-      Diastolic = 80
-      HeartRate = 70
-      Timestamp = Timestamp.utc 2024 10 15 9 0 0
-      Comments = None
-      CreatedAt = Timestamp.utc 2024 10 15 9 0 0
-      ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
-
-  let json = serialize [ reading ]
+  let json = serialize [ { reading with Comments = None } ]
   verifyJson json
 
 [<Fact>]
 let ``serialize emits an array entry per reading in input order`` () =
-  let first =
-    { Id = 1
-      MemberId = 1
-      Systolic = 120
-      Diastolic = 80
-      HeartRate = 70
-      Timestamp = Timestamp.utc 2024 10 15 9 0 0
-      Comments = None
-      CreatedAt = Timestamp.utc 2024 10 15 9 0 0
-      ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
-
+  let first = { reading with Comments = None }
   let second = { first with Id = 2; Systolic = 140 }
 
   let json = serialize [ first; second ]
@@ -85,18 +64,7 @@ let ``serialize emits an array entry per reading in input order`` () =
 [<InlineData("a \\ backslash")>]
 [<InlineData("Blutdruck 血圧 давление")>]
 let ``serialize round-trips special characters in comments`` (comment: string) =
-  let reading =
-    { Id = 1
-      MemberId = 1
-      Systolic = 120
-      Diastolic = 80
-      HeartRate = 70
-      Timestamp = Timestamp.utc 2024 10 15 9 0 0
-      Comments = Some comment
-      CreatedAt = Timestamp.utc 2024 10 15 9 0 0
-      ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
-
-  let json = serialize [ reading ]
+  let json = serialize [ { reading with Comments = Some comment } ]
   let root = JsonDocument.Parse(json).RootElement
   let roundTripped = root.[0].GetProperty("comments").GetString()
 
@@ -104,19 +72,8 @@ let ``serialize round-trips special characters in comments`` (comment: string) =
 
 [<Fact>]
 let ``tryWriteToFile writes serialized readings to the given path`` () =
-  let reading =
-    { Id = 1
-      MemberId = 1
-      Systolic = 120
-      Diastolic = 80
-      HeartRate = 70
-      Timestamp = Timestamp.utc 2024 10 15 9 0 0
-      Comments = None
-      CreatedAt = Timestamp.utc 2024 10 15 9 0 0
-      ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
-
   let path = Path.GetTempFileName()
-  tryWriteToFile path [ reading ] |> ignore
+  tryWriteToFile path [ { reading with Comments = None } ] |> ignore
 
   let json = File.ReadAllText(path)
   let root = JsonDocument.Parse(json).RootElement
