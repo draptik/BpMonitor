@@ -32,6 +32,7 @@
     <Compile Include="RecentHandlerTests.fs" />
     <Compile Include="SettingsHandlerTests.fs" />
     <Compile Include="MedicationHandlerTests.fs" />
+    <Compile Include="MedicationsTimelineHandlerTests.fs" />
     <Compile Include="HealthHandlerTests.fs" />
     <Compile Include="PlotlyVendoringTests.fs" />
     <Compile Include="GermanRenderingTests.fs" />
