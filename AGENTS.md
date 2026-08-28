@@ -123,7 +123,8 @@ Tests run on **Microsoft.Testing.Platform (MTP)** — all 8 test projects execut
 # Run all tests in parallel (local dev)
 dotnet test --configuration Release
 
-# Run with coverage (matches CI)
+# Run with coverage (CI runs the same, but as two steps — E2E split out via
+# --filter-namespace so it isn't fighting the rest for CPU)
 dotnet test --configuration Release --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
 # → produces one GUID-named *.cobertura.xml per project under TestResults/
 

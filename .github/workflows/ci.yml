@@ -111,8 +111,14 @@ jobs:
         run: pwsh bin/Release/net10.0/playwright.ps1 install chromium firefox
         working-directory: code/BpMonitor.Web.E2E.Tests
 
-      - name: Test
-        run: dotnet test --no-build --configuration Release --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
+      # Split from E2E so it isn't fighting the rest for CPU, the root cause of past Firefox flakiness.
+      # --ignore-exit-code 8 covers each step's expected zero-tests projects (the ones the filter excludes).
+      - name: Test (unit/integration)
+        run: dotnet test --no-build --configuration Release --filter-not-namespace "BpMonitor.Web.E2E*" --ignore-exit-code 8 --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
+        working-directory: code
+
+      - name: Test (E2E)
+        run: dotnet test --no-build --configuration Release --filter-namespace "BpMonitor.Web.E2E*" --ignore-exit-code 8 --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
         working-directory: code
 
       - name: Generate coverage report
