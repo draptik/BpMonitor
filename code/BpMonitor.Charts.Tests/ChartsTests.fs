@@ -210,6 +210,11 @@ let ``toHtml does not include None comment readings in comments trace`` () =
   test <@ not (html.Contains("Comments")) @>
 
 [<Fact>]
+let ``toHtml renders valid Plotly HTML for a member with no readings yet`` () =
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults []
+  test <@ html.Contains("Plotly.newPlot") @>
+
+[<Fact>]
 let ``toHtml uses compact margins, like the trends chart, now that it has no title`` () =
   let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults readings
   test <@ html.Contains("\"margin\":{\"l\":48,\"r\":16,\"t\":24,\"b\":72}") @>
@@ -266,6 +271,16 @@ let ``toHtmlRecent connects readings with a solid line when the gap stays within
 
   let html =
     BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now dense
+
+  test <@ not (html.Contains("\"dash\":\"dash\"")) @>
+
+[<Fact>]
+let ``toHtmlRecent stays solid when the gap sits exactly on the 10%-of-window threshold`` () =
+  // Window = 20 days; threshold = 2.0 missing days. Gap of 3 days → 2 missing days == threshold, still solid (only `>` dashes).
+  let atThreshold = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 4 9 None ]
+
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 20 (now.AddDays(-20.0)) now atThreshold
 
   test <@ not (html.Contains("\"dash\":\"dash\"")) @>
 
@@ -396,6 +411,16 @@ let ``toHtmlRecent skips the comment trace from unified hover, so it only appear
   test <@ Regex.IsMatch(html, "\"name\":\"Comments\".*?\"hoverinfo\":\"skip\"") @>
 
 [<Fact>]
+let ``toHtmlRecent renders a single reading as a point, since there's no gap to style dashed or solid`` () =
+  let single = [ reading 1 120 80 70 1 9 None ]
+
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now single
+
+  test <@ html.Contains("\"mode\":\"markers\"") @>
+  test <@ html.Contains("Plotly.newPlot") @>
+
+[<Fact>]
 let ``toHtmlRecent omits the trend line when there are too few readings to smooth meaningfully`` () =
   let sparse = [ reading 1 120 80 70 1 9 None; reading 2 130 85 74 2 9 None ]
 
@@ -403,6 +428,31 @@ let ``toHtmlRecent omits the trend line when there are too few readings to smoot
     BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now sparse
 
   test <@ not (html.Contains("(trend)")) @>
+
+[<Fact>]
+let ``toHtmlRecent still omits the trend line at 3 readings, one below the 4-reading minimum`` () =
+  let threeReadings =
+    [ reading 1 120 80 70 1 9 None
+      reading 2 130 85 74 2 9 None
+      reading 3 125 82 72 3 9 None ]
+
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now threeReadings
+
+  test <@ not (html.Contains("(trend)")) @>
+
+[<Fact>]
+let ``toHtmlRecent renders the trend line at 4 readings, the minimum required to smooth`` () =
+  let fourReadings =
+    [ reading 1 120 80 70 1 9 None
+      reading 2 130 85 74 2 9 None
+      reading 3 125 82 72 3 9 None
+      reading 4 128 83 73 4 9 None ]
+
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now fourReadings
+
+  test <@ html.Contains("(trend)") @>
 
 [<Fact>]
 let ``toHtmlRecent fades the raw measurement line so the LOWESS trend line stands out as the visual focus`` () =
@@ -492,6 +542,13 @@ let ``toHtmlRecent locks the y-axis range so zoom/select tools can only ever cha
     BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   test <@ Regex.IsMatch(html, "\"yaxis\":\\{.*?\"range\":\\[0,200\\],\"fixedrange\":true") @>
+
+[<Fact>]
+let ``toHtmlDashed renders valid Plotly HTML for a period with no aggregated readings`` () =
+  let html =
+    BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly []
+
+  test <@ html.Contains("Plotly.newPlot") @>
 
 [<Fact>]
 let ``toHtmlDashed matches snapshot`` () : Task =

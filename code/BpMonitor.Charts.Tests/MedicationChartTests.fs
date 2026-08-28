@@ -88,6 +88,17 @@ let ``toHtmlMedications ends a completed medication's bar at its EndDate`` () =
   test <@ html.Contains("2026-01-20 00:00") @>
 
 [<Fact>]
+let ``toHtmlMedications keeps a medication's true start date even when it predates rangeLow`` () =
+  // rangeLow only sets the axis's initial visible window (like the BP chart above it) —
+  // it doesn't clip trace data, so panning back still reveals medications that started earlier.
+  let meds = [ medication 1 "HCTZ" None None (DateOnly(2025, 12, 15)) None ]
+
+  let html =
+    BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
+
+  test <@ html.Contains("2025-12-15 00:00") @>
+
+[<Fact>]
 let ``toHtmlMedications renders a spike (scrubber) when showScrubber is true`` () =
   let meds = [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None ]
 
@@ -127,6 +138,28 @@ let ``toHtmlMedications gives two different medications different colors`` () =
   let meds =
     [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None
       medication 2 "lisinopril" None None (DateOnly(2026, 1, 10)) None ]
+
+  let html =
+    BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
+
+  let marker = "\"line\":{\"color\":\""
+
+  let firstColor =
+    let start = html.IndexOf(marker) + marker.Length
+    html.Substring(start, 7)
+
+  let secondColor =
+    let start = html.IndexOf(marker, html.IndexOf(marker) + 1) + marker.Length
+    html.Substring(start, 7)
+
+  test <@ firstColor <> secondColor @>
+
+[<Fact>]
+let ``toHtmlMedications gives colliding hash slots different colors via linear probing`` () =
+  // "Medication0" and "Medication22" both hash (FNV-1a mod 16) to the same palette slot.
+  let meds =
+    [ medication 1 "Medication0" None None (DateOnly(2026, 1, 5)) None
+      medication 2 "Medication22" None None (DateOnly(2026, 1, 10)) None ]
 
   let html =
     BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
