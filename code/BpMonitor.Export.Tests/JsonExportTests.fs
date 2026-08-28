@@ -30,6 +30,11 @@ let ``serialize readings to JSON matches snapshot`` () : Task =
   verifyJson json
 
 [<Fact>]
+let ``serialize produces an empty array for no readings`` () =
+  let json = serialize []
+  test <@ json = "[]" @>
+
+[<Fact>]
 let ``serialize readings with no comments matches snapshot`` () : Task =
   let reading =
     { Id = 1
