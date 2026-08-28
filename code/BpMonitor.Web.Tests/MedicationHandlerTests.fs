@@ -4,6 +4,7 @@ open System
 open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
 open BpMonitor.Web
 open HandlerTestHelpers
@@ -362,3 +363,24 @@ let ``history renders a medication when the member has no readings at all`` () =
   TestHost.run ReadingHandlers.history ctx
 
   test <@ (TestHost.readBody ctx).Contains "Medications Timeline" @>
+
+[<Fact>]
+let ``history extends an ongoing medication's timeline span to today`` () =
+  // EndDate = None means "still ongoing" — the span's high end should be today
+  // (per the time provider), not e.g. the medication's own StartDate.
+  let today = DateTimeOffset(2026, 6, 15, 10, 0, 0, TimeSpan.Zero)
+  let tp = FakeTimeProvider(today)
+
+  let ongoing =
+    { sampleMedication with
+        StartDate = DateOnly(2026, 6, 1)
+        EndDate = None }
+
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMedicationsAndProvider repo [ ongoing ] tp
+
+  TestHost.run ReadingHandlers.history ctx
+
+  // The trace and axis both extend to "today" rather than stopping at the
+  // medication's own StartDate or collapsing to "now" with no medications at all.
+  test <@ (TestHost.readBody ctx).Contains "2026-06-15" @>
