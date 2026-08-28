@@ -41,6 +41,20 @@ let ``serialize produces one data row per reading`` () =
   test <@ lines.Length = 3 @>
 
 [<Fact>]
+let ``serialize preserves each reading's own data in its own row and input order`` () =
+  let first = { reading with Id = 1; Systolic = 120 }
+  let second = { reading with Id = 2; Systolic = 140 }
+  let csv = serialize [ first; second ]
+
+  let lines =
+    csv.Split('\n') |> Array.filter (fun l -> l.Trim() <> "") |> Array.skip 1 // drop header
+
+  test <@ lines[0].StartsWith "1," @>
+  test <@ lines[0].Contains "120" @>
+  test <@ lines[1].StartsWith "2," @>
+  test <@ lines[1].Contains "140" @>
+
+[<Fact>]
 let ``serialize quotes a comment containing a comma`` () =
   let r = { reading with Comments = Some "a,b" }
   let csv = serialize [ r ]
@@ -51,6 +65,18 @@ let ``serialize doubles embedded double-quotes in comments`` () =
   let r = { reading with Comments = Some "a\"b" }
   let csv = serialize [ r ]
   test <@ csv.Contains "\"a\"\"b\"" @>
+
+[<Fact>]
+let ``serialize quotes a comment containing a bare newline`` () =
+  let r = { reading with Comments = Some "a\nb" }
+  let csv = serialize [ r ]
+  test <@ csv.Contains "\"a\nb\"" @>
+
+[<Fact>]
+let ``serialize quotes a comment containing a bare carriage return`` () =
+  let r = { reading with Comments = Some "a\rb" }
+  let csv = serialize [ r ]
+  test <@ csv.Contains "\"a\rb\"" @>
 
 [<Fact>]
 let ``serialize emits an empty field for None comments`` () =
@@ -94,3 +120,20 @@ let ``serialize prefixes formula-trigger comments to prevent spreadsheet injecti
   test <@ not (csv.Contains $",{comment},") @>
   // Apostrophe-prefixed field must appear instead
   test <@ csv.Contains $",'{comment}," @>
+
+[<Fact>]
+let ``serialize does not prefix a comment where the trigger character appears mid-string`` () =
+  let r =
+    { reading with
+        Comments = Some "hello=world" }
+
+  let csv = serialize [ r ]
+
+  test <@ csv.Contains ",hello=world," @>
+
+[<Fact>]
+let ``serialize quotes and prefixes a formula-trigger comment that also contains a comma`` () =
+  let r = { reading with Comments = Some "=a,b" }
+  let csv = serialize [ r ]
+
+  test <@ csv.Contains "\"'=a,b\"" @>

@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="FileHelpersTests.fs" />
     <Compile Include="JsonExportTests.fs" />
     <Compile Include="CsvExportTests.fs" />
   </ItemGroup>
