@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.3] - 2026-08-28
+
 ### Fixed
 
 - Medications Timeline: an ongoing medication's hover tooltip always said "ongoing" in English regardless of language — now localized (German: "laufend").
@@ -450,7 +452,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.12.2...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.12.3...HEAD
+[1.12.3]: https://github.com/draptik/BpMonitor/compare/v1.12.2...v1.12.3
 [1.12.2]: https://github.com/draptik/BpMonitor/compare/v1.12.1...v1.12.2
 [1.12.1]: https://github.com/draptik/BpMonitor/compare/v1.12.0...v1.12.1
 [1.12.0]: https://github.com/draptik/BpMonitor/compare/v1.11.0...v1.12.0
