@@ -718,8 +718,19 @@ let ``toHtml escapes </script> in comment text to prevent inline script injectio
   // The raw injection string must not appear — it would close the <script> block early
   // and allow HTML to be injected into the page DOM
   test <@ not (html.Contains "</script><img") @>
-  // The backslash-escaped form must appear in the JSON data instead
-  // (<\/ is valid JSON and is treated as </ by JS but the HTML parser won't see it as </script>)
-  test <@ html.Contains @"<\/script><img" @>
-  // The actual </script> closing tags must still be present (the page must remain valid)
+  // Comment text is HTML-encoded before reaching the trace, so the payload is neutralized
+  // as text, not just prevented from breaking out of the <script> block
+  test <@ html.Contains "&lt;/script&gt;&lt;img" @>
+  // The actual </script> closing tags for the chart's own script element must still be present
   test <@ html.Contains "</script>" @>
+
+[<Fact>]
+let ``toHtml HTML-encodes comment text so Plotly cannot render it as a hover link`` () =
+  let hostile =
+    reading 1 120 80 70 1 9 (Some "<a href=\"javascript:alert(1)\">click</a>")
+
+  let html = BpChart.toHtml LocalizedStrings.en.Charts GoalRange.defaults [ hostile ]
+
+  // Plotly's hovertemplate renders a limited HTML subset (including <a href>) from the trace's text value.
+  test <@ not (html.Contains "<a href=") @>
+  test <@ html.Contains "&lt;a href=" @>
