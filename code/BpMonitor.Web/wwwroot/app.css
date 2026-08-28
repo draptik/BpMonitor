@@ -345,6 +345,14 @@ g.errorbars path.yerror {
   margin-left: 0.75rem;
 }
 
+/* .dense-page h2 (below) resets margin, including margin-left, on every h2.
+   Same specificity as the rule above but declared later, so without a more
+   specific override here it wins for a section's own sub-heading (e.g.
+   Medications' "Add Medication"), pulling it back out of the indent. */
+.dense-page .settings-section > h2 {
+  margin-left: 0.75rem;
+}
+
 /* Density scope for pages that are mostly stacked forms/tables and waste vertical
    space at Pico's default spacing (Settings, Family members). Scoped rather than
    global so the reading add/edit form and other full-size forms are unaffected. */
