@@ -94,3 +94,10 @@ let ``serialize prefixes formula-trigger comments to prevent spreadsheet injecti
   test <@ not (csv.Contains $",{comment},") @>
   // Apostrophe-prefixed field must appear instead
   test <@ csv.Contains $",'{comment}," @>
+
+[<Fact>]
+let ``serialize quotes and prefixes a formula-trigger comment that also contains a comma`` () =
+  let r = { reading with Comments = Some "=a,b" }
+  let csv = serialize [ r ]
+
+  test <@ csv.Contains "\"'=a,b\"" @>
