@@ -7,23 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-08-29
+
 ### Added
 
 - Recent: a collapsible "Readings in view" section below the chart lists the readings currently in view (same columns and Edit button as History), and narrows automatically as you pan or zoom the chart.
 
 ### Changed
 
-- Settings and Family members are much more compact, especially on desktop: tighter headings, form fields, table rows, and buttons.
-- Collapsible sections (History's chart, Settings, Medications Timeline, Recent's readings list) now look like clickable header bars instead of plain muted text, and History's chart now remembers whether you left it open or closed.
-- Collapsible sections' expanded content is now wrapped in a light border, so the body reads as attached to its header bar instead of floating below it.
+- Settings and Family members are much more compact, especially on desktop: tighter headings, form fields, table rows, and buttons; each section's content is indented under its header bar, and the Language section no longer repeats a redundant "Language" label above the dropdown.
+- Collapsible sections (History's chart, Settings, Medications Timeline, Recent's readings list) look like clickable header bars instead of plain muted text, wrap their expanded content in a light border, and remember whether you left them open or closed.
 
 ### Fixed
 
-- Reading and medication comments are now HTML-encoded before being embedded in chart hover tooltips, closing a stored-HTML-injection hole where a comment containing an `<a href="javascript:...">` tag would render as a clickable link inside the tooltip.
-- Recent: the scrubber's hover label showed the weekday abbreviation in English (e.g. "Tue") regardless of language — now localized (German: "Di").
-- Settings: collapsing a Language/Goal Range/Medications section now stays collapsed after reloading the page, instead of always reopening.
-- Settings: each section's fields/table are now indented under its header bar instead of sitting flush with the page edge, and the Language section no longer shows a redundant "Language" label above the dropdown.
-- Settings: the Medications section's "Add medication" heading was missed by the indent fix above and still sat flush with the page edge — now indented too.
+- Reading and medication comments are HTML-encoded before being embedded in chart hover tooltips, closing a stored-HTML-injection hole where a comment containing an `<a href="javascript:...">` tag would render as a clickable link inside the tooltip.
+- Recent: the scrubber's hover label shows the weekday abbreviation in your selected language instead of always English (e.g. German "Di" instead of "Tue").
 
 ## [1.12.3] - 2026-08-28
 
@@ -470,7 +468,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.12.3...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/draptik/BpMonitor/compare/v1.12.3...v1.13.0
 [1.12.3]: https://github.com/draptik/BpMonitor/compare/v1.12.2...v1.12.3
 [1.12.2]: https://github.com/draptik/BpMonitor/compare/v1.12.1...v1.12.2
 [1.12.1]: https://github.com/draptik/BpMonitor/compare/v1.12.0...v1.12.1
