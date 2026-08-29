@@ -28,7 +28,9 @@ module TestAccount =
       do! page.FillAsync("#Password", password)
       do! page.FillAsync("#PasswordConfirm", password)
       do! page.ClickAsync("button[type=submit]")
-      do! page.WaitForURLAsync($"{baseUrl}/")
+
+      // Above Playwright's 30s default — not every route this crosses gets warmed up.
+      do! page.WaitForURLAsync($"{baseUrl}/", PageWaitForURLOptions(Timeout = 45000f))
     }
 
 /// Locates the repository's `code/` directory (the one containing BpMonitor.slnx)
@@ -88,6 +90,15 @@ type WebAppFixture() =
           (fun () -> capturedOutput.ToString())
           (TimeSpan.FromSeconds 30.0)
           port
+
+      // /health doesn't JIT-warm the request pipeline; pay that cost here, where a slow first response can't fail a test.
+      use warmupClient = new HttpClient(Timeout = TimeSpan.FromSeconds 30.0)
+
+      try
+        let! _ = warmupClient.GetAsync($"http://127.0.0.1:{port}/login")
+        ()
+      with _ ->
+        ()
     }
 
   interface IAsyncLifetime with
