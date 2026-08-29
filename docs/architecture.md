@@ -192,7 +192,10 @@ graph TD
 
 ### BpMonitor.Arch.Tests
 
-- ArchUnit rules enforcing Clean Architecture layer boundaries: Core ↛ Data/Web; Data ↛ Web; Charts ↛ Data/Web; Export ↛ Data/Charts/Web
+- ArchUnit rules enforcing Clean Architecture layer boundaries: Core ↛ Data/Charts/Export/Web; Data ↛ Charts/Export/Web; Charts ↛ Data/Web; Export ↛ Data/Charts/Web
+- Plus a reflection-based check that Core's compiled assembly references no EF Core, ASP.NET Core, SQLite, or Falco package — project-to-project rules alone wouldn't catch a stray `dotnet add reference`
+- Web's `*Handlers` modules must not depend on `BpMonitorDbContext` directly (they go through Core's repository interfaces instead) — `HealthHandlers` is the one documented exception, for its `/health` `Database.CanConnect()` probe
+- Every `I*Repository` interface in Core has an `Ef*Repository` and an `InMemory*Repository` implementation in Data, checked by name against the documented convention
 
 ## Design Principles
 
