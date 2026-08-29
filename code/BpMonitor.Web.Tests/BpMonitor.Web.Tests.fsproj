@@ -9,6 +9,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="ProcessReadiness.fs" />
+    <Compile Include="ProcessReadinessTests.fs" />
     <Compile Include="TestHost.fs" />
     <Compile Include="HandlerTestHelpers.fs" />
     <Compile Include="ViewTestHelpers.fs" />

@@ -1,4 +1,4 @@
-module BpMonitor.Web.E2E.ProcessReadinessTests
+module ProcessReadinessTests
 
 open System
 open System.Diagnostics
