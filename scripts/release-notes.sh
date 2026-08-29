@@ -111,7 +111,8 @@ if [ "${#breaking[@]}" -gt 0 ]; then
   print_section "⚠️ Breaking changes" "${breaking[@]}"
 fi
 print_section "✨ Added" "${added[@]}"
-print_section "♻️ Changed" "${changed[@]}"
+# No single icon: groups perf/refactor/style commits, so ♻️ (refactor-only) would misrepresent a style- or perf-only release.
+print_section "Changed" "${changed[@]}"
 print_section "🐛 Fixed" "${fixed[@]}"
 print_section "🔒 Security" "${security[@]}"
 print_section "🔧 Maintenance" "${maintenance[@]}"
