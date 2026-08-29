@@ -341,11 +341,23 @@ g.errorbars path.yerror {
   margin: 0;
 }
 
-/* Density scope for pages that are mostly stacked forms/tables and waste vertical
-   space at Pico's default spacing (Settings, Family members). Scoped rather than
-   global so the reading add/edit form and other full-size forms are unaffected. */
+/* Density scope for pages that waste vertical space at Pico's default spacing
+   (Settings, Family members) — not global, so full-size forms are unaffected. */
+/* Mobile/desktop values live in these custom properties (overridden once below),
+   so each rule's selector is declared only here, not duplicated per breakpoint. */
+.dense-page {
+  --dense-heading-margin: 0.75rem 0 0.5rem;
+  --dense-field-margin-bottom: 0.35rem;
+  --dense-field-line-height: 1.2;
+  --dense-form-gap: 0.5rem 1rem;
+  --dense-submit-margin-top: 0.5rem;
+  --dense-action-padding: 0.3rem 0.9rem;
+  --dense-action-min-height: auto;
+  --dense-cell-padding-block: 0.4rem;
+}
+
 .dense-page h1 {
-  margin: 0.75rem 0 0.5rem;
+  margin: var(--dense-heading-margin);
 }
 
 .dense-page h2 {
@@ -353,8 +365,8 @@ g.errorbars path.yerror {
 }
 
 .dense-page .field :is(input, select) {
-  margin-bottom: 0.35rem;
-  line-height: 1.2;
+  margin-bottom: var(--dense-field-margin-bottom);
+  line-height: var(--dense-field-line-height);
 }
 
 /* Pico's default form-element padding is sized for touch targets; shrink it on
@@ -374,7 +386,7 @@ g.errorbars path.yerror {
 }
 
 .dense-page form {
-  gap: 0.5rem 1rem;
+  gap: var(--dense-form-gap);
 }
 
 .dense-page .field-hint {
@@ -384,13 +396,14 @@ g.errorbars path.yerror {
 /* One field per row, same as .stacked everywhere else — just with less breathing
    room above the submit button than the fields' own tightened margin-bottom leaves. */
 .dense-page form.stacked button[type="submit"] {
-  margin-top: 0.5rem;
+  margin-top: var(--dense-submit-margin-top);
 }
 
 .dense-page :is(.actions button, .actions a[role="button"], form.stacked button[type="submit"]) {
-  padding: 0.3rem 0.9rem;
+  padding: var(--dense-action-padding);
   font-size: 0.875rem;
   width: auto;
+  min-height: var(--dense-action-min-height);
 }
 
 .dense-page .actions {
@@ -398,8 +411,8 @@ g.errorbars path.yerror {
 }
 
 .dense-page :is(th, td) {
-  padding-top: 0.4rem;
-  padding-bottom: 0.4rem;
+  padding-top: var(--dense-cell-padding-block);
+  padding-bottom: var(--dense-cell-padding-block);
 }
 
 [data-theme="dark"] {
@@ -476,31 +489,16 @@ g.errorbars path.yerror {
     margin-top: 1.25rem;
   }
 
-  .dense-page h1 {
-    margin: 1rem 0 0.75rem;
-  }
-
-  .dense-page .field :is(input, select) {
-    margin-bottom: 0.6rem;
-    line-height: 1.5;
-  }
-
-  .dense-page form {
-    gap: 0.75rem 1rem;
-  }
-
-  .dense-page form.stacked button[type="submit"] {
-    margin-top: 0;
-  }
-
-  .dense-page :is(.actions button, .actions a[role="button"], form.stacked button[type="submit"]) {
-    padding: 0.5rem 1rem;
-    min-height: 2.5rem;
-  }
-
-  .dense-page :is(th, td) {
-    padding-top: 0.6rem;
-    padding-bottom: 0.6rem;
+  /* Loosens the desktop-tight .dense-page rules back up for mobile (see above). */
+  .dense-page {
+    --dense-heading-margin: 1rem 0 0.75rem;
+    --dense-field-margin-bottom: 0.6rem;
+    --dense-field-line-height: 1.5;
+    --dense-form-gap: 0.75rem 1rem;
+    --dense-submit-margin-top: 0;
+    --dense-action-padding: 0.5rem 1rem;
+    --dense-action-min-height: 2.5rem;
+    --dense-cell-padding-block: 0.6rem;
   }
 
   /* ── Mobile sidebar / off-canvas drawer ─────────────────────────────────── */
