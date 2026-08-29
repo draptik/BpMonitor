@@ -907,11 +907,12 @@ form.inline button,
     inset 0 -2px 0 var(--color-scrubber);
 }
 
-/* Keeps the value strip in sync with the chart's x-axis on zoom/pan (TODOs.md): toggled
-   by the same inline script's `plotly_relayout` handler. Removing (not just hiding) the
-   cell from layout lets the fixed-layout table redistribute the remaining columns to fill
-   the width, matching the chart's narrowed x-range. */
-.value-strip td.out-of-range {
+/* Keeps the value strip and the readings list (below) in sync with the chart's x-axis on
+   zoom/pan: toggled by recent-scrubber.js's `plotly_relayout` handler. Removing (not just
+   hiding) the value strip's cell from layout lets its fixed-layout table redistribute the
+   remaining columns to fill the width, matching the chart's narrowed x-range. */
+.value-strip td.out-of-range,
+.recent-readings-table tr.out-of-range {
   display: none;
 }
 
@@ -950,10 +951,6 @@ form.inline button,
    wwwroot/details-memory.js. Header-bar styling itself is shared: see .collapsible above. */
 .recent-readings {
   margin-top: 1rem;
-}
-
-.recent-readings-table tr.out-of-range {
-  display: none;
 }
 
 /* ── Trends page ────────────────────────────────────────────────────────── */
