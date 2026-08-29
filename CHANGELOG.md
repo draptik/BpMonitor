@@ -11,17 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Recent: a collapsible "Readings in view" section below the chart lists the readings currently in view (same columns and Edit button as History), and narrows automatically as you pan or zoom the chart.
+- Recent view: a collapsible "Readings in view" section below the chart, filtered to what's currently in view.
 
 ### Changed
 
-- Settings and Family members are much more compact, especially on desktop: tighter headings, form fields, table rows, and buttons; each section's content is indented under its header bar, and the Language section no longer repeats a redundant "Language" label above the dropdown.
-- Collapsible sections (History's chart, Settings, Medications Timeline, Recent's readings list) look like clickable header bars instead of plain muted text, wrap their expanded content in a light border, and remember whether you left them open or closed.
+- Settings and Family members are more compact, with cleaner section indentation and header styling.
+- Collapsible sections look like clickable header bars, wrap their content in a light border, and remember whether you left them open or closed.
 
 ### Fixed
 
-- Reading and medication comments are HTML-encoded before being embedded in chart hover tooltips, closing a stored-HTML-injection hole where a comment containing an `<a href="javascript:...">` tag would render as a clickable link inside the tooltip.
-- Recent: the scrubber's hover label shows the weekday abbreviation in your selected language instead of always English (e.g. German "Di" instead of "Tue").
+- Fixed a stored-HTML-injection hole in chart hover tooltips (reading/medication comments are now HTML-encoded).
+- Recent view: the scrubber's hover label now shows the weekday in your selected language, not always English.
 
 ## [1.12.3] - 2026-08-28
 
