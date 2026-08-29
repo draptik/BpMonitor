@@ -115,7 +115,8 @@ print_section "✨ Added" "${added[@]}"
 print_section "Changed" "${changed[@]}"
 print_section "🐛 Fixed" "${fixed[@]}"
 print_section "🔒 Security" "${security[@]}"
-print_section "🔧 Maintenance" "${maintenance[@]}"
+# No single icon either: groups docs/test/chore/ci/build, so 🔧 (chore-only) would misrepresent them the same way.
+print_section "Maintenance" "${maintenance[@]}"
 
 if [ "${#deps[@]}" -gt 0 ]; then
   echo "<details><summary>⬆️ Dependency updates (${#deps[@]})</summary>"
