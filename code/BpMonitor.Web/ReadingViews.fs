@@ -64,6 +64,11 @@ module ReadingViews =
         medicationsPanel
         ViewLayout.readingsTable s readings ]
 
+  /// A reading older than `windowStart` is tagged `out-of-range` (app.css hides it) until
+  /// pan/zoom (recent-scrubber.js) or the value strip's own toggling brings it into view.
+  let private isOutOfRange (windowStart: System.DateTimeOffset) (timestamp: System.DateTimeOffset) =
+    timestamp < windowStart
+
   /// The swappable chart container: zoom/load-full buttons, value strip, chart, citation.
   let recentChartContainer
     (s: LocalizedStrings)
@@ -94,7 +99,11 @@ module ReadingViews =
             for r in chronological ->
               let v = value r
               // Cells outside the 30-day focus window start hidden; pan/zoom toggles this.
-              let staleClass = if r.Timestamp < windowStart then " out-of-range" else ""
+              let staleClass =
+                if isOutOfRange windowStart r.Timestamp then
+                  " out-of-range"
+                else
+                  ""
 
               Elem.td
                 [ Attr.class' (cellClass (classify v) + staleClass)
@@ -153,7 +162,7 @@ module ReadingViews =
             [ Attr.class' "recent-readings-table" ]
             (fun r ->
               [ Attr.create "data-x" (Formats.formatLocal r.Timestamp)
-                if r.Timestamp < windowStart then
+                if isOutOfRange windowStart r.Timestamp then
                   Attr.class' "out-of-range" ])
             allReadings ]
 

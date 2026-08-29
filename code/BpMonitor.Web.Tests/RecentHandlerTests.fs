@@ -1,5 +1,6 @@
 module RecentHandlerTests
 
+open System.Text.RegularExpressions
 open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing
@@ -72,9 +73,10 @@ let ``recent renders the chart without a details wrapper`` () =
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  // Unlike /history, the chart itself isn't collapsible; the readings section's
-  // <details> (below the chart) is a separate, later element.
+  // Unlike /history, the chart itself isn't collapsible; the page's only <details>
+  // is the readings section below the chart, not a wrapper around it.
   test <@ body.Contains "class=\"chart-container\"" @>
+  test <@ Regex.Matches(body, "<details").Count = 1 @>
   test <@ body.IndexOf "<details" > body.IndexOf "<div class=\"chart\"" @>
 
 [<Fact>]

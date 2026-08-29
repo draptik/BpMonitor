@@ -10,8 +10,10 @@ case "$command" in
   *) exit 0 ;;
 esac
 
-# Drop --filter-method occurrences first so they don't trip the bare --filter check.
+# Drop the valid MTP --filter-* flags first so they don't trip the bare --filter check.
 stripped=${command//--filter-method/}
+stripped=${stripped//--filter-not-namespace/}
+stripped=${stripped//--filter-namespace/}
 
 if printf '%s' "$stripped" | grep -qE -- '--filter\b'; then
   jq -n '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",
