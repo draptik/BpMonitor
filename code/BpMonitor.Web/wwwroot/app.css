@@ -198,6 +198,9 @@ nav a[aria-current="page"] {
   margin-bottom: 0.5rem;
   border: 1px solid var(--pico-muted-border-color);
   border-radius: var(--pico-border-radius);
+  /* Pico renders an *open* summary in the muted color via this variable (its
+     own override point); keep both states equally readable. */
+  --pico-accordion-open-summary-color: var(--pico-color);
 }
 
 /* Matches the parent's radius rather than clipping with overflow: hidden,
@@ -227,13 +230,6 @@ nav a[aria-current="page"] {
 
 .collapsible > summary:hover {
   background: var(--pico-secondary-background);
-}
-
-/* Pico renders an *open* summary in the muted color; that reads as "less
-   active" right when the section is expanded. Keep both states equally
-   readable — (0,2,1) specificity beats Pico's details[open]>summary rule. */
-.collapsible[open] > summary:not([role]):not(:focus) {
-  color: var(--pico-color);
 }
 
 .collapsible > summary:focus {
