@@ -27,9 +27,11 @@
     <!-- Referenced only so `dotnet test` builds the web app before the suite runs;
          the app itself is launched out-of-process via `dotnet run`, not in-process. -->
     <ProjectReference Include="..\BpMonitor.Web\BpMonitor.Web.fsproj" ReferenceOutputAssembly="false" />
-    <!-- ProcessReadiness (BpMonitor.Web.E2E namespace) lives in BpMonitor.Web.Tests, so its own
-         unit tests run in CI's fast lane instead of the browser-driven "Test (E2E)" step. -->
-    <ProjectReference Include="..\BpMonitor.Web.Tests\BpMonitor.Web.Tests.fsproj" />
+    <!-- ProcessReadiness (BpMonitor.Web.E2E namespace) lives in BpMonitor.TestSupport, so its own
+         unit tests run in BpMonitor.Web.Tests (CI's fast lane) instead of the browser-driven
+         "Test (E2E)" step, without pulling a test project's coverage-instrumented assembly
+         into this suite's dependency graph. -->
+    <ProjectReference Include="..\BpMonitor.TestSupport\BpMonitor.TestSupport.fsproj" />
   </ItemGroup>
 
 </Project>

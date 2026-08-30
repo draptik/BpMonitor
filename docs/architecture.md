@@ -17,7 +17,7 @@ code/
 ├── BpMonitor.Web.Tests      # Tests for Web layer
 ├── BpMonitor.Web.E2E.Tests  # Playwright .NET browser smoke tests (real out-of-process app + Chromium/Firefox)
 ├── BpMonitor.Arch.Tests     # ArchUnit tests enforcing Clean Architecture rules
-└── BpMonitor.TestSupport    # Shared test infrastructure (Verify snapshot settings, domain record builders) for *.Tests projects
+└── BpMonitor.TestSupport    # Shared test infrastructure (Verify snapshot settings, domain record builders, E2E process-readiness polling) for *.Tests projects
 ```
 
 ## Tech Stack
