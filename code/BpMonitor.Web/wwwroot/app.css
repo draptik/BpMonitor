@@ -625,6 +625,7 @@ input#DiastolicGoalMax {
 }
 
 #readings,
+.recent-readings-table,
 form {
   font-size: 0.875rem;
 }
