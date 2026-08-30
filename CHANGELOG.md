@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Recent view: the "Readings in view" table now uses the same smaller font-size as the History table.
+
 ## [1.13.0] - 2026-08-29
 
 ### Added
