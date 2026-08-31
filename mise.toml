@@ -1,5 +1,5 @@
 [tools]
-node = "26.8.0"
+node = "26.8.1"
 biome = "2.4.16"
 markdownlint-cli2 = "0.23.2"
 shellcheck = "0.11.0"
