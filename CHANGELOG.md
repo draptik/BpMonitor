@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.1] - 2026-09-02
+
 ### Fixed
 
-- Recent view: the "Readings in view" table now uses the same smaller font-size as the History table.
+- Recent view: the "Readings in view" table now uses the same, smaller font-size as the History table.
 
 ## [1.13.0] - 2026-08-29
 
@@ -472,7 +474,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.13.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.13.1...HEAD
+[1.13.1]: https://github.com/draptik/BpMonitor/compare/v1.13.0...v1.13.1
 [1.13.0]: https://github.com/draptik/BpMonitor/compare/v1.12.3...v1.13.0
 [1.12.3]: https://github.com/draptik/BpMonitor/compare/v1.12.2...v1.12.3
 [1.12.2]: https://github.com/draptik/BpMonitor/compare/v1.12.1...v1.12.2
