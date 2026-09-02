@@ -123,7 +123,7 @@ jobs:
         working-directory: code
 
       - name: Upload E2E failure diagnostics
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: e2e-diagnostics
