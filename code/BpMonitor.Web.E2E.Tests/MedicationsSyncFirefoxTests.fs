@@ -9,8 +9,8 @@ open Xunit
 
 /// A collapsed (zero-width) medications timeline makes hoverAt's axis math produce a
 /// non-finite pixel; Firefox throws on that MouseEventInit field where Chromium doesn't.
-type MedicationsSyncFirefoxTests(fixture: FirefoxWebAppFixture) =
-  interface IClassFixture<FirefoxWebAppFixture>
+type MedicationsSyncFirefoxTests(fixture: FirefoxFixture) =
+  interface IClassFixture<FirefoxFixture>
 
   [<Fact>]
   member _.``hovering the BP chart with the medications timeline collapsed raises no page error``() : Task =
@@ -21,7 +21,7 @@ type MedicationsSyncFirefoxTests(fixture: FirefoxWebAppFixture) =
       let pageErrors = List<string>()
       page.add_PageError (fun _ msg -> pageErrors.Add(msg))
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       // Configure a medication so the (collapsed-by-default) timeline panel renders.
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")

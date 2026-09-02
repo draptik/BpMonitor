@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="WebAppFixture.fs" />
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="SmokeTests.fs" />
     <Compile Include="MedicationsSyncFirefoxTests.fs" />
     <Compile Include="RecentScrubberFirefoxTests.fs" />
@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <!-- Referenced only so `dotnet test` builds the web app before the suite runs;
-         the app itself is launched out-of-process via `dotnet run`, not in-process. -->
+         the app itself is launched out-of-process via `dotnet exec`, not in-process. -->
     <ProjectReference Include="..\BpMonitor.Web\BpMonitor.Web.fsproj" ReferenceOutputAssembly="false" />
     <!-- ProcessReadiness (BpMonitor.Web.E2E namespace) lives in BpMonitor.TestSupport, so its own
          unit tests run in BpMonitor.Web.Tests (CI's fast lane) instead of the browser-driven

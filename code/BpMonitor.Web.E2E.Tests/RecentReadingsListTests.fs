@@ -8,8 +8,8 @@ open Xunit
 
 /// The collapsible readings list below the chart narrows to the chart's visible x-range
 /// (recent-scrubber.js's plotly_relayout handler), same mechanism as the value strip.
-type RecentReadingsListTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type RecentReadingsListTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``the readings list narrows on a zoom shortcut and widens back on an autorange reset``() : Task =
@@ -17,7 +17,7 @@ type RecentReadingsListTests(fixture: WebAppFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let now = DateTime.Now
 

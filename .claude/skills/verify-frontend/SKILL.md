@@ -7,9 +7,9 @@ description: Verify a frontend/UI change by driving a real browser against a rea
 
 Confirm a frontend change actually works by reusing `BpMonitor.Web.E2E.Tests`'
 existing infrastructure — not ad-hoc Playwright scripts or screenshot tools.
-`WebAppFixture` already boots a real out-of-process `BpMonitor.Web` instance
-(fresh temp SQLite file) and launches a real headless Chromium browser; reuse
-it instead of reinventing browser automation per session.
+`AppFixture` already boots one shared out-of-process `BpMonitor.Web` instance
+and launches real headless Chromium/Firefox browsers; reuse it (via
+`ChromiumFixture`) instead of reinventing browser automation per session.
 
 ## Steps
 
@@ -18,10 +18,10 @@ it instead of reinventing browser automation per session.
    once if needed.
 2. **Add a throwaway `[<Fact>]`** to `code/BpMonitor.Web.E2E.Tests/SmokeTests.fs`
    (or a scratch file in the same project), inside a type that implements
-   `IClassFixture<WebAppFixture>`. Reuse `TestAccount.claimAndLogin` to get an
-   authenticated session, then navigate to the page the change touched and
-   assert on the specific thing that should now be true (text content, an
-   element existing, a redirect happening).
+   `IClassFixture<ChromiumFixture>`. Reuse `TestAccount.claimAndLogin fixture.BaseUrl
+   fixture.MemberName page` to get an authenticated session, then navigate to
+   the page the change touched and assert on the specific thing that should
+   now be true (text content, an element existing, a redirect happening).
 3. **Run only that test:**
 
    ```bash
@@ -33,8 +33,8 @@ it instead of reinventing browser automation per session.
    htmx/CSS — so a pass here is a real signal.
 4. **For visual/CSS changes** where an assertion alone won't tell the full
    story, launch headed instead of headless for that one run:
-   `playwright.Chromium.LaunchAsync(BrowserTypeLaunchOptions(Headless = false))`
-   (temporarily edit `WebAppFixture.InitializeAsync`, then revert).
+   `pw.Chromium.LaunchAsync(BrowserTypeLaunchOptions(Headless = false))`
+   (temporarily edit `AppFixture.InitializeAsync`, then revert).
 5. **Delete the scratch test** once the change is confirmed. It existed only
    to prove the change works — don't leave it in the permanent suite unless
    it earns a place as real regression coverage (a deliberate decision, not a

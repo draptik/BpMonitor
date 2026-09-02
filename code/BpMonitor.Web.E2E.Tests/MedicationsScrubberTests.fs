@@ -8,8 +8,8 @@ open Xunit
 
 /// A medication bar's fills-hover event fires once on entry, not on every move — the scrubber
 /// must keep tracking the cursor across the bar instead of freezing at the entry point.
-type MedicationsScrubberTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``moving across a medication bar keeps boxing the matching value-strip column``() : Task =
@@ -17,7 +17,7 @@ type MedicationsScrubberTests(fixture: WebAppFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       // A medication spanning "now" so its bar covers both readings' x positions below.
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
@@ -81,8 +81,8 @@ type MedicationsScrubberTests(fixture: WebAppFixture) =
 
 /// Past the timeline's draglayer edge (e.g. the row-label margin), p2d used to extrapolate
 /// past the visible range and send the BP chart's mirrored spike off-canvas.
-type MedicationsScrubberEdgeTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberEdgeTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``drifting past the timeline's draglayer edge while hovering doesn't move the scrubber``() : Task =
@@ -90,7 +90,7 @@ type MedicationsScrubberEdgeTests(fixture: WebAppFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")
@@ -149,8 +149,8 @@ type MedicationsScrubberEdgeTests(fixture: WebAppFixture) =
 
 /// SpikeSnap.Data snaps to the nearest reading across the BP chart's full loaded data, not
 /// just its visible 30-day window — a sparse spot near the edge can snap off-canvas.
-type MedicationsScrubberOffscreenSnapTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberOffscreenSnapTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``hovering a sparse spot near the window edge never puts the scrubber off-canvas``() : Task =
@@ -158,7 +158,7 @@ type MedicationsScrubberOffscreenSnapTests(fixture: WebAppFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let now = DateTime.Now
 
@@ -221,8 +221,8 @@ type MedicationsScrubberOffscreenSnapTests(fixture: WebAppFixture) =
 
 /// The timeline's x-axis is FixedRange (Charts.fs medicationsXAxis) — it only ever follows
 /// the BP chart's own range, via medications-sync.js's bpPlot.on("plotly_relayout", ...).
-type MedicationsScrubberZoomSyncTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberZoomSyncTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``clicking the Last 7 days button also narrows the timeline's x-axis range``() : Task =
@@ -230,7 +230,7 @@ type MedicationsScrubberZoomSyncTests(fixture: WebAppFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")
@@ -266,8 +266,8 @@ type MedicationsScrubberZoomSyncTests(fixture: WebAppFixture) =
 
 /// medications-sync.js mirrors the BP chart's own spike onto the timeline too
 /// (bpPlot.on("plotly_hover", ...) / "plotly_unhover"), not just timeline→BP.
-type MedicationsScrubberBpToTimelineHoverTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberBpToTimelineHoverTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``hovering the BP chart mirrors a spike onto the timeline, and unhovering clears it``() : Task =
@@ -275,7 +275,7 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: WebAppFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")
@@ -333,8 +333,8 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: WebAppFixture) =
     }
 
 /// /history has no value-strip and a collapsed BP chart — axis-sync must work once opened, without scrubbing a value-strip that doesn't exist there.
-type MedicationsScrubberHistoryPageTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberHistoryPageTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``opening the collapsed BP chart on /history still syncs the timeline's axis, without scrubbing``() : Task =
@@ -342,7 +342,7 @@ type MedicationsScrubberHistoryPageTests(fixture: WebAppFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")
