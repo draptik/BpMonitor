@@ -188,7 +188,10 @@ git pull
 
 ## Step 6 — Create annotated tag and push
 
-Write the approved summary to a temp file (avoids shell quoting issues), then tag:
+Write the approved summary to a temp file (avoids shell quoting issues), then tag.
+`--cleanup=verbatim` is required — without it, `git tag` treats any summary line
+starting with `#` (e.g. a `### What's new` heading) as a comment and silently
+strips it:
 
 ```bash
 SUMMARY_FILE=$(mktemp)
@@ -196,7 +199,7 @@ cat > "$SUMMARY_FILE" << 'SUMMARY_EOF'
 <paste approved summary here>
 SUMMARY_EOF
 
-git tag -a vX.Y.Z -F "$SUMMARY_FILE"
+git tag -a vX.Y.Z -F "$SUMMARY_FILE" --cleanup=verbatim
 rm "$SUMMARY_FILE"
 ```
 
