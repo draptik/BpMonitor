@@ -117,10 +117,9 @@ jobs:
         run: dotnet test --no-build --configuration Release --filter-not-namespace "BpMonitor.Web.E2E*" --ignore-exit-code 8 --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
         working-directory: code
 
-      # No --coverage: the app runs out-of-process and BpMonitor.TestSupport is
-      # ExcludeFromCodeCoverage, so this step's instrumentation covered zero production lines.
+      # The app inherits the host's CLR-profiler env vars, so this covers real browser-only lines — dropping it (#513) cost ~3pp coverage.
       - name: Test (E2E)
-        run: dotnet test --no-build --configuration Release --filter-namespace "BpMonitor.Web.E2E*" --ignore-exit-code 8 --results-directory ./TestResults
+        run: dotnet test --no-build --configuration Release --filter-namespace "BpMonitor.Web.E2E*" --ignore-exit-code 8 --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
         working-directory: code
 
       - name: Upload E2E failure diagnostics
