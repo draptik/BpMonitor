@@ -75,7 +75,8 @@ type AppFixture() =
   let memberLock = new SemaphoreSlim(1, 1)
   let mutable nextMemberIndex = 0
 
-  let port =
+  /// Releasing port 0 leaves a bind race; StartAppAsync retries on it below.
+  let reserveFreePort () =
     let listener = new TcpListener(System.Net.IPAddress.Loopback, 0)
     listener.Start()
     let p = (listener.LocalEndpoint :?> System.Net.IPEndPoint).Port
@@ -129,7 +130,7 @@ type AppFixture() =
         memberLock.Release() |> ignore
     }
 
-  member private this.WaitUntilReadyAsync() : Task =
+  member private this.WaitUntilReadyAsync(port: int) : Task =
     task {
       use client = new HttpClient(Timeout = TimeSpan.FromSeconds 2.0)
 
@@ -183,12 +184,66 @@ type AppFixture() =
       adminClient <- client
     }
 
+  /// Boots the app on a freshly reserved port; retries on the reserve/bind race
+  /// above rather than tying up the whole readiness budget on a doomed attempt.
+  member private this.StartAppAsync(webProjectDir: string, appDll: string, attemptsLeft: int) : Task =
+    task {
+      let p = reserveFreePort ()
+      this.BaseUrl <- $"http://127.0.0.1:{p}"
+
+      if appLogWriter <> null then
+        appLogWriter.Dispose()
+
+      appLogWriter <- new StreamWriter(Path.Combine(RepoLayout.tracesDir (), $"e2e-app-{p}.log"), AutoFlush = true)
+      capturedLines.Clear()
+
+      let psi =
+        ProcessStartInfo(
+          FileName = "dotnet",
+          Arguments = $"exec \"%s{appDll}\" --urls=%s{this.BaseUrl}",
+          // dotnet exec doesn't run from the project directory the way `dotnet run` does;
+          // wwwroot and appsettings.json are only found there, not next to the built dll.
+          WorkingDirectory = webProjectDir,
+          UseShellExecute = false,
+          RedirectStandardOutput = true,
+          RedirectStandardError = true
+        )
+
+      psi.EnvironmentVariables["ConnectionStrings__DefaultConnection"] <- $"Data Source={dbPath}"
+      psi.EnvironmentVariables["BpMonitor__SeedDemoData"] <- "false"
+
+      let proc = new Process(StartInfo = psi)
+
+      proc.OutputDataReceived.Add(fun e ->
+        if e.Data <> null then
+          onProcessLine e.Data)
+
+      proc.ErrorDataReceived.Add(fun e ->
+        if e.Data <> null then
+          onProcessLine e.Data)
+
+      proc.Start() |> ignore
+      proc.BeginOutputReadLine()
+      proc.BeginErrorReadLine()
+      webProcess <- proc
+
+      try
+        do! this.WaitUntilReadyAsync p
+      with ex ->
+        let boundElsewhere =
+          proc.HasExited
+          && capturedOutput().Contains("address already in use", StringComparison.OrdinalIgnoreCase)
+
+        if boundElsewhere && attemptsLeft > 1 then
+          do! this.StartAppAsync(webProjectDir, appDll, attemptsLeft - 1)
+        else
+          raise ex
+    }
+
   interface IAsyncLifetime with
     member this.InitializeAsync() : ValueTask =
       task {
-        this.BaseUrl <- $"http://127.0.0.1:{port}"
         dbPath <- Path.Combine(Path.GetTempPath(), $"bpmonitor-e2e-{Guid.NewGuid():N}.db")
-        appLogWriter <- new StreamWriter(Path.Combine(RepoLayout.tracesDir (), $"e2e-app-{port}.log"), AutoFlush = true)
 
         let codeDir = RepoLayout.codeDir ()
         let webProjectDir = Path.Combine(codeDir, "BpMonitor.Web")
@@ -197,37 +252,7 @@ type AppFixture() =
         if not (File.Exists appDll) then
           failwith $"BpMonitor.Web build output not found at {appDll} — build the solution first."
 
-        let psi =
-          ProcessStartInfo(
-            FileName = "dotnet",
-            Arguments = $"exec \"%s{appDll}\" --urls=%s{this.BaseUrl}",
-            // dotnet exec doesn't run from the project directory the way `dotnet run` does;
-            // wwwroot and appsettings.json are only found there, not next to the built dll.
-            WorkingDirectory = webProjectDir,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-          )
-
-        psi.EnvironmentVariables["ConnectionStrings__DefaultConnection"] <- $"Data Source={dbPath}"
-        psi.EnvironmentVariables["BpMonitor__SeedDemoData"] <- "false"
-
-        let proc = new Process(StartInfo = psi)
-
-        proc.OutputDataReceived.Add(fun e ->
-          if e.Data <> null then
-            onProcessLine e.Data)
-
-        proc.ErrorDataReceived.Add(fun e ->
-          if e.Data <> null then
-            onProcessLine e.Data)
-
-        proc.Start() |> ignore
-        proc.BeginOutputReadLine()
-        proc.BeginErrorReadLine()
-        webProcess <- proc
-
-        do! this.WaitUntilReadyAsync()
+        do! this.StartAppAsync(webProjectDir, appDll, attemptsLeft = 3)
         do! this.ClaimAdminAsync()
 
         let! pw = Playwright.CreateAsync()
