@@ -8,16 +8,16 @@ open Xunit
 
 /// Back-to-back synthetic mousemove dispatches with no intervening mouseout made
 /// Plotly's hover throttle skip every other column's scrubber box.
-type RecentScrubberFirefoxTests(fixture: FirefoxWebAppFixture) =
-  interface IClassFixture<FirefoxWebAppFixture>
+type RecentScrubberFirefoxTests(fixture: FirefoxFixture) =
+  interface IClassFixture<FirefoxFixture>
 
   [<Fact>]
   member _.``hovering every value-strip column lights up its scrubber box``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       // A configured medication renders the (collapsed-by-default) timeline panel,
       // which shares the same hover-dispatch code path.
@@ -41,7 +41,7 @@ type RecentScrubberFirefoxTests(fixture: FirefoxWebAppFixture) =
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/recent")
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
-      do! page.WaitForTimeoutAsync(500.0f)
+      do! PlotWaits.laidOut page 0
 
       let! xs =
         page.EvalOnSelectorAllAsync<string[]>(

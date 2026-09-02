@@ -8,16 +8,16 @@ open Xunit
 
 /// A medication bar's fills-hover event fires once on entry, not on every move — the scrubber
 /// must keep tracking the cursor across the bar instead of freezing at the entry point.
-type MedicationsScrubberTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``moving across a medication bar keeps boxing the matching value-strip column``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       // A medication spanning "now" so its bar covers both readings' x positions below.
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
@@ -43,7 +43,7 @@ type MedicationsScrubberTests(fixture: WebAppFixture) =
       // The timeline panel starts collapsed — open it so Plotly lays it out at real width.
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       let! xs = page.Locator(".value-strip tr:first-child td[data-x]").AllTextContentsAsync()
       Assert.True(xs.Count >= 2)
@@ -60,37 +60,32 @@ type MedicationsScrubberTests(fixture: WebAppFixture) =
           x
         )
 
-      let scrubbedXs () =
-        page.EvalOnSelectorAllAsync<string[]>(".value-strip td.scrubbed", "els => els.map(e => e.dataset.x)")
-
       let! firstPoint = pixelFor firstX
       do! page.Mouse.MoveAsync(float32 firstPoint[0], float32 firstPoint[1])
-      do! page.WaitForTimeoutAsync(300.0f)
-      let! scrubbedAfterFirst = scrubbedXs ()
+      let! scrubbedAfterFirst = PlotWaits.scrubbedContainsStable page firstX
       Assert.Contains(firstX, scrubbedAfterFirst)
 
       // Move within the same bar (no leave/re-enter) — the entry-only plotly_hover event
       // must not be the only thing driving this, or the scrubber freezes on `firstX`.
       let! secondPoint = pixelFor secondX
       do! page.Mouse.MoveAsync(float32 secondPoint[0], float32 secondPoint[1])
-      do! page.WaitForTimeoutAsync(300.0f)
-      let! scrubbedAfterSecond = scrubbedXs ()
+      let! scrubbedAfterSecond = PlotWaits.scrubbedTransitionedTo page secondX firstX
       Assert.Contains(secondX, scrubbedAfterSecond)
       Assert.DoesNotContain(firstX, scrubbedAfterSecond)
     }
 
 /// Past the timeline's draglayer edge (e.g. the row-label margin), p2d used to extrapolate
 /// past the visible range and send the BP chart's mirrored spike off-canvas.
-type MedicationsScrubberEdgeTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberEdgeTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``drifting past the timeline's draglayer edge while hovering doesn't move the scrubber``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")
@@ -110,7 +105,7 @@ type MedicationsScrubberEdgeTests(fixture: WebAppFixture) =
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       let! x = page.Locator(".value-strip tr:first-child td[data-x]").First.GetAttributeAsync("data-x")
 
@@ -124,12 +119,7 @@ type MedicationsScrubberEdgeTests(fixture: WebAppFixture) =
         )
 
       do! page.Mouse.MoveAsync(float32 point[0], float32 point[1])
-      do! page.WaitForTimeoutAsync(300.0f)
-
-      let scrubbedXs () =
-        page.EvalOnSelectorAllAsync<string[]>(".value-strip td.scrubbed", "els => els.map(e => e.dataset.x)")
-
-      let! scrubbedBefore = scrubbedXs ()
+      let! scrubbedBefore = PlotWaits.scrubbedContainsStable page x
       Assert.Contains(x, scrubbedBefore)
 
       // Dispatch directly on the plot div (not the real cursor, and not on the draglayer
@@ -141,24 +131,23 @@ type MedicationsScrubberEdgeTests(fixture: WebAppFixture) =
            d.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: rect.left - 20, clientY: rect.top + 5 })); }"
         )
 
-      do! page.WaitForTimeoutAsync(300.0f)
-
-      let! scrubbedAfter = scrubbedXs ()
+      // Nothing should happen here — read a settled snapshot rather than guessing a sleep length.
+      let! scrubbedAfter = PlotWaits.stableScrubbed page
       Assert.Equal<string[]>(scrubbedBefore, scrubbedAfter)
     }
 
 /// SpikeSnap.Data snaps to the nearest reading across the BP chart's full loaded data, not
 /// just its visible 30-day window — a sparse spot near the edge can snap off-canvas.
-type MedicationsScrubberOffscreenSnapTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberOffscreenSnapTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``hovering a sparse spot near the window edge never puts the scrubber off-canvas``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let now = DateTime.Now
 
@@ -183,7 +172,7 @@ type MedicationsScrubberOffscreenSnapTests(fixture: WebAppFixture) =
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       // The gap between the two readings, closer to the far (outside-window) one.
       let edgeDate = now.AddDays(-29.5).ToString("yyyy-MM-dd HH:mm")
@@ -198,7 +187,10 @@ type MedicationsScrubberOffscreenSnapTests(fixture: WebAppFixture) =
         )
 
       do! page.Mouse.MoveAsync(float32 point[0], float32 point[1])
-      do! page.WaitForTimeoutAsync(300.0f)
+
+      // The assertion below already tolerates a missing spike (falls back to the
+      // chart's own rect), so this only needs to settle, not require one to appear.
+      do! PlotWaits.framesSettled page
 
       let! spikeAndChartRect =
         page.EvalOnSelectorAsync<float[]>(
@@ -221,16 +213,16 @@ type MedicationsScrubberOffscreenSnapTests(fixture: WebAppFixture) =
 
 /// The timeline's x-axis is FixedRange (Charts.fs medicationsXAxis) — it only ever follows
 /// the BP chart's own range, via medications-sync.js's bpPlot.on("plotly_relayout", ...).
-type MedicationsScrubberZoomSyncTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberZoomSyncTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``clicking the Last 7 days button also narrows the timeline's x-axis range``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")
@@ -250,13 +242,20 @@ type MedicationsScrubberZoomSyncTests(fixture: WebAppFixture) =
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       let xaxisRange (selector: string) =
         page.EvalOnSelectorAsync<string[]>(selector, "d => d._fullLayout.xaxis.range.map(String)")
 
       let! _ = page.ClickAsync("button:text('Last 7 days')")
-      do! page.WaitForTimeoutAsync(300.0f)
+
+      // recent-zoom.js's Plotly.relayout narrows the range asynchronously — wait for
+      // the actual span to shrink to ~7 days instead of guessing how long that takes.
+      let! _ =
+        page.WaitForFunctionAsync(
+          "() => { const r = document.querySelector('.chart .js-plotly-plot')._fullLayout.xaxis.range; \
+           return (new Date(r[1]) - new Date(r[0])) <= 8 * 24 * 3600 * 1000; }"
+        )
 
       let! bpRange = xaxisRange ".chart .js-plotly-plot"
       let! timelineRange = xaxisRange ".medications-chart .js-plotly-plot"
@@ -266,16 +265,16 @@ type MedicationsScrubberZoomSyncTests(fixture: WebAppFixture) =
 
 /// medications-sync.js mirrors the BP chart's own spike onto the timeline too
 /// (bpPlot.on("plotly_hover", ...) / "plotly_unhover"), not just timeline→BP.
-type MedicationsScrubberBpToTimelineHoverTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberBpToTimelineHoverTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``hovering the BP chart mirrors a spike onto the timeline, and unhovering clears it``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")
@@ -295,7 +294,7 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: WebAppFixture) =
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       let! x = page.Locator(".value-strip tr:first-child td[data-x]").First.GetAttributeAsync("data-x")
 
@@ -315,14 +314,22 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: WebAppFixture) =
 
       let! bpPoint = pixelFor ".chart .js-plotly-plot" x
       do! page.Mouse.MoveAsync(float32 bpPoint[0], float32 bpPoint[1])
-      do! page.WaitForTimeoutAsync(300.0f)
+
+      let! _ =
+        page.WaitForFunctionAsync(
+          "() => !!document.querySelector('.medications-chart .js-plotly-plot')?.querySelector('.spikeline')"
+        )
 
       let! spikeShownWhileHovering = hasTimelineSpike ()
       Assert.True(spikeShownWhileHovering, "expected the timeline to show a mirrored spike while hovering the BP chart")
 
       // Move off the chart entirely so Plotly emits plotly_unhover.
       do! page.Mouse.MoveAsync(10.0f, 10.0f)
-      do! page.WaitForTimeoutAsync(300.0f)
+
+      let! _ =
+        page.WaitForFunctionAsync(
+          "() => !document.querySelector('.medications-chart .js-plotly-plot')?.querySelector('.spikeline')"
+        )
 
       let! spikeShownAfterUnhover = hasTimelineSpike ()
 
@@ -333,16 +340,16 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: WebAppFixture) =
     }
 
 /// /history has no value-strip and a collapsed BP chart — axis-sync must work once opened, without scrubbing a value-strip that doesn't exist there.
-type MedicationsScrubberHistoryPageTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type MedicationsScrubberHistoryPageTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``opening the collapsed BP chart on /history still syncs the timeline's axis, without scrubbing``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")
@@ -368,7 +375,7 @@ type MedicationsScrubberHistoryPageTests(fixture: WebAppFixture) =
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       let xaxisRange (selector: string) =
         page.EvalOnSelectorAsync<string[]>(selector, "d => d._fullLayout.xaxis.range.map(String)")
@@ -392,7 +399,10 @@ type MedicationsScrubberHistoryPageTests(fixture: WebAppFixture) =
       let! point = pixelFor ".medications-chart .js-plotly-plot" nowLocal
 
       do! page.Mouse.MoveAsync(float32 point[0], float32 point[1])
-      do! page.WaitForTimeoutAsync(300.0f)
+
+      // Nothing should happen here (no value-strip means no mirrored spike), so
+      // there's no positive condition to poll for — flush the scheduled update instead.
+      do! PlotWaits.framesSettled page
 
       let! bpHasSpike = page.EvalOnSelectorAsync<bool>(".chart .js-plotly-plot", "d => !!d.querySelector('.spikeline')")
 

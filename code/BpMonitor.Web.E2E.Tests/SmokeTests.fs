@@ -6,20 +6,21 @@ open System.Globalization
 open System.Net.Http
 open System.Threading.Tasks
 open BpMonitor.Web.E2E
+open Microsoft.Playwright
 open Xunit
 
-/// End-to-end smoke test: claim the default account, add a reading, and
-/// confirm it shows up in the history table. Runs against a real
-/// out-of-process BpMonitor.Web instance with a real browser.
-type LoginAddHistoryTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+/// End-to-end smoke test: claim this class's member, add a reading, and
+/// confirm it shows up in the history table.
+type LoginAddHistoryTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``login, add a reading, and see it in history``() : Task =
     task {
-      let! page = fixture.Browser.NewPageAsync()
+      use! traced = fixture.NewTracedPageAsync()
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       // Add a reading.
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
@@ -40,15 +41,16 @@ type LoginAddHistoryTests(fixture: WebAppFixture) =
 
 /// Verifies that submitting invalid reading values re-renders the form with
 /// visible error messages (not silently discarded by htmx's 422 handling).
-type ReadingValidationTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type ReadingValidationTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``submitting an out-of-range reading shows error messages on the form``() : Task =
     task {
-      let! page = fixture.Browser.NewPageAsync()
+      use! traced = fixture.NewTracedPageAsync()
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
       do! page.FillAsync("#Timestamp", "2026-06-19 08:30")
@@ -65,8 +67,8 @@ type ReadingValidationTests(fixture: WebAppFixture) =
 
 /// Verifies HTTP security properties of the running server via raw HttpClient
 /// (no browser required — just inspects response headers).
-type CookieSecurityTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type CookieSecurityTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``auth Set-Cookie always includes HttpOnly attribute``() : Task =
@@ -74,11 +76,10 @@ type CookieSecurityTests(fixture: WebAppFixture) =
       use handler = new HttpClientHandler(AllowAutoRedirect = false)
       use client = new HttpClient(handler)
 
-      // POST /login with just a username — the "Me" account starts unclaimed,
-      // so the server redirects to the per-member claim page without checking
-      // the password field.
+      // POST /login with just a username — this class's member starts unclaimed,
+      // so the server redirects to the per-member claim page without checking the password.
       use step1Body =
-        new FormUrlEncodedContent([ KeyValuePair("Username", TestAccount.username); KeyValuePair("Password", "") ])
+        new FormUrlEncodedContent([ KeyValuePair("Username", fixture.MemberName); KeyValuePair("Password", "") ])
 
       let! redirectResp = client.PostAsync($"{fixture.BaseUrl}/login", step1Body)
       let claimUrl = Uri(Uri(fixture.BaseUrl), redirectResp.Headers.Location).ToString()
@@ -100,10 +101,9 @@ type CookieSecurityTests(fixture: WebAppFixture) =
     }
 
 /// Verifies that omitting "remember me" yields a session cookie (no Expires/Max-Age
-/// — dies with the browser). A separate type so this gets its own fixture (own
-/// process, own DB): the claim is the only login this "Me" account goes through.
-type RememberMeUncheckedCookieTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+/// — dies with the browser). Own fixture: the claim is this member's only login.
+type RememberMeUncheckedCookieTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``omitting remember-me yields a session cookie with no Expires``() : Task =
@@ -112,7 +112,7 @@ type RememberMeUncheckedCookieTests(fixture: WebAppFixture) =
       use client = new HttpClient(handler)
 
       use step1Body =
-        new FormUrlEncodedContent([ KeyValuePair("Username", TestAccount.username); KeyValuePair("Password", "") ])
+        new FormUrlEncodedContent([ KeyValuePair("Username", fixture.MemberName); KeyValuePair("Password", "") ])
 
       let! redirectResp = client.PostAsync($"{fixture.BaseUrl}/login", step1Body)
       let claimUrl = Uri(Uri(fixture.BaseUrl), redirectResp.Headers.Location).ToString()
@@ -137,12 +137,10 @@ type RememberMeUncheckedCookieTests(fixture: WebAppFixture) =
       Assert.DoesNotContain("max-age=", authCookie)
     }
 
-/// Verifies that checking "remember me" yields a persistent cookie (an Expires
-/// attribute) — the whole point of the feature. Own fixture, so the claim (without
-/// remember-me) followed by a direct re-login (with remember-me) is the only
-/// sequence this "Me" account goes through.
-type RememberMeCheckedCookieTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+/// Verifies checking "remember me" yields a persistent cookie (an Expires attribute).
+/// Own fixture: claim then re-login with the box checked is this member's only login.
+type RememberMeCheckedCookieTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``checking remember-me yields a persistent cookie with an Expires attribute``() : Task =
@@ -153,7 +151,7 @@ type RememberMeCheckedCookieTests(fixture: WebAppFixture) =
       // Claim the account first (without remember-me) so this test can then
       // exercise the direct (already-claimed) login path with the checkbox set.
       use claimStep1 =
-        new FormUrlEncodedContent([ KeyValuePair("Username", TestAccount.username); KeyValuePair("Password", "") ])
+        new FormUrlEncodedContent([ KeyValuePair("Username", fixture.MemberName); KeyValuePair("Password", "") ])
 
       let! redirectResp = client.PostAsync($"{fixture.BaseUrl}/login", claimStep1)
       let claimUrl = Uri(Uri(fixture.BaseUrl), redirectResp.Headers.Location).ToString()
@@ -169,7 +167,7 @@ type RememberMeCheckedCookieTests(fixture: WebAppFixture) =
       // Now log in again with "remember me" checked.
       use rememberMeBody =
         new FormUrlEncodedContent(
-          [ KeyValuePair("Username", TestAccount.username)
+          [ KeyValuePair("Username", fixture.MemberName)
             KeyValuePair("Password", TestAccount.password)
             KeyValuePair("RememberMe", "on") ]
         )
@@ -186,15 +184,16 @@ type RememberMeCheckedCookieTests(fixture: WebAppFixture) =
 /// its own locale-formatted default ("Aug 3, 2026, 12:45") to the unified hover
 /// label, independently of the tick labels — guards the explicit HoverFormat
 /// (Charts.fs's recentXAxis) that keeps it on the app's yyyy-MM-dd HH:mm convention.
-type RecentChartHoverFormatTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type RecentChartHoverFormatTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``recent chart hover shows date, time, and day name``() : Task =
     task {
-      let! page = fixture.Browser.NewPageAsync()
+      use! traced = fixture.NewTracedPageAsync()
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
       let now = DateTime.Now
@@ -218,9 +217,7 @@ type RecentChartHoverFormatTests(fixture: WebAppFixture) =
       let px = rect.GetProperty("x").GetSingle()
       let py = rect.GetProperty("y").GetSingle()
       do! page.Mouse.MoveAsync(px, py)
-      do! page.WaitForTimeoutAsync(500.0f)
 
-      let! headerText = page.Locator(".chart .hoverlayer .axistext text").TextContentAsync()
       let expected = now.ToString("yyyy-MM-dd HH:mm (ddd)", CultureInfo.InvariantCulture)
-      Assert.Equal(expected, headerText)
+      do! Assertions.Expect(page.Locator(".chart .hoverlayer .axistext text")).ToHaveTextAsync(expected)
     }

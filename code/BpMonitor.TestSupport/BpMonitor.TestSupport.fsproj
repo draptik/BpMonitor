@@ -3,6 +3,8 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="ProcessReadiness.fs" />
+    <Compile Include="TraceArtifacts.fs" />
+    <Compile Include="WebAppLauncher.fs" />
     <Compile Include="Verifier.fs" />
     <Compile Include="TestBuilders.fs" />
   </ItemGroup>

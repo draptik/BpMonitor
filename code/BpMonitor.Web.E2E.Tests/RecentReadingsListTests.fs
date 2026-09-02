@@ -8,16 +8,16 @@ open Xunit
 
 /// The collapsible readings list below the chart narrows to the chart's visible x-range
 /// (recent-scrubber.js's plotly_relayout handler), same mechanism as the value strip.
-type RecentReadingsListTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type RecentReadingsListTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``the readings list narrows on a zoom shortcut and widens back on an autorange reset``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let now = DateTime.Now
 
@@ -46,16 +46,15 @@ type RecentReadingsListTests(fixture: WebAppFixture) =
       Assert.Equal(2, initialRows.Count)
 
       let! _ = page.ClickAsync("button:text('Last 7 days')")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! Assertions.Expect(page.Locator(".recent-readings-table tbody tr:visible")).ToHaveCountAsync(1)
 
       let! narrowedRows = visibleRows ()
-      Assert.Equal(1, narrowedRows.Count)
       Assert.Contains("111", narrowedRows[0])
       Assert.DoesNotContain("122", narrowedRows[0])
 
-      // Double-click resets the chart to autorange, which clears out-of-range everywhere.
+      // Double-click resets to the initial 30-day range (recentXAxis sets an explicit range, not autorange) — both readings fall inside it.
       do! page.DblClickAsync(".chart .js-plotly-plot")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! Assertions.Expect(page.Locator(".recent-readings-table tbody tr:visible")).ToHaveCountAsync(2)
 
       let! resetRows = visibleRows ()
       Assert.Equal(2, resetRows.Count)

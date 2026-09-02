@@ -9,19 +9,19 @@ open Xunit
 
 /// A collapsed (zero-width) medications timeline makes hoverAt's axis math produce a
 /// non-finite pixel; Firefox throws on that MouseEventInit field where Chromium doesn't.
-type MedicationsSyncFirefoxTests(fixture: FirefoxWebAppFixture) =
-  interface IClassFixture<FirefoxWebAppFixture>
+type MedicationsSyncFirefoxTests(fixture: FirefoxFixture) =
+  interface IClassFixture<FirefoxFixture>
 
   [<Fact>]
   member _.``hovering the BP chart with the medications timeline collapsed raises no page error``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
       let pageErrors = List<string>()
       page.add_PageError (fun _ msg -> pageErrors.Add(msg))
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       // Configure a medication so the (collapsed-by-default) timeline panel renders.
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
@@ -42,7 +42,7 @@ type MedicationsSyncFirefoxTests(fixture: FirefoxWebAppFixture) =
       // Fresh /recent load — the medications timeline panel starts collapsed.
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/recent")
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
-      do! page.WaitForTimeoutAsync(500.0f)
+      do! PlotWaits.laidOut page 0
 
       let cell = page.Locator("css=.value-strip tr:first-child td[data-x]").First
       let! x = cell.GetAttributeAsync("data-x")

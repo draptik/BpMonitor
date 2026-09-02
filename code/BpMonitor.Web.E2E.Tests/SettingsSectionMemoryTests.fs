@@ -6,16 +6,16 @@ open Microsoft.Playwright
 open Xunit
 
 /// details-memory.js persists open/closed state per data-persist-key across reloads.
-type SettingsSectionMemoryTests(fixture: WebAppFixture) =
-  interface IClassFixture<WebAppFixture>
+type SettingsSectionMemoryTests(fixture: ChromiumFixture) =
+  interface IClassFixture<ChromiumFixture>
 
   [<Fact>]
   member _.``collapsing the goal-range section stays collapsed after a reload``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
 
