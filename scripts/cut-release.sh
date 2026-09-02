@@ -294,7 +294,7 @@ cmd_tag() {
     found { print }
   ' CHANGELOG.md | sed -e '/./,$!d' >"$summary_file"
 
-  git tag -a "$version" -F "$summary_file"
+  git tag -a "$version" -F "$summary_file" --cleanup=verbatim
   rm -f "$summary_file"
 
   git push origin "$version"
