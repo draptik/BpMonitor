@@ -42,6 +42,68 @@ module TestAccount =
       do! page.WaitForURLAsync($"{baseUrl}/")
     }
 
+/// Waits keyed to the app's own Plotly readiness signals instead of a fixed sleep.
+module PlotWaits =
+  /// Flushes a double-rAF update, then 60ms — just above Plotly's own HOVERMINTIME (50ms) hover-redraw throttle.
+  let framesSettled (page: IPage) : Task =
+    page.EvaluateAsync(
+      "() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 60))))"
+    )
+    :> Task
+
+  /// Waits for chartGeometry(d) at `index`, then settles — theme.js's relayout can otherwise clear an in-flight scrub.
+  let laidOut (page: IPage) (index: int) : Task =
+    task {
+      let! _ =
+        page.WaitForFunctionAsync(
+          "i => { const d = document.querySelectorAll('.js-plotly-plot')[i]; return !!(d && window.chartGeometry && window.chartGeometry(d)); }",
+          index
+        )
+
+      do! framesSettled page
+    }
+
+  let private readScrubbed (page: IPage) : Task<string[]> =
+    page.EvalOnSelectorAllAsync<string[]>(".value-strip td.scrubbed", "els => els.map(e => e.dataset.x)")
+
+  /// Just above Plotly's own HOVERMINTIME (50ms) hover-redraw throttle, which can
+  /// flicker a hover result empty for one cycle right after it's set.
+  let private throttleSettle = TimeSpan.FromMilliseconds 60.0
+
+  /// Waits for `predicate` twice, 60ms apart, then reads the settled scrubbed cells —
+  /// the second check catches the HOVERMINTIME flicker the first one alone would miss.
+  let private waitStableThenRead (page: IPage) (expression: string) (arg: obj) : Task<string[]> =
+    task {
+      let! _ = page.WaitForFunctionAsync(expression, arg)
+      do! Task.Delay(throttleSettle)
+      let! _ = page.WaitForFunctionAsync(expression, arg)
+      return! readScrubbed page
+    }
+
+  /// Resolves once `.value-strip td.scrubbed` contains `x` and stays that way, then
+  /// returns the settled snapshot.
+  let scrubbedContainsStable (page: IPage) (x: string) : Task<string[]> =
+    waitStableThenRead
+      page
+      "x => [...document.querySelectorAll('.value-strip td.scrubbed')].some(e => e.dataset.x === x)"
+      x
+
+  /// Same as scrubbedContainsStable, for a hover-to-hover transition.
+  let scrubbedTransitionedTo (page: IPage) (presentX: string) (absentX: string) : Task<string[]> =
+    waitStableThenRead
+      page
+      "([p, a]) => { const s = [...document.querySelectorAll('.value-strip td.scrubbed')].map(e => e.dataset.x); return s.includes(p) && !s.includes(a); }"
+      [| presentX; absentX |]
+
+  /// A settled read after an action that shouldn't scrub anything — no positive
+  /// condition to wait for, so this just brackets a real 60ms throttle window.
+  let stableScrubbed (page: IPage) : Task<string[]> =
+    task {
+      let! _ = readScrubbed page
+      do! Task.Delay(throttleSettle)
+      return! readScrubbed page
+    }
+
 /// Locates the repository's `code/` directory (the one containing BpMonitor.slnx)
 /// by walking up from the test assembly's own output directory.
 module private RepoLayout =

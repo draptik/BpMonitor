@@ -41,7 +41,7 @@ type RecentScrubberFirefoxTests(fixture: FirefoxFixture) =
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/recent")
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
-      do! page.WaitForTimeoutAsync(500.0f)
+      do! PlotWaits.laidOut page 0
 
       let! xs =
         page.EvalOnSelectorAllAsync<string[]>(

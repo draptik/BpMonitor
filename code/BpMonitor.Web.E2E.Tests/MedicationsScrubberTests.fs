@@ -43,7 +43,7 @@ type MedicationsScrubberTests(fixture: ChromiumFixture) =
       // The timeline panel starts collapsed — open it so Plotly lays it out at real width.
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       let! xs = page.Locator(".value-strip tr:first-child td[data-x]").AllTextContentsAsync()
       Assert.True(xs.Count >= 2)
@@ -60,21 +60,16 @@ type MedicationsScrubberTests(fixture: ChromiumFixture) =
           x
         )
 
-      let scrubbedXs () =
-        page.EvalOnSelectorAllAsync<string[]>(".value-strip td.scrubbed", "els => els.map(e => e.dataset.x)")
-
       let! firstPoint = pixelFor firstX
       do! page.Mouse.MoveAsync(float32 firstPoint[0], float32 firstPoint[1])
-      do! page.WaitForTimeoutAsync(300.0f)
-      let! scrubbedAfterFirst = scrubbedXs ()
+      let! scrubbedAfterFirst = PlotWaits.scrubbedContainsStable page firstX
       Assert.Contains(firstX, scrubbedAfterFirst)
 
       // Move within the same bar (no leave/re-enter) — the entry-only plotly_hover event
       // must not be the only thing driving this, or the scrubber freezes on `firstX`.
       let! secondPoint = pixelFor secondX
       do! page.Mouse.MoveAsync(float32 secondPoint[0], float32 secondPoint[1])
-      do! page.WaitForTimeoutAsync(300.0f)
-      let! scrubbedAfterSecond = scrubbedXs ()
+      let! scrubbedAfterSecond = PlotWaits.scrubbedTransitionedTo page secondX firstX
       Assert.Contains(secondX, scrubbedAfterSecond)
       Assert.DoesNotContain(firstX, scrubbedAfterSecond)
     }
@@ -110,7 +105,7 @@ type MedicationsScrubberEdgeTests(fixture: ChromiumFixture) =
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       let! x = page.Locator(".value-strip tr:first-child td[data-x]").First.GetAttributeAsync("data-x")
 
@@ -124,12 +119,7 @@ type MedicationsScrubberEdgeTests(fixture: ChromiumFixture) =
         )
 
       do! page.Mouse.MoveAsync(float32 point[0], float32 point[1])
-      do! page.WaitForTimeoutAsync(300.0f)
-
-      let scrubbedXs () =
-        page.EvalOnSelectorAllAsync<string[]>(".value-strip td.scrubbed", "els => els.map(e => e.dataset.x)")
-
-      let! scrubbedBefore = scrubbedXs ()
+      let! scrubbedBefore = PlotWaits.scrubbedContainsStable page x
       Assert.Contains(x, scrubbedBefore)
 
       // Dispatch directly on the plot div (not the real cursor, and not on the draglayer
@@ -141,9 +131,8 @@ type MedicationsScrubberEdgeTests(fixture: ChromiumFixture) =
            d.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: rect.left - 20, clientY: rect.top + 5 })); }"
         )
 
-      do! page.WaitForTimeoutAsync(300.0f)
-
-      let! scrubbedAfter = scrubbedXs ()
+      // Nothing should happen here — read a settled snapshot rather than guessing a sleep length.
+      let! scrubbedAfter = PlotWaits.stableScrubbed page
       Assert.Equal<string[]>(scrubbedBefore, scrubbedAfter)
     }
 
@@ -183,7 +172,7 @@ type MedicationsScrubberOffscreenSnapTests(fixture: ChromiumFixture) =
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       // The gap between the two readings, closer to the far (outside-window) one.
       let edgeDate = now.AddDays(-29.5).ToString("yyyy-MM-dd HH:mm")
@@ -198,7 +187,10 @@ type MedicationsScrubberOffscreenSnapTests(fixture: ChromiumFixture) =
         )
 
       do! page.Mouse.MoveAsync(float32 point[0], float32 point[1])
-      do! page.WaitForTimeoutAsync(300.0f)
+
+      // The assertion below already tolerates a missing spike (falls back to the
+      // chart's own rect), so this only needs to settle, not require one to appear.
+      do! PlotWaits.framesSettled page
 
       let! spikeAndChartRect =
         page.EvalOnSelectorAsync<float[]>(
@@ -250,13 +242,20 @@ type MedicationsScrubberZoomSyncTests(fixture: ChromiumFixture) =
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       let xaxisRange (selector: string) =
         page.EvalOnSelectorAsync<string[]>(selector, "d => d._fullLayout.xaxis.range.map(String)")
 
       let! _ = page.ClickAsync("button:text('Last 7 days')")
-      do! page.WaitForTimeoutAsync(300.0f)
+
+      // recent-zoom.js's Plotly.relayout narrows the range asynchronously — wait for
+      // the actual span to shrink to ~7 days instead of guessing how long that takes.
+      let! _ =
+        page.WaitForFunctionAsync(
+          "() => { const r = document.querySelector('.chart .js-plotly-plot')._fullLayout.xaxis.range; \
+           return (new Date(r[1]) - new Date(r[0])) <= 8 * 24 * 3600 * 1000; }"
+        )
 
       let! bpRange = xaxisRange ".chart .js-plotly-plot"
       let! timelineRange = xaxisRange ".medications-chart .js-plotly-plot"
@@ -295,7 +294,7 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: ChromiumFixture) =
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       let! x = page.Locator(".value-strip tr:first-child td[data-x]").First.GetAttributeAsync("data-x")
 
@@ -315,14 +314,22 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: ChromiumFixture) =
 
       let! bpPoint = pixelFor ".chart .js-plotly-plot" x
       do! page.Mouse.MoveAsync(float32 bpPoint[0], float32 bpPoint[1])
-      do! page.WaitForTimeoutAsync(300.0f)
+
+      let! _ =
+        page.WaitForFunctionAsync(
+          "() => !!document.querySelector('.medications-chart .js-plotly-plot')?.querySelector('.spikeline')"
+        )
 
       let! spikeShownWhileHovering = hasTimelineSpike ()
       Assert.True(spikeShownWhileHovering, "expected the timeline to show a mirrored spike while hovering the BP chart")
 
       // Move off the chart entirely so Plotly emits plotly_unhover.
       do! page.Mouse.MoveAsync(10.0f, 10.0f)
-      do! page.WaitForTimeoutAsync(300.0f)
+
+      let! _ =
+        page.WaitForFunctionAsync(
+          "() => !document.querySelector('.medications-chart .js-plotly-plot')?.querySelector('.spikeline')"
+        )
 
       let! spikeShownAfterUnhover = hasTimelineSpike ()
 
@@ -368,7 +375,7 @@ type MedicationsScrubberHistoryPageTests(fixture: ChromiumFixture) =
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! PlotWaits.laidOut page 1
 
       let xaxisRange (selector: string) =
         page.EvalOnSelectorAsync<string[]>(selector, "d => d._fullLayout.xaxis.range.map(String)")
@@ -392,7 +399,10 @@ type MedicationsScrubberHistoryPageTests(fixture: ChromiumFixture) =
       let! point = pixelFor ".medications-chart .js-plotly-plot" nowLocal
 
       do! page.Mouse.MoveAsync(float32 point[0], float32 point[1])
-      do! page.WaitForTimeoutAsync(300.0f)
+
+      // Nothing should happen here (no value-strip means no mirrored spike), so
+      // there's no positive condition to poll for — flush the scheduled update instead.
+      do! PlotWaits.framesSettled page
 
       let! bpHasSpike = page.EvalOnSelectorAsync<bool>(".chart .js-plotly-plot", "d => !!d.querySelector('.spikeline')")
 

@@ -42,7 +42,7 @@ type MedicationsSyncFirefoxTests(fixture: FirefoxFixture) =
       // Fresh /recent load — the medications timeline panel starts collapsed.
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/recent")
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
-      do! page.WaitForTimeoutAsync(500.0f)
+      do! PlotWaits.laidOut page 0
 
       let cell = page.Locator("css=.value-strip tr:first-child td[data-x]").First
       let! x = cell.GetAttributeAsync("data-x")

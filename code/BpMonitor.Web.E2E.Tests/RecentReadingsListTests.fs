@@ -46,16 +46,15 @@ type RecentReadingsListTests(fixture: ChromiumFixture) =
       Assert.Equal(2, initialRows.Count)
 
       let! _ = page.ClickAsync("button:text('Last 7 days')")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! Assertions.Expect(page.Locator(".recent-readings-table tbody tr:visible")).ToHaveCountAsync(1)
 
       let! narrowedRows = visibleRows ()
-      Assert.Equal(1, narrowedRows.Count)
       Assert.Contains("111", narrowedRows[0])
       Assert.DoesNotContain("122", narrowedRows[0])
 
-      // Double-click resets the chart to autorange, which clears out-of-range everywhere.
+      // Double-click resets to the initial 30-day range (recentXAxis sets an explicit range, not autorange) — both readings fall inside it.
       do! page.DblClickAsync(".chart .js-plotly-plot")
-      do! page.WaitForTimeoutAsync(300.0f)
+      do! Assertions.Expect(page.Locator(".recent-readings-table tbody tr:visible")).ToHaveCountAsync(2)
 
       let! resetRows = visibleRows ()
       Assert.Equal(2, resetRows.Count)

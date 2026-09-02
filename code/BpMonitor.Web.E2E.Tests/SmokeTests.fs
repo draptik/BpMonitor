@@ -6,6 +6,7 @@ open System.Globalization
 open System.Net.Http
 open System.Threading.Tasks
 open BpMonitor.Web.E2E
+open Microsoft.Playwright
 open Xunit
 
 /// End-to-end smoke test: claim this class's member, add a reading, and
@@ -216,9 +217,7 @@ type RecentChartHoverFormatTests(fixture: ChromiumFixture) =
       let px = rect.GetProperty("x").GetSingle()
       let py = rect.GetProperty("y").GetSingle()
       do! page.Mouse.MoveAsync(px, py)
-      do! page.WaitForTimeoutAsync(500.0f)
 
-      let! headerText = page.Locator(".chart .hoverlayer .axistext text").TextContentAsync()
       let expected = now.ToString("yyyy-MM-dd HH:mm (ddd)", CultureInfo.InvariantCulture)
-      Assert.Equal(expected, headerText)
+      do! Assertions.Expect(page.Locator(".chart .hoverlayer .axistext text")).ToHaveTextAsync(expected)
     }
