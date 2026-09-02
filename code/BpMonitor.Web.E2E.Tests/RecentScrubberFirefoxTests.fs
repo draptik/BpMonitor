@@ -14,8 +14,8 @@ type RecentScrubberFirefoxTests(fixture: FirefoxWebAppFixture) =
   [<Fact>]
   member _.``hovering every value-strip column lights up its scrubber box``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 

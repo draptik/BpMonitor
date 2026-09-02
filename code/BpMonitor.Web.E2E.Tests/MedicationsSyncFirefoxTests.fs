@@ -15,8 +15,8 @@ type MedicationsSyncFirefoxTests(fixture: FirefoxWebAppFixture) =
   [<Fact>]
   member _.``hovering the BP chart with the medications timeline collapsed raises no page error``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
       let pageErrors = List<string>()
       page.add_PageError (fun _ msg -> pageErrors.Add(msg))

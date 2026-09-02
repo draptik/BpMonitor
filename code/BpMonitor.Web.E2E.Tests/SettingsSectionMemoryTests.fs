@@ -12,8 +12,8 @@ type SettingsSectionMemoryTests(fixture: WebAppFixture) =
   [<Fact>]
   member _.``collapsing the goal-range section stays collapsed after a reload``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 

@@ -9,6 +9,18 @@ open System.Threading.Tasks
 open Microsoft.Playwright
 open Xunit
 
+/// A page whose browser context was traced from creation; disposing it flushes the trace zip.
+type TracedPage(context: IBrowserContext, page: IPage, tracePath: string) =
+  member _.Page = page
+
+  interface IAsyncDisposable with
+    member _.DisposeAsync() : ValueTask =
+      task {
+        do! context.Tracing.StopAsync(TracingStopOptions(Path = tracePath))
+        do! context.CloseAsync()
+      }
+      |> ValueTask
+
 /// Shared test member used to log in against a fresh BpMonitor.Web instance.
 /// `SchemaMigrations` auto-seeds a single unclaimed member named "Me" on an
 /// empty database, so every E2E test that needs to be logged in claims it
@@ -47,6 +59,11 @@ module private RepoLayout =
   let codeDir () : string =
     (findUpwards "BpMonitor.slnx" (DirectoryInfo(AppContext.BaseDirectory))).FullName
 
+  let tracesDir () : string =
+    let dir = Path.Combine(codeDir (), "TestResults", "traces")
+    Directory.CreateDirectory(dir) |> ignore
+    dir
+
 /// Boots a real out-of-process BpMonitor.Web instance (real HTTP, fresh temp SQLite
 /// file) and drives it with a Playwright Chromium browser; one per `IClassFixture`.
 type WebAppFixture() =
@@ -54,7 +71,9 @@ type WebAppFixture() =
   let mutable playwright: IPlaywright = null
   let mutable browser: IBrowser = null
   let mutable dbPath = ""
-  let capturedOutput = Text.StringBuilder()
+  let mutable appLogWriter: StreamWriter = null
+  let capturedLines = Collections.Generic.Queue<string>()
+  let captureLock = obj ()
 
   let port =
     let listener = new TcpListener(System.Net.IPAddress.Loopback, 0)
@@ -63,12 +82,39 @@ type WebAppFixture() =
     listener.Stop()
     p
 
+  /// Bounded so a long shared run doesn't grow this without limit; the full app log
+  /// still goes to `appLogWriter` on disk.
+  let onProcessLine (line: string) =
+    lock captureLock (fun () ->
+      appLogWriter.WriteLine(line)
+      capturedLines.Enqueue(line)
+
+      if capturedLines.Count > 200 then
+        capturedLines.Dequeue() |> ignore)
+
+  let capturedOutput () =
+    lock captureLock (fun () -> String.concat "\n" capturedLines)
+
   member val BaseUrl = "" with get, set
   member _.Browser: IBrowser = browser
 
   /// Overridden by FirefoxWebAppFixture to catch engine-specific regressions.
   abstract member LaunchBrowserAsync: IPlaywright -> Task<IBrowser>
   default _.LaunchBrowserAsync(pw: IPlaywright) = pw.Chromium.LaunchAsync()
+
+  /// Opens an isolated, traced browser context and page; disposing the result
+  /// flushes the trace zip regardless of whether the test passed or failed.
+  member _.NewTracedPageAsync(?viewport: ViewportSize) : Task<TracedPage> =
+    task {
+      let opts = BrowserNewContextOptions()
+      viewport |> Option.iter (fun v -> opts.ViewportSize <- v)
+      let! context = browser.NewContextAsync(opts)
+      do! context.Tracing.StartAsync(TracingStartOptions(Screenshots = true, Snapshots = true, Sources = true))
+      let! page = context.NewPageAsync()
+      let displayName = TestContext.Current.Test.TestDisplayName
+      let tracePath = TraceArtifacts.pathFor (RepoLayout.tracesDir ()) displayName
+      return TracedPage(context, page, tracePath)
+    }
 
   member private _.WaitUntilReadyAsync() : Task =
     task {
@@ -87,7 +133,7 @@ type WebAppFixture() =
         ProcessReadiness.waitUntilReadyAsync
           isReady
           (fun () -> webProcess.HasExited)
-          (fun () -> capturedOutput.ToString())
+          capturedOutput
           (TimeSpan.FromSeconds 30.0)
           port
 
@@ -106,6 +152,7 @@ type WebAppFixture() =
       task {
         this.BaseUrl <- $"http://127.0.0.1:{port}"
         dbPath <- Path.Combine(Path.GetTempPath(), $"bpmonitor-e2e-{Guid.NewGuid():N}.db")
+        appLogWriter <- new StreamWriter(Path.Combine(RepoLayout.tracesDir (), $"e2e-app-{port}.log"), AutoFlush = true)
 
         let webProjectPath =
           Path.Combine(RepoLayout.codeDir (), "BpMonitor.Web", "BpMonitor.Web.fsproj")
@@ -126,11 +173,11 @@ type WebAppFixture() =
 
         proc.OutputDataReceived.Add(fun e ->
           if e.Data <> null then
-            capturedOutput.AppendLine(e.Data) |> ignore)
+            onProcessLine e.Data)
 
         proc.ErrorDataReceived.Add(fun e ->
           if e.Data <> null then
-            capturedOutput.AppendLine(e.Data) |> ignore)
+            onProcessLine e.Data)
 
         proc.Start() |> ignore
         proc.BeginOutputReadLine()
@@ -160,6 +207,9 @@ type WebAppFixture() =
 
         if File.Exists(dbPath) then
           File.Delete(dbPath)
+
+        if appLogWriter <> null then
+          appLogWriter.Dispose()
       }
       |> ValueTask
 

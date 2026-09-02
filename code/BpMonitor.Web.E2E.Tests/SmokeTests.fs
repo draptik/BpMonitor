@@ -17,7 +17,8 @@ type LoginAddHistoryTests(fixture: WebAppFixture) =
   [<Fact>]
   member _.``login, add a reading, and see it in history``() : Task =
     task {
-      let! page = fixture.Browser.NewPageAsync()
+      use! traced = fixture.NewTracedPageAsync()
+      let page = traced.Page
 
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 
@@ -46,7 +47,8 @@ type ReadingValidationTests(fixture: WebAppFixture) =
   [<Fact>]
   member _.``submitting an out-of-range reading shows error messages on the form``() : Task =
     task {
-      let! page = fixture.Browser.NewPageAsync()
+      use! traced = fixture.NewTracedPageAsync()
+      let page = traced.Page
 
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 
@@ -192,7 +194,8 @@ type RecentChartHoverFormatTests(fixture: WebAppFixture) =
   [<Fact>]
   member _.``recent chart hover shows date, time, and day name``() : Task =
     task {
-      let! page = fixture.Browser.NewPageAsync()
+      use! traced = fixture.NewTracedPageAsync()
+      let page = traced.Page
 
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 

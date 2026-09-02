@@ -14,8 +14,8 @@ type MedicationsScrubberTests(fixture: WebAppFixture) =
   [<Fact>]
   member _.``moving across a medication bar keeps boxing the matching value-strip column``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 
@@ -87,8 +87,8 @@ type MedicationsScrubberEdgeTests(fixture: WebAppFixture) =
   [<Fact>]
   member _.``drifting past the timeline's draglayer edge while hovering doesn't move the scrubber``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 
@@ -155,8 +155,8 @@ type MedicationsScrubberOffscreenSnapTests(fixture: WebAppFixture) =
   [<Fact>]
   member _.``hovering a sparse spot near the window edge never puts the scrubber off-canvas``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 
@@ -227,8 +227,8 @@ type MedicationsScrubberZoomSyncTests(fixture: WebAppFixture) =
   [<Fact>]
   member _.``clicking the Last 7 days button also narrows the timeline's x-axis range``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 
@@ -272,8 +272,8 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: WebAppFixture) =
   [<Fact>]
   member _.``hovering the BP chart mirrors a spike onto the timeline, and unhovering clears it``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 
@@ -339,8 +339,8 @@ type MedicationsScrubberHistoryPageTests(fixture: WebAppFixture) =
   [<Fact>]
   member _.``opening the collapsed BP chart on /history still syncs the timeline's axis, without scrubbing``() : Task =
     task {
-      let! page =
-        fixture.Browser.NewPageAsync(BrowserNewPageOptions(ViewportSize = ViewportSize(Width = 1280, Height = 800)))
+      use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
+      let page = traced.Page
 
       do! TestAccount.claimAndLogin fixture.BaseUrl page
 

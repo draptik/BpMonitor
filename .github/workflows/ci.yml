@@ -117,9 +117,20 @@ jobs:
         run: dotnet test --no-build --configuration Release --filter-not-namespace "BpMonitor.Web.E2E*" --ignore-exit-code 8 --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
         working-directory: code
 
+      # No --coverage: the app runs out-of-process and BpMonitor.TestSupport is
+      # ExcludeFromCodeCoverage, so this step's instrumentation covered zero production lines.
       - name: Test (E2E)
-        run: dotnet test --no-build --configuration Release --filter-namespace "BpMonitor.Web.E2E*" --ignore-exit-code 8 --results-directory ./TestResults -- --coverage --coverage-output-format cobertura
+        run: dotnet test --no-build --configuration Release --filter-namespace "BpMonitor.Web.E2E*" --ignore-exit-code 8 --results-directory ./TestResults
         working-directory: code
+
+      - name: Upload E2E failure diagnostics
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-diagnostics
+          path: code/TestResults/traces/
+          retention-days: 14
+          if-no-files-found: ignore
 
       - name: Generate coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5

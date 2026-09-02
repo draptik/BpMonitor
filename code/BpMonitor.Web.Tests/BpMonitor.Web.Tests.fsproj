@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Compile Include="ProcessReadinessTests.fs" />
+    <Compile Include="TraceArtifactsTests.fs" />
     <Compile Include="TestHost.fs" />
     <Compile Include="HandlerTestHelpers.fs" />
     <Compile Include="ViewTestHelpers.fs" />
