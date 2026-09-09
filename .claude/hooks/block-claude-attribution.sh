@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
-# PreToolUse hook for Bash(git *) / Bash(gh *): hard-blocks Claude
-# attribution from reaching a commit or PR. Claude Code's own system
-# prompt pushes for Co-Authored-By trailers and a "Generated with Claude
-# Code" footer, so a reminder alone (git-workflow-reminder.sh) isn't
-# reliable enough — this is the backstop.
+# PreToolUse hook for Bash(git *) / Bash(gh *): backstop that hard-blocks Claude attribution/session links from reaching a commit or PR.
 set -euo pipefail
 
 input=$(cat)
@@ -19,6 +15,9 @@ case "$cmd" in
     if printf '%s' "$cmd" | grep -qi "co-authored-by"; then
       deny "git-workflow skill: NEVER add a Co-Authored-By trailer to commits — no Claude attribution, no exceptions."
     fi
+    if printf '%s' "$cmd" | grep -qi "claude-session"; then
+      deny "git-workflow skill: NEVER add a Claude-Session trailer/link to commits — no session IDs, no exceptions."
+    fi
     ;;
   *"gh pr create"*)
     body=""
@@ -30,8 +29,8 @@ case "$cmd" in
     fi
     combined="$cmd
 $body"
-    if printf '%s' "$combined" | grep -qiE "generated with claude code|🤖|## Test plan"; then
-      deny "git-workflow skill: PR body is a Summary section only — no Test plan section, no Generated-with-Claude-Code footer/emoji."
+    if printf '%s' "$combined" | grep -qiE "generated with claude code|🤖|## Test plan|claude-session|claude\.ai/code/session"; then
+      deny "git-workflow skill: PR body is a Summary section only — no Test plan section, no Generated-with-Claude-Code footer/emoji, no Claude-Session link."
     fi
     ;;
 esac
