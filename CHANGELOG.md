@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.2] - 2026-09-18
+
+### Maintenance
+
+- Dependency updates and CI/test reliability fixes. No user-facing changes.
+
 ## [1.13.1] - 2026-09-02
 
 ### Fixed
@@ -474,7 +480,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.13.1...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.13.2...HEAD
+[1.13.2]: https://github.com/draptik/BpMonitor/compare/v1.13.1...v1.13.2
 [1.13.1]: https://github.com/draptik/BpMonitor/compare/v1.13.0...v1.13.1
 [1.13.0]: https://github.com/draptik/BpMonitor/compare/v1.12.3...v1.13.0
 [1.12.3]: https://github.com/draptik/BpMonitor/compare/v1.12.2...v1.12.3
