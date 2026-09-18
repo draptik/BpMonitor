@@ -38,6 +38,7 @@ code/
 | Verifying frontend changes | `verify-frontend` skill — adds a throwaway xunit test against `ChromiumFixture`, runs it, then deletes it; avoids ad-hoc browser automation |
 | Test runner | xUnit v3 on Microsoft.Testing.Platform (MTP) — all 7 test projects run in parallel via `dotnet test` (default `--max-parallel-test-modules` = CPU count) |
 | Test coverage | `Microsoft.Testing.Extensions.CodeCoverage` (18.0.6); run with `dotnet test -- --coverage --coverage-output-format cobertura`; outputs one GUID-named `.cobertura.xml` per project into `TestResults/` |
+| Snapshot testing | `Verify.XunitV3` — its build-time SponsorCheck is silenced via `Verify_SponsorshipExemption`/`Verify_SponsorshipExemptionUntil` in `code/Directory.Build.props` under the maintainer's free open-source exemption (no cost to us); the `...Until` date is a self-imposed re-attestation deadline the maintainer's tooling enforces, currently **2027-09** — bump it forward (or drop the exemption if the project stops qualifying) when it's reached, otherwise SponsorCheck warnings return |
 
 ## Data Model
 
