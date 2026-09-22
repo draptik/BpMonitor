@@ -65,7 +65,7 @@ jobs:
         working-directory: code
 
       - name: Check formatting
-        run: dotnet fantomas --check .
+        run: dotnet fantomas check .
         working-directory: code
 
   build-and-test:
