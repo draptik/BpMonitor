@@ -88,9 +88,14 @@ module BloodPressureReading =
     (input: BloodPressureReadingUnvalidated)
     : Validation<BloodPressureReading, ValidationError> =
     validation {
-      let! sys = validateField _.Systolic ranges.SystolicMin ranges.SystolicMax SystolicOutOfRange input
-      and! dia = validateField _.Diastolic ranges.DiastolicMin ranges.DiastolicMax DiastolicOutOfRange input
-      and! hr = validateField _.HeartRate ranges.HeartRateMin ranges.HeartRateMax HeartRateOutOfRange input
+      let! sys =
+        validateField _.Systolic ranges.SystolicMin ranges.SystolicMax SystolicOutOfRange input
+
+      and! dia =
+        validateField _.Diastolic ranges.DiastolicMin ranges.DiastolicMax DiastolicOutOfRange input
+
+      and! hr =
+        validateField _.HeartRate ranges.HeartRateMin ranges.HeartRateMax HeartRateOutOfRange input
 
       return
         { Id = 0

@@ -54,8 +54,11 @@ module MedicationHandlers =
   /// validation (empty name, end before start) happens afterward via Medication.parse.
   let private toUnvalidated (s: LocalizedStrings) (f: FormValues) : Validation<MedicationUnvalidated, string> =
     validation {
-      let! startDate = tryDate s s.Medication.StartDateLabel f.StartDate |> Validation.ofResult
-      and! endDate = tryOptionalDate s s.Medication.EndDateLabel f.EndDate |> Validation.ofResult
+      let! startDate =
+        tryDate s s.Medication.StartDateLabel f.StartDate |> Validation.ofResult
+
+      and! endDate =
+        tryOptionalDate s s.Medication.EndDateLabel f.EndDate |> Validation.ofResult
 
       return
         { Name = f.Name

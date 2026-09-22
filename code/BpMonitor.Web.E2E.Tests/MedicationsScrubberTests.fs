@@ -45,10 +45,16 @@ type MedicationsScrubberTests(fixture: ChromiumFixture) =
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
       do! PlotWaits.laidOut page 1
 
-      let! xs = page.Locator(".value-strip tr:first-child td[data-x]").AllTextContentsAsync()
+      let! xs =
+        page.Locator(".value-strip tr:first-child td[data-x]").AllTextContentsAsync()
+
       Assert.True(xs.Count >= 2)
-      let! firstX = page.Locator(".value-strip tr:first-child td[data-x]").First.GetAttributeAsync("data-x")
-      let! secondX = page.Locator(".value-strip tr:first-child td[data-x]").Nth(1).GetAttributeAsync("data-x")
+
+      let! firstX =
+        page.Locator(".value-strip tr:first-child td[data-x]").First.GetAttributeAsync("data-x")
+
+      let! secondX =
+        page.Locator(".value-strip tr:first-child td[data-x]").Nth(1).GetAttributeAsync("data-x")
 
       // Mirrors medications-sync.js's own d2l/l2p conversion to find an x value's pixel.
       let pixelFor (x: string) =
@@ -107,7 +113,8 @@ type MedicationsScrubberEdgeTests(fixture: ChromiumFixture) =
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
       do! PlotWaits.laidOut page 1
 
-      let! x = page.Locator(".value-strip tr:first-child td[data-x]").First.GetAttributeAsync("data-x")
+      let! x =
+        page.Locator(".value-strip tr:first-child td[data-x]").First.GetAttributeAsync("data-x")
 
       let! point =
         page.EvalOnSelectorAsync<float[]>(
@@ -296,7 +303,8 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: ChromiumFixture) =
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")
       do! PlotWaits.laidOut page 1
 
-      let! x = page.Locator(".value-strip tr:first-child td[data-x]").First.GetAttributeAsync("data-x")
+      let! x =
+        page.Locator(".value-strip tr:first-child td[data-x]").First.GetAttributeAsync("data-x")
 
       // BP-chart y=0 (mmHg) is far below the plotted range, unlike the timeline's category
       // axis — use the draglayer's vertical center instead so the real mouse move lands on-chart.
@@ -404,7 +412,8 @@ type MedicationsScrubberHistoryPageTests(fixture: ChromiumFixture) =
       // there's no positive condition to poll for — flush the scheduled update instead.
       do! PlotWaits.framesSettled page
 
-      let! bpHasSpike = page.EvalOnSelectorAsync<bool>(".chart .js-plotly-plot", "d => !!d.querySelector('.spikeline')")
+      let! bpHasSpike =
+        page.EvalOnSelectorAsync<bool>(".chart .js-plotly-plot", "d => !!d.querySelector('.spikeline')")
 
       Assert.False(bpHasSpike, "expected /history's BP chart to never receive a mirrored spike (no value-strip there)")
     }
