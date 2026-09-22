@@ -13,7 +13,8 @@ let private thisFile = IO.Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__)
 let private verifyHtml = Verifier.verifyHtml thisFile
 
 let private reading id systolic diastolic heartRate day hour comment =
-  { Id = id
+  {
+    Id = id
     MemberId = 1
     Systolic = systolic
     Diastolic = diastolic
@@ -21,10 +22,12 @@ let private reading id systolic diastolic heartRate day hour comment =
     Timestamp = Timestamp.local 2026 1 day hour 0 0
     Comments = comment
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 let private readings =
-  [ reading 1 120 80 70 1 9 None
+  [
+    reading 1 120 80 70 1 9 None
     reading 2 135 88 78 2 8 (Some "After coffee")
     reading 3 118 76 65 3 10 None
     reading 4 142 92 82 4 7 (Some "Stressful day")
@@ -53,7 +56,8 @@ let private readings =
     reading 27 143 93 83 27 8 (Some "Work deadline")
     reading 28 119 78 69 28 9 None
     reading 29 122 80 71 29 9 None
-    reading 30 128 84 74 30 8 None ]
+    reading 30 128 84 74 30 8 None
+  ]
 
 /// `now` for /recent's x-axis range — past the latest test reading (day 30), so every
 /// fixture above falls inside the chart's initial 30-day window.
@@ -73,10 +77,12 @@ let private hasNamelessHover (html: string) (name: string) =
 [<Fact>]
 let ``toHtml renders a goal-range band shaped rectangle for systolic and diastolic bounds`` () =
   let goal: GoalRange =
-    { SystolicMin = 90
+    {
+      SystolicMin = 90
       SystolicMax = 140
       DiastolicMin = 60
-      DiastolicMax = 90 }
+      DiastolicMax = 90
+    }
 
   let html = BpChart.toHtml LocalizedStrings.en.Charts goal readings
   test <@ html.Contains("\"type\":\"rect\"") @>
@@ -247,12 +253,14 @@ let ``toHtml matches snapshot`` () : Task =
 let private asAggregated (rs: BloodPressureReading list) =
   rs
   |> List.map (fun r ->
-    { Reading = r
+    {
+      Reading = r
       Count = 1
       MinSystolic = r.Systolic
       MaxSystolic = r.Systolic
       MinDiastolic = r.Diastolic
-      MaxDiastolic = r.Diastolic })
+      MaxDiastolic = r.Diastolic
+    })
 
 [<Fact>]
 let ``toHtmlRecent renders a dashed line segment when a gap exceeds 10% of the window as missing days`` () =
@@ -319,12 +327,14 @@ let ``toHtmlRecent does not drop any reading, even when split across dash/solid 
   // Window = 30 days; threshold = 3 missing days. Days 1-2-3 (solid), a 7-day gap to day 10
   // (6 missing days, dashed), then days 10-11-12 (solid) — 3 runs sharing 2 boundary points.
   let readings =
-    [ reading 1 120 80 70 1 9 None
+    [
+      reading 1 120 80 70 1 9 None
       reading 2 121 80 70 2 9 None
       reading 3 122 80 70 3 9 None
       reading 4 123 80 70 10 9 None
       reading 5 124 80 70 11 9 None
-      reading 6 125 80 70 12 9 None ]
+      reading 6 125 80 70 12 9 None
+    ]
 
   let html =
     BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
@@ -361,12 +371,14 @@ let ``toHtmlRecent uses compact margins, like the trends chart, now that it has 
 [<Fact>]
 let ``toHtmlRecent shows exactly one legend entry per series, even when split across multiple dash/solid runs`` () =
   let readings =
-    [ reading 1 120 80 70 1 9 None
+    [
+      reading 1 120 80 70 1 9 None
       reading 2 121 80 70 2 9 None
       reading 3 122 80 70 3 9 None
       reading 4 123 80 70 10 9 None
       reading 5 124 80 70 11 9 None
-      reading 6 125 80 70 12 9 None ]
+      reading 6 125 80 70 12 9 None
+    ]
 
   let html =
     BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
@@ -432,9 +444,11 @@ let ``toHtmlRecent omits the trend line when there are too few readings to smoot
 [<Fact>]
 let ``toHtmlRecent still omits the trend line at 3 readings, one below the 4-reading minimum`` () =
   let threeReadings =
-    [ reading 1 120 80 70 1 9 None
+    [
+      reading 1 120 80 70 1 9 None
       reading 2 130 85 74 2 9 None
-      reading 3 125 82 72 3 9 None ]
+      reading 3 125 82 72 3 9 None
+    ]
 
   let html =
     BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now threeReadings
@@ -444,10 +458,12 @@ let ``toHtmlRecent still omits the trend line at 3 readings, one below the 4-rea
 [<Fact>]
 let ``toHtmlRecent renders the trend line at 4 readings, the minimum required to smooth`` () =
   let fourReadings =
-    [ reading 1 120 80 70 1 9 None
+    [
+      reading 1 120 80 70 1 9 None
       reading 2 130 85 74 2 9 None
       reading 3 125 82 72 3 9 None
-      reading 4 128 83 73 4 9 None ]
+      reading 4 128 83 73 4 9 None
+    ]
 
   let html =
     BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now fourReadings
@@ -580,12 +596,16 @@ let ``toHtmlDashed matches snapshot`` () : Task =
 let ``toHtmlDashed: multi-reading period uses diamond marker (size 11) and 'readings (avg)' hover`` () =
   // Count = 2 → larger diamond marker (size 11, Plotly symbol "2") + hover "2 readings (avg)"
   let aggregated =
-    [ { Reading = readings[0]
+    [
+      {
+        Reading = readings[0]
         Count = 2
         MinSystolic = readings[0].Systolic - 10
         MaxSystolic = readings[0].Systolic + 10
         MinDiastolic = readings[0].Diastolic - 5
-        MaxDiastolic = readings[0].Diastolic + 5 } ]
+        MaxDiastolic = readings[0].Diastolic + 5
+      }
+    ]
 
   let html =
     BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly aggregated
@@ -598,12 +618,16 @@ let ``toHtmlDashed: multi-reading period uses diamond marker (size 11) and 'read
 let ``toHtmlDashed: single-reading period uses circle marker (size 8) and '1 reading' hover`` () =
   // Count = 1 → standard circle marker (size 8, Plotly symbol "0") + hover "1 reading"
   let aggregated =
-    [ { Reading = readings[0]
+    [
+      {
+        Reading = readings[0]
         Count = 1
         MinSystolic = readings[0].Systolic
         MaxSystolic = readings[0].Systolic
         MinDiastolic = readings[0].Diastolic
-        MaxDiastolic = readings[0].Diastolic } ]
+        MaxDiastolic = readings[0].Diastolic
+      }
+    ]
 
   let html =
     BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly aggregated
@@ -616,12 +640,16 @@ let ``toHtmlDashed: single-reading period uses circle marker (size 8) and '1 rea
 let ``toHtmlDashed: multi-reading period renders error_y with non-zero spread`` () =
   // avg sys=120, min=110, max=135 → upper offset=15, lower offset=10
   let aggregated =
-    [ { Reading = readings[0] // Systolic=120, Diastolic=80
+    [
+      {
+        Reading = readings[0] // Systolic=120, Diastolic=80
         Count = 3
         MinSystolic = 110
         MaxSystolic = 135
         MinDiastolic = 75
-        MaxDiastolic = 90 } ]
+        MaxDiastolic = 90
+      }
+    ]
 
   let html =
     BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly aggregated
@@ -634,12 +662,16 @@ let ``toHtmlDashed: multi-reading period renders error_y with non-zero spread`` 
 let ``toHtmlDashed: single-reading period has zero-spread error_y`` () =
   // min = max = avg → upper and lower offsets are both 0
   let aggregated =
-    [ { Reading = readings[0] // Systolic=120, Diastolic=80
+    [
+      {
+        Reading = readings[0] // Systolic=120, Diastolic=80
         Count = 1
         MinSystolic = readings[0].Systolic
         MaxSystolic = readings[0].Systolic
         MinDiastolic = readings[0].Diastolic
-        MaxDiastolic = readings[0].Diastolic } ]
+        MaxDiastolic = readings[0].Diastolic
+      }
+    ]
 
   let html =
     BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly aggregated
@@ -651,12 +683,16 @@ let ``toHtmlDashed: single-reading period has zero-spread error_y`` () =
 [<Fact>]
 let ``toHtmlDashed: multi-reading systolic tooltip shows count and range`` () =
   let aggregated =
-    [ { Reading = readings[0] // Systolic=120
+    [
+      {
+        Reading = readings[0] // Systolic=120
         Count = 2
         MinSystolic = 110
         MaxSystolic = 130
         MinDiastolic = 75
-        MaxDiastolic = 85 } ]
+        MaxDiastolic = 85
+      }
+    ]
 
   let html =
     BpChart.toHtmlDashed LocalizedStrings.en.Charts GoalRange.defaults Weekly aggregated
@@ -678,7 +714,8 @@ let ``toHtmlDashed Weekly: x-axis labels use German date format for German membe
   // May 1, 2026 → "1. Mai" in German, "1 May" in English
   let mayFirst =
     { reading 1 120 80 70 8 9 None with
-        Timestamp = Timestamp.local 2026 5 1 9 0 0 }
+        Timestamp = Timestamp.local 2026 5 1 9 0 0
+    }
 
   let aggregated = asAggregated [ mayFirst ]
 
@@ -712,7 +749,8 @@ let ``toHtmlDashed Yearly: x-axis labels use German month-name format for German
   // March 8, 2026 → "Mär" in German, "Mar" in English
   let march =
     { reading 1 120 80 70 8 9 None with
-        Timestamp = Timestamp.local 2026 3 8 9 0 0 }
+        Timestamp = Timestamp.local 2026 3 8 9 0 0
+    }
 
   let aggregated = asAggregated [ march ]
 

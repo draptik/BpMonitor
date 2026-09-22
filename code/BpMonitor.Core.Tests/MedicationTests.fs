@@ -6,11 +6,13 @@ open Swensen.Unquote
 open BpMonitor.Core
 
 let private validUnvalidated: MedicationUnvalidated =
-  { Name = "HCTZ"
+  {
+    Name = "HCTZ"
     FullName = Some "hydrochlorothiazide"
     Comment = None
     StartDate = DateOnly(2026, 1, 1)
-    EndDate = None }
+    EndDate = None
+  }
 
 [<Fact>]
 let ``parse returns Ok when input is valid`` () =
@@ -31,7 +33,8 @@ let ``parse returns Error when end date is before start date`` () =
       Medication.parse
         { validUnvalidated with
             StartDate = DateOnly(2026, 1, 10)
-            EndDate = Some(DateOnly(2026, 1, 1)) }
+            EndDate = Some(DateOnly(2026, 1, 1))
+        }
       |> Result.isError
     @>
 
@@ -42,7 +45,8 @@ let ``parse allows end date equal to start date`` () =
       Medication.parse
         { validUnvalidated with
             StartDate = DateOnly(2026, 1, 1)
-            EndDate = Some(DateOnly(2026, 1, 1)) }
+            EndDate = Some(DateOnly(2026, 1, 1))
+        }
       |> Result.isOk
     @>
 
@@ -52,7 +56,8 @@ let ``parse allows an absent FullName`` () =
     <@
       Medication.parse
         { validUnvalidated with
-            FullName = None }
+            FullName = None
+        }
       |> Result.isOk
     @>
 
@@ -67,7 +72,8 @@ let ``parse collects all validation errors`` () =
       { validUnvalidated with
           Name = ""
           StartDate = DateOnly(2026, 1, 10)
-          EndDate = Some(DateOnly(2026, 1, 1)) }
+          EndDate = Some(DateOnly(2026, 1, 1))
+      }
   with
   | Error errors -> test <@ errors.Length = 2 @>
   | Ok _ -> failwith "Expected Error"
@@ -89,7 +95,8 @@ let ``parse sets CreatedAt and ModifiedAt to MinValue`` () =
 // ── overlapping ─────────────────────────────────────────────────────────────
 
 let private med id name (start: DateOnly) (endDate: DateOnly option) : Medication =
-  { Id = id
+  {
+    Id = id
     MemberId = 1
     Name = name
     FullName = None
@@ -97,7 +104,8 @@ let private med id name (start: DateOnly) (endDate: DateOnly option) : Medicatio
     StartDate = start
     EndDate = endDate
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 [<Fact>]
 let ``overlapping includes an ongoing medication that started before the window`` () =

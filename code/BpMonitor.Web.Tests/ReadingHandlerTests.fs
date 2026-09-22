@@ -35,10 +35,12 @@ let ``history renders a row per reading`` () =
 [<Fact>]
 let ``history renders the chart with the authenticated member's goal range`` () =
   let goal =
-    { SystolicMin = 100
+    {
+      SystolicMin = 100
       SystolicMax = 135
       DiastolicMin = 65
-      DiastolicMax = 88 }
+      DiastolicMax = 88
+    }
 
   let ctx = TestHost.contextWithMembers (repoWith [ sample ]) [ memberWithGoal goal ]
   TestHost.run ReadingHandlers.history ctx
@@ -62,11 +64,13 @@ let ``createReading persists a valid reading and redirects`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.timestamp, "2026-05-01 09:00"
+    [
+      FormFields.timestamp, "2026-05-01 09:00"
       FormFields.systolic, "120"
       FormFields.diastolic, "80"
       FormFields.heartRate, "66"
-      FormFields.comments, "x" ]
+      FormFields.comments, "x"
+    ]
 
   TestHost.run ReadingHandlers.createReading ctx
 
@@ -81,11 +85,13 @@ let ``createReading stamps reading with active member Id`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.timestamp, "2026-05-01 09:00"
+    [
+      FormFields.timestamp, "2026-05-01 09:00"
       FormFields.systolic, "120"
       FormFields.diastolic, "80"
       FormFields.heartRate, "66"
-      FormFields.comments, "" ]
+      FormFields.comments, ""
+    ]
 
   TestHost.run ReadingHandlers.createReading ctx
 
@@ -98,11 +104,13 @@ let ``createReading rejects an out-of-range reading with 422 and does not persis
 
   TestHost.setForm
     ctx
-    [ FormFields.timestamp, "2026-05-01 09:00"
+    [
+      FormFields.timestamp, "2026-05-01 09:00"
       FormFields.systolic, "999"
       FormFields.diastolic, "80"
       FormFields.heartRate, "66"
-      FormFields.comments, "" ]
+      FormFields.comments, ""
+    ]
 
   TestHost.run ReadingHandlers.createReading ctx
 
@@ -117,11 +125,13 @@ let ``createReading rejects a non-numeric field with 422`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.timestamp, "2026-05-01 09:00"
+    [
+      FormFields.timestamp, "2026-05-01 09:00"
       FormFields.systolic, "abc"
       FormFields.diastolic, "80"
       FormFields.heartRate, "66"
-      FormFields.comments, "" ]
+      FormFields.comments, ""
+    ]
 
   TestHost.run ReadingHandlers.createReading ctx
 
@@ -189,11 +199,13 @@ let ``updateReading saves changes and redirects`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.timestamp, "2026-05-01 09:00"
+    [
+      FormFields.timestamp, "2026-05-01 09:00"
       FormFields.systolic, "111"
       FormFields.diastolic, "70"
       FormFields.heartRate, "60"
-      FormFields.comments, "updated" ]
+      FormFields.comments, "updated"
+    ]
 
   TestHost.run ReadingHandlers.updateReading ctx
 
@@ -210,11 +222,13 @@ let ``updateReading returns 404 for an unknown id`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.timestamp, "2026-05-01 09:00"
+    [
+      FormFields.timestamp, "2026-05-01 09:00"
       FormFields.systolic, "111"
       FormFields.diastolic, "70"
       FormFields.heartRate, "60"
-      FormFields.comments, "" ]
+      FormFields.comments, ""
+    ]
 
   TestHost.run ReadingHandlers.updateReading ctx
 
@@ -229,11 +243,13 @@ let ``updateReading does not modify a reading belonging to a different member`` 
 
   TestHost.setForm
     ctx
-    [ FormFields.timestamp, "2026-05-01 09:00"
+    [
+      FormFields.timestamp, "2026-05-01 09:00"
       FormFields.systolic, "111"
       FormFields.diastolic, "70"
       FormFields.heartRate, "60"
-      FormFields.comments, "" ]
+      FormFields.comments, ""
+    ]
 
   TestHost.run ReadingHandlers.updateReading ctx
 

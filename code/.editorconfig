@@ -9,7 +9,6 @@ trim_trailing_whitespace = true
 [*.{fs,fsx,fsi}]
 indent_style = space
 indent_size = 2
-fsharp_multiline_bracket_style = cramped
 
 [*.{cs,csx}]
 indent_style = space

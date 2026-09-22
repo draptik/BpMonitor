@@ -79,7 +79,8 @@ let ``Add maps non-empty PasswordHash to Some`` () =
 
   let m =
     { newMember "Alice" true with
-        PasswordHash = Some "hashed" }
+        PasswordHash = Some "hashed"
+    }
 
   let added = repo.Add m
   test <@ added.PasswordHash = Some "hashed" @>
@@ -136,24 +137,29 @@ let ``Add persists a custom goal range and Update round-trips changes to it`` ()
   let repo = createRepo ctx
 
   let goal =
-    { SystolicMin = 100
+    {
+      SystolicMin = 100
       SystolicMax = 130
       DiastolicMin = 65
-      DiastolicMax = 85 }
+      DiastolicMax = 85
+    }
 
   let added =
     repo.Add
       { newMember "Alice" true with
-          Goal = goal }
+          Goal = goal
+      }
 
   test <@ added.Goal = goal @>
   test <@ (repo.GetById added.Id).Value.Goal = goal @>
 
   let newGoal =
-    { SystolicMin = 95
+    {
+      SystolicMin = 95
       SystolicMax = 135
       DiastolicMin = 62
-      DiastolicMax = 88 }
+      DiastolicMax = 88
+    }
 
   repo.Update { added with Goal = newGoal }
   test <@ (repo.GetById added.Id).Value.Goal = newGoal @>
@@ -167,7 +173,8 @@ let ``Add persists Language and Update round-trips a changed Language`` () =
   let added =
     repo.Add
       { newMember "Alice" true with
-          Language = German }
+          Language = German
+      }
 
   test <@ added.Language = German @>
   test <@ (repo.GetById added.Id).Value.Language = German @>

@@ -61,7 +61,8 @@ let ``Update of a non-existent member is a no-op`` () =
 
   let ghost =
     { newMember "Ghost" false with
-        Id = 999 }
+        Id = 999
+    }
 
   repo.Update(ghost)
   test <@ repo.GetAll() = [] @>

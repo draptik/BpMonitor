@@ -285,10 +285,12 @@ module ReadingHandlers =
           m.IsAdmin
           m.Language
           []
-          { Binding.SysMin = string m.Goal.SystolicMin
+          {
+            Binding.SysMin = string m.Goal.SystolicMin
             Binding.SysMax = string m.Goal.SystolicMax
             Binding.DiaMin = string m.Goal.DiastolicMin
-            Binding.DiaMax = string m.Goal.DiastolicMax }
+            Binding.DiaMax = string m.Goal.DiastolicMax
+          }
           medications
           [])
         ctx)
@@ -333,10 +335,12 @@ module ReadingHandlers =
               m.IsAdmin
               m.Language
               errors
-              { Binding.SysMin = sysMinRaw
+              {
+                Binding.SysMin = sysMinRaw
                 Binding.SysMax = sysMaxRaw
                 Binding.DiaMin = diaMinRaw
-                Binding.DiaMax = diaMaxRaw }
+                Binding.DiaMax = diaMaxRaw
+              }
               medications
               [])
             ctx
@@ -372,7 +376,8 @@ module ReadingHandlers =
 
       let prefill =
         { Binding.empty with
-            Binding.Timestamp = (timeProvider ctx).GetLocalNow().ToString(Formats.timestamp) }
+            Binding.Timestamp = (timeProvider ctx).GetLocalNow().ToString(Formats.timestamp)
+        }
 
       htmlResponse
         (ReadingViews.readingForm s Routes.add m.Name m.IsAdmin s.Reading.AddReadingTitle Routes.readings [] prefill)

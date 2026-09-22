@@ -28,7 +28,8 @@ let ``trends renders 200 with granularity buttons and current Weekly panel`` () 
         Timestamp = trendsNow.AddDays(-1.0)
         Systolic = 130
         Diastolic = 85
-        HeartRate = 70 }
+        HeartRate = 70
+    }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
   TestHost.run ReadingHandlers.trends ctx
@@ -50,17 +51,20 @@ let ``trends renders 200 with granularity buttons and current Weekly panel`` () 
 [<Fact>]
 let ``trends renders the chart with the authenticated member's goal range`` () =
   let goal: GoalRange =
-    { SystolicMin = 100
+    {
+      SystolicMin = 100
       SystolicMax = 135
       DiastolicMin = 65
-      DiastolicMax = 88 }
+      DiastolicMax = 88
+    }
 
   let r =
     { sample with
         Timestamp = trendsNow.AddDays(-1.0)
         Systolic = 130
         Diastolic = 85
-        HeartRate = 70 }
+        HeartRate = 70
+    }
 
   let tp = FakeTimeProvider(trendsNow)
 
@@ -73,17 +77,20 @@ let ``trends renders the chart with the authenticated member's goal range`` () =
 [<Fact>]
 let ``trendsPanel renders the chart with the authenticated member's goal range`` () =
   let goal: GoalRange =
-    { SystolicMin = 100
+    {
+      SystolicMin = 100
       SystolicMax = 135
       DiastolicMin = 65
-      DiastolicMax = 88 }
+      DiastolicMax = 88
+    }
 
   let r =
     { sample with
         Timestamp = trendsNow.AddDays(-1.0)
         Systolic = 130
         Diastolic = 85
-        HeartRate = 70 }
+        HeartRate = 70
+    }
 
   let tp = FakeTimeProvider(trendsNow)
 
@@ -103,7 +110,8 @@ let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and 
         Timestamp = trendsNow.AddDays(-1.0)
         Systolic = 130
         Diastolic = 85
-        HeartRate = 70 }
+        HeartRate = 70
+    }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
   setRouteGran ctx (TrendPeriod.slug Weekly)
@@ -143,7 +151,8 @@ let ``trendsPanel with gran + key uses that specific sub-period`` () =
         Timestamp = Timestamp.utc 2026 6 3 9 0 0 // W23
         Systolic = 118
         Diastolic = 77
-        HeartRate = 65 }
+        HeartRate = 65
+    }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
   setRouteGranKey ctx (TrendPeriod.slug Weekly) "2026-W23"
@@ -164,7 +173,8 @@ let ``trendsPanel includes readings table with in-period readings`` () =
   let r =
     { sample with
         Timestamp = trendsNow.AddDays(-1.0) // in current week
-        Systolic = 130 }
+        Systolic = 130
+    }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
   setRouteGran ctx (TrendPeriod.slug Weekly)
@@ -182,13 +192,15 @@ let ``trendsPanel excludes readings outside the period from the table`` () =
   let inside =
     { sample with
         Timestamp = trendsNow.AddDays(-1.0) // current week
-        Systolic = 130 }
+        Systolic = 130
+    }
 
   let outside =
     { sample with
         Id = 2
         Timestamp = trendsNow.AddDays(-100.0) // many weeks ago
-        Systolic = 999 }
+        Systolic = 999
+    }
 
   let ctx = TestHost.contextWithProvider (repoWith [ inside; outside ]) tp
   setRouteGran ctx (TrendPeriod.slug Weekly)
@@ -206,7 +218,8 @@ let ``trendsPanel shows empty state when no readings in period`` () =
   // Reading in the distant past — outside current week
   let r =
     { sample with
-        Timestamp = trendsNow.AddDays(-100.0) }
+        Timestamp = trendsNow.AddDays(-100.0)
+    }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
   setRouteGran ctx (TrendPeriod.slug Weekly)
@@ -243,7 +256,8 @@ let ``trendsPanel with an unparseable key falls back to the current period`` () 
   let r =
     { sample with
         Timestamp = trendsNow.AddDays(-1.0) // current week
-        Systolic = 130 }
+        Systolic = 130
+    }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
   setRouteGranKey ctx (TrendPeriod.slug Weekly) "not-a-key"
@@ -262,7 +276,8 @@ let ``trendsPanel period pills without data are aria-disabled and have no href``
   let r =
     { sample with
         Timestamp = trendsNow.AddDays(-1.0) // W24
-        Systolic = 130 }
+        Systolic = 130
+    }
 
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
   setRouteGran ctx (TrendPeriod.slug Weekly)

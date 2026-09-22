@@ -28,19 +28,23 @@ type PeriodLabel =
   | Year of int
 
 type TrendPeriod =
-  { Granularity: Granularity
+  {
+    Granularity: Granularity
     Key: string // URL-safe: "2026-W24" | "2026-06" | "2026"
     Label: PeriodLabel
     Start: System.DateTimeOffset // inclusive, local midnight
-    EndExclusive: System.DateTimeOffset }
+    EndExclusive: System.DateTimeOffset
+  }
 
 module IsoWeek =
   open System
   open System.Globalization
 
   let ofDate (d: DateTime) : IsoWeek =
-    { Year = ISOWeek.GetYear(d)
-      Week = ISOWeek.GetWeekOfYear(d) }
+    {
+      Year = ISOWeek.GetYear(d)
+      Week = ISOWeek.GetWeekOfYear(d)
+    }
 
   let monday (w: IsoWeek) : DateTime =
     ISOWeek.ToDateTime(w.Year, w.Week, DayOfWeek.Monday)
@@ -101,8 +105,10 @@ module TrendPeriod =
     let local = now.ToLocalTime()
 
     let nowYm =
-      { Year = local.Year
-        Month = local.Month }
+      {
+        Year = local.Year
+        Month = local.Month
+      }
 
     if ym = nowYm then
       ThisMonth
@@ -110,8 +116,10 @@ module TrendPeriod =
       let prevDate = DateTime(local.Year, local.Month, 1).AddMonths(-1)
 
       let prevYm =
-        { Year = prevDate.Year
-          Month = prevDate.Month }
+        {
+          Year = prevDate.Year
+          Month = prevDate.Month
+        }
 
       if ym = prevYm then
         LastMonth
@@ -148,33 +156,41 @@ module TrendPeriod =
       let w = IsoWeek.ofDate local.Date
       let monday = IsoWeek.monday w
 
-      { Granularity = Weekly
+      {
+        Granularity = Weekly
         Key = isoWeekKey w
         Label = ThisWeek
         Start = localMidnight monday
-        EndExclusive = localMidnight (monday.AddDays 7.0) }
+        EndExclusive = localMidnight (monday.AddDays 7.0)
+      }
 
     | Monthly ->
       let ym =
-        { Year = local.Year
-          Month = local.Month }
+        {
+          Year = local.Year
+          Month = local.Month
+        }
 
       let start = DateTime(ym.Year, ym.Month, 1)
 
-      { Granularity = Monthly
+      {
+        Granularity = Monthly
         Key = monthKey ym
         Label = ThisMonth
         Start = localMidnight start
-        EndExclusive = localMidnight (start.AddMonths 1) }
+        EndExclusive = localMidnight (start.AddMonths 1)
+      }
 
     | Yearly ->
       let y = local.Year
 
-      { Granularity = Yearly
+      {
+        Granularity = Yearly
         Key = string y
         Label = ThisYear
         Start = localMidnight (DateTime(y, 1, 1))
-        EndExclusive = localMidnight (DateTime(y + 1, 1, 1)) }
+        EndExclusive = localMidnight (DateTime(y + 1, 1, 1))
+      }
 
   let ofKey (gran: Granularity) (key: string) (now: DateTimeOffset) : TrendPeriod option =
     let local = now.ToLocalTime()
@@ -186,31 +202,37 @@ module TrendPeriod =
         let monday = IsoWeek.monday w
         let nowW = IsoWeek.ofDate local.Date
 
-        { Granularity = Weekly
+        {
+          Granularity = Weekly
           Key = key
           Label = weekLabel w nowW
           Start = localMidnight monday
-          EndExclusive = localMidnight (monday.AddDays 7.0) })
+          EndExclusive = localMidnight (monday.AddDays 7.0)
+        })
 
     | Monthly ->
       parseMonthKey key
       |> Option.map (fun ym ->
         let start = DateTime(ym.Year, ym.Month, 1)
 
-        { Granularity = Monthly
+        {
+          Granularity = Monthly
           Key = key
           Label = monthLabel ym now
           Start = localMidnight start
-          EndExclusive = localMidnight (start.AddMonths 1) })
+          EndExclusive = localMidnight (start.AddMonths 1)
+        })
 
     | Yearly ->
       parseYearKey key
       |> Option.map (fun year ->
-        { Granularity = Yearly
+        {
+          Granularity = Yearly
           Key = key
           Label = yearLabel year now
           Start = localMidnight (DateTime(year, 1, 1))
-          EndExclusive = localMidnight (DateTime(year + 1, 1, 1)) })
+          EndExclusive = localMidnight (DateTime(year + 1, 1, 1))
+        })
 
   /// Fixed-window list of periods ending at the current one, in chronological order
   /// (oldest first, newest/current last). Window sizes: Weekly = 12, Monthly = 12, Yearly = 5.

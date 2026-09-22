@@ -43,11 +43,13 @@ module TrendViews =
         | Yearly -> s.Trend.Yearly
 
       let baseAttrs =
-        [ Attr.href $"/trends/{slug}"
+        [
+          Attr.href $"/trends/{slug}"
           Attr.role "button"
           Attr.create "hx-get" $"/trends/{slug}"
           Attr.create "hx-target" "#trends-panel"
-          Attr.create "hx-swap" "outerHTML" ]
+          Attr.create "hx-swap" "outerHTML"
+        ]
 
       let attrs =
         if g = gran then
@@ -65,19 +67,23 @@ module TrendViews =
 
       if not hasData && not isActive then
         Elem.a
-          [ Attr.role "button"
+          [
+            Attr.role "button"
             Attr.class' "outline"
-            Attr.create "aria-disabled" "true" ]
+            Attr.create "aria-disabled" "true"
+          ]
           [ Text.raw label ]
       else
         let href = $"/trends/{granSlug}/{p.Key}"
 
         let baseAttrs =
-          [ Attr.href href
+          [
+            Attr.href href
             Attr.role "button"
             Attr.create "hx-get" href
             Attr.create "hx-target" "#trends-panel"
-            Attr.create "hx-swap" "outerHTML" ]
+            Attr.create "hx-swap" "outerHTML"
+          ]
 
         let attrs =
           if isActive then
@@ -90,22 +96,29 @@ module TrendViews =
     // ── Content ──────────────────────────────────────────────────────────────
     let content =
       if summary.Count = 0 then
-        [ Elem.p [ Attr.class' "trends-empty" ] [ Text.enc (s.Trend.NoReadingsIn(renderPeriodLabel s summary.Label)) ] ]
+        [
+          Elem.p [ Attr.class' "trends-empty" ] [ Text.enc (s.Trend.NoReadingsIn(renderPeriodLabel s summary.Label)) ]
+        ]
       else
         let simpleRow (label: string) (value: string) =
           Elem.tr
             []
-            [ Elem.th [ Attr.scope "row" ] [ Text.raw label ]
-              Elem.td [] [ Text.raw value ] ]
+            [
+              Elem.th [ Attr.scope "row" ] [ Text.raw label ]
+              Elem.td [] [ Text.raw value ]
+            ]
 
         let statRow (label: string) (unit: string) (avg: int) (mn: int) (mx: int) =
           simpleRow $"{label} ({unit})" (s.Trend.StatValue avg mn mx)
 
-        [ Elem.table
+        [
+          Elem.table
             [ Attr.class' "trends-stats" ]
-            [ Elem.tbody
+            [
+              Elem.tbody
                 []
-                [ simpleRow s.Trend.Readings (string summary.Count)
+                [
+                  simpleRow s.Trend.Readings (string summary.Count)
                   statRow s.Trend.AvgSystolic s.Table.MmHg summary.AvgSystolic summary.MinSystolic summary.MaxSystolic
                   statRow
                     s.Trend.AvgDiastolic
@@ -118,18 +131,25 @@ module TrendViews =
                     s.Table.Bpm
                     summary.AvgHeartRate
                     summary.MinHeartRate
-                    summary.MaxHeartRate ] ]
+                    summary.MaxHeartRate
+                ]
+            ]
           Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
-          ViewLayout.readingsTable s readings ]
+          ViewLayout.readingsTable s readings
+        ]
 
     Elem.div
       [ Attr.id "trends-panel" ]
-      [ Elem.div [ Attr.class' "trends-window-buttons" ] ([ Weekly; Monthly; Yearly ] |> List.map granButton)
+      [
+        Elem.div [ Attr.class' "trends-window-buttons" ] ([ Weekly; Monthly; Yearly ] |> List.map granButton)
         // Scroller wrapper hosts the edge-fade overlays; wwwroot/trends-scroll.js toggles them.
         Elem.div
           [ Attr.class' "trends-subperiod-scroller" ]
-          [ Elem.div [ Attr.class' "trends-subperiod-buttons" ] (periods |> List.map periodButton) ]
-        yield! content ]
+          [
+            Elem.div [ Attr.class' "trends-subperiod-buttons" ] (periods |> List.map periodButton)
+          ]
+        yield! content
+      ]
 
   /// The /trends full page. Pre-renders the Weekly/current panel (including toggle buttons).
   let trends
@@ -147,5 +167,7 @@ module TrendViews =
       m.Name
       m.IsAdmin
       s.Trend.TrendsTitle
-      [ Elem.h1 [] [ Text.raw s.Trend.TrendsTitle ]
-        trendsPanel s summary periods periodsWithData readings chartHtml ]
+      [
+        Elem.h1 [] [ Text.raw s.Trend.TrendsTitle ]
+        trendsPanel s summary periods periodsWithData readings chartHtml
+      ]

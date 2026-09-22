@@ -106,10 +106,12 @@ let ``Data should not depend on Export`` () =
 [<Fact>]
 let ``Core does not reference EF Core, ASP.NET Core, SQLite, or Falco`` () =
   let forbiddenPrefixes =
-    [ "Microsoft.EntityFrameworkCore"
+    [
+      "Microsoft.EntityFrameworkCore"
       "Microsoft.AspNetCore"
       "Microsoft.Data.Sqlite"
-      "Falco" ]
+      "Falco"
+    ]
 
   let violations =
     typeof<BloodPressureReading>.Assembly.GetReferencedAssemblies()

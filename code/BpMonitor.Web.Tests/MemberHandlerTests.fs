@@ -9,7 +9,8 @@ open BpMonitor.Web
 open HandlerTestHelpers
 
 let private adminMember (id: int) (name: string) : FamilyMember =
-  { Id = id
+  {
+    Id = id
     Name = name
     IsAdmin = true
     IsActive = true
@@ -17,7 +18,8 @@ let private adminMember (id: int) (name: string) : FamilyMember =
     Goal = GoalRange.defaults
     Language = English
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 [<Fact>]
 let ``createMember with IsAdmin checkbox persists an admin member`` () =
@@ -76,9 +78,11 @@ let ``updateMember saves changes and redirects to /members`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.name, "Myself"
+    [
+      FormFields.name, "Myself"
       FormFields.isAdmin, "on"
-      FormFields.isActive, "on" ]
+      FormFields.isActive, "on"
+    ]
 
   TestHost.run MemberHandlers.updateMember ctx
 

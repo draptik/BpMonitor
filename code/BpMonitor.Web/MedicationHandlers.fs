@@ -13,11 +13,13 @@ open AuthHandlers
 /// Handlers for medication CRUD (self-service, member-scoped — lives on `/settings`).
 module MedicationHandlers =
   type private FormValues =
-    { Name: string
+    {
+      Name: string
       FullName: string
       Comment: string
       StartDate: string
-      EndDate: string }
+      EndDate: string
+    }
 
   let private readForm (ctx: HttpContext) : Task<FormValues> =
     task {
@@ -29,11 +31,13 @@ module MedicationHandlers =
         | _ -> ""
 
       return
-        { Name = get FormFields.medicationName
+        {
+          Name = get FormFields.medicationName
           FullName = get FormFields.medicationFullName
           Comment = get FormFields.medicationComment
           StartDate = get FormFields.medicationStartDate
-          EndDate = get FormFields.medicationEndDate }
+          EndDate = get FormFields.medicationEndDate
+        }
     }
 
   /// "d.M.yyyy" accepts 1- or 2-digit day/month; yyyy-MM-dd is accepted too for pasted ISO dates.
@@ -61,11 +65,13 @@ module MedicationHandlers =
         tryOptionalDate s s.Medication.EndDateLabel f.EndDate |> Validation.ofResult
 
       return
-        { Name = f.Name
+        {
+          Name = f.Name
           FullName = Binding.blankToOption f.FullName
           Comment = Binding.blankToOption f.Comment
           StartDate = startDate
-          EndDate = endDate }
+          EndDate = endDate
+        }
     }
 
   let private medicationErrorMessage (s: LocalizedStrings) (error: MedicationError) =
@@ -91,10 +97,12 @@ module MedicationHandlers =
         m.IsAdmin
         m.Language
         []
-        { Binding.SysMin = string m.Goal.SystolicMin
+        {
+          Binding.SysMin = string m.Goal.SystolicMin
           Binding.SysMax = string m.Goal.SystolicMax
           Binding.DiaMin = string m.Goal.DiastolicMin
-          Binding.DiaMax = string m.Goal.DiastolicMax }
+          Binding.DiaMax = string m.Goal.DiastolicMax
+        }
         medications
         errors)
       ctx
@@ -189,7 +197,8 @@ module MedicationHandlers =
                   { medication with
                       Id = id
                       MemberId = m.Id
-                      CreatedAt = existing.CreatedAt }
+                      CreatedAt = existing.CreatedAt
+                  }
                 )
 
               ctx.Response.Redirect Routes.settings

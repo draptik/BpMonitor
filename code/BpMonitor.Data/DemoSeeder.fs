@@ -20,16 +20,22 @@ module DemoSeeder =
   let private nedMedications (now: DateTimeOffset) : MedicationUnvalidated list =
     let today = DateOnly.FromDateTime(now.ToLocalTime().Date)
 
-    [ { Name = "HCTZ"
+    [
+      {
+        Name = "HCTZ"
         FullName = Some "hydrochlorothiazide"
         Comment = None
         StartDate = today.AddDays(-300)
-        EndDate = None }
-      { Name = "lisinopril"
+        EndDate = None
+      }
+      {
+        Name = "lisinopril"
         FullName = None
         Comment = Some "Ran out of medication"
         StartDate = today.AddDays(-60)
-        EndDate = Some(today.AddDays(-5)) } ]
+        EndDate = Some(today.AddDays(-5))
+      }
+    ]
 
   /// Seeds the Simpson family iff `enabled` is true and the store is empty.
   ///
@@ -70,7 +76,8 @@ module DemoSeeder =
                   IsAdmin = spec.IsAdmin
                   IsActive = true
                   PasswordHash = None
-                  ModifiedAt = now }
+                  ModifiedAt = now
+              }
 
             members.Update(updated)
             updated

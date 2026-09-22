@@ -10,7 +10,8 @@ open BpMonitor.Data
 let private defaultMemberId = 1
 
 let private sample: Medication =
-  { Id = 0
+  {
+    Id = 0
     MemberId = 0
     Name = "HCTZ"
     FullName = Some "hydrochlorothiazide"
@@ -18,7 +19,8 @@ let private sample: Medication =
     StartDate = DateOnly(2026, 1, 1)
     EndDate = None
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 let private createContext = EfTestContext.createContext
 let private createContextWithLog = EfTestContext.createContextWithLog
@@ -85,7 +87,8 @@ let ``Add preserves Comment when present`` () =
   repo.Add
     defaultMemberId
     { sample with
-        Comment = Some "Ran out of medication" }
+        Comment = Some "Ran out of medication"
+    }
 
   test <@ repo.GetAll(defaultMemberId).[0].Comment = Some "Ran out of medication" @>
 
@@ -104,7 +107,8 @@ let ``Add preserves EndDate when present`` () =
   repo.Add
     defaultMemberId
     { sample with
-        EndDate = Some(DateOnly(2026, 2, 1)) }
+        EndDate = Some(DateOnly(2026, 2, 1))
+    }
 
   test <@ repo.GetAll(defaultMemberId).[0].EndDate = Some(DateOnly(2026, 2, 1)) @>
 
@@ -151,7 +155,8 @@ let ``Update of a non-existent medication is a no-op`` () =
   let ghost =
     { sample with
         Id = 999
-        MemberId = defaultMemberId }
+        MemberId = defaultMemberId
+    }
 
   repo.Update(ghost)
   test <@ repo.GetAll(defaultMemberId).Length = 1 @>
@@ -166,7 +171,8 @@ let ``Update does not affect a medication belonging to a different member`` () =
   repo.Update(
     { added with
         Name = "renamed"
-        MemberId = 2 }
+        MemberId = 2
+    }
   )
 
   test <@ (repo.GetAll 1).[0].Name = "HCTZ" @>

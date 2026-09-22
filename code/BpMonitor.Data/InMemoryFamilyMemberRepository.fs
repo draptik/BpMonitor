@@ -5,7 +5,9 @@ open BpMonitor.Core
 
 module private MemberDefaults =
   let members =
-    [ { Id = 1
+    [
+      {
+        Id = 1
         Name = "Me"
         IsAdmin = true
         IsActive = true
@@ -13,7 +15,9 @@ module private MemberDefaults =
         Goal = GoalRange.defaults
         Language = Language.defaultLanguage
         CreatedAt = DateTimeOffset.MinValue
-        ModifiedAt = DateTimeOffset.MinValue } ]
+        ModifiedAt = DateTimeOffset.MinValue
+      }
+    ]
 
 type InMemoryFamilyMemberRepository(initialMembers: FamilyMember list option) =
   let members =

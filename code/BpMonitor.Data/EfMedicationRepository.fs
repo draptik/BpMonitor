@@ -5,7 +5,8 @@ open BpMonitor.Core
 
 module private MedicationMapping =
   let toDomain (r: MedicationRecord) : Medication =
-    { Id = r.Id
+    {
+      Id = r.Id
       MemberId = r.MemberId
       Name = r.Name
       FullName = Option.ofObj r.FullName
@@ -13,17 +14,20 @@ module private MedicationMapping =
       StartDate = r.StartDate
       EndDate = Option.ofNullable r.EndDate
       CreatedAt = r.CreatedAt
-      ModifiedAt = r.ModifiedAt }
+      ModifiedAt = r.ModifiedAt
+    }
 
   let withTimestamps (now: System.DateTimeOffset) (m: Medication) =
     { m with
         CreatedAt = now
-        ModifiedAt = now }
+        ModifiedAt = now
+    }
 
   let withModifiedAt (now: System.DateTimeOffset) (m: Medication) = { m with ModifiedAt = now }
 
   let toEntity (m: Medication) : MedicationRecord =
-    { Id = m.Id
+    {
+      Id = m.Id
       MemberId = m.MemberId
       Name = m.Name
       FullName = Option.toObj m.FullName
@@ -31,7 +35,8 @@ module private MedicationMapping =
       StartDate = m.StartDate
       EndDate = Option.toNullable m.EndDate
       CreatedAt = m.CreatedAt
-      ModifiedAt = m.ModifiedAt }
+      ModifiedAt = m.ModifiedAt
+    }
 
 type EfMedicationRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvider) =
   interface IMedicationRepository with

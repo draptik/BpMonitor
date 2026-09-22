@@ -156,7 +156,8 @@ let ``Ned Flanders' last 30 days mirror Fig. 5's systolic/diastolic values exact
   // Transcribed verbatim from the "Blood Pressure Values" data table in Fig. 5
   // (Wegier et al. 2021, docs/resources/12911_2021_Article_1598.pdf, page 10).
   let expectedSystolic =
-    [ 147
+    [
+      147
       157
       155
       160
@@ -212,10 +213,12 @@ let ``Ned Flanders' last 30 days mirror Fig. 5's systolic/diastolic values exact
       135
       122
       123
-      116 ]
+      116
+    ]
 
   let expectedDiastolic =
-    [ 100
+    [
+      100
       101
       105
       122
@@ -271,7 +274,8 @@ let ``Ned Flanders' last 30 days mirror Fig. 5's systolic/diastolic values exact
       80
       82
       76
-      70 ]
+      70
+    ]
 
   let readings = nedReadings ()
 

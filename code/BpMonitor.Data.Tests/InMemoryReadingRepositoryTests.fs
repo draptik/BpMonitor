@@ -9,7 +9,8 @@ open BpMonitor.Data
 let private defaultMemberId = 1
 
 let private sample: BloodPressureReading =
-  { Id = 0
+  {
+    Id = 0
     MemberId = 0
     Systolic = 120
     Diastolic = 80
@@ -17,7 +18,8 @@ let private sample: BloodPressureReading =
     Timestamp = Timestamp.utc 2026 1 1 9 0 0
     Comments = None
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 [<Fact>]
 let ``GetAll returns default sample readings on startup`` () =
@@ -53,7 +55,8 @@ let ``AddMany persists all readings`` () =
 
   let second =
     { sample with
-        Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0
+    }
 
   repo.AddMany defaultMemberId [ sample; second ]
   test <@ repo.GetAll(defaultMemberId).Length = 2 @>
@@ -64,7 +67,8 @@ let ``AddMany assigns sequential Ids`` () =
 
   let second =
     { sample with
-        Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0
+    }
 
   repo.AddMany defaultMemberId [ sample; second ]
   let readings = repo.GetAll(defaultMemberId)
@@ -87,7 +91,8 @@ let ``Update of a non-existent reading is a no-op`` () =
   let ghost =
     { sample with
         Id = 999
-        MemberId = defaultMemberId }
+        MemberId = defaultMemberId
+    }
 
   repo.Update(ghost)
   test <@ repo.GetAll(defaultMemberId).Length = 1 @>
@@ -101,7 +106,8 @@ let ``Update does not affect a reading belonging to a different member`` () =
   repo.Update(
     { added with
         Systolic = 999
-        MemberId = 2 }
+        MemberId = 2
+    }
   )
 
   test <@ repo.GetAll(1).[0].Systolic = 120 @>
@@ -114,7 +120,8 @@ let ``GetAll returns only readings for the requested member`` () =
     { sample with
         Id = 2
         MemberId = 2
-        Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0
+    }
 
   let repo = InMemoryReadingRepository(Some [ r1; r2 ]) :> IReadingRepository
   test <@ repo.GetAll(1).Length = 1 @>

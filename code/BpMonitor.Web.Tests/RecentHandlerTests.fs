@@ -82,10 +82,12 @@ let ``recent renders the chart without a details wrapper`` () =
 [<Fact>]
 let ``recent renders the chart with the authenticated member's goal range`` () =
   let goal: GoalRange =
-    { SystolicMin = 100
+    {
+      SystolicMin = 100
       SystolicMax = 135
       DiastolicMin = 65
-      DiastolicMax = 88 }
+      DiastolicMax = 88
+    }
 
   let tp = FakeTimeProvider(now)
 

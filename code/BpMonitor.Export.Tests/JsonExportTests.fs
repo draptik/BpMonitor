@@ -14,7 +14,8 @@ let private thisFile = Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__)
 let private verifyJson = Verifier.verifyJson thisFile
 
 let private reading =
-  { Id = 1
+  {
+    Id = 1
     MemberId = 1
     Systolic = 120
     Diastolic = 80
@@ -22,7 +23,8 @@ let private reading =
     Timestamp = Timestamp.utc 2024 10 15 9 0 0
     Comments = Some "morning"
     CreatedAt = Timestamp.utc 2024 10 15 9 0 0
-    ModifiedAt = Timestamp.utc 2024 10 15 9 0 0 }
+    ModifiedAt = Timestamp.utc 2024 10 15 9 0 0
+  }
 
 [<Fact>]
 let ``serialize readings to JSON matches snapshot`` () : Task =

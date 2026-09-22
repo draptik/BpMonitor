@@ -21,7 +21,8 @@ type InMemoryMedicationRepository(initialMedications: Medication list option) =
       medications.Add(
         { medication with
             Id = nextId
-            MemberId = memberId }
+            MemberId = memberId
+        }
       )
 
       nextId <- nextId + 1

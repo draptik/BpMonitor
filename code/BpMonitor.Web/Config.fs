@@ -18,12 +18,14 @@ module Config =
         | true, n -> n
         | _ -> fallback
 
-    { SystolicMin = getInt "SystolicMin" d.SystolicMin
+    {
+      SystolicMin = getInt "SystolicMin" d.SystolicMin
       SystolicMax = getInt "SystolicMax" d.SystolicMax
       DiastolicMin = getInt "DiastolicMin" d.DiastolicMin
       DiastolicMax = getInt "DiastolicMax" d.DiastolicMax
       HeartRateMin = getInt "HeartRateMin" d.HeartRateMin
-      HeartRateMax = getInt "HeartRateMax" d.HeartRateMax }
+      HeartRateMax = getInt "HeartRateMax" d.HeartRateMax
+    }
 
   /// Number of days a "remember me" login stays signed in for. Defaults to 30,
   /// clamped to 1..400 — 400 is the hard cap Firefox and Chrome both enforce on

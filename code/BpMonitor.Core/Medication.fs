@@ -3,14 +3,17 @@ namespace BpMonitor.Core
 open System
 
 type MedicationUnvalidated =
-  { Name: string
+  {
+    Name: string
     FullName: string option
     Comment: string option
     StartDate: DateOnly
-    EndDate: DateOnly option }
+    EndDate: DateOnly option
+  }
 
 type Medication =
-  { Id: int
+  {
+    Id: int
     MemberId: int
     Name: string
     FullName: string option
@@ -18,7 +21,8 @@ type Medication =
     StartDate: DateOnly
     EndDate: DateOnly option
     CreatedAt: DateTimeOffset
-    ModifiedAt: DateTimeOffset }
+    ModifiedAt: DateTimeOffset
+  }
 
 type MedicationError =
   | NameIsEmpty
@@ -44,7 +48,8 @@ module Medication =
       and! () = validateDates input
 
       return
-        { Id = 0
+        {
+          Id = 0
           MemberId = 0
           Name = name
           FullName = input.FullName
@@ -52,7 +57,8 @@ module Medication =
           StartDate = input.StartDate
           EndDate = input.EndDate
           CreatedAt = DateTimeOffset.MinValue
-          ModifiedAt = DateTimeOffset.MinValue }
+          ModifiedAt = DateTimeOffset.MinValue
+        }
     }
 
   /// Medications whose [StartDate, EndDate] interval intersects [from, until]; ongoing

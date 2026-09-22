@@ -51,7 +51,8 @@ let ``history renders a medication whose entire date span falls after the last r
   let laterMedication =
     { sampleMedication with
         StartDate = DateOnly(2026, 6, 1)
-        EndDate = Some(DateOnly(2026, 7, 1)) }
+        EndDate = Some(DateOnly(2026, 7, 1))
+    }
 
   let repo = repoWith [ sample ]
   let ctx = TestHost.contextWithMedications repo [ laterMedication ]
@@ -67,7 +68,8 @@ let ``history renders a medication when the member has no readings at all`` () =
   let pastMedication =
     { sampleMedication with
         StartDate = DateOnly(2020, 1, 1)
-        EndDate = Some(DateOnly(2020, 2, 1)) }
+        EndDate = Some(DateOnly(2020, 2, 1))
+    }
 
   let repo = repoWith []
   let ctx = TestHost.contextWithMedications repo [ pastMedication ]
@@ -86,7 +88,8 @@ let ``history extends an ongoing medication's timeline span to today`` () =
   let ongoing =
     { sampleMedication with
         StartDate = DateOnly(2026, 6, 1)
-        EndDate = None }
+        EndDate = None
+    }
 
   let repo = repoWith []
   let ctx = TestHost.contextWithMedicationsAndProvider repo [ ongoing ] tp

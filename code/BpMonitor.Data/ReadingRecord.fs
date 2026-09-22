@@ -4,7 +4,8 @@ open System
 
 [<CLIMutable>]
 type ReadingRecord =
-  { Id: int
+  {
+    Id: int
     MemberId: int
     Systolic: int
     Diastolic: int
@@ -12,4 +13,5 @@ type ReadingRecord =
     Timestamp: DateTimeOffset
     Comments: string // null represents absent comment
     CreatedAt: DateTimeOffset
-    ModifiedAt: DateTimeOffset }
+    ModifiedAt: DateTimeOffset
+  }

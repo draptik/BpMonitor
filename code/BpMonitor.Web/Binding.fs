@@ -9,33 +9,41 @@ open BpMonitor.Core
 /// delegated to `BloodPressureReading.parse`.
 module Binding =
   type FormModel =
-    { Systolic: string
+    {
+      Systolic: string
       Diastolic: string
       HeartRate: string
       Timestamp: string
-      Comments: string }
+      Comments: string
+    }
 
   let empty =
-    { Systolic = ""
+    {
+      Systolic = ""
       Diastolic = ""
       HeartRate = ""
       Timestamp = ""
-      Comments = "" }
+      Comments = ""
+    }
 
   /// Raw (unvalidated) goal-range form fields — grouped so the four adjacent
   /// same-typed strings can't be silently transposed at a call site.
   type GoalRangeFormModel =
-    { SysMin: string
+    {
+      SysMin: string
       SysMax: string
       DiaMin: string
-      DiaMax: string }
+      DiaMax: string
+    }
 
   let ofReading (r: BloodPressureReading) =
-    { Systolic = string r.Systolic
+    {
+      Systolic = string r.Systolic
       Diastolic = string r.Diastolic
       HeartRate = string r.HeartRate
       Timestamp = Formats.formatLocal r.Timestamp
-      Comments = r.Comments |> Option.defaultValue "" }
+      Comments = r.Comments |> Option.defaultValue ""
+    }
 
   /// Parses `s` as an int, or an `Errors.NotAnInteger` message.
   /// Shared by reading and goal-range form parsing.
@@ -67,9 +75,11 @@ module Binding =
       let comments = blankToOption m.Comments
 
       return
-        { Systolic = sys
+        {
+          Systolic = sys
           Diastolic = dia
           HeartRate = hr
           Timestamp = ts
-          Comments = comments }
+          Comments = comments
+        }
     }

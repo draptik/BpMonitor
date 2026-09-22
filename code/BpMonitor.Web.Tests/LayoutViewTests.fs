@@ -37,14 +37,16 @@ let ``sidebar nav links appear in order: Add, Recent, Trends, History, Export JS
   let indexOf (href: string) = html.IndexOf $"href=\"{href}\""
 
   let indices =
-    [ Routes.add
+    [
+      Routes.add
       Routes.recent
       Routes.trends
       Routes.history
       Routes.exportJson
       Routes.exportCsv
       Routes.settings
-      Routes.members ]
+      Routes.members
+    ]
     |> List.map indexOf
 
   test <@ indices |> List.forall (fun i -> i >= 0) @>
@@ -53,9 +55,11 @@ let ``sidebar nav links appear in order: Add, Recent, Trends, History, Export JS
 [<Fact>]
 let ``every page has a BpMonitor footer`` () =
   let pages =
-    [ renderHtml (ReadingViews.landing s defaultMember)
+    [
+      renderHtml (ReadingViews.landing s defaultMember)
       renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
-      renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty) ]
+      renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty)
+    ]
 
   for html in pages do
     test <@ html.Contains "<footer" @>
@@ -64,9 +68,11 @@ let ``every page has a BpMonitor footer`` () =
 [<Fact>]
 let ``every authenticated page shows the logout button`` () =
   let pages =
-    [ renderHtml (ReadingViews.landing s defaultMember)
+    [
+      renderHtml (ReadingViews.landing s defaultMember)
       renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
-      renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty) ]
+      renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty)
+    ]
 
   for html in pages do
     test <@ html.Contains $"action=\"{Routes.logout}\"" @>
@@ -81,7 +87,8 @@ let ``every authenticated page shows the member name`` () =
 let ``page title HTML-encodes member name to prevent title injection`` () =
   let hostile =
     { defaultMember with
-        Name = "</title><script>alert(1)</script>" }
+        Name = "</title><script>alert(1)</script>"
+    }
 
   let html = renderHtml (LoginViews.loginMember s hostile [])
 

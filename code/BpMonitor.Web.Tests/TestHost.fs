@@ -38,7 +38,8 @@ let buildPrincipal (m: FamilyMember) : ClaimsPrincipal = AuthHandlers.claimsPrin
 /// A default active admin member with Id=1, used as the pre-set signed-in user
 /// for context builders that don't take an explicit member list.
 let defaultMember: FamilyMember =
-  { Id = 1
+  {
+    Id = 1
     Name = "Me"
     IsAdmin = true
     IsActive = true
@@ -46,7 +47,8 @@ let defaultMember: FamilyMember =
     Goal = GoalRange.defaults
     Language = English
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 let private newCtx (services: ServiceCollection) (user: ClaimsPrincipal option) : HttpContext =
   let ctx = DefaultHttpContext()

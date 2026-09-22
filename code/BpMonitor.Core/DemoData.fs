@@ -33,9 +33,13 @@ module DemoData =
     }
 
   let private profiles =
-    [ { Spec =
-          { Name = "Marge Simpson"
-            IsAdmin = true }
+    [
+      {
+        Spec =
+          {
+            Name = "Marge Simpson"
+            IsAdmin = true
+          }
         SysBase = 118
         SysJitter = 6
         DiaBase = 76
@@ -44,10 +48,14 @@ module DemoData =
         HrJitter = 5
         ReadingsPerWeek = 3.5
         Comments = [ None; Some "morning"; Some "after yoga"; None; Some "calm day"; None ]
-        RandomSeed = 1 }
-      { Spec =
-          { Name = "Homer Simpson"
-            IsAdmin = false }
+        RandomSeed = 1
+      }
+      {
+        Spec =
+          {
+            Name = "Homer Simpson"
+            IsAdmin = false
+          }
         SysBase = 152
         SysJitter = 12
         DiaBase = 96
@@ -56,18 +64,24 @@ module DemoData =
         HrJitter = 8
         ReadingsPerWeek = 5.0
         Comments =
-          [ None
+          [
+            None
             Some "after donuts"
             Some "Duff o'clock"
             None
             Some "stressful day at work"
             Some "mmm beer"
             None
-            None ]
-        RandomSeed = 2 }
-      { Spec =
-          { Name = "Bart Simpson"
-            IsAdmin = false }
+            None
+          ]
+        RandomSeed = 2
+      }
+      {
+        Spec =
+          {
+            Name = "Bart Simpson"
+            IsAdmin = false
+          }
         SysBase = 108
         SysJitter = 5
         DiaBase = 68
@@ -76,10 +90,14 @@ module DemoData =
         HrJitter = 6
         ReadingsPerWeek = 1.5
         Comments = [ None; None; Some "after skateboarding"; None ]
-        RandomSeed = 3 }
-      { Spec =
-          { Name = "Lisa Simpson"
-            IsAdmin = false }
+        RandomSeed = 3
+      }
+      {
+        Spec =
+          {
+            Name = "Lisa Simpson"
+            IsAdmin = false
+          }
         SysBase = 110
         SysJitter = 4
         DiaBase = 70
@@ -88,10 +106,14 @@ module DemoData =
         HrJitter = 5
         ReadingsPerWeek = 1.5
         Comments = [ None; Some "before recital"; None; Some "morning meditation"; None ]
-        RandomSeed = 4 }
-      { Spec =
-          { Name = "Abe Simpson"
-            IsAdmin = false }
+        RandomSeed = 4
+      }
+      {
+        Spec =
+          {
+            Name = "Abe Simpson"
+            IsAdmin = false
+          }
         SysBase = 145
         SysJitter = 14
         DiaBase = 88
@@ -100,7 +122,9 @@ module DemoData =
         HrJitter = 7
         ReadingsPerWeek = 2.0
         Comments = [ None; None; Some "after nap"; Some "feeling dizzy"; None; None ]
-        RandomSeed = 5 } ]
+        RandomSeed = 5
+      }
+    ]
 
   // ── helpers ──────────────────────────────────────────────────────────────
 
@@ -118,11 +142,13 @@ module DemoData =
     (comment: string option)
     : BloodPressureReading option =
     let unvalidated =
-      { Systolic = clamp ranges.SystolicMin ranges.SystolicMax systolic
+      {
+        Systolic = clamp ranges.SystolicMin ranges.SystolicMax systolic
         Diastolic = clamp ranges.DiastolicMin ranges.DiastolicMax diastolic
         HeartRate = clamp ranges.HeartRateMin ranges.HeartRateMax heartRate
         Timestamp = timestamp
-        Comments = comment }
+        Comments = comment
+      }
 
     match BloodPressureReading.parse ranges unvalidated with
     | Ok r -> Some r
@@ -177,8 +203,10 @@ module DemoData =
   // readings precedes it for /trends and /history.
 
   let private nedSpec =
-    { Name = "Ned Flanders"
-      IsAdmin = false }
+    {
+      Name = "Ned Flanders"
+      IsAdmin = false
+    }
 
   let private nedReadingAt
     (ranges: ReadingRanges)
@@ -225,7 +253,8 @@ module DemoData =
   let private nedDiaPreGap = [ 100; 101; 105; 122; 93; 99; 110; 100; 92 ]
 
   let private nedSysPostGap =
-    [ 163
+    [
+      163
       144
       149
       158
@@ -272,10 +301,12 @@ module DemoData =
       135
       122
       123
-      116 ]
+      116
+    ]
 
   let private nedDiaPostGap =
-    [ 106
+    [
+      106
       96
       98
       101
@@ -322,7 +353,8 @@ module DemoData =
       80
       82
       76
-      70 ]
+      70
+    ]
 
   let private generateNedReadings (ranges: ReadingRanges) (now: DateTimeOffset) : BloodPressureReading list =
     let rng = Random(6)

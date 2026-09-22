@@ -4,15 +4,18 @@ namespace BpMonitor.Core
 /// folded into it. Used by the trends' chart to distinguish single-reading periods
 /// (circle marker) from multi-reading averages (diamond marker).
 type AggregatedReading =
-  { Reading: BloodPressureReading
+  {
+    Reading: BloodPressureReading
     Count: int
     MinSystolic: int
     MaxSystolic: int
     MinDiastolic: int
-    MaxDiastolic: int }
+    MaxDiastolic: int
+  }
 
 type WindowSummary =
-  { Granularity: Granularity
+  {
+    Granularity: Granularity
     PeriodKey: string
     Label: PeriodLabel
     Count: int
@@ -24,7 +27,8 @@ type WindowSummary =
     MaxDiastolic: int
     MinHeartRate: int
     AvgHeartRate: int
-    MaxHeartRate: int }
+    MaxHeartRate: int
+  }
 
 module ReadingStats =
   open System
@@ -72,8 +76,10 @@ module ReadingStats =
       let minSys, maxSys = rangeOf _.Systolic rs
       let minDia, maxDia = rangeOf _.Diastolic rs
 
-      { Reading =
-          { Id = 0
+      {
+        Reading =
+          {
+            Id = 0
             MemberId = 0
             Systolic = rs |> List.sumBy _.Systolic |> (fun s -> s / n)
             Diastolic = rs |> List.sumBy _.Diastolic |> (fun s -> s / n)
@@ -81,12 +87,14 @@ module ReadingStats =
             Timestamp = DateTimeOffset(date, offset)
             Comments = None
             CreatedAt = DateTimeOffset.MinValue
-            ModifiedAt = DateTimeOffset.MinValue }
+            ModifiedAt = DateTimeOffset.MinValue
+          }
         Count = n
         MinSystolic = minSys
         MaxSystolic = maxSys
         MinDiastolic = minDia
-        MaxDiastolic = maxDia })
+        MaxDiastolic = maxDia
+      })
 
   let private dailyAveragesWithCount =
     buildAggregated _.Timestamp.ToLocalTime().Date id
@@ -132,7 +140,8 @@ module ReadingStats =
   let summarizeRange (period: TrendPeriod) (rangeReadings: BloodPressureReading list) : WindowSummary =
     match rangeReadings with
     | [] ->
-      { Granularity = period.Granularity
+      {
+        Granularity = period.Granularity
         PeriodKey = period.Key
         Label = period.Label
         Count = 0
@@ -144,14 +153,16 @@ module ReadingStats =
         MaxDiastolic = 0
         MinHeartRate = 0
         AvgHeartRate = 0
-        MaxHeartRate = 0 }
+        MaxHeartRate = 0
+      }
     | rs ->
       let n = List.length rs
       let minSys, avgSys, maxSys = statsOf _.Systolic n rs
       let minDia, avgDia, maxDia = statsOf _.Diastolic n rs
       let minHr, avgHr, maxHr = statsOf _.HeartRate n rs
 
-      { Granularity = period.Granularity
+      {
+        Granularity = period.Granularity
         PeriodKey = period.Key
         Label = period.Label
         Count = n
@@ -163,4 +174,5 @@ module ReadingStats =
         MaxDiastolic = maxDia
         MinHeartRate = minHr
         AvgHeartRate = avgHr
-        MaxHeartRate = maxHr }
+        MaxHeartRate = maxHr
+      }

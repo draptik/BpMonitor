@@ -8,7 +8,8 @@ open BpMonitor.Data
 let defaultMemberId = 1
 
 let sample: BloodPressureReading =
-  { Id = 1
+  {
+    Id = 1
     MemberId = defaultMemberId
     Systolic = 120
     Diastolic = 80
@@ -16,7 +17,8 @@ let sample: BloodPressureReading =
     Timestamp = Timestamp.utc 2026 5 1 9 0 0
     Comments = None
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 /// A default admin member with Id=defaultMemberId. Same member TestHost.context pre-sets as the signed-in user.
 let sampleMember: FamilyMember = TestHost.defaultMember
@@ -35,7 +37,8 @@ let repoWith readings : IReadingRepository =
   InMemoryReadingRepository(Some readings)
 
 let sampleMedication: Medication =
-  { Id = 1
+  {
+    Id = 1
     MemberId = defaultMemberId
     Name = "HCTZ"
     FullName = Some "hydrochlorothiazide"
@@ -43,4 +46,5 @@ let sampleMedication: Medication =
     StartDate = DateOnly(2026, 4, 1)
     EndDate = None
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }

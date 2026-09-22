@@ -4,7 +4,8 @@ open System
 open BpMonitor.Core
 
 let mkReading id memberId sys dia hr (ts: DateTimeOffset) : BloodPressureReading =
-  { Id = id
+  {
+    Id = id
     MemberId = memberId
     Systolic = sys
     Diastolic = dia
@@ -12,10 +13,12 @@ let mkReading id memberId sys dia hr (ts: DateTimeOffset) : BloodPressureReading
     Timestamp = ts
     Comments = None
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 let mkMedication id memberId name (startDate: DateOnly) : Medication =
-  { Id = id
+  {
+    Id = id
     MemberId = memberId
     Name = name
     FullName = None
@@ -23,10 +26,12 @@ let mkMedication id memberId name (startDate: DateOnly) : Medication =
     StartDate = startDate
     EndDate = None
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 let mkMember id name isAdmin isActive : FamilyMember =
-  { Id = id
+  {
+    Id = id
     Name = name
     IsAdmin = isAdmin
     IsActive = isActive
@@ -34,4 +39,5 @@ let mkMember id name isAdmin isActive : FamilyMember =
     Goal = GoalRange.defaults
     Language = English
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
