@@ -36,11 +36,13 @@ let validUnvalidatedGen: Gen<BloodPressureReadingUnvalidated> =
     let! comments = commentGen
 
     return
-      { Systolic = sys
+      {
+        Systolic = sys
         Diastolic = dia
         HeartRate = hr
         Timestamp = ts
-        Comments = comments }
+        Comments = comments
+      }
   }
 
 /// Measurements straddling the range boundaries (each field may be in or out of range).
@@ -53,11 +55,13 @@ let mixedUnvalidatedGen: Gen<BloodPressureReadingUnvalidated> =
     let! comments = commentGen
 
     return
-      { Systolic = sys
+      {
+        Systolic = sys
         Diastolic = dia
         HeartRate = hr
         Timestamp = ts
-        Comments = comments }
+        Comments = comments
+      }
   }
 
 /// An int strictly below the minimum or strictly above the maximum.
@@ -74,9 +78,11 @@ let clusteredSeriesGen: Gen<float list * float list> =
 
     let! ys =
       Gen.frequency
-        [ 8, Gen.choose (60, 180) |> Gen.map float
+        [
+          8, Gen.choose (60, 180) |> Gen.map float
           1, Gen.choose (-500, -200) |> Gen.map float
-          1, Gen.choose (500, 1000) |> Gen.map float ]
+          1, Gen.choose (500, 1000) |> Gen.map float
+        ]
       |> Gen.listOfLength n
 
     return xs, ys

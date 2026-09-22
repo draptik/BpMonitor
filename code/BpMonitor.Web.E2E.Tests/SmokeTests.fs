@@ -87,8 +87,10 @@ type CookieSecurityTests(fixture: ChromiumFixture) =
       // Claim the account — SignInAsync fires here and emits the Set-Cookie header.
       use step2Body =
         new FormUrlEncodedContent(
-          [ KeyValuePair("Password", TestAccount.password)
-            KeyValuePair("PasswordConfirm", TestAccount.password) ]
+          [
+            KeyValuePair("Password", TestAccount.password)
+            KeyValuePair("PasswordConfirm", TestAccount.password)
+          ]
         )
 
       let! signInResp = client.PostAsync(claimUrl, step2Body)
@@ -120,8 +122,10 @@ type RememberMeUncheckedCookieTests(fixture: ChromiumFixture) =
       // Claim without checking "remember me".
       use step2Body =
         new FormUrlEncodedContent(
-          [ KeyValuePair("Password", TestAccount.password)
-            KeyValuePair("PasswordConfirm", TestAccount.password) ]
+          [
+            KeyValuePair("Password", TestAccount.password)
+            KeyValuePair("PasswordConfirm", TestAccount.password)
+          ]
         )
 
       let! signInResp = client.PostAsync(claimUrl, step2Body)
@@ -158,8 +162,10 @@ type RememberMeCheckedCookieTests(fixture: ChromiumFixture) =
 
       use claimStep2 =
         new FormUrlEncodedContent(
-          [ KeyValuePair("Password", TestAccount.password)
-            KeyValuePair("PasswordConfirm", TestAccount.password) ]
+          [
+            KeyValuePair("Password", TestAccount.password)
+            KeyValuePair("PasswordConfirm", TestAccount.password)
+          ]
         )
 
       let! _ = client.PostAsync(claimUrl, claimStep2)
@@ -167,9 +173,11 @@ type RememberMeCheckedCookieTests(fixture: ChromiumFixture) =
       // Now log in again with "remember me" checked.
       use rememberMeBody =
         new FormUrlEncodedContent(
-          [ KeyValuePair("Username", fixture.MemberName)
+          [
+            KeyValuePair("Username", fixture.MemberName)
             KeyValuePair("Password", TestAccount.password)
-            KeyValuePair("RememberMe", "on") ]
+            KeyValuePair("RememberMe", "on")
+          ]
         )
 
       let! signInResp = client.PostAsync($"{fixture.BaseUrl}/login", rememberMeBody)

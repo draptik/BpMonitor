@@ -57,7 +57,8 @@ let ``Update replaces the medication with the matching Id`` () =
 
   let updated =
     { medication 1 1 "HCTZ 25mg" with
-        Id = 1 }
+        Id = 1
+    }
 
   repo.Update(updated)
   test <@ repo.GetAll(1) |> List.exists (fun m -> m.Name = "HCTZ 25mg") @>

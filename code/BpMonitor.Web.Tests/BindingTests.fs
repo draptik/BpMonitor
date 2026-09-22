@@ -7,11 +7,13 @@ open BpMonitor.Core
 open BpMonitor.Web
 
 let private form sys dia hr ts comments : Binding.FormModel =
-  { Systolic = sys
+  {
+    Systolic = sys
     Diastolic = dia
     HeartRate = hr
     Timestamp = ts
-    Comments = comments }
+    Comments = comments
+  }
 
 [<Fact>]
 let ``toUnvalidated parses a well-formed form`` () =

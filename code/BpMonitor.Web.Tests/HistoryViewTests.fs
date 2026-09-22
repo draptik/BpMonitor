@@ -54,7 +54,8 @@ let ``form renders the validation errors it is given`` () =
 let ``view encodes user-supplied content`` () =
   let nasty =
     { sample with
-        Comments = Some "<script>x</script>" }
+        Comments = Some "<script>x</script>"
+    }
 
   let html =
     renderHtml (ReadingViews.history s defaultMember "" [ nasty ] (Text.raw ""))

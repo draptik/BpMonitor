@@ -4,7 +4,8 @@ open System
 
 [<CLIMutable>]
 type MedicationRecord =
-  { Id: int
+  {
+    Id: int
     MemberId: int
     Name: string
     FullName: string // null represents absent
@@ -12,4 +13,5 @@ type MedicationRecord =
     StartDate: DateOnly
     EndDate: Nullable<DateOnly>
     CreatedAt: DateTimeOffset
-    ModifiedAt: DateTimeOffset }
+    ModifiedAt: DateTimeOffset
+  }

@@ -4,7 +4,8 @@ open System
 
 [<CLIMutable>]
 type MemberRecord =
-  { Id: int
+  {
+    Id: int
     Name: string
     IsAdmin: bool
     IsActive: bool
@@ -15,4 +16,5 @@ type MemberRecord =
     DiastolicGoalMin: int
     DiastolicGoalMax: int
     CreatedAt: DateTimeOffset
-    ModifiedAt: DateTimeOffset }
+    ModifiedAt: DateTimeOffset
+  }

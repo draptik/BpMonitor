@@ -27,7 +27,8 @@ let private header =
 
 let private row (r: BloodPressureReading) : string =
   // Column order mirrors the JSON export; timestamps as raw ISO ("o").
-  [ string r.Id
+  [
+    string r.Id
     string r.MemberId
     string r.Systolic
     string r.Diastolic
@@ -35,7 +36,8 @@ let private row (r: BloodPressureReading) : string =
     r.Timestamp.ToString("o")
     csvField (r.Comments |> Option.defaultValue "")
     r.CreatedAt.ToString("o")
-    r.ModifiedAt.ToString("o") ]
+    r.ModifiedAt.ToString("o")
+  ]
   |> String.concat ","
 
 let serialize (readings: BloodPressureReading list) : string =

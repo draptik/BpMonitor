@@ -76,14 +76,16 @@ let ``landing action buttons appear in order: Add, Recent, Trends, History, Expo
   let indexOf (href: string) = landingHtml.IndexOf $"href=\"{href}\""
 
   let indices =
-    [ Routes.add
+    [
+      Routes.add
       Routes.recent
       Routes.trends
       Routes.history
       Routes.exportJson
       Routes.exportCsv
       Routes.settings
-      Routes.members ]
+      Routes.members
+    ]
     |> List.map indexOf
 
   test <@ indices |> List.forall (fun i -> i >= 0) @>

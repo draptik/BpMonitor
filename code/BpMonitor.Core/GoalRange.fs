@@ -1,10 +1,12 @@
 namespace BpMonitor.Core
 
 type GoalRange =
-  { SystolicMin: int
+  {
+    SystolicMin: int
     SystolicMax: int
     DiastolicMin: int
-    DiastolicMax: int }
+    DiastolicMax: int
+  }
 
 type GoalRangeError =
   | SystolicRangeInvalid
@@ -20,10 +22,12 @@ type RangePosition =
 
 module GoalRange =
   let defaults =
-    { SystolicMin = 90
+    {
+      SystolicMin = 90
       SystolicMax = 140
       DiastolicMin = 60
-      DiastolicMax = 90 }
+      DiastolicMax = 90
+    }
 
   let create (sysMin: int) (sysMax: int) (diaMin: int) (diaMax: int) : Result<GoalRange, GoalRangeError> =
     if sysMin >= sysMax then
@@ -32,10 +36,12 @@ module GoalRange =
       Error DiastolicRangeInvalid
     else
       Ok
-        { SystolicMin = sysMin
+        {
+          SystolicMin = sysMin
           SystolicMax = sysMax
           DiastolicMin = diaMin
-          DiastolicMax = diaMax }
+          DiastolicMax = diaMax
+        }
 
   let classifySystolic (goal: GoalRange) (value: int) : RangePosition =
     if value > goal.SystolicMax then Above

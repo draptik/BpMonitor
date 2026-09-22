@@ -22,7 +22,8 @@ let ``recent readings section lists heart rate, comment and an edit link per rea
   let r =
     { reading 1 1 with
         HeartRate = 71
-        Comments = Some "after walk" }
+        Comments = Some "after walk"
+    }
 
   let tp = FakeTimeProvider(now)
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
@@ -113,7 +114,8 @@ let ``recent readings section marks a reading just past 30 days old out-of-range
   let pastBoundary =
     { reading 0 1 with
         Systolic = 130
-        Timestamp = now.AddDays(-30.0).AddSeconds(-1.0) }
+        Timestamp = now.AddDays(-30.0).AddSeconds(-1.0)
+    }
 
   let ctx = TestHost.contextWithProvider (repoWith [ pastBoundary ]) tp
   TestHost.run ReadingHandlers.recent ctx
@@ -148,7 +150,8 @@ let ``recent readings section renders an empty table without error when there ar
 let ``recent readings section HTML-encodes a reading's comment`` () =
   let r =
     { reading 1 1 with
-        Comments = Some "<script>x</script>" }
+        Comments = Some "<script>x</script>"
+    }
 
   let tp = FakeTimeProvider(now)
   let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp

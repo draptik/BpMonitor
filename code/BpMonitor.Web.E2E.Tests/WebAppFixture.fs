@@ -238,8 +238,10 @@ type AppFixture() =
 
       use step2Body =
         new FormUrlEncodedContent(
-          [ KeyValuePair("Password", TestAccount.password)
-            KeyValuePair("PasswordConfirm", TestAccount.password) ]
+          [
+            KeyValuePair("Password", TestAccount.password)
+            KeyValuePair("PasswordConfirm", TestAccount.password)
+          ]
         )
 
       let! _ = client.PostAsync(claimUrl, step2Body)

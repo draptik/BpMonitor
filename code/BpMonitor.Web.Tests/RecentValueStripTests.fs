@@ -12,17 +12,20 @@ open RecentTestFixtures
 let private stripR1 =
   { reading 3 1 with
       Systolic = 130
-      Diastolic = 82 }
+      Diastolic = 82
+  }
 
 let private stripR2 =
   { reading 2 2 with
       Systolic = 142
-      Diastolic = 91 }
+      Diastolic = 91
+  }
 
 let private stripR3 =
   { reading 1 3 with
       Systolic = 118
-      Diastolic = 76 }
+      Diastolic = 76
+  }
 
 [<Fact>]
 let ``recent loads a reading older than 30 days but marks its value-strip cell out-of-range`` () =
@@ -97,12 +100,14 @@ let ``recent value strip tags each cell with the reading's chart x-label, for th
   let r1 =
     { reading 3 1 with
         Systolic = 130
-        Diastolic = 82 }
+        Diastolic = 82
+    }
 
   let r2 =
     { reading 2 2 with
         Systolic = 142
-        Diastolic = 91 }
+        Diastolic = 91
+    }
 
   let tp = FakeTimeProvider(now)
   let ctx = TestHost.contextWithProvider (repoWith [ r1; r2 ]) tp

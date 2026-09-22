@@ -38,7 +38,8 @@ module private StringsIntrospection =
 /// literal format patterns shown to the user, and the app's own brand name.
 let private sharedAcrossLanguages =
   set
-    [ ".Reading.LandingTitle" // "BpMonitor" — brand name
+    [
+      ".Reading.LandingTitle" // "BpMonitor" — brand name
       ".Reading.TimestampHint" // "yyyy-MM-dd HH:mm" — literal input format
       ".Medication.StartDateHint" // "dd.mm.yyyy" — literal input format
       ".Medication.EndDateHint" // "dd.mm.yyyy" — literal input format
@@ -55,7 +56,8 @@ let private sharedAcrossLanguages =
       ".Medication.StartHeader" // "Start" — identical cognate in both languages
       ".Trend.MonthOfYear" // false positive: placeholder arg month=1 abbreviates to "Jan" in both
       ".Charts.MonthTick" // false positive: null DateTime arg defaults to Jan 1, "Jan" in both
-      ".Trend.Year" ] // numeric only
+      ".Trend.Year"
+    ] // numeric only
 
 [<Fact>]
 let ``en has no null or blank string anywhere in the record`` () =

@@ -53,8 +53,10 @@ module BpChart =
         Layer = StyleParam.Layer.Below
       )
 
-    [ band goal.SystolicMin goal.SystolicMax systolicBandColor
-      band goal.DiastolicMin goal.DiastolicMax diastolicBandColor ]
+    [
+      band goal.SystolicMin goal.SystolicMax systolicBandColor
+      band goal.DiastolicMin goal.DiastolicMax diastolicBandColor
+    ]
 
   let private marginWithBottom bottom =
     Margin.init (Left = 48, Right = 16, Top = 24, Bottom = bottom)
@@ -156,9 +158,11 @@ module BpChart =
   //
   // Removed so a reader can't distort the fixed-scale y-axis (Wegier et al. 2021).
   let private interactiveModeBarButtonsToRemove =
-    [ StyleParam.ModeBarButton.Lasso2d
+    [
+      StyleParam.ModeBarButton.Lasso2d
       StyleParam.ModeBarButton.AutoScale2d
-      StyleParam.ModeBarButton.Select2d ]
+      StyleParam.ModeBarButton.Select2d
+    ]
 
   let private interactiveConfig =
     Config.init (Responsive = true, ModeBarButtonsToRemove = interactiveModeBarButtonsToRemove)
@@ -169,7 +173,13 @@ module BpChart =
       Responsive = true,
       ModeBarButtonsToRemove = interactiveModeBarButtonsToRemove,
       Locale = "app",
-      Locales = box (dict [ "app", box (dict [ "format", box (dict [ "shortDays", box s.ShortWeekdays ]) ]) ])
+      Locales =
+        box (
+          dict
+            [
+              "app", box (dict [ "format", box (dict [ "shortDays", box s.ShortWeekdays ]) ])
+            ]
+        )
     )
 
   let private toHtmlString (chart: GenericChart) =
@@ -305,14 +315,16 @@ module BpChart =
         |> List.map (fun r -> r.Comments |> Option.defaultValue "" |> System.Net.WebUtility.HtmlEncode)
 
       // HoverTemplate shows the comment then a dimmed timestamp; empty <extra> drops the trace name.
-      [ Chart.Point(x = cTimestamps, y = cBaseline, Name = s.Comments, MultiText = cTexts)
+      [
+        Chart.Point(x = cTimestamps, y = cBaseline, Name = s.Comments, MultiText = cTexts)
         |> Chart.withMarkerStyle (Symbol = StyleParam.MarkerSymbol.Hexagon, Size = 11, Color = commentColor)
         |> GenericChart.mapTrace (
           Trace2DStyle.Scatter(
             ClipOnAxis = false,
             HoverTemplate = "%{text}<br><span style=\"opacity:0.6\">%{x}</span><extra></extra>"
           )
-        ) ]
+        )
+      ]
 
   // The trace `Name` ("Systolic"/"Diastolic") is also the color-coded legend entry, so
   // repeating it in every hover tooltip is redundant — these templates keep the
@@ -331,13 +343,15 @@ module BpChart =
   let private renderIndividual (s: ChartStrings) (goal: GoalRange) (readings: BloodPressureReading list) : string =
     let readings, timestamps, systolic, diastolic = seriesOf readings
 
-    [ Chart.Line(x = timestamps, y = systolic, Name = s.Systolic, ShowMarkers = true)
+    [
+      Chart.Line(x = timestamps, y = systolic, Name = s.Systolic, ShowMarkers = true)
       |> Chart.withLineStyle (Color = systolicColor)
       |> hoverXY
       Chart.Line(x = timestamps, y = diastolic, Name = s.Diastolic, ShowMarkers = true)
       |> Chart.withLineStyle (Color = diastolicColor)
       |> hoverXY
-      yield! commentTraces s readings ]
+      yield! commentTraces s readings
+    ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
     |> withBottomLegend
@@ -420,8 +434,10 @@ module BpChart =
         Color = lineColor
       )
 
-    [ line s.Systolic systolicColor systolic sysHover sysUpper sysLower
-      line s.Diastolic diastolicColor diastolic diaHover diaUpper diaLower ]
+    [
+      line s.Systolic systolicColor systolic sysHover sysUpper sysLower
+      line s.Diastolic diastolicColor diastolic diaHover diaUpper diaLower
+    ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
     |> finishTrends s
@@ -489,8 +505,10 @@ module BpChart =
     // repeated here) identify which series it belongs to.
     (match labels, values with
      | [], [] ->
-       [ Chart.Line(x = ([]: string list), y = ([]: int list), Name = name)
-         |> Chart.withLineStyle (Color = color) ]
+       [
+         Chart.Line(x = ([]: string list), y = ([]: int list), Name = name)
+         |> Chart.withLineStyle (Color = color)
+       ]
      | [ _ ], [ _ ] -> [ Chart.Point(x = labels, y = values, Name = name, MarkerColor = color) ]
      | _ ->
        dashRuns dashes
@@ -537,11 +555,13 @@ module BpChart =
 
       let smoothed = Lowess.smooth lowessBandwidth xs (values |> List.map float)
 
-      [ Chart.Line(x = labels, y = smoothed, Name = name, ShowLegend = true)
+      [
+        Chart.Line(x = labels, y = smoothed, Name = name, ShowLegend = true)
         |> Chart.withLineStyle (Color = color, Width = 2.5)
         // The smoothed value is derived, not measured — skip its hover entry in the
         // /recent chart's unified hover so the tooltip only ever shows real readings.
-        |> GenericChart.mapTrace (Trace2DStyle.Scatter(HoverInfo = StyleParam.HoverInfo.Skip)) ]
+        |> GenericChart.mapTrace (Trace2DStyle.Scatter(HoverInfo = StyleParam.HoverInfo.Skip))
+      ]
 
   let private renderRecent
     (s: ChartStrings)
@@ -556,14 +576,16 @@ module BpChart =
     let rangeLow = Formats.formatLocal windowStart
     let rangeHigh = Formats.formatLocal windowEnd
 
-    [ yield! seriesTraces systolicFadedColor s.Systolic dashes timestamps systolic
+    [
+      yield! seriesTraces systolicFadedColor s.Systolic dashes timestamps systolic
       yield! seriesTraces diastolicFadedColor s.Diastolic dashes timestamps diastolic
       yield! smoothTrace systolicColor s.SystolicTrend readings timestamps systolic
       yield! smoothTrace diastolicColor s.DiastolicTrend readings timestamps diastolic
       // Skipped here so recent-scrubber.js's custom tooltip owns proximity-only comment hover.
       yield!
         commentTraces s readings
-        |> List.map (GenericChart.mapTrace (Trace2DStyle.Scatter(HoverInfo = StyleParam.HoverInfo.Skip))) ]
+        |> List.map (GenericChart.mapTrace (Trace2DStyle.Scatter(HoverInfo = StyleParam.HoverInfo.Skip)))
+    ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
     |> withBottomLegend
@@ -588,14 +610,16 @@ module BpChart =
 
   // Muted variant of the validated categorical palette (same hues/order, ~20% less chroma) to match this app's jewel-tone mood.
   let private medicationPalette =
-    [| "#346EB7", "#417CC5"
-       "#CE6842", "#BD5A35"
-       "#3B9E74", "#348D69"
-       "#D5993B", "#B27D2E"
-       "#CE7898", "#BA5376"
-       "#20731D", "#31822E"
-       "#494195", "#847DCC"
-       "#C54F4B", "#CA6765" |]
+    [|
+      "#346EB7", "#417CC5"
+      "#CE6842", "#BD5A35"
+      "#3B9E74", "#348D69"
+      "#D5993B", "#B27D2E"
+      "#CE7898", "#BA5376"
+      "#20731D", "#31822E"
+      "#494195", "#847DCC"
+      "#C54F4B", "#CA6765"
+    |]
 
   // FNV-1a: stable across restarts, unlike String.GetHashCode (randomized per-process).
   let private fnv1a (s: string) : uint32 =

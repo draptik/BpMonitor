@@ -5,7 +5,8 @@ open BpMonitor.Core
 
 module private Mapping =
   let toDomain (r: ReadingRecord) : BloodPressureReading =
-    { Id = r.Id
+    {
+      Id = r.Id
       MemberId = r.MemberId
       Systolic = r.Systolic
       Diastolic = r.Diastolic
@@ -13,17 +14,20 @@ module private Mapping =
       Timestamp = r.Timestamp
       Comments = if isNull r.Comments then None else Some r.Comments
       CreatedAt = r.CreatedAt
-      ModifiedAt = r.ModifiedAt }
+      ModifiedAt = r.ModifiedAt
+    }
 
   let withTimestamps (now: System.DateTimeOffset) (r: BloodPressureReading) =
     { r with
         CreatedAt = now
-        ModifiedAt = now }
+        ModifiedAt = now
+    }
 
   let withModifiedAt (now: System.DateTimeOffset) (r: BloodPressureReading) = { r with ModifiedAt = now }
 
   let toEntity (r: BloodPressureReading) : ReadingRecord =
-    { Id = r.Id
+    {
+      Id = r.Id
       MemberId = r.MemberId
       Systolic = r.Systolic
       Diastolic = r.Diastolic
@@ -31,7 +35,8 @@ module private Mapping =
       Timestamp = r.Timestamp
       Comments = r.Comments |> Option.defaultValue null
       CreatedAt = r.CreatedAt
-      ModifiedAt = r.ModifiedAt }
+      ModifiedAt = r.ModifiedAt
+    }
 
 type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvider) =
   interface IReadingRepository with

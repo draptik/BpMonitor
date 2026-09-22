@@ -11,7 +11,8 @@ open ViewTestHelpers
 [<Fact>]
 let ``members page renders Admin and Active columns and Edit link`` () =
   let otherMember =
-    { Id = 2
+    {
+      Id = 2
       Name = "Alice"
       IsAdmin = false
       IsActive = true
@@ -19,7 +20,8 @@ let ``members page renders Admin and Active columns and Edit link`` () =
       Goal = GoalRange.defaults
       Language = English
       CreatedAt = DateTimeOffset.MinValue
-      ModifiedAt = DateTimeOffset.MinValue }
+      ModifiedAt = DateTimeOffset.MinValue
+    }
 
   let html =
     renderHtml (MemberViews.members s [ defaultMember; otherMember ] defaultMember [])
@@ -60,10 +62,12 @@ let ``goalRangeSection wraps the section in a collapsible details element`` () =
         (MemberViews.goalRangeSection
           s
           []
-          { Binding.SysMin = "90"
+          {
+            Binding.SysMin = "90"
             Binding.SysMax = "140"
             Binding.DiaMin = "60"
-            Binding.DiaMax = "90" })
+            Binding.DiaMax = "90"
+          })
     )
 
   test <@ html.Contains "<details" @>
@@ -80,10 +84,12 @@ let ``members page renders Edit as a button, matching Reset password's style`` (
 let ``members page shows claimed/unclaimed badge`` () =
   let claimed =
     { defaultMember with
-        PasswordHash = Some "somehash" }
+        PasswordHash = Some "somehash"
+    }
 
   let unclaimed =
-    { Id = 2
+    {
+      Id = 2
       Name = "Alice"
       IsAdmin = false
       IsActive = true
@@ -91,7 +97,8 @@ let ``members page shows claimed/unclaimed badge`` () =
       Goal = GoalRange.defaults
       Language = English
       CreatedAt = DateTimeOffset.MinValue
-      ModifiedAt = DateTimeOffset.MinValue }
+      ModifiedAt = DateTimeOffset.MinValue
+    }
 
   let html = renderHtml (MemberViews.members s [ claimed; unclaimed ] claimed [])
 
@@ -116,7 +123,8 @@ let ``members page wraps its content in the dense-page density scope`` () =
 [<Fact>]
 let ``memberForm prefills name and reflects IsAdmin and IsActive`` () =
   let m =
-    { Id = 3
+    {
+      Id = 3
       Name = "Bob"
       IsAdmin = true
       IsActive = false
@@ -124,7 +132,8 @@ let ``memberForm prefills name and reflects IsAdmin and IsActive`` () =
       Goal = GoalRange.defaults
       Language = English
       CreatedAt = DateTimeOffset.MinValue
-      ModifiedAt = DateTimeOffset.MinValue }
+      ModifiedAt = DateTimeOffset.MinValue
+    }
 
   let html =
     renderHtml (MemberViews.memberForm s Routes.members "Me" true "Edit member" (Routes.memberUpdate 3) [] m)

@@ -3,7 +3,8 @@ namespace BpMonitor.Core
 open System
 
 type FamilyMember =
-  { Id: int
+  {
+    Id: int
     Name: string
     IsAdmin: bool
     IsActive: bool
@@ -11,7 +12,8 @@ type FamilyMember =
     Goal: GoalRange
     Language: Language
     CreatedAt: DateTimeOffset
-    ModifiedAt: DateTimeOffset }
+    ModifiedAt: DateTimeOffset
+  }
 
 type FamilyMemberError = | NameIsEmpty
 
@@ -21,7 +23,8 @@ module FamilyMember =
       Error NameIsEmpty
     else
       Ok
-        { Id = 0
+        {
+          Id = 0
           Name = name.Trim()
           IsAdmin = isAdmin
           IsActive = true
@@ -29,7 +32,8 @@ module FamilyMember =
           Goal = GoalRange.defaults
           Language = Language.defaultLanguage
           CreatedAt = DateTimeOffset.MinValue
-          ModifiedAt = DateTimeOffset.MinValue }
+          ModifiedAt = DateTimeOffset.MinValue
+        }
 
   /// Returns true when the list contains at least one member that is both admin and active.
   /// Used to enforce the invariant before saving member changes.

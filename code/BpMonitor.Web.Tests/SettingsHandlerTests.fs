@@ -72,10 +72,12 @@ let ``updateSettings persists a valid goal range and redirects to history`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.systolicGoalMin, "100"
+    [
+      FormFields.systolicGoalMin, "100"
       FormFields.systolicGoalMax, "130"
       FormFields.diastolicGoalMin, "65"
-      FormFields.diastolicGoalMax, "85" ]
+      FormFields.diastolicGoalMax, "85"
+    ]
 
   TestHost.run ReadingHandlers.updateSettings ctx
 
@@ -86,10 +88,12 @@ let ``updateSettings persists a valid goal range and redirects to history`` () =
   let updated = (memberRepo.GetById defaultMemberId).Value
 
   let expected: GoalRange =
-    { SystolicMin = 100
+    {
+      SystolicMin = 100
       SystolicMax = 130
       DiastolicMin = 65
-      DiastolicMax = 85 }
+      DiastolicMax = 85
+    }
 
   test <@ updated.Goal = expected @>
 
@@ -97,17 +101,20 @@ let ``updateSettings persists a valid goal range and redirects to history`` () =
 /// trivially pass by coincidence with the seeded default (GoalRange.defaults).
 let private memberWithCustomGoal: FamilyMember =
   let customGoal: GoalRange =
-    { SystolicMin = 100
+    {
+      SystolicMin = 100
       SystolicMax = 130
       DiastolicMin = 65
-      DiastolicMax = 85 }
+      DiastolicMax = 85
+    }
 
   FamilyMember.create "Me" true
   |> Result.defaultWith (fun _ -> failwith "invalid member")
   |> fun m ->
       { m with
           Id = defaultMemberId
-          Goal = customGoal }
+          Goal = customGoal
+      }
 
 [<Fact>]
 let ``updateSettings rejects a systolic min greater than or equal to max with 422 and does not persist`` () =
@@ -116,10 +123,12 @@ let ``updateSettings rejects a systolic min greater than or equal to max with 42
 
   TestHost.setForm
     ctx
-    [ FormFields.systolicGoalMin, "140"
+    [
+      FormFields.systolicGoalMin, "140"
       FormFields.systolicGoalMax, "100"
       FormFields.diastolicGoalMin, "65"
-      FormFields.diastolicGoalMax, "85" ]
+      FormFields.diastolicGoalMax, "85"
+    ]
 
   TestHost.run ReadingHandlers.updateSettings ctx
 
@@ -137,10 +146,12 @@ let ``updateSettings rejects a diastolic min greater than or equal to max with 4
 
   TestHost.setForm
     ctx
-    [ FormFields.systolicGoalMin, "100"
+    [
+      FormFields.systolicGoalMin, "100"
       FormFields.systolicGoalMax, "130"
       FormFields.diastolicGoalMin, "85"
-      FormFields.diastolicGoalMax, "65" ]
+      FormFields.diastolicGoalMax, "65"
+    ]
 
   TestHost.run ReadingHandlers.updateSettings ctx
 
@@ -158,10 +169,12 @@ let ``updateSettings redisplays the submitted values, not the stale persisted go
 
   TestHost.setForm
     ctx
-    [ FormFields.systolicGoalMin, "140"
+    [
+      FormFields.systolicGoalMin, "140"
       FormFields.systolicGoalMax, "100"
       FormFields.diastolicGoalMin, "65"
-      FormFields.diastolicGoalMax, "85" ]
+      FormFields.diastolicGoalMax, "85"
+    ]
 
   TestHost.run ReadingHandlers.updateSettings ctx
 
@@ -176,10 +189,12 @@ let ``updateSettings rejects non-numeric input with 422 and does not persist`` (
 
   TestHost.setForm
     ctx
-    [ FormFields.systolicGoalMin, "abc"
+    [
+      FormFields.systolicGoalMin, "abc"
       FormFields.systolicGoalMax, "130"
       FormFields.diastolicGoalMin, "65"
-      FormFields.diastolicGoalMax, "85" ]
+      FormFields.diastolicGoalMax, "85"
+    ]
 
   TestHost.run ReadingHandlers.updateSettings ctx
 
@@ -197,10 +212,12 @@ let ``updateSettings accumulates an error for every invalid field, not just the 
 
   TestHost.setForm
     ctx
-    [ FormFields.systolicGoalMin, "abc"
+    [
+      FormFields.systolicGoalMin, "abc"
       FormFields.systolicGoalMax, "130"
       FormFields.diastolicGoalMin, "xyz"
-      FormFields.diastolicGoalMax, "85" ]
+      FormFields.diastolicGoalMax, "85"
+    ]
 
   TestHost.run ReadingHandlers.updateSettings ctx
 

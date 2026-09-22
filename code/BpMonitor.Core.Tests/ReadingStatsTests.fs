@@ -95,7 +95,8 @@ let ``dailyAverages: timestamp is midnight of the local date`` () =
 let ``dailyAverages: Comments are dropped even when the source reading had one`` () =
   let r =
     { mkReading 1 1 130 85 68 (now.AddDays(-1.0)) with
-        Comments = Some "after a walk" }
+        Comments = Some "after a walk"
+    }
 
   let day = ReadingStats.dailyAverages [ r ] |> List.exactlyOne
   test <@ day.Comments = None @>

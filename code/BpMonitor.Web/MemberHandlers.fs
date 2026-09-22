@@ -80,7 +80,8 @@ module MemberHandlers =
           { existing with
               Name = ""
               IsAdmin = isAdmin
-              IsActive = isActive }
+              IsActive = isActive
+          }
 
         do! renderMemberEditError s id adminName [ s.Errors.NameIsEmpty ] m ctx
       | Ok _ ->
@@ -88,7 +89,8 @@ module MemberHandlers =
           { existing with
               Name = name.Trim()
               IsAdmin = isAdmin
-              IsActive = isActive }
+              IsActive = isActive
+          }
         // Compute what the member list would look like after the edit.
         let postEditList =
           (memberRepo ctx).GetAll()

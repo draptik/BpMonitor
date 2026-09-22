@@ -35,7 +35,8 @@ let ``Update replaces the reading with the matching Id`` () =
 
   let updated =
     { reading 1 1 135 88 75 with
-        Comments = Some "updated" }
+        Comments = Some "updated"
+    }
 
   repo.Update(updated)
   test <@ repo.GetAll(1) |> List.exists (fun r -> r.Systolic = 135) @>
@@ -61,7 +62,8 @@ let ``Update reflects changes in subsequent GetAll`` () =
 
   repo.Update(
     { reading 1 1 120 80 70 with
-        Comments = Some "after update" }
+        Comments = Some "after update"
+    }
   )
 
   test <@ repo.GetAll(1).[0].Comments = Some "after update" @>

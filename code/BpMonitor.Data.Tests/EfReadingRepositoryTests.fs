@@ -10,7 +10,8 @@ open BpMonitor.Data
 let private defaultMemberId = 1
 
 let private sample: BloodPressureReading =
-  { Id = 0
+  {
+    Id = 0
     MemberId = 0
     Systolic = 120
     Diastolic = 80
@@ -18,7 +19,8 @@ let private sample: BloodPressureReading =
     Timestamp = Timestamp.utc 2026 1 1 9 0 0
     Comments = None
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 let private createContext = EfTestContext.createContext
 let private createContextWithLog = EfTestContext.createContextWithLog
@@ -72,7 +74,8 @@ let ``GetAll returns only readings for the requested member`` () =
   repo.Add
     2
     { sample with
-        Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0
+    }
 
   test <@ repo.GetAll(1).Length = 1 @>
   test <@ repo.GetAll(2).Length = 1 @>
@@ -87,7 +90,8 @@ let ``Add preserves Comments when present`` () =
   repo.Add
     defaultMemberId
     { sample with
-        Comments = Some "test note" }
+        Comments = Some "test note"
+    }
 
   test <@ repo.GetAll(defaultMemberId).[0].Comments = Some "test note" @>
 
@@ -119,7 +123,8 @@ let ``AddMany persists all readings`` () =
 
   let second =
     { sample with
-        Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0
+    }
 
   repo.AddMany defaultMemberId [ sample; second ]
   test <@ repo.GetAll(defaultMemberId).Length = 2 @>
@@ -133,7 +138,8 @@ let ``AddMany sets CreatedAt and ModifiedAt to current time`` () =
 
   let second =
     { sample with
-        Timestamp = Timestamp.utc 2026 1 2 9 0 0 }
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0
+    }
 
   repo.AddMany defaultMemberId [ sample; second ]
   let readings = repo.GetAll(defaultMemberId)
@@ -168,7 +174,8 @@ let ``Update of a non-existent reading is a no-op`` () =
   let ghost =
     { sample with
         Id = 999
-        MemberId = defaultMemberId }
+        MemberId = defaultMemberId
+    }
 
   repo.Update(ghost)
   test <@ repo.GetAll(defaultMemberId).Length = 1 @>
@@ -185,7 +192,8 @@ let ``Update does not affect a reading belonging to a different member`` () =
   repo.Update(
     { added with
         Systolic = 999
-        MemberId = 2 }
+        MemberId = 2
+    }
   )
   // Reading should remain unchanged for member 1
   // ReSharper disable once FSharpRedundantDotInIndexer

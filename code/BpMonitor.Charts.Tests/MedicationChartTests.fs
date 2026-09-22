@@ -12,7 +12,8 @@ let private thisFile = IO.Path.Combine(__SOURCE_DIRECTORY__, __SOURCE_FILE__)
 let private verifyHtml = Verifier.verifyHtml thisFile
 
 let private medication id name fullName comment (startDate: DateOnly) (endDate: DateOnly option) : Medication =
-  { Id = id
+  {
+    Id = id
     MemberId = 1
     Name = name
     FullName = fullName
@@ -20,7 +21,8 @@ let private medication id name fullName comment (startDate: DateOnly) (endDate: 
     StartDate = startDate
     EndDate = endDate
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 let private rangeLow = "2026-01-01 00:00"
 let private rangeHigh = "2026-02-01 00:00"
@@ -32,7 +34,9 @@ let ``toHtmlMedications returns empty string when medications is empty`` () =
 [<Fact>]
 let ``toHtmlMedications uses Name as the row label`` () =
   let meds =
-    [ medication 1 "HCTZ" (Some "hydrochlorothiazide") None (DateOnly(2026, 1, 5)) None ]
+    [
+      medication 1 "HCTZ" (Some "hydrochlorothiazide") None (DateOnly(2026, 1, 5)) None
+    ]
 
   let html =
     BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
@@ -51,7 +55,9 @@ let ``toHtmlMedications hover falls back to Name when FullName is absent`` () =
 [<Fact>]
 let ``toHtmlMedications hover uses FullName when present`` () =
   let meds =
-    [ medication 1 "HCTZ" (Some "hydrochlorothiazide") None (DateOnly(2026, 1, 5)) None ]
+    [
+      medication 1 "HCTZ" (Some "hydrochlorothiazide") None (DateOnly(2026, 1, 5)) None
+    ]
 
   let html =
     BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
@@ -80,7 +86,9 @@ let ``toHtmlMedications hover uses the localized ongoing text for a medication w
 [<Fact>]
 let ``toHtmlMedications ends a completed medication's bar at its EndDate`` () =
   let meds =
-    [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) (Some(DateOnly(2026, 1, 20))) ]
+    [
+      medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) (Some(DateOnly(2026, 1, 20)))
+    ]
 
   let html =
     BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
@@ -136,8 +144,10 @@ let ``toHtmlMedications assigns the same medication name the same color across r
 [<Fact>]
 let ``toHtmlMedications gives two different medications different colors`` () =
   let meds =
-    [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None
-      medication 2 "lisinopril" None None (DateOnly(2026, 1, 10)) None ]
+    [
+      medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) None
+      medication 2 "lisinopril" None None (DateOnly(2026, 1, 10)) None
+    ]
 
   let html =
     BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
@@ -158,8 +168,10 @@ let ``toHtmlMedications gives two different medications different colors`` () =
 let ``toHtmlMedications gives colliding hash slots different colors via linear probing`` () =
   // "Medication0" and "Medication22" both hash (FNV-1a mod 16) to the same palette slot.
   let meds =
-    [ medication 1 "Medication0" None None (DateOnly(2026, 1, 5)) None
-      medication 2 "Medication22" None None (DateOnly(2026, 1, 10)) None ]
+    [
+      medication 1 "Medication0" None None (DateOnly(2026, 1, 5)) None
+      medication 2 "Medication22" None None (DateOnly(2026, 1, 10)) None
+    ]
 
   let html =
     BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
@@ -235,8 +247,10 @@ let ``toHtmlMedications carries light and dark colors in trace meta`` () =
 [<Fact>]
 let ``toHtmlMedications gives a restarted medication (same name, two rows) the same color`` () =
   let meds =
-    [ medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) (Some(DateOnly(2026, 1, 20)))
-      medication 2 "HCTZ" None None (DateOnly(2026, 1, 25)) None ]
+    [
+      medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) (Some(DateOnly(2026, 1, 20)))
+      medication 2 "HCTZ" None None (DateOnly(2026, 1, 25)) None
+    ]
 
   let html =
     BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
@@ -273,14 +287,16 @@ let ``toHtmlMedications never assigns a palette slot with identical light and da
 [<Fact>]
 let ``toHtmlMedications matches snapshot`` () : Task =
   let meds =
-    [ medication 1 "HCTZ" (Some "hydrochlorothiazide") None (DateOnly(2026, 1, 1)) None
+    [
+      medication 1 "HCTZ" (Some "hydrochlorothiazide") None (DateOnly(2026, 1, 1)) None
       medication
         2
         "lisinopril"
         None
         (Some "Ran out of medication")
         (DateOnly(2026, 1, 15))
-        (Some(DateOnly(2026, 1, 28))) ]
+        (Some(DateOnly(2026, 1, 28)))
+    ]
 
   let html =
     BpChart.toHtmlMedications LocalizedStrings.en.Charts true rangeLow rangeHigh meds

@@ -53,7 +53,8 @@ let private endpoints =
     post Routes.members (AuthHandlers.protectAdmin MemberHandlers.createMember)
     get "/members/{id:int}/edit" (AuthHandlers.protectAdmin MemberHandlers.editMember)
     post "/members/{id:int}" (AuthHandlers.protectAdmin MemberHandlers.updateMember)
-    post "/members/{id:int}/reset-password" (AuthHandlers.protectAdmin MemberHandlers.resetPassword) ]
+    post "/members/{id:int}/reset-password" (AuthHandlers.protectAdmin MemberHandlers.resetPassword)
+  ]
 
 [<EntryPoint>]
 let main args =

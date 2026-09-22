@@ -9,7 +9,8 @@ open BpMonitor.Web
 open ViewTestHelpers
 
 let private sampleMedication: Medication =
-  { Id = 5
+  {
+    Id = 5
     MemberId = 1
     Name = "HCTZ"
     FullName = Some "Hydrochlorothiazide"
@@ -17,7 +18,8 @@ let private sampleMedication: Medication =
     StartDate = DateOnly(2026, 1, 1)
     EndDate = None
     CreatedAt = DateTimeOffset.MinValue
-    ModifiedAt = DateTimeOffset.MinValue }
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
 [<Fact>]
 let ``medicationsSection center-aligns the Start and End columns`` () =

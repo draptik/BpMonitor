@@ -2,7 +2,8 @@ namespace BpMonitor.Core
 
 /// Shell chrome: nav links, topbar, page shell primitives shared by every page.
 type ShellStrings =
-  { AppTagline: string
+  {
+    AppTagline: string
     Menu: string
     Logout: string
     NavAdd: string
@@ -19,19 +20,23 @@ type ShellStrings =
     Edit: string
     Delete: string
     Name: string
-    Comment: string }
+    Comment: string
+  }
 
 /// The shared readings table (ViewLayout.readingsTable) and its column units.
 type ReadingTableStrings =
-  { Timestamp: string
+  {
+    Timestamp: string
     Systolic: string
     Diastolic: string
     HeartRate: string
     MmHg: string
-    Bpm: string }
+    Bpm: string
+  }
 
 type LoginStrings =
-  { PageTitle: string
+  {
+    PageTitle: string
     SignIn: string
     Password: string
     RememberMe: string
@@ -45,10 +50,12 @@ type LoginStrings =
     IncorrectPassword: string
     AccountInactive: string
     PasswordCannotBeEmpty: string
-    PasswordsDoNotMatch: string }
+    PasswordsDoNotMatch: string
+  }
 
 type ReadingPageStrings =
-  { LandingTitle: string
+  {
+    LandingTitle: string
     LandingTagline: string
     HistoryTitle: string
     BloodPressureGraph: string
@@ -60,10 +67,12 @@ type ReadingPageStrings =
     RecentReadingsSection: string
     AddReadingTitle: string
     EditReadingTitle: string
-    TimestampHint: string }
+    TimestampHint: string
+  }
 
 type MemberPageStrings =
-  { FamilyMembersTitle: string
+  {
+    FamilyMembersTitle: string
     AddFamilyMember: string
     AddMember: string
     EditMemberTitle: string
@@ -84,10 +93,12 @@ type MemberPageStrings =
     SystolicMin: string
     SystolicMax: string
     DiastolicMin: string
-    DiastolicMax: string }
+    DiastolicMax: string
+  }
 
 type MedicationStrings =
-  { Required: string
+  {
+    Required: string
     Optional: string
     DeleteConfirm: string -> string
     MedicationsTitle: string
@@ -104,10 +115,12 @@ type MedicationStrings =
     EditMedicationTitle: string
     MedicationsTimelineTitle: string
     NameIsEmpty: string
-    EndDateBeforeStartDate: string }
+    EndDateBeforeStartDate: string
+  }
 
 type TrendStrings =
-  { TrendsTitle: string
+  {
+    TrendsTitle: string
     Weekly: string
     Monthly: string
     Yearly: string
@@ -126,10 +139,12 @@ type TrendStrings =
     MonthOfYear: int -> int -> string
     ThisYear: string
     LastYear: string
-    Year: int -> string }
+    Year: int -> string
+  }
 
 type ErrorStrings =
-  { NotAnInteger: string -> string -> string
+  {
+    NotAnInteger: string -> string -> string
     NotAValidDateTime: string -> string
     NotAValidDate: string -> string -> string
     NameIsEmpty: string
@@ -138,7 +153,8 @@ type ErrorStrings =
     DiastolicMinMustBeLessThanMax: string
     SystolicOutOfRange: int -> int -> int -> string
     DiastolicOutOfRange: int -> int -> int -> string
-    HeartRateOutOfRange: int -> int -> int -> string }
+    HeartRateOutOfRange: int -> int -> int -> string
+  }
 
 type ChartStrings =
   {
@@ -159,7 +175,8 @@ type ChartStrings =
 /// All user-facing text for one language. Every language must supply every field —
 /// the compiler enforces completeness, which is the point of this type over `.resx`.
 type LocalizedStrings =
-  { Language: Language
+  {
+    Language: Language
     Shell: ShellStrings
     Table: ReadingTableStrings
     Login: LoginStrings
@@ -168,13 +185,16 @@ type LocalizedStrings =
     Medication: MedicationStrings
     Trend: TrendStrings
     Errors: ErrorStrings
-    Charts: ChartStrings }
+    Charts: ChartStrings
+  }
 
 module LocalizedStrings =
   let en: LocalizedStrings =
-    { Language = English
+    {
+      Language = English
       Shell =
-        { AppTagline = "Blood pressure tracker"
+        {
+          AppTagline = "Blood pressure tracker"
           Menu = "Menu"
           Logout = "Logout"
           NavAdd = "Add"
@@ -191,16 +211,20 @@ module LocalizedStrings =
           Edit = "Edit"
           Delete = "Delete"
           Name = "Name"
-          Comment = "Comment" }
+          Comment = "Comment"
+        }
       Table =
-        { Timestamp = "Timestamp"
+        {
+          Timestamp = "Timestamp"
           Systolic = "Systolic"
           Diastolic = "Diastolic"
           HeartRate = "Heart Rate"
           MmHg = "mmHg"
-          Bpm = "bpm" }
+          Bpm = "bpm"
+        }
       Login =
-        { PageTitle = "Login"
+        {
+          PageTitle = "Login"
           SignIn = "Sign in"
           Password = "Password"
           RememberMe = "Remember me on this device"
@@ -214,9 +238,11 @@ module LocalizedStrings =
           IncorrectPassword = "Incorrect password"
           AccountInactive = "This account is inactive"
           PasswordCannotBeEmpty = "Password cannot be empty"
-          PasswordsDoNotMatch = "Passwords do not match" }
+          PasswordsDoNotMatch = "Passwords do not match"
+        }
       Reading =
-        { LandingTitle = "BpMonitor"
+        {
+          LandingTitle = "BpMonitor"
           LandingTagline = "Track and review your blood pressure readings."
           HistoryTitle = "History"
           BloodPressureGraph = "Blood Pressure Graph"
@@ -228,9 +254,11 @@ module LocalizedStrings =
           RecentReadingsSection = "Readings in view"
           AddReadingTitle = "Add reading"
           EditReadingTitle = "Edit reading"
-          TimestampHint = "yyyy-MM-dd HH:mm" }
+          TimestampHint = "yyyy-MM-dd HH:mm"
+        }
       Member =
-        { FamilyMembersTitle = "Family Members"
+        {
+          FamilyMembersTitle = "Family Members"
           AddFamilyMember = "Add family member"
           AddMember = "Add member"
           EditMemberTitle = "Edit member"
@@ -251,9 +279,11 @@ module LocalizedStrings =
           SystolicMin = "Systolic min"
           SystolicMax = "Systolic max"
           DiastolicMin = "Diastolic min"
-          DiastolicMax = "Diastolic max" }
+          DiastolicMax = "Diastolic max"
+        }
       Medication =
-        { Required = "Required"
+        {
+          Required = "Required"
           Optional = "Optional"
           DeleteConfirm = fun name -> $"Delete {name}? This cannot be undone."
           MedicationsTitle = "Medications"
@@ -270,9 +300,11 @@ module LocalizedStrings =
           EditMedicationTitle = "Edit medication"
           MedicationsTimelineTitle = "Medications Timeline"
           NameIsEmpty = "Name cannot be empty"
-          EndDateBeforeStartDate = "End date must be on or after the start date" }
+          EndDateBeforeStartDate = "End date must be on or after the start date"
+        }
       Trend =
-        { TrendsTitle = "Trends"
+        {
+          TrendsTitle = "Trends"
           Weekly = "Weekly"
           Monthly = "Monthly"
           Yearly = "Yearly"
@@ -293,9 +325,11 @@ module LocalizedStrings =
               System.DateTime(year, month, 1).ToString("MMM yyyy", System.Globalization.CultureInfo("en-US"))
           ThisYear = "This Year"
           LastYear = "Last Year"
-          Year = fun year -> string year }
+          Year = fun year -> string year
+        }
       Errors =
-        { NotAnInteger = fun label value -> $"{label}: '{value}' is not a valid integer"
+        {
+          NotAnInteger = fun label value -> $"{label}: '{value}' is not a valid integer"
           NotAValidDateTime = fun value -> $"Timestamp: '{value}' is not a valid date/time"
           NotAValidDate = fun label value -> $"{label}: '{value}' is not a valid date (expected dd.mm.yyyy)"
           NameIsEmpty = "Name cannot be empty"
@@ -304,9 +338,11 @@ module LocalizedStrings =
           DiastolicMinMustBeLessThanMax = "Diastolic min must be less than diastolic max"
           SystolicOutOfRange = fun v lo hi -> $"Systolic {v} is out of range ({lo}–{hi})"
           DiastolicOutOfRange = fun v lo hi -> $"Diastolic {v} is out of range ({lo}–{hi})"
-          HeartRateOutOfRange = fun v lo hi -> $"Heart rate {v} is out of range ({lo}–{hi})" }
+          HeartRateOutOfRange = fun v lo hi -> $"Heart rate {v} is out of range ({lo}–{hi})"
+        }
       Charts =
-        { Systolic = "Systolic"
+        {
+          Systolic = "Systolic"
           Diastolic = "Diastolic"
           SystolicTrend = "Systolic (trend)"
           DiastolicTrend = "Diastolic (trend)"
@@ -318,12 +354,16 @@ module LocalizedStrings =
           MonthTick = fun date -> date.ToString("MMM", System.Globalization.CultureInfo("en-US"))
           ShortWeekdays =
             System.Globalization.CultureInfo("en-US").DateTimeFormat.AbbreviatedDayNames
-            |> Array.toList } }
+            |> Array.toList
+        }
+    }
 
   let de: LocalizedStrings =
-    { Language = German
+    {
+      Language = German
       Shell =
-        { AppTagline = "Blutdruck-Tracker"
+        {
+          AppTagline = "Blutdruck-Tracker"
           Menu = "Menü"
           Logout = "Abmelden"
           NavAdd = "Hinzufügen"
@@ -340,16 +380,20 @@ module LocalizedStrings =
           Edit = "Bearbeiten"
           Delete = "Löschen"
           Name = "Name"
-          Comment = "Kommentar" }
+          Comment = "Kommentar"
+        }
       Table =
-        { Timestamp = "Zeitstempel"
+        {
+          Timestamp = "Zeitstempel"
           Systolic = "Systolisch"
           Diastolic = "Diastolisch"
           HeartRate = "Herzfrequenz"
           MmHg = "mmHg"
-          Bpm = "bpm" }
+          Bpm = "bpm"
+        }
       Login =
-        { PageTitle = "Anmeldung"
+        {
+          PageTitle = "Anmeldung"
           SignIn = "Anmelden"
           Password = "Passwort"
           RememberMe = "Auf diesem Gerät angemeldet bleiben"
@@ -363,9 +407,11 @@ module LocalizedStrings =
           IncorrectPassword = "Falsches Passwort"
           AccountInactive = "Dieses Konto ist inaktiv"
           PasswordCannotBeEmpty = "Passwort darf nicht leer sein"
-          PasswordsDoNotMatch = "Passwörter stimmen nicht überein" }
+          PasswordsDoNotMatch = "Passwörter stimmen nicht überein"
+        }
       Reading =
-        { LandingTitle = "BpMonitor"
+        {
+          LandingTitle = "BpMonitor"
           LandingTagline = "Erfasse und überprüfe deine Blutdruckwerte."
           HistoryTitle = "Verlauf"
           BloodPressureGraph = "Blutdruck-Diagramm"
@@ -377,9 +423,11 @@ module LocalizedStrings =
           RecentReadingsSection = "Angezeigte Messwerte"
           AddReadingTitle = "Messung hinzufügen"
           EditReadingTitle = "Messung bearbeiten"
-          TimestampHint = "yyyy-MM-dd HH:mm" }
+          TimestampHint = "yyyy-MM-dd HH:mm"
+        }
       Member =
-        { FamilyMembersTitle = "Familienmitglieder"
+        {
+          FamilyMembersTitle = "Familienmitglieder"
           AddFamilyMember = "Familienmitglied hinzufügen"
           AddMember = "Mitglied hinzufügen"
           EditMemberTitle = "Mitglied bearbeiten"
@@ -400,9 +448,11 @@ module LocalizedStrings =
           SystolicMin = "Systolisch min"
           SystolicMax = "Systolisch max"
           DiastolicMin = "Diastolisch min"
-          DiastolicMax = "Diastolisch max" }
+          DiastolicMax = "Diastolisch max"
+        }
       Medication =
-        { Required = "Erforderlich"
+        {
+          Required = "Erforderlich"
           Optional = "Optional"
           DeleteConfirm = fun name -> $"{name} löschen? Dies kann nicht rückgängig gemacht werden."
           MedicationsTitle = "Medikamente"
@@ -419,9 +469,11 @@ module LocalizedStrings =
           EditMedicationTitle = "Medikament bearbeiten"
           MedicationsTimelineTitle = "Medikamenten-Zeitstrahl"
           NameIsEmpty = "Name darf nicht leer sein"
-          EndDateBeforeStartDate = "Enddatum muss am oder nach dem Startdatum liegen" }
+          EndDateBeforeStartDate = "Enddatum muss am oder nach dem Startdatum liegen"
+        }
       Trend =
-        { TrendsTitle = "Trends"
+        {
+          TrendsTitle = "Trends"
           Weekly = "Wöchentlich"
           Monthly = "Monatlich"
           Yearly = "Jährlich"
@@ -442,9 +494,11 @@ module LocalizedStrings =
               System.DateTime(year, month, 1).ToString("MMM yyyy", System.Globalization.CultureInfo("de-DE"))
           ThisYear = "Dieses Jahr"
           LastYear = "Letztes Jahr"
-          Year = fun year -> string year }
+          Year = fun year -> string year
+        }
       Errors =
-        { NotAnInteger = fun label value -> $"{label}: '{value}' ist keine gültige Ganzzahl"
+        {
+          NotAnInteger = fun label value -> $"{label}: '{value}' ist keine gültige Ganzzahl"
           NotAValidDateTime = fun value -> $"Zeitstempel: '{value}' ist kein gültiges Datum/keine gültige Uhrzeit"
           NotAValidDate = fun label value -> $"{label}: '{value}' ist kein gültiges Datum (erwartet: dd.mm.yyyy)"
           NameIsEmpty = "Name darf nicht leer sein"
@@ -453,9 +507,11 @@ module LocalizedStrings =
           DiastolicMinMustBeLessThanMax = "Diastolisch min muss kleiner sein als Diastolisch max"
           SystolicOutOfRange = fun v lo hi -> $"Systolisch {v} liegt außerhalb des Bereichs ({lo}–{hi})"
           DiastolicOutOfRange = fun v lo hi -> $"Diastolisch {v} liegt außerhalb des Bereichs ({lo}–{hi})"
-          HeartRateOutOfRange = fun v lo hi -> $"Herzfrequenz {v} liegt außerhalb des Bereichs ({lo}–{hi})" }
+          HeartRateOutOfRange = fun v lo hi -> $"Herzfrequenz {v} liegt außerhalb des Bereichs ({lo}–{hi})"
+        }
       Charts =
-        { Systolic = "Systolisch"
+        {
+          Systolic = "Systolisch"
           Diastolic = "Diastolisch"
           SystolicTrend = "Systolisch (Trend)"
           DiastolicTrend = "Diastolisch (Trend)"
@@ -467,7 +523,9 @@ module LocalizedStrings =
           MonthTick = fun date -> date.ToString("MMM", System.Globalization.CultureInfo("de-DE"))
           ShortWeekdays =
             System.Globalization.CultureInfo("de-DE").DateTimeFormat.AbbreviatedDayNames
-            |> Array.toList } }
+            |> Array.toList
+        }
+    }
 
   /// Every language routes through here, so a third language is one new value
   /// plus one match arm.

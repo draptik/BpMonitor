@@ -52,7 +52,8 @@ type RecentScrubberFirefoxTests(fixture: FirefoxFixture) =
       Assert.NotEmpty(xs)
 
       for x in xs do
-        let! box = page.Locator($"""css=.value-strip tr:first-child td[data-x="{x}"]""").BoundingBoxAsync()
+        let! box =
+          page.Locator($"""css=.value-strip tr:first-child td[data-x="{x}"]""").BoundingBoxAsync()
 
         do! page.Mouse.MoveAsync(float32 box.X + float32 box.Width / 2.0f, float32 box.Y + float32 box.Height / 2.0f)
 

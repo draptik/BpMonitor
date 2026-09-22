@@ -24,11 +24,13 @@ module MedicationViews =
     =
     Elem.div
       [ Attr.class' "field" ]
-      [ Elem.label [ Attr.for' name ] [ Text.raw labelText; requirementBadge s required ]
+      [
+        Elem.label [ Attr.for' name ] [ Text.raw labelText; requirementBadge s required ]
         match hint with
         | Some h -> Elem.small [ Attr.class' "field-hint" ] [ Text.raw h ]
         | None -> Text.raw ""
-        Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ] ]
+        Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ]
+      ]
 
   let private fieldWithHint
     (s: LocalizedStrings)
@@ -44,50 +46,69 @@ module MedicationViews =
   let private medicationRow (s: LocalizedStrings) (m: Medication) : XmlNode =
     Elem.tr
       []
-      [ Elem.td [] [ Text.enc m.Name ]
+      [
+        Elem.td [] [ Text.enc m.Name ]
         Elem.td [] [ Text.enc (m.FullName |> Option.defaultValue "") ]
         Elem.td [ Attr.class' "text-center" ] [ Text.enc (Formats.formatDateEuropean m.StartDate) ]
         Elem.td
           [ Attr.class' "text-center" ]
-          [ Text.enc (m.EndDate |> Option.map Formats.formatDateEuropean |> Option.defaultValue "") ]
+          [
+            Text.enc (m.EndDate |> Option.map Formats.formatDateEuropean |> Option.defaultValue "")
+          ]
         Elem.td [] [ Text.enc (m.Comment |> Option.defaultValue "") ]
         Elem.td
           [ Attr.class' "member-actions" ]
-          [ Elem.a
-              [ Attr.href (Routes.medicationEdit m.Id)
+          [
+            Elem.a
+              [
+                Attr.href (Routes.medicationEdit m.Id)
                 Attr.role "button"
-                Attr.class' "outline secondary" ]
+                Attr.class' "outline secondary"
+              ]
               [ Text.raw s.Shell.Edit ]
             ViewLayout.inlineDangerPostButton
               (Routes.medicationDelete m.Id)
               s.Shell.Delete
-              (s.Medication.DeleteConfirm m.Name) ] ]
+              (s.Medication.DeleteConfirm m.Name)
+          ]
+      ]
 
   /// The `/settings` Medications section: a collapsible table plus inline add form.
   let medicationsSection (s: LocalizedStrings) (medications: Medication list) (errors: string list) : XmlNode list =
-    [ Elem.details
-        [ Attr.class' "collapsible settings-section"
+    [
+      Elem.details
+        [
+          Attr.class' "collapsible settings-section"
           Attr.create "open" ""
-          Attr.create "data-persist-key" "settings-medications" ]
-        [ Elem.summary [] [ Elem.h2 [] [ Text.raw s.Medication.MedicationsTitle ] ]
+          Attr.create "data-persist-key" "settings-medications"
+        ]
+        [
+          Elem.summary [] [ Elem.h2 [] [ Text.raw s.Medication.MedicationsTitle ] ]
           ViewLayout.errorBox errors
           Elem.table
             []
-            [ Elem.thead
+            [
+              Elem.thead
                 []
-                [ Elem.tr
+                [
+                  Elem.tr
                     []
-                    [ Elem.th [] [ Text.raw s.Shell.Name ]
+                    [
+                      Elem.th [] [ Text.raw s.Shell.Name ]
                       Elem.th [] [ Text.raw s.Medication.FullNameHeader ]
                       Elem.th [ Attr.class' "text-center" ] [ Text.raw s.Medication.StartHeader ]
                       Elem.th [ Attr.class' "text-center" ] [ Text.raw s.Medication.EndHeader ]
                       Elem.th [] [ Text.raw s.Shell.Comment ]
-                      Elem.th [] [ Text.raw "" ] ] ]
-              Elem.tbody [] (medications |> List.sortBy _.StartDate |> List.map (medicationRow s)) ]
+                      Elem.th [] [ Text.raw "" ]
+                    ]
+                ]
+              Elem.tbody [] (medications |> List.sortBy _.StartDate |> List.map (medicationRow s))
+            ]
           Elem.h2 [] [ Text.raw s.Medication.AddMedicationTitle ]
           Elem.form
             [ Attr.method "post"; Attr.action Routes.medications; Attr.class' "stacked" ]
-            [ fieldWithHint s s.Shell.Name s.Medication.NameHint true FormFields.medicationName "" "text"
+            [
+              fieldWithHint s s.Shell.Name s.Medication.NameHint true FormFields.medicationName "" "text"
               fieldWithHint
                 s
                 s.Medication.FullNameHeader
@@ -113,7 +134,10 @@ module MedicationViews =
                 FormFields.medicationEndDate
                 ""
                 "text"
-              Elem.button [ Attr.type' "submit" ] [ Text.raw s.Medication.AddMedicationTitle ] ] ] ]
+              Elem.button [ Attr.type' "submit" ] [ Text.raw s.Medication.AddMedicationTitle ]
+            ]
+        ]
+    ]
 
   /// Shared add/edit form for a single medication. `action` is the POST target;
   /// `errors` are rendered above the fields when re-displaying after a failed submit.
@@ -136,11 +160,13 @@ module MedicationViews =
       memberName
       isAdmin
       title
-      [ Elem.h1 [] [ Text.raw title ]
+      [
+        Elem.h1 [] [ Text.raw title ]
         ViewLayout.errorBox errors
         Elem.form
           [ Attr.method "post"; Attr.action action ]
-          [ fieldWithHint s s.Shell.Name s.Medication.NameHint true FormFields.medicationName name "text"
+          [
+            fieldWithHint s s.Shell.Name s.Medication.NameHint true FormFields.medicationName name "text"
             fieldWithHint
               s
               s.Medication.FullNameHeader
@@ -166,7 +192,9 @@ module MedicationViews =
               FormFields.medicationEndDate
               endDate
               "text"
-            ViewLayout.formActions s Routes.settings ] ]
+            ViewLayout.formActions s Routes.settings
+          ]
+      ]
 
   /// The collapsible Medications Timeline panel embedded below the BP chart on /recent
   /// and /history. Renders nothing when there's no chart to show.
@@ -175,8 +203,12 @@ module MedicationViews =
       Text.raw ""
     else
       Elem.details
-        [ Attr.class' "collapsible medications-timeline"
-          Attr.create "data-persist-key" "medications-timeline" ]
-        [ Elem.summary [] [ Text.raw s.Medication.MedicationsTimelineTitle ]
+        [
+          Attr.class' "collapsible medications-timeline"
+          Attr.create "data-persist-key" "medications-timeline"
+        ]
+        [
+          Elem.summary [] [ Text.raw s.Medication.MedicationsTimelineTitle ]
           // Not the plain `.chart` class: that fixes height to `--chart-height` for the BP chart.
-          Elem.div [ Attr.class' "chart medications-chart" ] [ Text.raw chartHtml ] ]
+          Elem.div [ Attr.class' "chart medications-chart" ] [ Text.raw chartHtml ]
+        ]

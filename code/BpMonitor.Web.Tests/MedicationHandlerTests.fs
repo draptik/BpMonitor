@@ -28,11 +28,13 @@ let ``create persists a valid medication and redirects to settings`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.medicationName, "HCTZ"
+    [
+      FormFields.medicationName, "HCTZ"
       FormFields.medicationFullName, "hydrochlorothiazide"
       FormFields.medicationComment, ""
       FormFields.medicationStartDate, "2026-01-01"
-      FormFields.medicationEndDate, "" ]
+      FormFields.medicationEndDate, ""
+    ]
 
   TestHost.run MedicationHandlers.create ctx
 
@@ -53,11 +55,13 @@ let ``create parses the start date as dd.mm.yyyy, not mm.dd.yyyy`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.medicationName, "HCTZ"
+    [
+      FormFields.medicationName, "HCTZ"
       FormFields.medicationFullName, ""
       FormFields.medicationComment, ""
       FormFields.medicationStartDate, "01.02.2026"
-      FormFields.medicationEndDate, "" ]
+      FormFields.medicationEndDate, ""
+    ]
 
   TestHost.run MedicationHandlers.create ctx
 
@@ -74,11 +78,13 @@ let ``create accepts single-digit day and month`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.medicationName, "HCTZ"
+    [
+      FormFields.medicationName, "HCTZ"
       FormFields.medicationFullName, ""
       FormFields.medicationComment, ""
       FormFields.medicationStartDate, "1.8.2026"
-      FormFields.medicationEndDate, "" ]
+      FormFields.medicationEndDate, ""
+    ]
 
   TestHost.run MedicationHandlers.create ctx
 
@@ -95,11 +101,13 @@ let ``create still accepts an iso-format start date`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.medicationName, "HCTZ"
+    [
+      FormFields.medicationName, "HCTZ"
       FormFields.medicationFullName, ""
       FormFields.medicationComment, ""
       FormFields.medicationStartDate, "2026-01-01"
-      FormFields.medicationEndDate, "" ]
+      FormFields.medicationEndDate, ""
+    ]
 
   TestHost.run MedicationHandlers.create ctx
 
@@ -116,11 +124,13 @@ let ``create rejects an empty name with 422 and does not persist`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.medicationName, ""
+    [
+      FormFields.medicationName, ""
       FormFields.medicationFullName, ""
       FormFields.medicationComment, ""
       FormFields.medicationStartDate, "2026-01-01"
-      FormFields.medicationEndDate, "" ]
+      FormFields.medicationEndDate, ""
+    ]
 
   TestHost.run MedicationHandlers.create ctx
 
@@ -137,11 +147,13 @@ let ``create rejects an end date before the start date with 422 and does not per
 
   TestHost.setForm
     ctx
-    [ FormFields.medicationName, "HCTZ"
+    [
+      FormFields.medicationName, "HCTZ"
       FormFields.medicationFullName, ""
       FormFields.medicationComment, ""
       FormFields.medicationStartDate, "2026-01-10"
-      FormFields.medicationEndDate, "2026-01-01" ]
+      FormFields.medicationEndDate, "2026-01-01"
+    ]
 
   TestHost.run MedicationHandlers.create ctx
 
@@ -158,11 +170,13 @@ let ``create rejects a non-parseable date with 422`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.medicationName, "HCTZ"
+    [
+      FormFields.medicationName, "HCTZ"
       FormFields.medicationFullName, ""
       FormFields.medicationComment, ""
       FormFields.medicationStartDate, "not-a-date"
-      FormFields.medicationEndDate, "" ]
+      FormFields.medicationEndDate, ""
+    ]
 
   TestHost.run MedicationHandlers.create ctx
 
@@ -216,11 +230,13 @@ let ``update persists changes and redirects to settings`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.medicationName, "HCTZ 25mg"
+    [
+      FormFields.medicationName, "HCTZ 25mg"
       FormFields.medicationFullName, "hydrochlorothiazide"
       FormFields.medicationComment, "Ran out"
       FormFields.medicationStartDate, "2026-04-01"
-      FormFields.medicationEndDate, "2026-06-01" ]
+      FormFields.medicationEndDate, "2026-06-01"
+    ]
 
   TestHost.run MedicationHandlers.update ctx
 
@@ -241,11 +257,13 @@ let ``update rejects an empty name with 422 and does not persist`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.medicationName, ""
+    [
+      FormFields.medicationName, ""
       FormFields.medicationFullName, ""
       FormFields.medicationComment, ""
       FormFields.medicationStartDate, "2026-04-01"
-      FormFields.medicationEndDate, "" ]
+      FormFields.medicationEndDate, ""
+    ]
 
   TestHost.run MedicationHandlers.update ctx
 

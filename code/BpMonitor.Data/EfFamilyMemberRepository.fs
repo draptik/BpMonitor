@@ -5,7 +5,8 @@ open BpMonitor.Core
 
 module private MemberMapping =
   let toDomain (r: MemberRecord) : FamilyMember =
-    { Id = r.Id
+    {
+      Id = r.Id
       Name = r.Name
       IsAdmin = r.IsAdmin
       IsActive = r.IsActive
@@ -15,16 +16,20 @@ module private MemberMapping =
         else
           Some r.PasswordHash
       Goal =
-        { SystolicMin = r.SystolicGoalMin
+        {
+          SystolicMin = r.SystolicGoalMin
           SystolicMax = r.SystolicGoalMax
           DiastolicMin = r.DiastolicGoalMin
-          DiastolicMax = r.DiastolicGoalMax }
+          DiastolicMax = r.DiastolicGoalMax
+        }
       Language = r.Language |> Language.tryParse |> Option.defaultValue Language.defaultLanguage
       CreatedAt = r.CreatedAt
-      ModifiedAt = r.ModifiedAt }
+      ModifiedAt = r.ModifiedAt
+    }
 
   let toEntity (createdAt: System.DateTimeOffset) (modifiedAt: System.DateTimeOffset) (m: FamilyMember) : MemberRecord =
-    { Id = m.Id
+    {
+      Id = m.Id
       Name = m.Name
       IsAdmin = m.IsAdmin
       IsActive = m.IsActive
@@ -35,7 +40,8 @@ module private MemberMapping =
       DiastolicGoalMin = m.Goal.DiastolicMin
       DiastolicGoalMax = m.Goal.DiastolicMax
       CreatedAt = createdAt
-      ModifiedAt = modifiedAt }
+      ModifiedAt = modifiedAt
+    }
 
 type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvider) =
   interface IFamilyMemberRepository with

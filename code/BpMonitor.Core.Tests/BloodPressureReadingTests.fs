@@ -9,11 +9,13 @@ open BpMonitor.Core
 let private timeProvider = FakeTimeProvider(Timestamp.utc 2026 3 3 0 0 0)
 
 let private validUnvalidated: BloodPressureReadingUnvalidated =
-  { Systolic = 120
+  {
+    Systolic = 120
     Diastolic = 80
     HeartRate = 70
     Timestamp = timeProvider.GetUtcNow()
-    Comments = None }
+    Comments = None
+  }
 
 let private ranges = ReadingRanges.defaults
 
@@ -52,7 +54,8 @@ let ``parse accepts systolic exactly at the min and max boundaries`` () =
       BloodPressureReading.parse
         ranges
         { validUnvalidated with
-            Systolic = ranges.SystolicMin }
+            Systolic = ranges.SystolicMin
+        }
       |> Result.isOk
     @>
 
@@ -61,7 +64,8 @@ let ``parse accepts systolic exactly at the min and max boundaries`` () =
       BloodPressureReading.parse
         ranges
         { validUnvalidated with
-            Systolic = ranges.SystolicMax }
+            Systolic = ranges.SystolicMax
+        }
       |> Result.isOk
     @>
 
@@ -72,7 +76,8 @@ let ``parse accepts diastolic exactly at the min and max boundaries`` () =
       BloodPressureReading.parse
         ranges
         { validUnvalidated with
-            Diastolic = ranges.DiastolicMin }
+            Diastolic = ranges.DiastolicMin
+        }
       |> Result.isOk
     @>
 
@@ -81,7 +86,8 @@ let ``parse accepts diastolic exactly at the min and max boundaries`` () =
       BloodPressureReading.parse
         ranges
         { validUnvalidated with
-            Diastolic = ranges.DiastolicMax }
+            Diastolic = ranges.DiastolicMax
+        }
       |> Result.isOk
     @>
 
@@ -92,7 +98,8 @@ let ``parse accepts heart rate exactly at the min and max boundaries`` () =
       BloodPressureReading.parse
         ranges
         { validUnvalidated with
-            HeartRate = ranges.HeartRateMin }
+            HeartRate = ranges.HeartRateMin
+        }
       |> Result.isOk
     @>
 
@@ -101,7 +108,8 @@ let ``parse accepts heart rate exactly at the min and max boundaries`` () =
       BloodPressureReading.parse
         ranges
         { validUnvalidated with
-            HeartRate = ranges.HeartRateMax }
+            HeartRate = ranges.HeartRateMax
+        }
       |> Result.isOk
     @>
 
@@ -115,7 +123,8 @@ let ``parse returns Error when systolic is out of range`` (invalidSystolic: int)
       BloodPressureReading.parse
         ranges
         { validUnvalidated with
-            Systolic = invalidSystolic }
+            Systolic = invalidSystolic
+        }
       |> Result.isError
     @>
 
@@ -129,7 +138,8 @@ let ``parse returns Error when diastolic is out of range`` (invalidDiastolic: in
       BloodPressureReading.parse
         ranges
         { validUnvalidated with
-            Diastolic = invalidDiastolic }
+            Diastolic = invalidDiastolic
+        }
       |> Result.isError
     @>
 
@@ -143,7 +153,8 @@ let ``parse returns Error when heart rate is out of range`` (invalidHeartRate: i
       BloodPressureReading.parse
         ranges
         { validUnvalidated with
-            HeartRate = invalidHeartRate }
+            HeartRate = invalidHeartRate
+        }
       |> Result.isError
     @>
 
@@ -153,7 +164,8 @@ let ``parse collects all validation errors`` () =
     { validUnvalidated with
         Systolic = 0
         Diastolic = 0
-        HeartRate = 0 }
+        HeartRate = 0
+    }
 
   match BloodPressureReading.parse ranges allInvalid with
   | Error errors -> test <@ errors.Length = 3 @>

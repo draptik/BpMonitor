@@ -45,10 +45,12 @@ module AuthHandlers =
   /// Builds the auth claims principal for a member.
   let claimsPrincipal (m: FamilyMember) : ClaimsPrincipal =
     let claims =
-      [ yield Claim(ClaimTypes.NameIdentifier, string m.Id)
+      [
+        yield Claim(ClaimTypes.NameIdentifier, string m.Id)
         yield Claim(ClaimTypes.Name, m.Name)
         if m.IsAdmin then
-          yield Claim(ClaimTypes.Role, "Admin") ]
+          yield Claim(ClaimTypes.Role, "Admin")
+      ]
 
     let identity =
       ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)

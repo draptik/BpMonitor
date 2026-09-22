@@ -11,7 +11,8 @@ let private unclaimedMember = sampleMember
 
 let private claimedMember (hash: string) : FamilyMember =
   { unclaimedMember with
-      PasswordHash = Some hash }
+      PasswordHash = Some hash
+  }
 
 [<Fact>]
 let ``loginPage returns 200 with sign-in form`` () =
@@ -46,9 +47,11 @@ let ``loginWithCredentials redirects to / when remember-me is checked`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.username, "Me"
+    [
+      FormFields.username, "Me"
       FormFields.password, "correct"
-      FormFields.rememberMe, "on" ]
+      FormFields.rememberMe, "on"
+    ]
 
   TestHost.run AuthHandlers.loginWithCredentials ctx
 
@@ -84,7 +87,8 @@ let ``loginWithCredentials returns 401 for an inactive claimed member, even with
   let inactive =
     { claimedMember hash with
         Name = "Me"
-        IsActive = false }
+        IsActive = false
+    }
 
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ inactive ]
@@ -125,7 +129,8 @@ let ``loginMember returns 404 for unknown member`` () =
 let ``loginMember returns 403 for inactive member`` () =
   let inactive =
     { unclaimedMember with
-        IsActive = false }
+        IsActive = false
+    }
 
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ inactive ]
@@ -142,8 +147,10 @@ let ``loginSubmit claims unclaimed member and sets password hash`` () =
 
   TestHost.setForm
     ctx
-    [ FormFields.password, "correct-horse"
-      FormFields.passwordConfirm, "correct-horse" ]
+    [
+      FormFields.password, "correct-horse"
+      FormFields.passwordConfirm, "correct-horse"
+    ]
 
   TestHost.run AuthHandlers.loginSubmit ctx
 
@@ -217,7 +224,8 @@ let ``loginSubmit returns 403 for inactive member`` () =
 
   let inactive =
     { claimedMember hash with
-        IsActive = false }
+        IsActive = false
+    }
 
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ inactive ]
