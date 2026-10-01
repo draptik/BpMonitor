@@ -3,6 +3,7 @@ node = "26.10.0"
 biome = "2.4.16"
 markdownlint-cli2 = "0.23.3"
 shellcheck = "0.11.0"
+actionlint = "1.7.12"
 "npm:typescript" = "7.0.2"
 # @yarnpkg/libzip 3.2.2 was hand-published by Yarn's maintainer without provenance (3.2.0/3.2.1 had it)
 "npm:renovate" = { version = "44.131.0", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
@@ -21,11 +22,15 @@ run = "tsc -p tsconfig.json"
 # mirror the CI/hook exclusion of Husky's generated wrapper scripts
 run = 'find . -name "*.sh" -not -path "./.husky/_/*" | xargs -r shellcheck'
 
+[tasks."lint:actions"]
+# also shellchecks workflow run: scripts via the pinned shellcheck
+run = "actionlint"
+
 [tasks."lint:renovate"]
 run = "renovate-config-validator --strict"
 
 [tasks.lint]
-depends = ["lint:md", "lint:js", "lint:ts", "lint:shell", "lint:renovate"]
+depends = ["lint:md", "lint:js", "lint:ts", "lint:shell", "lint:actions", "lint:renovate"]
 
 [tasks.screenshots]
 description = "Regenerates docs/screenshots/*.png from a fresh self-seeded demo instance (run before cutting a release)"

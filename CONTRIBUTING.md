@@ -93,11 +93,12 @@ cd code && dotnet tool restore   # only needed once after cloning
 Run all non-dotnet linters at once:
 
 ```bash
-mise run lint        # markdownlint + biome + tsc + shellcheck + renovate
+mise run lint        # markdownlint + biome + tsc + shellcheck + actionlint + renovate
 mise run lint:md     # markdownlint only
 mise run lint:js     # biome only
 mise run lint:ts     # tsc checkJs only
 mise run lint:shell  # shellcheck only
+mise run lint:actions  # actionlint only
 mise run lint:renovate  # renovate.json validation only
 ```
 

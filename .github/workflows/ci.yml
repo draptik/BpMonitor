@@ -35,7 +35,7 @@ jobs:
         run: mise run lint:ts
 
   lint-shell:
-    name: Lint Shell
+    name: Lint Shell & Actions
     runs-on: ubuntu-latest
 
     steps:
@@ -45,6 +45,9 @@ jobs:
 
       - name: Run shellcheck
         run: mise run lint:shell
+
+      - name: Run actionlint
+        run: mise run lint:actions
 
   lint-renovate:
     name: Lint Renovate config
@@ -151,7 +154,7 @@ jobs:
           reporttypes: "MarkdownSummaryGithub;Badges"
 
       - name: Write coverage to job summary
-        run: cat code/CoverageReport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+        run: cat code/CoverageReport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Post coverage comment on PR
         uses: marocchino/sticky-pull-request-comment@v3
