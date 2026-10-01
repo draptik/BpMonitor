@@ -46,6 +46,18 @@ jobs:
       - name: Run shellcheck
         run: mise run lint:shell
 
+  lint-renovate:
+    name: Lint Renovate config
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: jdx/mise-action@v4
+
+      - name: Run renovate-config-validator
+        run: mise run lint:renovate
+
   lint-fsharp:
     name: Lint F#
     runs-on: ubuntu-latest
