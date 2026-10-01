@@ -32,7 +32,7 @@ jobs:
           -p:PublishSingleFile=true
           -p:IncludeNativeLibrariesForSelfExtract=true
           -p:DebugType=none
-          -p:Version=${GITHUB_REF_NAME#v}
+          "-p:Version=${GITHUB_REF_NAME#v}"
           --output ./publish-web
         working-directory: code
 
