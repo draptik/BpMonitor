@@ -7,6 +7,13 @@
   "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["mcr.microsoft.com/dotnet/**"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true,
+      "description": "Major .NET image bumps need the TFM and global.json moved too; approve from the dashboard when upgrading."
+    },
+    {
       "matchPackageNames": ["renovate"],
       "extends": ["schedule:monthly"],
       "description": "Renovate releases several times a day; only the config validator in mise.toml uses it."
