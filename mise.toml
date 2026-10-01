@@ -27,6 +27,7 @@ run = 'find . -name "*.sh" -not -path "./.husky/_/*" | xargs -r shellcheck'
 run = "actionlint"
 
 [tasks."lint:renovate"]
+env = { RENOVATE_X_IGNORE_RE2 = "true" }  # re2 native build is skipped by mise; RegExp fallback is fine
 run = "renovate-config-validator --strict"
 
 [tasks.lint]
