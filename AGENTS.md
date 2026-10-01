@@ -82,7 +82,7 @@ Follow the `git-workflow` skill (`.claude/skills/git-workflow/SKILL.md`). Key ru
 - Squash merge via PR
 - Keep PRs small and focused
 - **NEVER add `Co-Authored-By:` trailers to commits** — no Claude attribution, no exceptions *(enforced by hook)*
-- No "Generated with Claude Code" footer or "Test plan" section in PR bodies *(enforced by hook)*
+- PR bodies are a single `## Summary` section — no other headings, no "Generated with Claude Code" footer *(enforced by hook)*
 
 **Before making any code changes**, always create a feature branch first:
 

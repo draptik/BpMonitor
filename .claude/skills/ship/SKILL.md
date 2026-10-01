@@ -41,8 +41,8 @@ title>"`. Keep both in sync when changing the process.
 2. **Push** the branch with `git push -u origin <branch>`.
 3. **Open the PR** (skip if one is already open for this branch):
    - Title = the commit message (gitmoji + conventional).
-   - Body = `## Summary` bullets drafted from the diff and commit log. No
-     "Test plan" section, no "Generated with Claude Code" footer.
+   - Body = `## Summary` bullets drafted from the diff and commit log, and
+     nothing else — no other headings or sections (the hook rejects them).
    - `gh pr create --title "<title>" --body "<body>"`.
 4. **Watch CI**: `gh pr checks <number> --watch`. If any check fails, stop and
    report — do not merge, do not retry automatically.
@@ -57,4 +57,4 @@ title>"`. Keep both in sync when changing the process.
 - Never push to or merge `main` directly.
 - Never merge with a failing or pending check.
 - Never add a `Co-Authored-By: Claude` trailer.
-- Never include a "Test plan" section in the PR body.
+- Never include any section besides `## Summary` in the PR body.

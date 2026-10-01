@@ -110,6 +110,7 @@ PR body:
 
 ⛔ **NEVER include a "Generated with Claude Code" footer.**
 ⛔ **NEVER include a "Test plan" section.**
+⛔ **NEVER add any heading besides `## Summary`** (no "Related", "Notes", "Context", …) *(enforced by hook)*.
 ⛔ **Always update the PR description when new commits are pushed.**
 
 ## Rules
