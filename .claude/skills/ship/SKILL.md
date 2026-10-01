@@ -10,6 +10,8 @@ agent: general-purpose
 
 **Your task: ship the current branch now.** Execute the Preflight and Steps
 below immediately using your tools — do not wait for further instructions.
+Never ask for confirmation at any point — invoking this skill is the approval.
+Use the exact commands shown below — never write your own polling or wait scripts.
 $ARGUMENTS
 
 Run the full push → PR → CI → merge → cleanup flow for the current
