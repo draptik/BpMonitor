@@ -14,7 +14,7 @@ Pick the cheapest model that does the job well. **Default to Sonnet; escalate to
 | --- | --- | --- |
 | Default — code, TDD, refactoring, analysis, most tasks | Sonnet 4.6 | `/model claude-sonnet-4-6` |
 | Deep reasoning — architectural tradeoffs, multi-step reasoning over large context, high-stakes judgment | Opus 4.8 | `/model claude-opus-4-8` |
-| Conversational, templated, or config-only | Haiku 4.5 | `/model claude-haiku-4-5-20251001` |
+| Conversational, templated, or config-only | Haiku 4.5 | `/model haiku` |
 
 ## Rules
 
