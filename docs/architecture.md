@@ -215,6 +215,7 @@ graph TD
 | TypeScript | `mise.toml` (npm backend) | Type-checks the hand-written `wwwroot/` JS via JSDoc (`tsc --checkJs`, config in `tsconfig.json` + `typings/globals.d.ts`) — no build step, the JS ships as-is |
 | markdownlint-cli2 | `mise.toml` | Markdown style linter |
 | shellcheck | `mise.toml` | Shell script linter |
+| Renovate | `mise.toml` (npm backend) | `renovate-config-validator --strict` on `renovate.json`; one trust-policy exemption for `@yarnpkg/libzip@3.2.2` (hand-published without provenance) |
 
 **Local usage:**
 
@@ -225,10 +226,11 @@ mise run lint:md      # markdownlint only
 mise run lint:js      # biome only
 mise run lint:ts      # tsc checkJs only
 mise run lint:shell   # shellcheck only
+mise run lint:renovate # renovate.json validation only
 mise exec -- biome check --write  # auto-fix safe JS issues
 ```
 
-**CI:** the `lint-markdown`, `lint-js` (Biome + `tsc` checkJs), and `lint-shell` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
+**CI:** the `lint-markdown`, `lint-js` (Biome + `tsc` checkJs), `lint-shell`, and `lint-renovate` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
 
 **Release notes:** `.github/workflows/release.yml` builds the GitHub release body from the pushed tag's annotation followed by categorized notes from `scripts/release-notes.sh <tag>`, which groups commits since the previous tag by conventional-commit type into the same Added/Changed/Fixed/Security/Maintenance headings as `CHANGELOG.md`, collapsing routine dependency bumps into a `<details>` block.
 

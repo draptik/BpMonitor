@@ -7,6 +7,11 @@
   "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
+      "matchPackageNames": ["renovate"],
+      "extends": ["schedule:monthly"],
+      "description": "Renovate releases several times a day; only the config validator in mise.toml uses it."
+    },
+    {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true,
       "automergeType": "pr",
