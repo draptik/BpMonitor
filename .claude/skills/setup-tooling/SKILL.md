@@ -1,7 +1,7 @@
 ---
 name: setup-tooling
 description: Audit and set up code quality infrastructure — formatters (Fantomas), linters (markdownlint), .editorconfig, .gitattributes, .gitignore, and MSBuild build properties.
-model: claude-haiku-4-5-20251001
+model: haiku
 ---
 
 # Setup Tooling

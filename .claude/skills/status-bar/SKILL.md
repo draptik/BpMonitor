@@ -2,7 +2,7 @@
 name: status-bar
 description: Reference for the Claude Code status bar configuration — what information is displayed and how to customize it. Auto-loaded when configuring or discussing the status bar.
 user-invocable: false
-model: claude-haiku-4-5-20251001
+model: haiku
 ---
 
 # Status Bar

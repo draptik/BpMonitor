@@ -2,7 +2,7 @@
 name: git-workflow
 description: Git workflow reference — branching strategy, gitmoji + conventional commit format, PR conventions, and post-merge cleanup. Auto-loaded whenever performing git operations, creating branches, writing commits, or opening pull requests.
 user-invocable: false
-model: claude-haiku-4-5-20251001
+model: haiku
 ---
 
 # Git Workflow
