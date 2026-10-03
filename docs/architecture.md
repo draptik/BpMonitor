@@ -25,7 +25,7 @@ code/
 | Concern | Decision |
 | --- | --- |
 | Solution format | `.slnx` (new XML-based format, VS 2022 17.10+) |
-| Language / Runtime | F# on .NET |
+| Language / Runtime | F# on .NET 11 |
 | Web Framework | Falco 5 + Falco.Markup (server-rendered F# HTML) |
 | Web interactivity | htmx (vendored, no build step) |
 | Logging | Serilog.AspNetCore — structured CLEF JSON to stdout; `UseSerilogRequestLogging` for per-request lines; configured via `appsettings.json` `Serilog` section; captured by `docker logs` / `podman logs` / journald |

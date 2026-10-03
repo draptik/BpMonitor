@@ -14,6 +14,19 @@
       "description": "Major .NET image bumps need the TFM and global.json moved too; approve from the dashboard when upgrading."
     },
     {
+      "matchManagers": ["github-actions"],
+      "matchDepNames": ["dotnet-sdk"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false,
+      "description": "lint-fsharp installs .NET 10 only because Fantomas targets net10.0; drop that install once Fantomas ships for net11.0 instead of bumping it."
+    },
+    {
+      "matchManagers": ["nuget"],
+      "matchPackageNames": ["dotnet-sdk", "dotnet-ef", "FSharp.Core", "Microsoft.EntityFrameworkCore.*"],
+      "groupName": ".NET SDK and EF Core",
+      "description": "The global.json SDK pin, EF Core, dotnet-ef and FSharp.Core ship together per .NET release (e.g. 11 RC to GA); update them in one PR."
+    },
+    {
       "matchPackageNames": ["renovate"],
       "extends": ["schedule:monthly"],
       "description": "Renovate releases several times a day; only the config validator in mise.toml uses it."
