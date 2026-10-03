@@ -111,7 +111,8 @@ merge_pr() {
   read -r -p "All checks green. Squash-merge PR #$pr? [y/N] " confirm
   [ "$confirm" = "y" ] || [ "$confirm" = "Y" ] || { echo "Left open — merge manually when ready."; exit 0; }
 
-  gh pr merge "$pr" --squash
+  # --auto: GitHub merges only once every required check has passed.
+  gh pr merge "$pr" --auto --squash
 
   git checkout main
   git pull
