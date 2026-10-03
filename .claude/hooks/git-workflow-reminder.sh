@@ -10,7 +10,7 @@ cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // ""')
 reminder=""
 case "$cmd" in
   *"git checkout -b"*|*"git switch -c"*)
-    reminder="git-workflow skill: creating a branch is the FIRST step before any code changes. Confirm you branched off main, and the name is lowercase-hyphenated with a feature/fix/chore prefix."
+    reminder="git-workflow skill: creating a branch is the FIRST step before any code changes. Confirm you branched off main, and the name is lowercase-hyphenated with a feat/fix/chore prefix."
     ;;
   *"git commit"*)
     reminder="git-workflow skill: commit message must be gitmoji + conventional commits, imperative mood. NEVER add a Co-Authored-By trailer. Only commit after showing the message and getting explicit user approval."

@@ -3,12 +3,12 @@
 ## Prerequisites
 
 - [.NET 11 SDK](https://dotnet.microsoft.com/download) (currently a release candidate) — version is pinned in `code/global.json`; Fantomas also needs the .NET 10 runtime
-- [mise](https://mise.jdx.dev/) — manages all non-dotnet linting tools (Biome, markdownlint-cli2, shellcheck, node)
+- [mise](https://mise.jdx.dev/) — manages all non-dotnet tools (node, Biome, markdownlint-cli2, shellcheck, actionlint, TypeScript, Renovate)
 
 ## Getting started
 
 ```bash
-# Install pinned tools (Biome, markdownlint-cli2, shellcheck, node)
+# Install pinned tools (see mise.toml)
 mise install
 
 # Restore .NET local tools (Fantomas, dotnet-ef) and dependencies
@@ -20,6 +20,9 @@ dotnet restore
 dotnet build
 dotnet test
 ```
+
+Before the first `dotnet test`, install the Playwright browsers the E2E tests
+need (one-time, from the repo root): `mise run test:e2e-setup`.
 
 ## Running locally
 
@@ -54,7 +57,7 @@ Simpson is the admin.
 ## Project structure
 
 The solution is split into focused projects under `code/` — Core domain, Data
-(EF Core + SQLite), Import, Export, Charts, and Web — following Clean
+(EF Core + SQLite), Export, Charts, and Web — following Clean
 Architecture. See [docs/architecture.md](docs/architecture.md) for the full
 structure, dependency diagram, and tech stack.
 
@@ -125,7 +128,7 @@ the "F# Style Conventions" section of [AGENTS.md](AGENTS.md).
 
 ## Git workflow
 
-- Branch prefixes: `feature/`, `fix/`, `chore/`
+- Branch prefixes: `feat/`, `fix/`, `chore/`
 - Commit format: gitmoji + conventional commits (e.g. `✨ feat: add reading form`)
 - Merge strategy: squash-merge via PR — one clean commit per PR on `main`
 - Never commit directly to `main`
@@ -166,17 +169,15 @@ displayed above the auto-generated changelog on the GitHub release page. It paus
 for confirmation before pushing anything.
 
 If you prefer to tag manually, create an annotated tag — the message will appear
-as the release summary:
+as the release summary. `--cleanup=verbatim` is required, otherwise git strips
+the `###` heading as a comment:
 
 ```bash
-git tag -a v1.2.3 -m "$(cat <<'EOF'
-### Highlights
+git tag -a v1.2.3 --cleanup=verbatim -m "$(cat <<'EOF'
+### What's new
 
 - <new feature>
-
-### Deployment notes
-
-- <anything the operator must know — omit if nothing actionable>
+- **Deployment:** <anything the operator must know — omit if nothing actionable>
 EOF
 )"
 git push origin v1.2.3

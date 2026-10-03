@@ -4,15 +4,16 @@
 # Install (rootless): copy to ~/.config/containers/systemd/
 # Then:               systemctl [--user] daemon-reload && systemctl [--user] start bpmonitor-web
 #
-# Build/load the image on the host first, e.g. from the repo `code/` directory:
-#   podman build -t localhost/bpmonitor-web:latest -f BpMonitor.Web/Containerfile .
+# Uses the prebuilt image from GitHub Container Registry. Pin a release by
+# replacing :latest with a version tag (e.g. :1.14.0), or point Image= at a
+# locally built image (see README.md).
 [Unit]
 Description=BpMonitor Web UI
 After=network-online.target
 Wants=network-online.target
 
 [Container]
-Image=localhost/bpmonitor-web:latest
+Image=ghcr.io/draptik/bpmonitor-web:latest
 PublishPort=5000:5000
 Volume=bpmonitor-data.volume:/data
 Environment=ConnectionStrings__DefaultConnection=Data Source=/data/bpmonitor.db
