@@ -302,3 +302,53 @@ let ``toHtmlMedications matches snapshot`` () : Task =
     BpChart.toHtmlMedications LocalizedStrings.en.Charts true rangeLow rangeHigh meds
 
   verifyHtml html
+
+[<Fact>]
+let ``toHtmlMedications HTML-encodes the Name in the row labels`` () =
+  // FullName set, so Name reaches the chart only via the y-axis tick text.
+  let meds =
+    [
+      medication 1 "<a href=\"javascript:alert(1)\">x</a>" (Some "Lisinopril") None (DateOnly(2026, 1, 5)) None
+    ]
+
+  let html =
+    BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
+
+  // Plotly renders a limited HTML subset (including <a href>) in tick labels too.
+  test <@ not (html.Contains "<a href=") @>
+
+[<Fact>]
+let ``toHtmlMedications HTML-encodes the FullName in the hover tooltip`` () =
+  let meds =
+    [
+      medication 1 "HCTZ" (Some "<img src=x onerror=alert(1)>") None (DateOnly(2026, 1, 5)) None
+    ]
+
+  let html =
+    BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
+
+  test <@ not (html.Contains "<img") @>
+
+[<Fact>]
+let ``toHtmlMedications HTML-encodes the Name in the hover tooltip when there is no FullName`` () =
+  let meds =
+    [
+      medication 1 "<img src=x onerror=alert(1)>" None None (DateOnly(2026, 1, 5)) None
+    ]
+
+  let html =
+    BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
+
+  test <@ not (html.Contains "<img") @>
+
+[<Fact>]
+let ``toHtmlMedications HTML-encodes the Comment in the hover tooltip`` () =
+  let meds =
+    [
+      medication 1 "HCTZ" None (Some "<img src=x onerror=alert(1)>") (DateOnly(2026, 1, 5)) None
+    ]
+
+  let html =
+    BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
+
+  test <@ not (html.Contains "<img") @>

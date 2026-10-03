@@ -788,7 +788,8 @@ module BpChart =
     let n = names.Length
     // Plotly renders tick text with `white-space: pre`, so plain trailing spaces (not
     // non-breaking ones) survive to nudge the right-anchored label away from the axis edge.
-    let tickText = names |> List.map (fun name -> name + "  ")
+    let tickText =
+      names |> List.map (fun name -> System.Net.WebUtility.HtmlEncode name + "  ")
 
     LinearAxis.init (
       ShowGrid = false,
