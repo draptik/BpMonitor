@@ -19,8 +19,8 @@
 // separate `#r "nuget: ..."` pin, so the version can't drift from the one
 // Directory.Packages.props already pins solution-wide (see the `screenshots`
 // mise task, which builds that project first).
-#r "../code/BpMonitor.Web.E2E.Tests/bin/Release/net10.0/Microsoft.Bcl.AsyncInterfaces.dll"
-#r "../code/BpMonitor.Web.E2E.Tests/bin/Release/net10.0/Microsoft.Playwright.dll"
+#r "../code/BpMonitor.Web.E2E.Tests/bin/Release/net11.0/Microsoft.Bcl.AsyncInterfaces.dll"
+#r "../code/BpMonitor.Web.E2E.Tests/bin/Release/net11.0/Microsoft.Playwright.dll"
 
 open System
 open System.Diagnostics
