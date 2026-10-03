@@ -416,7 +416,7 @@ let ``toHtmlRecent skips the comment trace from unified hover, so it only appear
   // x-column — including the comment marker even when the cursor is over a nearby
   // Systolic/Diastolic point rather than the marker itself. Skipping it here lets the
   // client (recent-scrubber.js) drive a custom tooltip that only fires on direct
-  // proximity to the marker.
+  // proximity to the marker. It also keeps the trace's raw (unencoded) comment text safe.
   let html =
     BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
@@ -791,3 +791,23 @@ let ``toHtml HTML-encodes comment text so Plotly cannot render it as a hover lin
   // Plotly's hovertemplate renders a limited HTML subset (including <a href>) from the trace's text value.
   test <@ not (html.Contains "<a href=") @>
   test <@ html.Contains "&lt;a href=" @>
+
+[<Fact>]
+let ``toHtmlRecent keeps comment text raw for the custom tooltip`` () =
+  let commented = reading 1 120 80 70 1 9 (Some "Kopfschmerzen, müde & Kaffee")
+
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 10 windowStart10 now [ commented ]
+
+  // recent-scrubber.js shows the comment via textContent, which renders HTML entities literally.
+  test <@ html.Contains "Kopfschmerzen, müde & Kaffee" @>
+
+[<Fact>]
+let ``toHtmlRecent tags the comment trace with a language-independent meta`` () =
+  let commented = reading 1 120 80 70 1 9 (Some "Kopfschmerzen")
+
+  let html =
+    BpChart.toHtmlRecent LocalizedStrings.de.Charts GoalRange.defaults 10 windowStart10 now [ commented ]
+
+  // recent-scrubber.js finds the trace by meta; its name is localized ("Kommentare").
+  test <@ html.Contains "\"meta\":\"comments\"" @>

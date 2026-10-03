@@ -53,10 +53,9 @@ function setupRecentScrubber() {
     // Position is set via left/top plus a CSS transform (not measured dimensions) so it
     // works correctly even while the tooltip starts hidden (offsetHeight is 0).
     //
-    // Matched by trace name — keep this in sync with the `Name = "Comments"` trace built
-    // in Charts.fs `commentTraces`.
+    // Matched by `meta` (Charts.fs commentTraces), not the localized trace name.
     const traces = d.data ?? [];
-    const commentTraceIndex = traces.findIndex((t) => t.name === "Comments");
+    const commentTraceIndex = traces.findIndex((t) => t.meta === "comments");
     if (commentTraceIndex !== -1) {
       const commentXs = traces[commentTraceIndex].x;
       const commentTexts = traces[commentTraceIndex].text;
