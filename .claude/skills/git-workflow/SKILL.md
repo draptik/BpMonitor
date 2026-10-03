@@ -23,13 +23,13 @@ confirmation, auto-merging once CI is green.
 
 ```text
 main          ← protected, always stable, squash-merged only
-└── feature/short-description
+└── feat/short-description
 └── fix/short-description
 └── chore/short-description
 ```
 
 - Branch off `main` for every change
-- Branch names: lowercase, hyphenated, prefixed by type (`feature/`, `fix/`, `chore/`)
+- Branch names: lowercase, hyphenated, prefixed by type (`feat/`, `fix/`, `chore/`)
 - Delete branch after merge
 - **Before making any code changes**, always create a feature branch first — it is the first step, not an afterthought
 

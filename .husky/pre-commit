@@ -3,7 +3,7 @@
 
 branch=$(git rev-parse --abbrev-ref HEAD)
 if [ "$branch" = "main" ]; then
-  echo "ERROR: direct commits to 'main' are not allowed. Create a feature/fix branch first."
+  echo "ERROR: direct commits to 'main' are not allowed. Create a feat/fix/chore branch first."
   exit 1
 fi
 

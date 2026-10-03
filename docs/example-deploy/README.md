@@ -5,7 +5,14 @@ The web UI runs as a long-lived container on the homelab VM. It binds
 reachable from any device on the LAN (including a phone browser) and survives
 redeploys.
 
-## Build the image
+## Image
+
+Every release publishes an image to GitHub Container Registry:
+`ghcr.io/draptik/bpmonitor-web`. `:latest` follows the newest stable release;
+pin a version (e.g. `:1.14.0`) to control when you upgrade. Release candidates
+are only published under their own tag (e.g. `:1.14.0-rc1`).
+
+### Alternative: build locally
 
 From the repository `code/` directory:
 
@@ -14,7 +21,9 @@ podman build -t localhost/bpmonitor-web:latest -f BpMonitor.Web/Containerfile .
 ```
 
 > The build context is `code/` (the `.` above) because `BpMonitor.Web` references
-> the sibling `Core`, `Data` and `Charts` projects.
+> the sibling `Core`, `Data`, `Charts` and `Export` projects.
+
+Then use `localhost/bpmonitor-web:latest` instead of the GHCR image below.
 
 ## Run ad-hoc
 
@@ -22,7 +31,7 @@ podman build -t localhost/bpmonitor-web:latest -f BpMonitor.Web/Containerfile .
 podman run -d --name bpmonitor-web \
   -p 5000:5000 \
   -v bpmonitor-data:/data \
-  localhost/bpmonitor-web:latest
+  ghcr.io/draptik/bpmonitor-web:latest
 ```
 
 Then open `http://<vm-ip>:5000`.
