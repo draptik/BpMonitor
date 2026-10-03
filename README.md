@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/draptik/BpMonitor/actions/workflows/ci.yml/badge.svg)](https://github.com/draptik/BpMonitor/actions/workflows/ci.yml)
 [![Coverage](https://raw.githubusercontent.com/draptik/BpMonitor/badges/coverage.svg)](https://github.com/draptik/BpMonitor/actions)
-[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-11.0-512BD4)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/draptik/BpMonitor)](https://github.com/draptik/BpMonitor/releases)
 [![Last commit](https://img.shields.io/github/last-commit/draptik/BpMonitor)](https://github.com/draptik/BpMonitor/commits/main)

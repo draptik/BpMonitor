@@ -2,13 +2,13 @@
 # Build context must be the `code/` directory so the referenced projects
 # (Core, Data, Charts) are available:
 #   podman build -t bpmonitor-web -f BpMonitor.Web/Containerfile .
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 WORKDIR /src
 COPY . .
 ARG VERSION=dev
 RUN dotnet publish BpMonitor.Web/BpMonitor.Web.fsproj -c Release -p:Version=$VERSION -o /app
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:11.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 

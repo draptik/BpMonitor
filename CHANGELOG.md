@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Maintenance
+
+- Runs on .NET 11 (release candidate); the container image now uses the .NET 11 base images.
+
 ## [1.13.2] - 2026-09-18
 
 ### Maintenance
