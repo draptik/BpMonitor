@@ -3,11 +3,19 @@ name: review-tests
 description: Review implemented code and identify test gaps. Covers happy paths, boundary conditions, invalid inputs, error handling, and data integrity. Invoke after implementation is complete.
 argument-hint: [file or module to review]
 model: sonnet
+context: fork
+agent: general-purpose
 ---
 
 # Review Tests
 
 Review the implemented code in $ARGUMENTS and identify test gaps. Assume the code is wrong until proven otherwise.
+If no target is given, review what the current branch changes (`git diff origin/main...HEAD`).
+
+You run as a forked subagent with no conversation history and must not edit files: your
+final message is the deliverable. Make it a prioritized list of missing tests — scenario,
+why it matters, and the test file it belongs in — so the main conversation can drive each
+one through the TDD loop.
 
 ## Responsibilities
 

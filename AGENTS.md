@@ -41,8 +41,8 @@ The following are available as slash commands (defined in `.claude/skills/`):
 | Skill | Command | Description |
 | --- | --- | --- |
 | Git Workflow | auto-loaded | Branching, commits, PR conventions |
-| Ship | `/ship` | Push already-committed work, open PR, wait for CI, squash-merge, and clean up in one go (Haiku subagent; refuses uncommitted changes) |
-| Review Tests | `/review-tests [file]` | Identify test gaps after implementation |
+| Ship | `/ship` | Push already-committed work, open PR, wait for CI, squash-merge, and clean up in one go (Haiku subagent running `scripts/ship-pr.sh --yes`; refuses uncommitted changes) |
+| Review Tests | `/review-tests [file]` | Identify test gaps after implementation (forked subagent; returns a prioritized list) |
 | Setup Tooling | `/setup-tooling` | Audit and configure code quality infrastructure |
 | Model Advisor | auto-loaded | Model selection reference |
 | Status Bar | auto-loaded | Status bar configuration reference |
