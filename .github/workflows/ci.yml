@@ -71,6 +71,8 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
+          global-json-file: code/global.json
+          # Fantomas targets net10.0 and doesn't roll forward to the .NET 11 runtime.
           dotnet-version: "10.0.x"
           cache: true
           cache-dependency-path: code/dotnet-tools.json
@@ -96,7 +98,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: "10.0.x"
+          global-json-file: code/global.json
           cache: true
           cache-dependency-path: |
             code/Directory.Packages.props
@@ -118,12 +120,12 @@ jobs:
           key: playwright-chromium-firefox-${{ runner.os }}-${{ hashFiles('code/Directory.Packages.props') }}
 
       - name: Install Playwright OS dependencies
-        run: pwsh bin/Release/net10.0/playwright.ps1 install-deps chromium firefox
+        run: pwsh bin/Release/net11.0/playwright.ps1 install-deps chromium firefox
         working-directory: code/BpMonitor.Web.E2E.Tests
 
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pwsh bin/Release/net10.0/playwright.ps1 install chromium firefox
+        run: pwsh bin/Release/net11.0/playwright.ps1 install chromium firefox
         working-directory: code/BpMonitor.Web.E2E.Tests
 
       # Split from E2E so it isn't fighting the rest for CPU, the root cause of past Firefox flakiness.

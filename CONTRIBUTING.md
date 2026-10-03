@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download) — version is pinned in `code/global.json`
+- [.NET 11 SDK](https://dotnet.microsoft.com/download) (currently a release candidate) — version is pinned in `code/global.json`; Fantomas also needs the .NET 10 runtime
 - [mise](https://mise.jdx.dev/) — manages all non-dotnet linting tools (Biome, markdownlint-cli2, shellcheck, node)
 
 ## Getting started

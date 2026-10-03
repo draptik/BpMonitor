@@ -51,7 +51,7 @@ run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 dotnet build BpMonitor.Web.E2E.Tests --configuration Release
-output_dir="$(pwd)/BpMonitor.Web.E2E.Tests/bin/Release/net10.0"
+output_dir="$(pwd)/BpMonitor.Web.E2E.Tests/bin/Release/net11.0"
 if command -v pwsh >/dev/null 2>&1; then
   pwsh "$output_dir/playwright.ps1" install chromium firefox
 else
