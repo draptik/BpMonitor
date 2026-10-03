@@ -45,18 +45,24 @@ script still commits staged changes, since the user types its title.
    - Body = `## Summary` bullets drafted from the diff and commit log, and
      nothing else — no other headings or sections (the hook rejects them).
    - `gh pr create --title "<title>" --body "<body>"`.
-3. **Watch CI**: `gh pr checks <number> --watch`. If any check fails, stop and
-   report — do not merge, do not retry automatically.
-4. **Merge**: once all checks are green, `gh pr merge <number> --squash`. Do
-   not pause for a separate confirmation here — invoking this skill is the
-   approval for the whole flow, conditioned on CI passing.
-5. **Clean up**: `git checkout main && git pull && git fetch --prune && git
+3. **Queue the merge**: `gh pr merge <number> --auto --squash`. GitHub then
+   merges only once every required check has passed, so a pending check can
+   never be merged over. Do not pause for a separate confirmation — invoking
+   this skill is the approval for the whole flow, conditioned on CI passing.
+4. **Watch CI**: `gh pr checks <number> --watch --fail-fast`. If any check
+   fails, run `gh pr merge <number> --disable-auto`, then stop and report — do
+   not retry automatically.
+5. **Confirm the merge**: `gh pr view <number> --json state -q .state` must
+   print `MERGED`. If it doesn't, report that auto-merge is still queued and
+   skip cleanup — never report the PR as merged without seeing `MERGED`.
+6. **Clean up**: `git checkout main && git pull && git fetch --prune && git
    branch -D <branch>`.
 
 ## Rules
 
 - Never commit — not even staged changes; abort instead.
 - Never push to or merge `main` directly.
-- Never merge with a failing or pending check.
+- Never run `gh pr merge` without `--auto` — GitHub, not this skill, decides
+  when the checks are green.
 - Never add a `Co-Authored-By: Claude` trailer.
 - Never include any section besides `## Summary` in the PR body.

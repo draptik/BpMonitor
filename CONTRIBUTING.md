@@ -131,6 +131,8 @@ the "F# Style Conventions" section of [AGENTS.md](AGENTS.md).
 - Branch prefixes: `feat/`, `fix/`, `chore/`
 - Commit format: gitmoji + conventional commits (e.g. `✨ feat: add reading form`)
 - Merge strategy: squash-merge via PR — one clean commit per PR on `main`
+- `main` requires all six CI checks to pass (repository ruleset); `/ship` queues the
+  merge with `gh pr merge --auto --squash`, so GitHub merges only once they're green
 - Never commit directly to `main`
 
 See [AGENTS.md](AGENTS.md) for the full git workflow rules.
