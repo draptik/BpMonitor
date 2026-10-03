@@ -301,7 +301,12 @@ module BpChart =
   /// Comment markers plotted on the x-axis baseline (y=0), one per commented reading —
   /// styled after Wegier et al. 2021 Fig. 5's annotation row: a dark-red hexagon, not
   /// clipped by the x-axis line it sits on (ClipOnAxis = false).
-  let private commentTraces (s: ChartStrings) (sorted: BloodPressureReading list) : GenericChart list =
+  /// `toText` converts each comment for the trace: HTML-encode wherever Plotly's own hover renders it.
+  let private commentTraces
+    (s: ChartStrings)
+    (toText: string -> string)
+    (sorted: BloodPressureReading list)
+    : GenericChart list =
     let commented = sorted |> List.filter _.Comments.IsSome
 
     if commented.IsEmpty then
@@ -311,8 +316,7 @@ module BpChart =
       let cBaseline = commented |> List.map (fun _ -> 0)
 
       let cTexts =
-        commented
-        |> List.map (fun r -> r.Comments |> Option.defaultValue "" |> System.Net.WebUtility.HtmlEncode)
+        commented |> List.map (fun r -> r.Comments |> Option.defaultValue "" |> toText)
 
       // HoverTemplate shows the comment then a dimmed timestamp; empty <extra> drops the trace name.
       [
@@ -321,7 +325,9 @@ module BpChart =
         |> GenericChart.mapTrace (
           Trace2DStyle.Scatter(
             ClipOnAxis = false,
-            HoverTemplate = "%{text}<br><span style=\"opacity:0.6\">%{x}</span><extra></extra>"
+            HoverTemplate = "%{text}<br><span style=\"opacity:0.6\">%{x}</span><extra></extra>",
+            // Language-independent handle for recent-scrubber.js; Name is localized.
+            Meta = "comments"
           )
         )
       ]
@@ -350,7 +356,7 @@ module BpChart =
       Chart.Line(x = timestamps, y = diastolic, Name = s.Diastolic, ShowMarkers = true)
       |> Chart.withLineStyle (Color = diastolicColor)
       |> hoverXY
-      yield! commentTraces s readings
+      yield! commentTraces s System.Net.WebUtility.HtmlEncode readings
     ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
@@ -581,9 +587,9 @@ module BpChart =
       yield! seriesTraces diastolicFadedColor s.Diastolic dashes timestamps diastolic
       yield! smoothTrace systolicColor s.SystolicTrend readings timestamps systolic
       yield! smoothTrace diastolicColor s.DiastolicTrend readings timestamps diastolic
-      // Skipped here so recent-scrubber.js's custom tooltip owns proximity-only comment hover.
+      // Hover skipped: recent-scrubber.js's textContent tooltip owns it, so text stays raw (not encoded).
       yield!
-        commentTraces s readings
+        commentTraces s id readings
         |> List.map (GenericChart.mapTrace (Trace2DStyle.Scatter(HoverInfo = StyleParam.HoverInfo.Skip)))
     ]
     |> Chart.combine

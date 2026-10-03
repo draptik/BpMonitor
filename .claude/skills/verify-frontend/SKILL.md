@@ -26,7 +26,7 @@ and launches real headless Chromium/Firefox browsers; reuse it (via
 
    ```bash
    cd code
-   dotnet test BpMonitor.Web.E2E.Tests --filter "FullyQualifiedName~<unique-name-fragment>"
+   dotnet test BpMonitor.Web.E2E.Tests -- --filter-method "*<unique-name-fragment>*"
    ```
 
    This exercises the same path CI does — real HTTP, real routing, real

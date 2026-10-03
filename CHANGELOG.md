@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Recent view: comment tooltips show the comment as written — umlauts, `&` and quotes no longer appear as codes like `&#252;`.
+- Recent view: comment tooltips appear for members using German; previously they only worked in English.
+
 ## [1.14.0] - 2026-10-03
 
 ### Maintenance
