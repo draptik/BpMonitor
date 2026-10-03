@@ -32,7 +32,7 @@ All code changes follow strict TDD (Red → Green → Refactor):
 
 ## Model Selection
 
-Default to **Sonnet 4.6** (`/model claude-sonnet-4-6`) for everyday work — code, TDD, refactoring. Escalate to **Opus 4.8** (`/model claude-opus-4-8`) only when a task genuinely needs deep reasoning (architecture, tricky tradeoffs, high-stakes judgment), then drop back. See the `model-advisor` skill for the full cheatsheet.
+Default to **Sonnet** (`/model sonnet`) for everyday work — code, TDD, refactoring. Escalate to **Opus** (`/model opus`) only when a task genuinely needs deep reasoning (architecture, tricky tradeoffs, high-stakes judgment), then drop back. See the `model-advisor` skill for the full cheatsheet.
 
 ## Skills
 

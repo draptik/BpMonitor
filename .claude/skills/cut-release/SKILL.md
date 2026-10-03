@@ -2,7 +2,7 @@
 name: cut-release
 description: Cut a BpMonitor release — gather changes since the last tag, propose an end-user summary, confirm it, then create an annotated tag whose message renders above the auto-generated changelog. Invoke when creating/cutting a release or pushing a version tag.
 argument-hint: [version, e.g. v1.4.0]
-model: claude-sonnet-4-6
+model: sonnet
 ---
 
 # Cut Release
