@@ -8,3 +8,5 @@ CI regenerates and force-pushes this file on every run (see the "Push coverage b
 branch" step in `.github/workflows/ci.yml`). The branch is **intentionally never merged** into
 `main` — keeping the generated artifact and its churn out of the source history. Treat it as
 machine-owned: don't branch off it or commit to it. If deleted, the next CI run recreates it.
+
+<!-- throwaway bypass test, do not merge -->
