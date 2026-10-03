@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-10-03
+
+### Maintenance
+
+- Runs on .NET 11 (currently release candidate 1). No user-facing changes.
+- **Deployment:** the container image now uses the .NET 11 base images (Ubuntu 26.04 instead of 24.04). No configuration or database changes are needed; existing databases work as-is.
+
 ## [1.14.0-rc1] - 2026-10-03
 
 ### Maintenance
@@ -487,7 +494,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.14.0-rc1...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.14.0...HEAD
+[1.14.0]: https://github.com/draptik/BpMonitor/compare/v1.13.2...v1.14.0
 [1.14.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.13.2...v1.14.0-rc1
 [1.13.2]: https://github.com/draptik/BpMonitor/compare/v1.13.1...v1.13.2
 [1.13.1]: https://github.com/draptik/BpMonitor/compare/v1.13.0...v1.13.1
