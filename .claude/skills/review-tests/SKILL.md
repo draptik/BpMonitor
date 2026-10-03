@@ -2,7 +2,7 @@
 name: review-tests
 description: Review implemented code and identify test gaps. Covers happy paths, boundary conditions, invalid inputs, error handling, and data integrity. Invoke after implementation is complete.
 argument-hint: [file or module to review]
-model: claude-sonnet-4-6
+model: sonnet
 ---
 
 # Review Tests

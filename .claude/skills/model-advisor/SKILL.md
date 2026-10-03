@@ -1,6 +1,6 @@
 ---
 name: model-advisor
-description: Reference for selecting the right Claude model (Opus 4.8, Sonnet 4.6, Haiku 4.5) based on task complexity, reasoning depth, and cost/speed tradeoffs. Auto-loaded when model selection is relevant.
+description: Reference for selecting the right Claude model tier (Opus, Sonnet, Haiku) based on task complexity, reasoning depth, and cost/speed tradeoffs. Auto-loaded when model selection is relevant.
 user-invocable: false
 ---
 
@@ -12,9 +12,12 @@ Pick the cheapest model that does the job well. **Default to Sonnet; escalate to
 
 | Situation | Model | Switch with |
 | --- | --- | --- |
-| Default — code, TDD, refactoring, analysis, most tasks | Sonnet 4.6 | `/model claude-sonnet-4-6` |
-| Deep reasoning — architectural tradeoffs, multi-step reasoning over large context, high-stakes judgment | Opus 4.8 | `/model claude-opus-4-8` |
-| Conversational, templated, or config-only | Haiku 4.5 | `/model haiku` |
+| Default — code, TDD, refactoring, analysis, most tasks | Sonnet | `/model sonnet` |
+| Deep reasoning — architectural tradeoffs, multi-step reasoning over large context, high-stakes judgment | Opus | `/model opus` |
+| Conversational, templated, or config-only | Haiku | `/model haiku` |
+
+Use the aliases (here and in skill `model:` frontmatter) rather than full model
+IDs — they always resolve to the latest model in each tier, so nothing goes stale.
 
 ## Rules
 
