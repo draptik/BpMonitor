@@ -15,9 +15,9 @@ let private stampedVersionGen =
 
     if includeSha then
       let! sha = Gen.elements [ "abc123"; "deadbeef"; "0000000" ]
-      return $"{base'}+{sha}"
+      return $"{base'}+{sha}", base'
     else
-      return base'
+      return base', base'
   }
 
 let private whitespaceGen =
@@ -33,5 +33,5 @@ let ``parse returns dev for any whitespace-only string`` () =
   Prop.forAll (Arb.fromGen whitespaceGen) (fun s -> Version.parse (Some s) = "dev")
 
 [<Property>]
-let ``parse is identity for any stamped version string`` () =
-  Prop.forAll (Arb.fromGen stampedVersionGen) (fun s -> Version.parse (Some s) = s)
+let ``parse returns the bare version for any stamped version string`` () =
+  Prop.forAll (Arb.fromGen stampedVersionGen) (fun (raw, expected) -> Version.parse (Some raw) = expected)

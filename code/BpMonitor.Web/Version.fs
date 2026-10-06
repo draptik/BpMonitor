@@ -7,8 +7,7 @@ module Version =
   open System.Reflection
 
   /// Normalize a raw InformationalVersion string to a display version.
-  /// The .NET SDK appends +<sha> to the default "1.0.0" in git repos, so strip
-  /// the suffix before checking the sentinel — but keep it for real versions.
+  /// The .NET SDK appends +<sha> in git repos; strip it so release links resolve.
   let parse (raw: string option) : string =
     match raw with
     | None -> "dev"
@@ -21,7 +20,7 @@ module Version =
       if String.IsNullOrWhiteSpace base' || (base' = "1.0.0" && s.Contains('+')) then
         "dev"
       else
-        s
+        base'
 
   /// The running app's display version, derived from AssemblyInformationalVersion.
   let current: string =

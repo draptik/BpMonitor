@@ -15,8 +15,11 @@ let ``parse returns dev for None and sentinel values`` (raw: string) =
 [<Theory>]
 [<InlineData("1.0.0")>]
 [<InlineData("0.1.14")>]
-[<InlineData("0.1.14+abc123")>]
 let ``parse returns the version unchanged`` (v: string) = test <@ Version.parse (Some v) = v @>
+
+[<Fact>]
+let ``parse drops build metadata from a stamped version`` () =
+  test <@ Version.parse (Some "0.1.14+abc123") = "0.1.14" @>
 
 [<Fact>]
 let ``releaseUrl returns None for dev`` () =
