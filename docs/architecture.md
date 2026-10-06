@@ -189,7 +189,7 @@ graph TD
 - `protect` / `protectAdmin` combinators; active member resolved from `ClaimsPrincipal`
 - Server-rendered HTML via `Falco.Markup`; htmx for partial updates; scoped `DbContext` per request
 - Structured logging via Serilog (stdout → container/journal)
-- **Version footer:** `Version.current` reads `AssemblyInformationalVersion`; shows `dev` when the value contains a `+` suffix (SDK default), `v1.2.3` for stamped releases
+- **Version footer:** `Version.current` reads `AssemblyInformationalVersion`; shows `dev` for the SDK default `1.0.0+<sha>`, `v1.2.3` for stamped releases (the SDK's `+<sha>` build metadata is stripped so the release link resolves)
 
 ### BpMonitor.Arch.Tests
 
