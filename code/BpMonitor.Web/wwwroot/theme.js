@@ -9,6 +9,8 @@ function applyChartTheme(theme) {
   if (typeof Plotly === 'undefined') return;
   const isDark = theme === 'dark';
   const axisLineColor = isDark ? '#c2cfd6' : '#444';
+  // Read after data-theme is set, so Pico's tokens already resolve to the new theme.
+  const css = getComputedStyle(document.documentElement);
   document.querySelectorAll('.js-plotly-plot').forEach((d) => {
     Plotly.relayout(d, {
       paper_bgcolor: 'rgba(0,0,0,0)',
@@ -18,7 +20,10 @@ function applyChartTheme(theme) {
       'yaxis.linecolor': axisLineColor,
       'xaxis.tickcolor': axisLineColor,
       'yaxis.tickcolor': axisLineColor,
-      'yaxis.gridcolor': isDark ? 'rgba(194,207,214,0.12)' : 'rgba(0,0,0,0.08)'
+      'yaxis.gridcolor': isDark ? 'rgba(194,207,214,0.12)' : 'rgba(0,0,0,0.08)',
+      'modebar.bgcolor': 'rgba(0,0,0,0)',
+      'modebar.color': css.getPropertyValue('--pico-muted-color').trim(),
+      'modebar.activecolor': css.getPropertyValue('--pico-primary').trim()
     });
     restyleMedicationColors(/** @type {PlotlyChartElement} */ (d), isDark);
   });

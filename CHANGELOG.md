@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- History and Recent view charts: the chart toolbar follows the light/dark theme — its icons match the page, and the selected tool is highlighted in the app's accent colour.
+
 ### Fixed
 
 - Recent view: comment tooltips show the comment as written — umlauts, `&` and quotes no longer appear as codes like `&#252;`.
