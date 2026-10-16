@@ -9,6 +9,19 @@ open AuthHandlers
 
 /// Handlers for family-member management (admin-only pages).
 module MemberHandlers =
+  /// Gives `m` a new setup code and shows it once to the admin (ADR 0012).
+  let private issueSetupCode (adminName: string) (m: FamilyMember) (ctx: HttpContext) : Task =
+    let code = SetupCode.generate ()
+
+    let updated =
+      { m with
+          Credential = PendingSetup(SetupCode.hash code)
+      }
+
+    (memberRepo ctx).Update updated
+    ctx.Response.Headers.CacheControl <- "no-store"
+    htmlResponse (MemberViews.setupCodeIssued (authenticatedStrings ctx) adminName updated code) ctx
+
   let members: HttpContext -> Task =
     withMember (fun active ctx ->
       let allMembers = (memberRepo ctx).GetAll()
@@ -32,8 +45,8 @@ module MemberHandlers =
           ctx.Response.StatusCode <- 422
           do! htmlResponse (MemberViews.members s allMembers active [ s.Errors.NameAlreadyTaken ]) ctx
         | Ok m ->
-          (memberRepo ctx).Add(m) |> ignore
-          ctx.Response.Redirect Routes.members
+          let added = (memberRepo ctx).Add m
+          do! issueSetupCode active.Name added ctx
       }
       :> Task)
 
@@ -130,11 +143,9 @@ module MemberHandlers =
       }
       :> Task)
 
-  /// Resets a member's password to unclaimed (admin-only).
+  /// Resets a member's password and issues a new setup code (admin-only).
   let resetPassword: HttpContext -> Task =
     withRouteMember "resetPassword" (fun m ctx ->
       let log = logger ctx
-      (memberRepo ctx).Update({ m with Credential = NoCredential })
       log.LogInformation("Admin reset password for member {Name} (Id={Id})", m.Name, m.Id)
-      ctx.Response.Redirect Routes.members
-      Task.CompletedTask)
+      issueSetupCode (authenticatedMemberName ctx) m ctx)

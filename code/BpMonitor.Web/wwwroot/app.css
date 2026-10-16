@@ -772,6 +772,13 @@ form.inline button,
   color: var(--pico-muted-color);
 }
 
+/* One-time setup code: large and spaced so it's easy to read out or copy by hand */
+.setup-code {
+  font-size: 1.75rem;
+  letter-spacing: 0.15em;
+  padding: 0.4rem 0.8rem;
+}
+
 /* Actions cell in the members table */
 .member-actions {
   display: flex;

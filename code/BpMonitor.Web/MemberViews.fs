@@ -108,6 +108,23 @@ module MemberViews =
           ]
     ]
 
+  /// Shows a freshly issued setup code once (ADR 0012); the admin passes it on to `target`.
+  let setupCodeIssued (s: LocalizedStrings) (adminName: string) (target: FamilyMember) (code: string) : XmlNode =
+    let title = s.Member.SetupCodeTitle target.Name
+
+    ViewLayout.layout
+      s
+      Routes.members
+      adminName
+      true
+      title
+      [
+        Elem.h1 [] [ Text.enc title ]
+        Elem.p [] [ Elem.code [ Attr.class' "setup-code" ] [ Text.enc code ] ]
+        Elem.p [] [ Text.enc (s.Member.SetupCodeHint target.Name) ]
+        Elem.a [ Attr.href Routes.members ] [ Text.raw s.Member.BackToMembers ]
+      ]
+
   /// Shared add/edit form for family members. `action` is the POST target; `errors`
   /// are rendered above the fields when re-displaying after a failed submit.
   let memberForm

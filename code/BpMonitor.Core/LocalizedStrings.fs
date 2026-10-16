@@ -86,6 +86,9 @@ type MemberPageStrings =
     NoneBadge: string
     You: string
     ResetPassword: string
+    SetupCodeTitle: string -> string
+    SetupCodeHint: string -> string
+    BackToMembers: string
     AdminCheckboxLabel: string
     ActiveCheckboxLabel: string
     LanguageTitle: string
@@ -273,6 +276,11 @@ module LocalizedStrings =
           NoneBadge = "—"
           You = "You"
           ResetPassword = "Reset password"
+          SetupCodeTitle = fun name -> $"Setup code for {name}"
+          SetupCodeHint =
+            fun name ->
+              $"Give this code to {name}. It's shown only once. They need it to set their password the first time they sign in."
+          BackToMembers = "Back to members"
           AdminCheckboxLabel = " Admin"
           ActiveCheckboxLabel = " Active"
           LanguageTitle = "Language"
@@ -443,6 +451,11 @@ module LocalizedStrings =
           NoneBadge = "—"
           You = "Du"
           ResetPassword = "Passwort zurücksetzen"
+          SetupCodeTitle = fun name -> $"Einrichtungscode für {name}"
+          SetupCodeHint =
+            fun name ->
+              $"Gib diesen Code an {name} weiter. Er wird nur einmal angezeigt. {name} braucht ihn, um beim ersten Anmelden ein Passwort festzulegen."
+          BackToMembers = "Zurück zu den Mitgliedern"
           AdminCheckboxLabel = " Admin"
           ActiveCheckboxLabel = " Aktiv"
           LanguageTitle = "Sprache"
