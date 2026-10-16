@@ -30,15 +30,20 @@ to, and aborts on uncommitted changes.
    foreground, exactly once (a temp path doesn't survive between commands):
 
    ```bash
-   f=$(mktemp) && cat >"$f" <<'BODY' && scripts/ship-pr.sh --yes --body-file "$f"
+   f=$(mktemp)
+   cat >"$f" <<'BODY'
    ## Summary
 
    - <bullet>
    BODY
+   scripts/ship-pr.sh --yes --body-file "$f"
    ```
 
-   For a branch with several commits, also pass a gitmoji + conventional
-   title as the last argument (with one commit it defaults to its subject).
+   The script appears exactly once, on the line after `BODY` — don't also
+   chain it onto the `cat` line, or it runs twice (the second run starts on
+   `main` after cleanup and fails the branch guard). For a branch with
+   several commits, append a gitmoji + conventional title as the last
+   argument (with one commit it defaults to its subject).
    Use a Bash timeout of 600000 ms; CI takes several minutes.
 
 ## Report
