@@ -17,6 +17,7 @@ module AuthHandlers =
 
   /// Resolves the authenticated member from the principal's NameIdentifier claim.
   /// Only valid inside a `protect`ed route — the principal is guaranteed to be present.
+  /// A deactivated member resolves to None, so an existing cookie stops working.
   let authenticatedMember (ctx: HttpContext) : FamilyMember option =
     let claim = ctx.User.FindFirst(ClaimTypes.NameIdentifier)
 
@@ -24,7 +25,7 @@ module AuthHandlers =
       None
     else
       match Int32.TryParse(claim.Value) with
-      | true, id -> (memberRepo ctx).GetById(id)
+      | true, id -> (memberRepo ctx).GetById(id) |> Option.filter _.IsActive
       | _ -> None
 
   /// Returns the authenticated member's name, or "" if unauthenticated.

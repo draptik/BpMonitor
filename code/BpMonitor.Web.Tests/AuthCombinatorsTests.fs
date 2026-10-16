@@ -75,6 +75,18 @@ let ``withMember redirects to login when the principal's member id no longer res
   test <@ ctx.Response.Headers.Location.ToString() = Routes.login @>
 
 [<Fact>]
+let ``withMember redirects to login when the signed-in member was deactivated`` () =
+  // Cookie issued while active; an admin has since deactivated the member.
+  let ctx =
+    TestHost.contextWithMembers (repoWith []) [ { sampleMember with IsActive = false } ]
+
+  ctx.User <- TestHost.buildPrincipal sampleMember
+  TestHost.run (AuthHandlers.withMember echoMember) ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.login @>
+
+[<Fact>]
 let ``withMemberAndRouteId redirects to login when the principal's member id no longer resolves`` () =
   let ctx = TestHost.contextWithMembers (repoWith []) [ sampleMember ]
   ctx.User <- TestHost.buildPrincipal { sampleMember with Id = 999 }
