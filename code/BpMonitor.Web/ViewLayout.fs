@@ -5,6 +5,11 @@ open BpMonitor.Core
 
 /// Shared layout shells and primitive helpers used by all view modules.
 module ViewLayout =
+  /// An attribute whose value is HTML-encoded. Falco.Markup writes `Attr.value` and
+  /// `Attr.create` verbatim, so every user-supplied attribute value must go through this.
+  let encAttr (name: string) (value: string) : XmlAttribute =
+    Attr.create name (System.Net.WebUtility.HtmlEncode value)
+
   /// A single nav link, marked `aria-current="page"` (which Pico styles as active)
   /// when its href matches the page's `active` route.
   let private versionFooter () : XmlNode list =
@@ -107,7 +112,7 @@ module ViewLayout =
         Attr.method "post"
         Attr.action action
         Attr.class' "inline"
-        Attr.create "hx-confirm" confirmMessage
+        encAttr "hx-confirm" confirmMessage
       ]
       [
         Elem.button [ Attr.type' "submit"; Attr.class' "outline button-danger" ] [ Text.raw label ]
@@ -261,7 +266,7 @@ module ViewLayout =
       [ Attr.class' "field" ]
       [
         Elem.label [ Attr.for' name ] [ Text.raw labelText ]
-        Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ]
+        Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; encAttr "value" value ]
       ]
 
   /// The readings table's markup, with the container and each row's extra attributes

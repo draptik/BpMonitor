@@ -29,7 +29,13 @@ module MedicationViews =
         match hint with
         | Some h -> Elem.small [ Attr.class' "field-hint" ] [ Text.raw h ]
         | None -> Text.raw ""
-        Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ]
+        Elem.input
+          [
+            Attr.type' inputType
+            Attr.id name
+            Attr.name name
+            ViewLayout.encAttr "value" value
+          ]
       ]
 
   let private fieldWithHint

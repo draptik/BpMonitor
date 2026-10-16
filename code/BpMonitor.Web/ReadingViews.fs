@@ -274,7 +274,12 @@ module ReadingViews =
           Elem.label [ Attr.for' name ] [ Text.raw labelText ]
           Elem.small [ Attr.class' "field-hint" ] [ Text.raw hint ]
           Elem.input (
-            [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ]
+            [
+              Attr.type' inputType
+              Attr.id name
+              Attr.name name
+              ViewLayout.encAttr "value" value
+            ]
             @ extraAttrs
           )
         ]

@@ -159,3 +159,23 @@ let ``memberForm renders errors`` () =
     )
 
   test <@ html.Contains "active admin" @>
+
+[<Fact>]
+let ``member form encodes quotes in the name's value attribute`` () =
+  let m =
+    {
+      Id = 3
+      Name = "x\" onmouseover=\"alert(1)"
+      IsAdmin = false
+      IsActive = true
+      Credential = NoCredential
+      Goal = GoalRange.defaults
+      Language = English
+      CreatedAt = DateTimeOffset.MinValue
+      ModifiedAt = DateTimeOffset.MinValue
+    }
+
+  let html =
+    renderHtml (MemberViews.memberForm s Routes.members "Me" true "Edit member" (Routes.memberUpdate 3) [] m)
+
+  test <@ html.Contains "value=\"x&quot; onmouseover=&quot;alert(1)\"" @>
