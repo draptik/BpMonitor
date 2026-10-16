@@ -250,6 +250,45 @@ let ``loginSubmit rejects empty password for unclaimed member`` () =
   test <@ (TestHost.readBody ctx).Contains "empty" @>
 
 [<Fact>]
+let ``loginSubmit rejects a new password shorter than 8 characters`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
+  TestHost.setRouteId ctx 1
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.setupCode, setupCode
+      FormFields.password, "1234567"
+      FormFields.passwordConfirm, "1234567"
+    ]
+
+  TestHost.run AuthHandlers.loginSubmit ctx
+
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ (TestHost.readBody ctx).Contains "at least 8 characters" @>
+  let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+  test <@ not (FamilyMember.isClaimed (memberRepo.GetById(1) |> Option.get)) @>
+
+[<Fact>]
+let ``loginSubmit accepts a new password of exactly 8 characters`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
+  TestHost.setRouteId ctx 1
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.setupCode, setupCode
+      FormFields.password, "12345678"
+      FormFields.passwordConfirm, "12345678"
+    ]
+
+  TestHost.run AuthHandlers.loginSubmit ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+
+[<Fact>]
 let ``loginSubmit rejects mismatched confirm for unclaimed member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]

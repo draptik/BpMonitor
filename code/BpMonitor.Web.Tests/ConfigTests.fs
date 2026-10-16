@@ -50,3 +50,18 @@ let ``readDefaultLanguage parses a configured language code`` () =
 let ``readDefaultLanguage falls back to English on an unsupported code`` () =
   let config = configWith [ "BpMonitor:DefaultLanguage", "fr" ]
   test <@ Config.readDefaultLanguage config = English @>
+
+[<Fact>]
+let ``readMinPasswordLength defaults to 8 when unset`` () =
+  let config = configWith []
+  test <@ Config.readMinPasswordLength config = 8 @>
+
+[<Fact>]
+let ``readMinPasswordLength parses a configured value`` () =
+  let config = configWith [ "BpMonitor:MinPasswordLength", "1" ]
+  test <@ Config.readMinPasswordLength config = 1 @>
+
+[<Fact>]
+let ``readMinPasswordLength clamps values below 1 to 1`` () =
+  let config = configWith [ "BpMonitor:MinPasswordLength", "0" ]
+  test <@ Config.readMinPasswordLength config = 1 @>

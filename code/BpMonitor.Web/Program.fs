@@ -138,6 +138,11 @@ let main args =
     let app = builder.Build()
 
     // Apply schema migrations once at startup against a transient scope.
+    let minPasswordLength = Config.readMinPasswordLength builder.Configuration
+
+    if minPasswordLength < 8 then
+      Log.Warning("Minimum password length is {MinPasswordLength} — for development only", minPasswordLength)
+
     Log.Information("Applying schema migrations…")
     use scope = app.Services.CreateScope()
     let sp = scope.ServiceProvider

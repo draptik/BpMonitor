@@ -43,6 +43,21 @@ module Config =
 
     parsed |> max 1 |> min 400
 
+  /// Minimum length for a newly chosen password. Defaults to 8 (NIST SP 800-63B); never
+  /// below 1, so a password can't be empty. appsettings.Development.json lowers it locally.
+  let readMinPasswordLength (config: IConfiguration) : int =
+    let fallback = 8
+
+    let parsed =
+      match config["BpMonitor:MinPasswordLength"] with
+      | null -> fallback
+      | v ->
+        match Int32.TryParse(v) with
+        | true, n -> n
+        | _ -> fallback
+
+    max 1 parsed
+
   /// The deployment's fallback UI language when no member/cookie/browser preference
   /// resolves one. Defaults to English on an unset or unsupported config value.
   let readDefaultLanguage (config: IConfiguration) : Language =
