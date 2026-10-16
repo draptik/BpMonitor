@@ -30,6 +30,11 @@ All code changes follow strict TDD (Red → Green → Refactor):
 - **Architecture work:** discuss tradeoffs honestly, flag risks and unknowns, ask clarifying questions before recommending
 - **Implementation work:** follow the TDD cycle above
 
+### Spelling
+
+Use American spelling everywhere — identifiers, comments, test names, docs, ADRs, CHANGELOG
+(e.g. neighbor, color, behavior, serialization, centered). Leave vendored files untouched.
+
 ## Model Selection
 
 Default to **Sonnet** (`/model sonnet`) for everyday work — code, TDD, refactoring. Escalate to **Opus** (`/model opus`) only when a task genuinely needs deep reasoning (architecture, tricky tradeoffs, high-stakes judgment), then drop back. See the `model-advisor` skill for the full cheatsheet.
