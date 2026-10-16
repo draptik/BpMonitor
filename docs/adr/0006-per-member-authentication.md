@@ -36,6 +36,10 @@ Add **per-member password authentication** using:
 - **Password reset:** admins can reset any member's password to unclaimed via
   `POST /members/{id}/reset-password`. The member must claim again on next login.
 
+> **Update (2026-10-16):** the cookie no longer carries a `Role=Admin` claim. `protectAdmin`
+> checks the member's current `IsAdmin` flag in the database on each request, and a deactivated
+> member's cookie stops resolving, so demotion and deactivation take effect immediately.
+
 ## Alternatives considered
 
 - **Single shared gate:** one household password protects the whole app; the existing cookie
