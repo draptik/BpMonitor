@@ -18,8 +18,8 @@ Claiming an account requires a **one-time setup code**.
 
 - **Credential model:** `FamilyMember.PasswordHash: string option` becomes
   `Credential: Credential` with three cases:
-  - `Password of hash` — claimed; normal name + password login.
-  - `SetupCode of hash` — unclaimed; claiming requires the code.
+  - `Password of passwordHash` — claimed; normal name + password login.
+  - `PendingSetup of setupCodeHash` — unclaimed; claiming requires the code.
   - `NoCredential` — no password and no code (a fresh `Me` row, a pre-upgrade unclaimed member,
     or a demo member). Can't be claimed; exists only until the startup step below runs.
 - **Code format:** 8 characters from `ABCDEFGHJKMNPQRSTVWXYZ23456789` (no look-alikes such as

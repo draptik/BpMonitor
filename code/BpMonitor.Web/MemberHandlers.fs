@@ -134,7 +134,7 @@ module MemberHandlers =
   let resetPassword: HttpContext -> Task =
     withRouteMember "resetPassword" (fun m ctx ->
       let log = logger ctx
-      (memberRepo ctx).Update({ m with PasswordHash = None })
+      (memberRepo ctx).Update({ m with Credential = NoCredential })
       log.LogInformation("Admin reset password for member {Name} (Id={Id})", m.Name, m.Id)
       ctx.Response.Redirect Routes.members
       Task.CompletedTask)

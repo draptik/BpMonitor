@@ -11,7 +11,7 @@ let private unclaimedMember = sampleMember
 
 let private claimedMember (hash: string) : FamilyMember =
   { unclaimedMember with
-      PasswordHash = Some hash
+      Credential = Password hash
   }
 
 [<Fact>]
@@ -158,7 +158,13 @@ let ``loginSubmit claims unclaimed member and sets password hash`` () =
   let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
   let saved = memberRepo.GetById(1) |> Option.get
   test <@ FamilyMember.isClaimed saved @>
-  test <@ PasswordHashing.verify "correct-horse" (saved.PasswordHash |> Option.get) @>
+
+  test
+    <@
+      match saved.Credential with
+      | Password hash -> PasswordHashing.verify "correct-horse" hash
+      | _ -> false
+    @>
 
 [<Fact>]
 let ``loginSubmit rejects empty password for unclaimed member`` () =

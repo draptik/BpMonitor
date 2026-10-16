@@ -159,7 +159,7 @@ module AuthHandlers =
         do! htmlResponse (LoginViews.loginMember s m [ s.Login.PasswordsDoNotMatch ]) ctx
       else
         let hashed = PasswordHashing.hash password
-        let claimed = { m with PasswordHash = Some hashed }
+        let claimed = { m with Credential = Password hashed }
         (memberRepo ctx).Update(claimed)
         log.LogInformation("Member {Name} (Id={Id}) claimed their account", m.Name, m.Id)
         setLanguageCookie ctx claimed.Language
@@ -193,8 +193,8 @@ module AuthHandlers =
           ctx.Response.StatusCode <- 401
           do! htmlResponse (LoginViews.loginPage s [ s.Login.InvalidNameOrPassword ]) ctx
         | Some m ->
-          match m.PasswordHash with
-          | Some hash ->
+          match m.Credential with
+          | Password hash ->
             do!
               claimedLogin
                 m
@@ -203,7 +203,8 @@ module AuthHandlers =
                 rememberMe
                 (fun s -> LoginViews.loginPage s [ s.Login.InvalidNameOrPassword ])
                 ctx
-          | None ->
+          | PendingSetup _
+          | NoCredential ->
             // Unclaimed: redirect to per-member claim page
             ctx.Response.Redirect(Routes.loginMember m.Id)
       }
@@ -232,8 +233,8 @@ module AuthHandlers =
           let password = form[FormFields.password].ToString()
           let rememberMe = form.ContainsKey(FormFields.rememberMe)
 
-          match m.PasswordHash with
-          | Some hash ->
+          match m.Credential with
+          | Password hash ->
             do!
               claimedLogin
                 m
@@ -242,7 +243,8 @@ module AuthHandlers =
                 rememberMe
                 (fun s -> LoginViews.loginMember s m [ s.Login.IncorrectPassword ])
                 ctx
-          | None -> do! unclaimedLogin m password (form[FormFields.passwordConfirm].ToString()) rememberMe ctx
+          | PendingSetup _
+          | NoCredential -> do! unclaimedLogin m password (form[FormFields.passwordConfirm].ToString()) rememberMe ctx
       }
       :> Task)
 

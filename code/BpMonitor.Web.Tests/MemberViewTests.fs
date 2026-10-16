@@ -16,7 +16,7 @@ let ``members page renders Admin and Active columns and Edit link`` () =
       Name = "Alice"
       IsAdmin = false
       IsActive = true
-      PasswordHash = None
+      Credential = NoCredential
       Goal = GoalRange.defaults
       Language = English
       CreatedAt = DateTimeOffset.MinValue
@@ -84,7 +84,7 @@ let ``members page renders Edit as a button, matching Reset password's style`` (
 let ``members page shows claimed/unclaimed badge`` () =
   let claimed =
     { defaultMember with
-        PasswordHash = Some "somehash"
+        Credential = Password "somehash"
     }
 
   let unclaimed =
@@ -93,7 +93,7 @@ let ``members page shows claimed/unclaimed badge`` () =
       Name = "Alice"
       IsAdmin = false
       IsActive = true
-      PasswordHash = None
+      Credential = NoCredential
       Goal = GoalRange.defaults
       Language = English
       CreatedAt = DateTimeOffset.MinValue
@@ -128,7 +128,7 @@ let ``memberForm prefills name and reflects IsAdmin and IsActive`` () =
       Name = "Bob"
       IsAdmin = true
       IsActive = false
-      PasswordHash = None
+      Credential = NoCredential
       Goal = GoalRange.defaults
       Language = English
       CreatedAt = DateTimeOffset.MinValue

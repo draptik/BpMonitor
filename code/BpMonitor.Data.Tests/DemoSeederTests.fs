@@ -64,7 +64,7 @@ let ``enabled seeder: members are seeded unclaimed (no password)`` () =
   DemoSeeder.seedIfEmpty members readings medications ranges tp true
 
   for m in members.GetAll() do
-    test <@ m.PasswordHash = None @>
+    test <@ m.Credential = NoCredential @>
 
 [<Fact>]
 let ``enabled seeder: Ned Flanders has an ongoing HCTZ and a completed lisinopril course`` () =
