@@ -260,14 +260,33 @@ module ReadingViews =
     (errors: string list)
     (m: Binding.FormModel)
     : XmlNode =
-    let fieldWithHint (labelText: string) (hint: string) (name: string) (value: string) (inputType: string) =
+    let fieldWithHintAttrs
+      (extraAttrs: XmlAttribute list)
+      (labelText: string)
+      (hint: string)
+      (name: string)
+      (value: string)
+      (inputType: string)
+      =
       Elem.div
         [ Attr.class' "field" ]
         [
           Elem.label [ Attr.for' name ] [ Text.raw labelText ]
           Elem.small [ Attr.class' "field-hint" ] [ Text.raw hint ]
-          Elem.input [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ]
+          Elem.input (
+            [ Attr.type' inputType; Attr.id name; Attr.name name; Attr.value value ]
+            @ extraAttrs
+          )
         ]
+
+    let fieldWithHint = fieldWithHintAttrs []
+
+    // Only the add page gets autofocus; on edit the user targets a specific field.
+    let systolicAttrs =
+      if active = Routes.add then
+        [ Attr.create "autofocus" "autofocus" ]
+      else
+        []
 
     ViewLayout.layout
       s
@@ -282,7 +301,7 @@ module ReadingViews =
           [ Attr.method "post"; Attr.action action ]
           [
             fieldWithHint s.Table.Timestamp s.Reading.TimestampHint FormFields.timestamp m.Timestamp "text"
-            fieldWithHint s.Table.Systolic s.Table.MmHg FormFields.systolic m.Systolic "number"
+            fieldWithHintAttrs systolicAttrs s.Table.Systolic s.Table.MmHg FormFields.systolic m.Systolic "number"
             fieldWithHint s.Table.Diastolic s.Table.MmHg FormFields.diastolic m.Diastolic "number"
             fieldWithHint s.Table.HeartRate s.Table.Bpm FormFields.heartRate m.HeartRate "number"
             ViewLayout.field s.Shell.Comment FormFields.comments m.Comments "text"

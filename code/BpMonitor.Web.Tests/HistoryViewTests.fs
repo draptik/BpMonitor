@@ -41,6 +41,22 @@ let ``edit form is prefilled from the reading`` () =
   test <@ html.Contains "after walk" @>
 
 [<Fact>]
+let ``add form autofocuses the systolic field`` () =
+  let html =
+    renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings [] Binding.empty)
+
+  test <@ html.Contains "id=\"Systolic\" name=\"Systolic\" value=\"\" autofocus=\"autofocus\"" @>
+
+[<Fact>]
+let ``edit form does not autofocus any field`` () =
+  let html =
+    renderHtml (
+      ReadingViews.readingForm s "" "Me" true "Edit reading" (Routes.readingUpdate 7) [] (Binding.ofReading sample)
+    )
+
+  test <@ not (html.Contains "autofocus") @>
+
+[<Fact>]
 let ``form renders the validation errors it is given`` () =
   let errors = [ "Systolic 999 is out of range (1–300)" ]
 

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Add reading: the cursor starts in the systolic field, so you can type straight away.
 - History and Recent view charts: the chart toolbar follows the light/dark theme — its icons match the page, and the selected tool is highlighted in the app's accent colour.
 
 ### Fixed
