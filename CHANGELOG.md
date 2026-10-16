@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Trends: links to periods at the very start of year 1 show the current period instead of an error page on servers east of UTC.
+- Settings: saving your language or goal range no longer undoes an admin's change made at the same moment, such as deactivating you or resetting your password.
 
 ## [1.15.0] - 2026-10-16
 
