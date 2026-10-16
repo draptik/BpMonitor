@@ -56,8 +56,8 @@ module LoginViews =
           ]
       ]
 
-  /// Login form for a specific member. Shows a claim form (password + confirm) for
-  /// unclaimed accounts, or a simple password form for claimed ones.
+  /// Login form for a specific member. Shows a claim form (setup code + password + confirm)
+  /// for unclaimed accounts, or a simple password form for claimed ones.
   let loginMember (s: LocalizedStrings) (m: FamilyMember) (errors: string list) : XmlNode =
     let isClaimed = FamilyMember.isClaimed m
 
@@ -86,13 +86,27 @@ module LoginViews =
           Elem.div
             [ Attr.class' "field" ]
             [
+              Elem.label [ Attr.for' FormFields.setupCode ] [ Text.raw s.Login.SetupCode ]
+              Elem.input
+                [
+                  Attr.type' "text"
+                  Attr.id FormFields.setupCode
+                  Attr.name FormFields.setupCode
+                  Attr.create "autofocus" "autofocus"
+                  Attr.create "autocomplete" "one-time-code"
+                  Attr.create "autocapitalize" "characters"
+                  Attr.create "spellcheck" "false"
+                ]
+            ]
+          Elem.div
+            [ Attr.class' "field" ]
+            [
               Elem.label [ Attr.for' FormFields.password ] [ Text.raw s.Login.NewPassword ]
               Elem.input
                 [
                   Attr.type' "password"
                   Attr.id FormFields.password
                   Attr.name FormFields.password
-                  Attr.create "autofocus" "autofocus"
                   Attr.create "autocomplete" "new-password"
                 ]
             ]

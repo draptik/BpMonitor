@@ -49,7 +49,7 @@ type FamilyMember = {
     Name:         string
     IsAdmin:      bool
     IsActive:     bool
-    PasswordHash: string option   // None = unclaimed (no password set yet)
+    Credential:   Credential      // Password hash | PendingSetup (setup code hash) | NoCredential — see ADR 0012
     Goal:         GoalRange       // per-member systolic/diastolic chart goal range
     Language:     Language        // per-member UI language (English | German)
     CreatedAt:    DateTimeOffset
@@ -139,9 +139,10 @@ graph TD
 - Repository interfaces: `IReadingRepository` (member-scoped), `IFamilyMemberRepository`, `IMedicationRepository` (member-scoped)
 - `Medication.parse` — applicative validation (name non-empty, end date on/after start date); `Medication.overlapping from until` — filters to medications whose `[StartDate, EndDate]` interval intersects a date window (ongoing medications, `EndDate = None`, always match forward)
 - `FamilyMember.hasActiveAdmin` — invariant: ≥1 member with `IsAdmin = true` and `IsActive = true`
-- `FamilyMember.isClaimed` — true when `PasswordHash` is `Some`
+- `FamilyMember.isClaimed` — true when `Credential` is `Password`
 - `GoalRange` — per-member systolic/diastolic chart goal range; `GoalRange.defaults` (90–140 / 60–90) and `GoalRange.create` (enforces min < max for each pair)
 - `PasswordHashing` — PBKDF2-SHA256 hash/verify
+- `SetupCode` — one-time claim codes (ADR 0012): `generate` (`XXXX-XXXX`, no look-alike characters), `hash`/`verify` (case, dashes and spaces ignored), `issueMissing` (codes for `NoCredential` members, run at startup)
 - `ReadingStats` — date-window filter, AHA 2017 BP classification, windowed summary
 - `TrendPeriod.Label` is a `PeriodLabel` DU (`ThisWeek`, `CalendarWeek of int`, `MonthOfYear of int * int`, …), rendered via `LocalizedStrings.Trend` at the view layer rather than as English prose in Core
 - `DemoData` — deterministic Simpson-family fixture generator (fixed seed, ~5 years of readings)
@@ -176,7 +177,7 @@ graph TD
 ### BpMonitor.Web
 
 - Falco web application on `0.0.0.0:5000`; references Core + Data + Charts + Export
-- **Auth:** ASP.NET Core cookie auth; per-member PBKDF2-SHA256 password; unclaimed members set password on first login; cookie carries `NameIdentifier`/`Name` claims; every request re-reads the member, so deactivation and admin rights (`IsAdmin`) take effect immediately
+- **Auth:** ASP.NET Core cookie auth; per-member PBKDF2-SHA256 password; unclaimed members claim their account with a one-time setup code (logged at startup for `NoCredential` members, shown once to the admin on create/reset) and then set a password — see ADR 0012; cookie carries `NameIdentifier`/`Name` claims; every request re-reads the member, so deactivation and admin rights (`IsAdmin`) take effect immediately
 - **Cookie policy:** `SameSite=Lax` (not `Strict`) so the cookie still rides along on a top-level navigation from outside the site (e.g. tapping a link in another app) — safe because there's no antiforgery token to leak via cross-site GET, and `Lax` still withholds the cookie on cross-site POSTs. A "Remember me" checkbox on login sets `IsPersistent` on the auth ticket; duration is `BpMonitor:RememberMeDays` (default 30, clamped to 1–400 — 400 is the hard cap Firefox/Chrome place on cookie lifetime), sliding on each request. Unchecked, sign-in produces an ordinary session cookie. Data Protection keys (which encrypt/validate the cookie) are persisted outside the container via `BpMonitor:DataProtectionKeyPath` — unset, they live in the container's ephemeral home dir and a "remember me" cookie stops validating on every redeploy
 - **Isolation:** each member sees only their own readings; admins manage members via `/members` but not their readings
 - **Routes:** `/` hub, `/add`, `/history`, `/recent`, `/recent/full`, `/trends`, `/settings`, `/settings/language`, `/medications`, `/medications/{id}/edit`, `/medications/{id}`, `/medications/{id}/delete`, `/members`, `/members/{id}/edit`, `/members/{id}/reset-password`, `/login`, `/login/{id}`, `POST /logout`, `GET /health` (anonymous)

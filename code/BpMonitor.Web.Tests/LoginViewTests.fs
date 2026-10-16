@@ -3,6 +3,7 @@ module LoginViewTests
 open Xunit
 open Swensen.Unquote
 open Falco.Markup
+open BpMonitor.Core
 open BpMonitor.Web
 open ViewTestHelpers
 
@@ -39,7 +40,7 @@ let ``loginMember shows claim form for unclaimed member`` () =
 let ``loginMember shows password form for claimed member`` () =
   let claimed =
     { defaultMember with
-        PasswordHash = Some "x"
+        Credential = Password "x"
     }
 
   let html = renderHtml (LoginViews.loginMember s claimed [])

@@ -2,13 +2,22 @@ namespace BpMonitor.Core
 
 open System
 
+/// How a member signs in (see ADR 0012).
+type Credential =
+  /// Claimed: signs in with name and password.
+  | Password of passwordHash: string
+  /// Unclaimed: claiming requires the one-time setup code.
+  | PendingSetup of setupCodeHash: string
+  /// Unclaimed, no setup code issued yet (fresh install, upgrade, demo data).
+  | NoCredential
+
 type FamilyMember =
   {
     Id: int
     Name: string
     IsAdmin: bool
     IsActive: bool
-    PasswordHash: string option
+    Credential: Credential
     Goal: GoalRange
     Language: Language
     CreatedAt: DateTimeOffset
@@ -28,7 +37,7 @@ module FamilyMember =
           Name = name.Trim()
           IsAdmin = isAdmin
           IsActive = true
-          PasswordHash = None
+          Credential = NoCredential
           Goal = GoalRange.defaults
           Language = Language.defaultLanguage
           CreatedAt = DateTimeOffset.MinValue
@@ -49,4 +58,8 @@ module FamilyMember =
       && m.Name.Trim().Equals(candidate.Name.Trim(), StringComparison.OrdinalIgnoreCase))
 
   /// Returns true when the member has a password set (has claimed their account).
-  let isClaimed (m: FamilyMember) = m.PasswordHash |> Option.isSome
+  let isClaimed (m: FamilyMember) =
+    match m.Credential with
+    | Password _ -> true
+    | PendingSetup _
+    | NoCredential -> false

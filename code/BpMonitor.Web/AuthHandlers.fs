@@ -140,8 +140,10 @@ module AuthHandlers =
     }
     :> Task
 
+  /// Claims an unclaimed account; the setup code is checked before anything else (ADR 0012).
   let private unclaimedLogin
     (m: FamilyMember)
+    (setupCode: string)
     (password: string)
     (confirm: string)
     (rememberMe: bool)
@@ -151,7 +153,17 @@ module AuthHandlers =
       let log = logger ctx
       let s = strings ctx
 
-      if String.IsNullOrWhiteSpace(password) then
+      let codeMatches =
+        match m.Credential with
+        | PendingSetup hash -> SetupCode.verify setupCode hash
+        | Password _
+        | NoCredential -> false
+
+      if not codeMatches then
+        log.LogWarning("Failed claim attempt for member {Name} (Id={Id})", m.Name, m.Id)
+        ctx.Response.StatusCode <- 401
+        do! htmlResponse (LoginViews.loginMember s m [ s.Login.InvalidSetupCode ]) ctx
+      elif String.IsNullOrWhiteSpace(password) then
         ctx.Response.StatusCode <- 422
         do! htmlResponse (LoginViews.loginMember s m [ s.Login.PasswordCannotBeEmpty ]) ctx
       elif password <> confirm then
@@ -159,7 +171,7 @@ module AuthHandlers =
         do! htmlResponse (LoginViews.loginMember s m [ s.Login.PasswordsDoNotMatch ]) ctx
       else
         let hashed = PasswordHashing.hash password
-        let claimed = { m with PasswordHash = Some hashed }
+        let claimed = { m with Credential = Password hashed }
         (memberRepo ctx).Update(claimed)
         log.LogInformation("Member {Name} (Id={Id}) claimed their account", m.Name, m.Id)
         setLanguageCookie ctx claimed.Language
@@ -193,8 +205,8 @@ module AuthHandlers =
           ctx.Response.StatusCode <- 401
           do! htmlResponse (LoginViews.loginPage s [ s.Login.InvalidNameOrPassword ]) ctx
         | Some m ->
-          match m.PasswordHash with
-          | Some hash ->
+          match m.Credential with
+          | Password hash ->
             do!
               claimedLogin
                 m
@@ -203,7 +215,8 @@ module AuthHandlers =
                 rememberMe
                 (fun s -> LoginViews.loginPage s [ s.Login.InvalidNameOrPassword ])
                 ctx
-          | None ->
+          | PendingSetup _
+          | NoCredential ->
             // Unclaimed: redirect to per-member claim page
             ctx.Response.Redirect(Routes.loginMember m.Id)
       }
@@ -232,8 +245,8 @@ module AuthHandlers =
           let password = form[FormFields.password].ToString()
           let rememberMe = form.ContainsKey(FormFields.rememberMe)
 
-          match m.PasswordHash with
-          | Some hash ->
+          match m.Credential with
+          | Password hash ->
             do!
               claimedLogin
                 m
@@ -242,7 +255,16 @@ module AuthHandlers =
                 rememberMe
                 (fun s -> LoginViews.loginMember s m [ s.Login.IncorrectPassword ])
                 ctx
-          | None -> do! unclaimedLogin m password (form[FormFields.passwordConfirm].ToString()) rememberMe ctx
+          | PendingSetup _
+          | NoCredential ->
+            do!
+              unclaimedLogin
+                m
+                (form[FormFields.setupCode].ToString())
+                password
+                (form[FormFields.passwordConfirm].ToString())
+                rememberMe
+                ctx
       }
       :> Task)
 

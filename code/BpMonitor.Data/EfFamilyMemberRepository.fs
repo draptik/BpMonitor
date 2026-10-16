@@ -10,11 +10,14 @@ module private MemberMapping =
       Name = r.Name
       IsAdmin = r.IsAdmin
       IsActive = r.IsActive
-      PasswordHash =
-        if System.String.IsNullOrEmpty(r.PasswordHash) then
-          None
+      // A password wins over a leftover setup code.
+      Credential =
+        if not (System.String.IsNullOrEmpty r.PasswordHash) then
+          Password r.PasswordHash
+        elif not (System.String.IsNullOrEmpty r.SetupCodeHash) then
+          PendingSetup r.SetupCodeHash
         else
-          Some r.PasswordHash
+          NoCredential
       Goal =
         {
           SystolicMin = r.SystolicGoalMin
@@ -33,7 +36,16 @@ module private MemberMapping =
       Name = m.Name
       IsAdmin = m.IsAdmin
       IsActive = m.IsActive
-      PasswordHash = m.PasswordHash |> Option.defaultValue ""
+      PasswordHash =
+        match m.Credential with
+        | Password hash -> hash
+        | PendingSetup _
+        | NoCredential -> ""
+      SetupCodeHash =
+        match m.Credential with
+        | PendingSetup hash -> hash
+        | Password _
+        | NoCredential -> ""
       Language = Language.code m.Language
       SystolicGoalMin = m.Goal.SystolicMin
       SystolicGoalMax = m.Goal.SystolicMax

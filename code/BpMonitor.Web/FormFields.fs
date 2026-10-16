@@ -18,6 +18,7 @@ module FormFields =
   let username = "Username"
   let password = "Password"
   let passwordConfirm = "PasswordConfirm"
+  let setupCode = "SetupCode"
   let rememberMe = "RememberMe"
   // Settings / language form
   let language = "Language"

@@ -44,6 +44,8 @@ type LoginStrings =
     NewPassword: string
     ConfirmPassword: string
     ClaimHint: string
+    SetupCode: string
+    InvalidSetupCode: string
     ClaimAccount: string
     Login: string
     InvalidNameOrPassword: string
@@ -86,6 +88,9 @@ type MemberPageStrings =
     NoneBadge: string
     You: string
     ResetPassword: string
+    SetupCodeTitle: string -> string
+    SetupCodeHint: string -> string
+    BackToMembers: string
     AdminCheckboxLabel: string
     ActiveCheckboxLabel: string
     LanguageTitle: string
@@ -232,7 +237,10 @@ module LocalizedStrings =
           LoginAs = fun name -> $"Login as {name}"
           NewPassword = "New password"
           ConfirmPassword = "Confirm password"
-          ClaimHint = "This account hasn't been claimed yet. Choose a password to activate it."
+          ClaimHint =
+            "This account hasn't been claimed yet. Enter the setup code from your admin and choose a password."
+          SetupCode = "Setup code"
+          InvalidSetupCode = "Invalid setup code"
           ClaimAccount = "Claim account"
           Login = "Login"
           InvalidNameOrPassword = "Invalid name or password"
@@ -273,6 +281,11 @@ module LocalizedStrings =
           NoneBadge = "—"
           You = "You"
           ResetPassword = "Reset password"
+          SetupCodeTitle = fun name -> $"Setup code for {name}"
+          SetupCodeHint =
+            fun name ->
+              $"Give this code to {name}. It's shown only once. They need it to set their password the first time they sign in."
+          BackToMembers = "Back to members"
           AdminCheckboxLabel = " Admin"
           ActiveCheckboxLabel = " Active"
           LanguageTitle = "Language"
@@ -402,7 +415,10 @@ module LocalizedStrings =
           LoginAs = fun name -> $"Anmelden als {name}"
           NewPassword = "Neues Passwort"
           ConfirmPassword = "Passwort bestätigen"
-          ClaimHint = "Dieses Konto wurde noch nicht aktiviert. Wähle ein Passwort, um es zu aktivieren."
+          ClaimHint =
+            "Dieses Konto wurde noch nicht aktiviert. Gib den Einrichtungscode von deinem Admin ein und wähle ein Passwort."
+          SetupCode = "Einrichtungscode"
+          InvalidSetupCode = "Ungültiger Einrichtungscode"
           ClaimAccount = "Konto aktivieren"
           Login = "Anmelden"
           InvalidNameOrPassword = "Ungültiger Name oder ungültiges Passwort"
@@ -443,6 +459,11 @@ module LocalizedStrings =
           NoneBadge = "—"
           You = "Du"
           ResetPassword = "Passwort zurücksetzen"
+          SetupCodeTitle = fun name -> $"Einrichtungscode für {name}"
+          SetupCodeHint =
+            fun name ->
+              $"Gib diesen Code an {name} weiter. Er wird nur einmal angezeigt. {name} braucht ihn, um beim ersten Anmelden ein Passwort festzulegen."
+          BackToMembers = "Zurück zu den Mitgliedern"
           AdminCheckboxLabel = " Admin"
           ActiveCheckboxLabel = " Aktiv"
           LanguageTitle = "Sprache"

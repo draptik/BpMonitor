@@ -21,7 +21,7 @@ type MedicationsSyncFirefoxTests(fixture: FirefoxFixture) =
       let pageErrors = List<string>()
       page.add_PageError (fun _ msg -> pageErrors.Add(msg))
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       // Configure a medication so the (collapsed-by-default) timeline panel renders.
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")

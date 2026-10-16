@@ -55,6 +55,7 @@ module SchemaMigrations =
         "IsAdmin" INTEGER NOT NULL DEFAULT 0,
         "IsActive" INTEGER NOT NULL DEFAULT 1,
         "PasswordHash" TEXT NOT NULL DEFAULT '',
+        "SetupCodeHash" TEXT NOT NULL DEFAULT '',
         "Language" TEXT NOT NULL DEFAULT '{Language.code Language.defaultLanguage}',
         "SystolicGoalMin" INTEGER NOT NULL DEFAULT {goal.SystolicMin},
         "SystolicGoalMax" INTEGER NOT NULL DEFAULT {goal.SystolicMax},
@@ -140,6 +141,8 @@ module SchemaMigrations =
     addColumnIfMissing ctx "Members" "IsActive" "INTEGER" "1"
     // Add PasswordHash for per-member login (empty string = unclaimed account).
     addColumnIfMissing ctx "Members" "PasswordHash" "TEXT" ""
+    // Add SetupCodeHash for one-time claim codes (ADR 0012; empty string = no code issued).
+    addColumnIfMissing ctx "Members" "SetupCodeHash" "TEXT" ""
     // Add Language for per-member UI language (defaults to English on legacy DBs).
     addColumnIfMissing ctx "Members" "Language" "TEXT" (Language.code Language.defaultLanguage)
     // Add goal-range columns, preset to the paper's recommended range (GoalRange.defaults).

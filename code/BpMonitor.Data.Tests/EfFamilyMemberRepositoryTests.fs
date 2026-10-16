@@ -6,6 +6,7 @@ open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
 open BpMonitor.Data
+open Microsoft.EntityFrameworkCore
 
 let private createContext = EfTestContext.createContext
 let private createContextWithLog = EfTestContext.createContextWithLog
@@ -63,27 +64,61 @@ let ``Add persists a member and assigns a non-zero Id`` () =
   test <@ repo.GetAll().Length = 1 @>
 
 [<Fact>]
-let ``Add maps empty PasswordHash to None`` () =
+let ``Add maps empty PasswordHash to NoCredential`` () =
   use ctx = createContext ()
 
   let repo = createRepo ctx
 
   let added = repo.Add(newMember "Alice" true)
-  test <@ added.PasswordHash = None @>
+  test <@ added.Credential = NoCredential @>
 
 [<Fact>]
-let ``Add maps non-empty PasswordHash to Some`` () =
+let ``Add maps non-empty PasswordHash to Password`` () =
   use ctx = createContext ()
 
   let repo = createRepo ctx
 
   let m =
     { newMember "Alice" true with
-        PasswordHash = Some "hashed"
+        Credential = Password "hashed"
     }
 
   let added = repo.Add m
-  test <@ added.PasswordHash = Some "hashed" @>
+  test <@ added.Credential = Password "hashed" @>
+
+[<Fact>]
+let ``Add maps a setup code hash to PendingSetup`` () =
+  use ctx = createContext ()
+
+  let repo = createRepo ctx
+
+  let m =
+    { newMember "Alice" true with
+        Credential = PendingSetup "codehash"
+    }
+
+  let added = repo.Add m
+  test <@ added.Credential = PendingSetup "codehash" @>
+
+[<Fact>]
+let ``Update to Password clears the stored setup code hash`` () =
+  use ctx = createContext ()
+
+  let repo = createRepo ctx
+
+  let added =
+    repo.Add
+      { newMember "Alice" true with
+          Credential = PendingSetup "codehash"
+      }
+
+  repo.Update
+    { added with
+        Credential = Password "hashed"
+    }
+
+  let stored = ctx.Members.AsNoTracking() |> Seq.exactlyOne
+  test <@ stored.SetupCodeHash = "" @>
 
 [<Fact>]
 let ``Add sets CreatedAt and ModifiedAt to current time`` () =

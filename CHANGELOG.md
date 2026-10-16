@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add reading: the cursor starts in the systolic field, so you can type straight away.
 - History and Recent view charts: the chart toolbar follows the light/dark theme — its icons match the page, and the selected tool is highlighted in the app's accent colour.
+- Members: claiming an account needs a one-time setup code. Admins see it once after creating a member or resetting a password; on first start, the code for `Me` is written to the log. Previously, anyone who opened an unclaimed account's sign-in page first could set its password — including the admin account on a fresh install.
+- **Upgrading:** members who haven't set a password yet get a setup code in the log on the first start after the upgrade (`Setup code for member …`). See [First sign-in](docs/install.md#first-sign-in).
 
 ### Fixed
 

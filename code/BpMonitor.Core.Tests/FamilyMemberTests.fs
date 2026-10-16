@@ -84,15 +84,19 @@ let ``nameTaken is false when a member keeps their own name in a different case`
   test <@ not (FamilyMember.nameTaken members (mkMember 1 "BART" false true)) @>
 
 [<Fact>]
-let ``isClaimed returns false when PasswordHash is None`` () =
+let ``isClaimed returns false for a member without a password`` () =
   match FamilyMember.create "Alice" true with
   | Error _ -> failwith "unexpected error"
   | Ok m -> test <@ FamilyMember.isClaimed m = false @>
 
 [<Fact>]
-let ``isClaimed returns true when PasswordHash is set`` () =
+let ``isClaimed returns true when a password is set`` () =
   match FamilyMember.create "Alice" true with
   | Error _ -> failwith "unexpected error"
   | Ok m ->
-    let claimed = { m with PasswordHash = Some "hashed" }
+    let claimed =
+      { m with
+          Credential = Password "hashed"
+      }
+
     test <@ FamilyMember.isClaimed claimed = true @>

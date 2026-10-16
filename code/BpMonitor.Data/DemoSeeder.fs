@@ -75,7 +75,7 @@ module DemoSeeder =
                   Name = spec.Name
                   IsAdmin = spec.IsAdmin
                   IsActive = true
-                  PasswordHash = None
+                  Credential = NoCredential
                   ModifiedAt = now
               }
 
