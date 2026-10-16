@@ -72,8 +72,9 @@ module ReadingHandlers =
   let private toLocalDateOnly (ts: System.DateTimeOffset) : System.DateOnly =
     System.DateOnly.FromDateTime(ts.ToLocalTime().Date)
 
-  /// Renders the Medications Timeline panel for the given date span. `showScrubber`
-  /// mirrors the BP chart above it. Empty medication list renders nothing.
+  /// Renders the Medications Timeline panel, opening on `rangeLow`–`rangeHigh`. The caller
+  /// picks `medications` to match the BP chart's loaded data, which can reach beyond that
+  /// visible range (panning). `showScrubber` mirrors the BP chart above it. Empty renders nothing.
   let private medicationsPanel
     (s: LocalizedStrings)
     (medications: Medication list)
@@ -81,17 +82,13 @@ module ReadingHandlers =
     (rangeLow: System.DateTimeOffset)
     (rangeHigh: System.DateTimeOffset)
     : Falco.Markup.XmlNode =
-    let overlapping =
-      medications
-      |> Medication.overlapping (toLocalDateOnly rangeLow) (toLocalDateOnly rangeHigh)
-
     let chartHtml =
       BpChart.toHtmlMedications
         s.Charts
         showScrubber
         (Formats.formatLocal rangeLow)
         (Formats.formatLocal rangeHigh)
-        overlapping
+        medications
 
     MedicationViews.timelinePanel s chartHtml
 
@@ -164,8 +161,12 @@ module ReadingHandlers =
 
       let windowStart, chartHtml = renderRecentChart s m now loadedReadings
 
-      let panel =
-        medicationsPanel s ((medicationRepo ctx).GetAll(m.Id)) true windowStart now
+      // Same period as the loaded readings, so panning back still shows the medications.
+      let medications =
+        (medicationRepo ctx).GetAll(m.Id)
+        |> Medication.overlapping (toLocalDateOnly loadWindowStart) (toLocalDateOnly now)
+
+      let panel = medicationsPanel s medications true windowStart now
 
       htmlResponse
         (ReadingViews.recent
@@ -195,8 +196,11 @@ module ReadingHandlers =
 
       let windowStart, chartHtml = renderRecentChart s m now allReadings
 
-      let panel =
-        medicationsPanel s ((medicationRepo ctx).GetAll(m.Id)) true windowStart now
+      let medications =
+        (medicationRepo ctx).GetAll(m.Id)
+        |> Medication.overlapping System.DateOnly.MinValue (toLocalDateOnly now)
+
+      let panel = medicationsPanel s medications true windowStart now
 
       htmlResponse
         (ReadingViews.recentChartContainer

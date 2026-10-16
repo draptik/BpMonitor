@@ -5,6 +5,7 @@ open System
 open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing
+open BpMonitor.Core
 open BpMonitor.Web
 open HandlerTestHelpers
 
@@ -99,3 +100,75 @@ let ``history extends an ongoing medication's timeline span to today`` () =
   // The trace and axis both extend to "today" rather than stopping at the
   // medication's own StartDate or collapsing to "now" with no medications at all.
   test <@ (TestHost.readBody ctx).Contains "2026-06-15" @>
+
+// /recent loads a year of readings behind a 30-day view; panning the BP chart back
+// pans the timeline too (medications-sync.js), so it needs those medications as well.
+let private recentNow = DateTimeOffset(2026, 10, 15, 10, 0, 0, TimeSpan.Zero)
+
+let private springMedication =
+  { sampleMedication with
+      Name = "Ramipril"
+      StartDate = DateOnly(2026, 1, 1)
+      EndDate = Some(DateOnly(2026, 3, 31))
+  }
+
+[<Fact>]
+let ``recent includes a medication from earlier in the loaded year, outside the 30-day view`` () =
+  let repo =
+    repoWith
+      [
+        { sample with
+            Timestamp = Timestamp.utc 2026 2 10 8 0 0
+        }
+      ]
+
+  let ctx =
+    TestHost.contextWithMedicationsAndProvider repo [ springMedication ] (FakeTimeProvider recentNow)
+
+  TestHost.run ReadingHandlers.recent ctx
+
+  test <@ (TestHost.readBody ctx).Contains "\"ticktext\":[\"Ramipril" @>
+
+[<Fact>]
+let ``recentFull includes a medication from before the default one-year window`` () =
+  let oldMedication =
+    { springMedication with
+        StartDate = DateOnly(2024, 1, 1)
+        EndDate = Some(DateOnly(2024, 3, 31))
+    }
+
+  let repo =
+    repoWith
+      [
+        { sample with
+            Timestamp = Timestamp.utc 2024 2 10 8 0 0
+        }
+      ]
+
+  let ctx =
+    TestHost.contextWithMedicationsAndProvider repo [ oldMedication ] (FakeTimeProvider recentNow)
+
+  TestHost.run ReadingHandlers.recentFull ctx
+
+  test <@ (TestHost.readBody ctx).Contains "\"ticktext\":[\"Ramipril" @>
+
+[<Fact>]
+let ``recent still opens the Medications Timeline on the last 30 days`` () =
+  let repo =
+    repoWith
+      [
+        { sample with
+            Timestamp = Timestamp.utc 2026 2 10 8 0 0
+        }
+      ]
+
+  let ctx =
+    TestHost.contextWithMedicationsAndProvider repo [ springMedication ] (FakeTimeProvider recentNow)
+
+  TestHost.run ReadingHandlers.recent ctx
+
+  // Once for the BP chart, once for the timeline below it.
+  let windowStart = Formats.formatLocal (recentNow.AddDays -30.0)
+  let marker = $"\"range\":[\"{windowStart}\""
+  let body = TestHost.readBody ctx
+  test <@ body.Split(marker).Length - 1 = 2 @>
