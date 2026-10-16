@@ -155,6 +155,39 @@ let ``Update sets ModifiedAt to current time and preserves CreatedAt`` () =
   test <@ result.ModifiedAt = updatedAt @>
 
 [<Fact>]
+let ``UpdateLanguage changes only the language`` () =
+  use ctx = createContext ()
+  let repo = createRepo ctx
+  let added = repo.Add(newMember "Alice" true)
+  // An admin's change that a full-record write from an older snapshot would undo.
+  repo.Update { added with IsActive = false }
+
+  repo.UpdateLanguage added.Id German
+
+  let stored = (repo.GetById added.Id).Value
+  test <@ stored.Language = German && not stored.IsActive @>
+
+[<Fact>]
+let ``UpdateGoal changes only the goal range`` () =
+  use ctx = createContext ()
+  let repo = createRepo ctx
+  let added = repo.Add(newMember "Alice" true)
+  repo.Update { added with IsActive = false }
+
+  let goal =
+    {
+      SystolicMin = 100
+      SystolicMax = 130
+      DiastolicMin = 65
+      DiastolicMax = 85
+    }
+
+  repo.UpdateGoal added.Id goal
+
+  let stored = (repo.GetById added.Id).Value
+  test <@ stored.Goal = goal && not stored.IsActive @>
+
+[<Fact>]
 let ``Update of a non-existent member is a no-op`` () =
   use ctx = createContext ()
 

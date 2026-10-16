@@ -1,5 +1,6 @@
 namespace BpMonitor.Data
 
+open System.Linq
 open Microsoft.EntityFrameworkCore
 open BpMonitor.Core
 
@@ -97,3 +98,29 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.Time
 
         ctx.Members.Update(MemberMapping.toEntity m.CreatedAt now m) |> ignore
         ctx.SaveChanges() |> ignore
+
+    // ExecuteUpdate writes only these columns in one UPDATE, without reading the row first.
+    member _.UpdateLanguage id language =
+      let now = timeProvider.GetUtcNow()
+
+      ctx.Members
+        .Where(fun r -> r.Id = id)
+        .ExecuteUpdate(fun setters ->
+          setters.SetProperty((fun r -> r.Language), Language.code language).SetProperty((fun r -> r.ModifiedAt), now)
+          |> ignore)
+      |> ignore
+
+    member _.UpdateGoal id goal =
+      let now = timeProvider.GetUtcNow()
+
+      ctx.Members
+        .Where(fun r -> r.Id = id)
+        .ExecuteUpdate(fun setters ->
+          setters
+            .SetProperty((fun r -> r.SystolicGoalMin), goal.SystolicMin)
+            .SetProperty((fun r -> r.SystolicGoalMax), goal.SystolicMax)
+            .SetProperty((fun r -> r.DiastolicGoalMin), goal.DiastolicMin)
+            .SetProperty((fun r -> r.DiastolicGoalMax), goal.DiastolicMax)
+            .SetProperty((fun r -> r.ModifiedAt), now)
+          |> ignore)
+      |> ignore
