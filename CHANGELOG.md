@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Members: a new password needs at least 8 characters; existing passwords keep working.
 - Members: resetting a member's password signs them out everywhere, including "remember me" logins; previously existing sessions stayed valid until they expired.
 - Forms: values containing quotes (e.g. a comment like `took "Ramipril" 5mg`) show and save in full when editing; previously everything after the first quote was cut off, and a crafted name or comment could inject markup into the page.
 
