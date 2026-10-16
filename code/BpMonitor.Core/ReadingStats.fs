@@ -113,11 +113,7 @@ module ReadingStats =
     weeklyAveragesWithCount readings |> List.map _.Reading
 
   let private monthlyAveragesWithCount =
-    buildAggregated
-      (fun r ->
-        let d = r.Timestamp.ToLocalTime().Date
-        { Year = d.Year; Month = d.Month })
-      (fun ym -> DateTime(ym.Year, ym.Month, 1))
+    buildAggregated (fun r -> YearMonth.ofDate (r.Timestamp.ToLocalTime().Date)) YearMonth.firstDay
 
   /// Groups readings by calendar month, sorted ascending.
   /// The returned reading's Timestamp is the 1st of that month midnight. Comments are dropped.

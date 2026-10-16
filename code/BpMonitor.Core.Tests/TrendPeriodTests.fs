@@ -27,6 +27,35 @@ let ``parseGranularity returns None for unknown string`` () =
   test <@ TrendPeriod.parseGranularity "daily" = None @>
   test <@ TrendPeriod.parseGranularity "" = None @>
 
+// ── smart constructors ─────────────────────────────────────────────────────────
+
+[<Fact>]
+let ``CalendarYear.tryCreate accepts every year DateTime can represent`` () =
+  test <@ CalendarYear.tryCreate 1 |> Option.map CalendarYear.value = Some 1 @>
+  test <@ CalendarYear.tryCreate 9999 |> Option.map CalendarYear.value = Some 9999 @>
+
+[<Fact>]
+let ``CalendarYear.tryCreate rejects years outside 1-9999`` () =
+  test <@ CalendarYear.tryCreate 0 = None @>
+  test <@ CalendarYear.tryCreate 10000 = None @>
+
+[<Fact>]
+let ``IsoWeek.tryCreate accepts week 53 only in a 53-week year`` () =
+  let year y = (CalendarYear.tryCreate y).Value
+  test <@ (IsoWeek.tryCreate (year 2026) 53).IsSome @>
+  test <@ IsoWeek.tryCreate (year 2025) 53 = None @>
+
+[<Fact>]
+let ``IsoWeek.tryCreate rejects week 0`` () =
+  test <@ IsoWeek.tryCreate (CalendarYear.tryCreate 2026).Value 0 = None @>
+
+[<Fact>]
+let ``YearMonth.tryCreate rejects months outside 1-12`` () =
+  let year = (CalendarYear.tryCreate 2026).Value
+  test <@ (YearMonth.tryCreate year 12).IsSome @>
+  test <@ YearMonth.tryCreate year 0 = None @>
+  test <@ YearMonth.tryCreate year 13 = None @>
+
 // ── current Weekly ─────────────────────────────────────────────────────────────
 
 [<Fact>]
@@ -159,6 +188,15 @@ let ``ofKey Weekly: week 54 returns None`` () =
   test <@ TrendPeriod.ofKey Weekly "2026-W54" now = None @>
 
 [<Fact>]
+let ``ofKey Weekly: week 53 of a 52-week year returns None`` () =
+  test <@ TrendPeriod.ofKey Weekly "2025-W53" now = None @>
+
+[<Fact>]
+let ``ofKey Weekly: out-of-range year returns None`` () =
+  test <@ TrendPeriod.ofKey Weekly "0-W01" now = None @>
+  test <@ TrendPeriod.ofKey Weekly "9999-W52" now = None @>
+
+[<Fact>]
 let ``ofKey Monthly: parses current month key and labels 'This Month'`` () =
   let p = TrendPeriod.ofKey Monthly "2026-06" now
   test <@ p.IsSome @>
@@ -192,6 +230,11 @@ let ``ofKey Monthly: invalid key returns None`` () =
   test <@ TrendPeriod.ofKey Monthly "abc" now = None @>
 
 [<Fact>]
+let ``ofKey Monthly: out-of-range year returns None`` () =
+  test <@ TrendPeriod.ofKey Monthly "0-01" now = None @>
+  test <@ TrendPeriod.ofKey Monthly "9999-12" now = None @>
+
+[<Fact>]
 let ``ofKey Yearly: parses current year key and labels 'This Year'`` () =
   let p = TrendPeriod.ofKey Yearly "2026" now
   test <@ p.IsSome @>
@@ -215,7 +258,10 @@ let ``ofKey Yearly: older year uses year as label`` () =
 [<Fact>]
 let ``ofKey Yearly: invalid key returns None`` () =
   test <@ TrendPeriod.ofKey Yearly "abc" now = None @>
-  test <@ TrendPeriod.ofKey Yearly "99" now = None @>
+
+[<Fact>]
+let ``ofKey Yearly: year 9999 returns None`` () =
+  test <@ TrendPeriod.ofKey Yearly "9999" now = None @>
 
 // ── available ─────────────────────────────────────────────────────────────────
 // Fixed window: 12 weeks, 12 months, 5 years — always shown regardless of readings.
