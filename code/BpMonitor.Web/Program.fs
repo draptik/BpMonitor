@@ -78,15 +78,15 @@ let main args =
     builder.Services.AddSingleton<TimeProvider>(TimeProvider.System) |> ignore
 
     builder.Services.AddScoped<IReadingRepository>(fun sp ->
-      EfReadingRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
+      EfReadingRepository(sp.GetRequiredService<BpMonitorDbContext>(), sp.GetRequiredService<TimeProvider>()))
     |> ignore
 
     builder.Services.AddScoped<IFamilyMemberRepository>(fun sp ->
-      EfFamilyMemberRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
+      EfFamilyMemberRepository(sp.GetRequiredService<BpMonitorDbContext>(), sp.GetRequiredService<TimeProvider>()))
     |> ignore
 
     builder.Services.AddScoped<IMedicationRepository>(fun sp ->
-      EfMedicationRepository(sp.GetRequiredService<BpMonitorDbContext>(), TimeProvider.System))
+      EfMedicationRepository(sp.GetRequiredService<BpMonitorDbContext>(), sp.GetRequiredService<TimeProvider>()))
     |> ignore
 
     let secureCookies = builder.Configuration.GetValue<bool>("BpMonitor:SecureCookies")
@@ -160,7 +160,7 @@ let main args =
         (sp.GetRequiredService<IReadingRepository>())
         (sp.GetRequiredService<IMedicationRepository>())
         ranges
-        TimeProvider.System
+        (sp.GetRequiredService<TimeProvider>())
         true
 
     // Members without a credential can't be claimed until they get a setup code (ADR 0012).
