@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Push, open a PR, queue a squash auto-merge, wait for CI, clean up (run with --help).
+# Push, open a PR, queue a squash auto-merge, wait for CI, merge, clean up (run with --help).
 
 set -euo pipefail
 
@@ -14,8 +14,9 @@ Usage:
     body from <file>, skips confirm prompts. The title defaults to the commit
     subject when the branch has exactly one commit.
 
-GitHub merges only once every required check has passed (--auto), so this
-never merges on red. Re-running resumes from whichever step is next.
+GitHub merges only once every required check has passed (--auto, and the
+direct merge after green CI never uses --admin), so this never merges on red.
+Re-running resumes from whichever step is next.
 EOF
 }
 
@@ -186,6 +187,12 @@ watch_ci() {
 
 wait_for_merge() {
   local pr=$1 state=""
+  # GitHub's queued auto-merge can lag minutes behind green CI; merge now instead.
+  # No --admin, so GitHub still refuses if a required check isn't green.
+  state=$(gh pr view "$pr" --json state --jq .state)
+  if [ "$state" != "MERGED" ]; then
+    gh pr merge "$pr" --squash || true
+  fi
   for _ in $(seq 1 12); do
     state=$(gh pr view "$pr" --json state --jq .state)
     [ "$state" = "MERGED" ] && return 0
