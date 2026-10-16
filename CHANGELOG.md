@@ -7,12 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-10-16
+
 ### Changed
 
 - Add reading: the cursor starts in the systolic field, so you can type straight away.
 - History and Recent view charts: the chart toolbar follows the light/dark theme — its icons match the page, and the selected tool is highlighted in the app's accent colour.
+- **Deployment:** the `Members` table gets a new `SetupCodeHash` column, added automatically on first start — no manual migration needed. Members who haven't set a password yet get a setup code in the log on that start (`Setup code for member …`). See [First sign-in](docs/install.md#first-sign-in).
+
+### Security
+
 - Members: claiming an account needs a one-time setup code. Admins see it once after creating a member or resetting a password; on first start, the code for `Me` is written to the log. Previously, anyone who opened an unclaimed account's sign-in page first could set its password — including the admin account on a fresh install.
-- **Upgrading:** members who haven't set a password yet get a setup code in the log on the first start after the upgrade (`Setup code for member …`). See [First sign-in](docs/install.md#first-sign-in).
+- Members: deactivating a member signs them out on their next page load; previously a "remember me" login kept working until it expired.
+- Members: removing a member's admin rights takes effect immediately; previously they kept access to the members page until they signed in again.
+- CSV export: comments starting with a tab or line break are written as plain text too, so spreadsheet apps can't run them as formulas.
 
 ### Fixed
 
@@ -23,12 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - History and Recent view: pages no longer hang when more than eight different medications are shown; from the ninth on, colours repeat.
 - Editing a reading keeps its original creation time; previously the export showed it as `0001-01-01` afterwards.
 - Trends: links to a week, month or year that doesn't exist (e.g. week 53 of a 52-week year) show the current period instead of an error page.
-- Members: deactivating a member signs them out on their next page load; previously a "remember me" login kept working until it expired.
-- Members: removing a member's admin rights takes effect immediately; previously they kept access to the members page until they signed in again.
 - Members: a new or renamed member can't take a name another member already has (ignoring upper/lower case); previously the second member could never sign in with name and password.
 - Recent view: the Medications Timeline shows medications from the whole loaded history, so panning the chart back no longer leaves the timeline empty.
 - History: the Medications Timeline starts out aligned with the chart above it; previously it cut off readings from later on the newest day and could be an hour off across a daylight-saving change.
-- CSV export: comments starting with a tab or line break are written as plain text too, so spreadsheet apps can't run them as formulas.
 
 ## [1.14.0] - 2026-10-03
 
@@ -517,7 +522,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.14.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.15.0...HEAD
+[1.15.0]: https://github.com/draptik/BpMonitor/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/draptik/BpMonitor/compare/v1.13.2...v1.14.0
 [1.14.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.13.2...v1.14.0-rc1
 [1.13.2]: https://github.com/draptik/BpMonitor/compare/v1.13.1...v1.13.2
