@@ -57,6 +57,20 @@ module FamilyMember =
       m.Id <> candidate.Id
       && m.Name.Trim().Equals(candidate.Name.Trim(), StringComparison.OrdinalIgnoreCase))
 
+  /// A short fingerprint of the credential for the session cookie; it changes on every
+  /// password reset or new password (the hash is salted), which revokes older sessions.
+  let credentialStamp (credential: Credential) : string =
+    let source =
+      match credential with
+      | Password hash -> $"password:{hash}"
+      | PendingSetup hash -> $"setup:{hash}"
+      | NoCredential -> "none"
+
+    let digest =
+      System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes source)
+
+    Convert.ToBase64String(digest, 0, 16)
+
   /// Returns true when the member has a password set (has claimed their account).
   let isClaimed (m: FamilyMember) =
     match m.Credential with

@@ -15,17 +15,24 @@ open HandlerHelpers
 module AuthHandlers =
   // ── Auth: resolve identity from the authenticated principal ──
 
+  [<Literal>]
+  let private CredentialStampClaim = "BpMonitor:CredentialStamp"
+
   /// Resolves the authenticated member from the principal's NameIdentifier claim.
   /// Only valid inside a `protect`ed route — the principal is guaranteed to be present.
-  /// A deactivated member resolves to None, so an existing cookie stops working.
+  /// A deactivated member, or a cookie whose credential stamp no longer matches (password
+  /// reset or changed since sign-in), resolves to None, so that cookie stops working.
   let authenticatedMember (ctx: HttpContext) : FamilyMember option =
     let claim = ctx.User.FindFirst(ClaimTypes.NameIdentifier)
+    let stamp = ctx.User.FindFirst(CredentialStampClaim)
 
-    if claim = null then
+    if claim = null || stamp = null then
       None
     else
       match Int32.TryParse(claim.Value) with
-      | true, id -> (memberRepo ctx).GetById(id) |> Option.filter _.IsActive
+      | true, id ->
+        (memberRepo ctx).GetById(id)
+        |> Option.filter (fun m -> m.IsActive && FamilyMember.credentialStamp m.Credential = stamp.Value)
       | _ -> None
 
   /// Returns the authenticated member's name, or "" if unauthenticated.
@@ -49,6 +56,7 @@ module AuthHandlers =
       [
         Claim(ClaimTypes.NameIdentifier, string m.Id)
         Claim(ClaimTypes.Name, m.Name)
+        Claim(CredentialStampClaim, FamilyMember.credentialStamp m.Credential)
       ]
 
     let identity =
