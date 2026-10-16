@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Members: removing a member's admin rights takes effect immediately; previously they kept access to the members page until they signed in again.
 - Members: a new or renamed member can't take a name another member already has (ignoring upper/lower case); previously the second member could never sign in with name and password.
 - Recent view: the Medications Timeline shows medications from the whole loaded history, so panning the chart back no longer leaves the timeline empty.
+- History: the Medications Timeline starts out aligned with the chart above it; previously it cut off readings from later on the newest day and could be an hour off across a daylight-saving change.
 
 ## [1.14.0] - 2026-10-03
 

@@ -93,25 +93,31 @@ module ReadingHandlers =
     MedicationViews.timelinePanel s chartHtml
 
   /// Readings-only would drop medications outside their span; union in the medications'
-  /// own span. Ongoing (EndDate = None) counts as running to `today`.
+  /// own span. Readings count with their actual time, medication dates as local midnight
+  /// (with that date's own UTC offset), and an ongoing medication (EndDate = None) as now.
   let private medicationsSpan
     (tp: System.TimeProvider)
     (readings: BloodPressureReading list)
     (medications: Medication list)
     : System.DateTimeOffset * System.DateTimeOffset =
-    let today = toLocalDateOnly (tp.GetUtcNow())
+    let now = tp.GetUtcNow()
 
-    let dates =
-      (readings |> List.map (_.Timestamp >> toLocalDateOnly))
+    let localMidnight (d: System.DateOnly) =
+      let local = d.ToDateTime(System.TimeOnly.MinValue)
+      System.DateTimeOffset(local, System.TimeZoneInfo.Local.GetUtcOffset local)
+
+    let points =
+      (readings |> List.map _.Timestamp)
       @ (medications
-         |> List.collect (fun med -> [ med.StartDate; med.EndDate |> Option.defaultValue today ]))
+         |> List.collect (fun med ->
+           [
+             localMidnight med.StartDate
+             med.EndDate |> Option.map localMidnight |> Option.defaultValue now
+           ]))
 
-    let toOffset (d: System.DateOnly) =
-      System.DateTimeOffset(d.ToDateTime(System.TimeOnly.MinValue), tp.GetLocalNow().Offset)
-
-    match dates with
-    | [] -> let now = tp.GetUtcNow() in now, now
-    | ds -> toOffset (List.min ds), toOffset (List.max ds)
+    match points with
+    | [] -> now, now
+    | ps -> List.min ps, List.max ps
 
   let history: HttpContext -> Task =
     withMember (fun m ctx ->
