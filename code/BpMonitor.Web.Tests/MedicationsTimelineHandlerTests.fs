@@ -2,6 +2,7 @@
 module MedicationsTimelineHandlerTests
 
 open System
+open System.Text.RegularExpressions
 open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing
@@ -172,3 +173,26 @@ let ``recent still opens the Medications Timeline on the last 30 days`` () =
   let marker = $"\"range\":[\"{windowStart}\""
   let body = TestHost.readBody ctx
   test <@ body.Split(marker).Length - 1 = 2 @>
+
+[<Fact>]
+let ``history ends the timeline's initial range at the newest reading, not at midnight that day`` () =
+  let evening = DateTimeOffset(2026, 6, 15, 20, 0, 0, TimeSpan.Zero)
+
+  let earlierMedication =
+    { sampleMedication with
+        StartDate = DateOnly(2026, 6, 1)
+        EndDate = Some(DateOnly(2026, 6, 10))
+    }
+
+  let repo = repoWith [ { sample with Timestamp = evening } ]
+
+  let ctx =
+    TestHost.contextWithMedicationsAndProvider repo [ earlierMedication ] (FakeTimeProvider(evening.AddHours 1.0))
+
+  TestHost.run ReadingHandlers.history ctx
+
+  // The full range pattern: the reading's time alone also appears in the BP chart's data.
+  let pattern =
+    $"\"range\":\\[\"[^\"]+\",\"{Regex.Escape(Formats.formatLocal evening)}\"\\]"
+
+  test <@ Regex.IsMatch(TestHost.readBody ctx, pattern) @>
