@@ -46,8 +46,8 @@ Add **per-member password authentication** using:
 - **Single shared gate:** one household password protects the whole app; the existing cookie
   switcher is kept. Rejected because it provides no privacy between family members.
 - **Reverse-proxy auth (Authelia / Tailscale):** zero app code, but depends on deployment
-  infrastructure and is not portable. Rejected in favour of a self-contained solution.
-- **Admin sets passwords:** more controlled initial setup. Rejected in favour of the lower-friction
+  infrastructure and is not portable. Rejected in favor of a self-contained solution.
+- **Admin sets passwords:** more controlled initial setup. Rejected in favor of the lower-friction
   first-login claim flow.
 - **Admin on-behalf-of:** admins can view/record for other members. Rejected to keep the model
   simple — maximum privacy, no special-case paths.

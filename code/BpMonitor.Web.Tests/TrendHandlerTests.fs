@@ -232,7 +232,7 @@ let ``trendsPanel shows empty state when no readings in period`` () =
   test <@ body.Contains "Plotly.newPlot" |> not @>
 
 [<Fact>]
-let ``trendsPanel returns 400 for unrecognised gran`` () =
+let ``trendsPanel returns 400 for unrecognized gran`` () =
   let tp = FakeTimeProvider(trendsNow)
   let ctx = TestHost.contextWithProvider (repoWith []) tp
   // No route value → gran = None → 400

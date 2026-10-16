@@ -57,7 +57,7 @@ code/
 ├── BpMonitor.Core.Tests
 ├── BpMonitor.Data              # EF Core + SQLite, member-scoped repository implementations
 ├── BpMonitor.Data.Tests
-├── BpMonitor.Export            # JSON and CSV serialisation and file write (wired into Web for /export and /export.csv endpoints)
+├── BpMonitor.Export            # JSON and CSV serialization and file write (wired into Web for /export and /export.csv endpoints)
 ├── BpMonitor.Export.Tests
 ├── BpMonitor.Charts            # Plotly.NET chart generation → HTML output
 ├── BpMonitor.Charts.Tests

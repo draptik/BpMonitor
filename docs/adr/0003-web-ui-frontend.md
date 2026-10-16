@@ -71,5 +71,5 @@ Scope for the first version is a dashboard (readings table + chart) and CRUD
   new projects automatically. The container image is built on the VM (see
   `deploy/README.md`); no CI image-publish job was added.
 - Two UIs (TUI + Web) now exist over the same `Core`/`Data`. If they diverge in
-  behaviour, prefer extracting shared logic into `Core` rather than duplicating
+  behavior, prefer extracting shared logic into `Core` rather than duplicating
   it (validation and range-loading already follow this pattern).

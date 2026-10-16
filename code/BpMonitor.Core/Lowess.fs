@@ -75,7 +75,7 @@ module Lowess =
         // Each point's k nearest neighbors depend only on `xs`, not on the robustness
         // weights — so they're identical across every robustifying iteration. Computed
         // once here rather than re-sorting all n points per point on every iteration.
-        let neighbours =
+        let neighbors =
           Array.init n (fun i ->
             let xi = xs[i]
 
@@ -85,13 +85,12 @@ module Lowess =
 
         let fitAt (robustWeights: float array) (i: int) =
           let xi = xs[i]
-          let pointNeighbours = neighbours[i]
+          let pointNeighbors = neighbors[i]
 
-          let maxDist =
-            pointNeighbours |> Array.map (fun (_, _, _, dist) -> dist) |> Array.max
+          let maxDist = pointNeighbors |> Array.map (fun (_, _, _, dist) -> dist) |> Array.max
 
           let points =
-            pointNeighbours
+            pointNeighbors
             |> Array.map (fun (j, x, y, dist) -> tricube maxDist dist * robustWeights[j], x, y)
 
           weightedLinearFitAt xi points
@@ -118,7 +117,7 @@ module Lowess =
   /// `bandwidth` is the fraction of points (0.0–1.0] included in each point's local
   /// neighborhood. Returns one smoothed y per input x, in input order.
   ///
-  /// Works on the points sorted by x, where each point's k nearest neighbours form a
+  /// Works on the points sorted by x, where each point's k nearest neighbors form a
   /// contiguous window found by expanding outwards (O(n·k) time, O(n) extra memory).
   /// The window takes every point up to the k-th distance, ties included, so the result
   /// never depends on input order (e.g. several readings on one day).
@@ -160,9 +159,9 @@ module Lowess =
           lo, hi, maxDist)
 
       // Same weighted linear fit as `weightedLinearFitAt`, summed in place over the window
-      // and centred on xi: same-day points then have dx exactly 0, so sxx is exactly 0
+      // and centered on xi: same-day points then have dx exactly 0, so sxx is exactly 0
       // for them instead of float noise that would turn the slope into garbage.
-      // Reused across fits (they run one after another): each neighbour's weight, computed once.
+      // Reused across fits (they run one after another): each neighbor's weight, computed once.
       let weights = Array.zeroCreate n
 
       let fitAt (robustWeights: float array) (p: int) =

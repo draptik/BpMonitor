@@ -54,4 +54,4 @@ WAL + `busy_timeout=5000` are now applied at startup (they were previously assum
 - `BloodPressureReading` has a new `MemberId: int` field (defaults to 0 from `parse`; stamped with the real ID at persist time)
 - `InMemoryFamilyMemberRepository` is used in tests; `EfFamilyMemberRepository` in production
 - Import/Export functions gained a `memberId` parameter
-- Login, per-member permissions, member delete/merge, and per-member chart colours are out of scope for this iteration
+- Login, per-member permissions, member delete/merge, and per-member chart colors are out of scope for this iteration

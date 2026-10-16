@@ -256,7 +256,7 @@ module BpChart =
   // - Compact margins maximize the narrow plot area.
   // - DragMode.False: touch is a tap (tooltip), not a scroll-hijacking pan.
   // - TickAngle=-45: rotated date labels don't overlap on narrow viewports.
-  // - Horizontal centred legend avoids stealing horizontal width.
+  // - Horizontal centered legend avoids stealing horizontal width.
   // - DisplayModeBar=false: no floating toolbar (awkward on touch).
   // - ScrollZoom=NoZoom: wheel/pinch won't fight page scroll.
   let private trendsLayout () =

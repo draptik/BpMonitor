@@ -98,7 +98,7 @@ Write concise markdown covering **only what matters to end users and operators**
   migration needed") rather than leaving it out.
 
 **Exclude:** refactors, test-only changes, internal chores, CI tweaks, doc fixes,
-dependency bumps (unless they change runtime behaviour).
+dependency bumps (unless they change runtime behavior).
 
 **Consolidate:** scan the gathered `[Unreleased]` bullets for an `Added`/`Changed`
 entry and a `Fixed` entry describing the same feature that has never shipped —
@@ -224,7 +224,7 @@ After pushing, share:
 - The draft release (appears once the workflow completes): `https://github.com/draptik/BpMonitor/releases`
 
 Note: if the tag has a `-` suffix it will be marked as a **prerelease** and will
-not become `/releases/latest` — correct behaviour for RCs.
+not become `/releases/latest` — correct behavior for RCs.
 
 ## Rules
 

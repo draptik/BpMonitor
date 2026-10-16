@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Add reading: the cursor starts in the systolic field, so you can type straight away.
-- History and Recent view charts: the chart toolbar follows the light/dark theme — its icons match the page, and the selected tool is highlighted in the app's accent colour.
+- History and Recent view charts: the chart toolbar follows the light/dark theme — its icons match the page, and the selected tool is highlighted in the app's accent color.
 - **Deployment:** the `Members` table gets a new `SetupCodeHash` column, added automatically on first start — no manual migration needed. Members who haven't set a password yet get a setup code in the log on that start (`Setup code for member …`). See [First sign-in](docs/install.md#first-sign-in).
 
 ### Security
@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recent view: comment tooltips appear for members using German; previously they only worked in English.
 - Medications Timeline: row labels show a medication's name as plain text, so markup in a name can't render as a link.
 - The version link in the page footer opens the matching GitHub release instead of a missing page.
-- History and Recent view: pages no longer hang when more than eight different medications are shown; from the ninth on, colours repeat.
+- History and Recent view: pages no longer hang when more than eight different medications are shown; from the ninth on, colors repeat.
 - Editing a reading keeps its original creation time; previously the export showed it as `0001-01-01` afterwards.
 - Trends: links to a week, month or year that doesn't exist (e.g. week 53 of a 52-week year) show the current period instead of an error page.
 - Members: a new or renamed member can't take a name another member already has (ignoring upper/lower case); previously the second member could never sign in with name and password.
@@ -267,7 +267,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Refreshed navigation layout: always-visible top bar, sidebar icons, logout button moved to the top bar, and the app title links back to the home page
-- Page headings now styled with the primary colour for better visual hierarchy
+- Page headings now styled with the primary color for better visual hierarchy
 - Charts no longer show a redundant "Comments" y-axis label
 
 ## [1.7.0-rc6] - 2026-06-26
@@ -371,7 +371,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Trends chart is now rendered inline — no iframe, no fixed-height clipping, smoother on all screen sizes
-- Trends chart colours improved: systolic trace in green, error bars dimmed, hovered point highlighted
+- Trends chart colors improved: systolic trace in green, error bars dimmed, hovered point highlighted
 - Period pills with no readings are now visibly grayed out and unclickable
 
 ## [1.4.3] - 2026-06-15
@@ -407,13 +407,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Internal code organisation improvements (no user-facing changes).
+- Internal code organization improvements (no user-facing changes).
 
 ## [1.2.1] - 2026-06-13
 
 ### Changed
 
-- Internal code organisation improvements (no user-facing changes).
+- Internal code organization improvements (no user-facing changes).
 
 ## [1.2.0] - 2026-06-12
 
