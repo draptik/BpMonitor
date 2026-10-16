@@ -32,7 +32,7 @@ Claiming an account requires a **one-time setup code**.
   - **Create member / reset password** (admin): the response page shows the code once
     (`Cache-Control: no-store`) instead of redirecting to `/members`.
   - **Startup:** after migrations and optional demo seeding, every `NoCredential` member gets a
-    code, logged once at Information level (`Setup code for member "Me" (Id=1): K7QX-M2PA`).
+    code, logged once at Information level (`Setup code for member Me (Id=1): K7QX-M2PA`).
     This one mechanism covers a fresh install, upgrades and demo data.
 - **No expiry:** a code is valid until it's used or replaced by a reset.
 - **Claim page:** asks for setup code, new password and confirmation. A wrong code returns 401.

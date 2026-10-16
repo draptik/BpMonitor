@@ -21,3 +21,16 @@ module SetupCode =
   /// Ignores case, dashes and spaces in `code`.
   let verify (code: string) (encoded: string) : bool =
     PasswordHashing.verify (normalize code) encoded
+
+  /// Issues a code to every member without a credential (fresh install, upgrade, demo data).
+  /// Returns each updated member with its plaintext code; nothing else is touched.
+  let issueMissing (members: FamilyMember list) : (FamilyMember * string) list =
+    members
+    |> List.filter (fun m -> m.Credential = NoCredential)
+    |> List.map (fun m ->
+      let code = generate ()
+
+      { m with
+          Credential = PendingSetup(hash code)
+      },
+      code)

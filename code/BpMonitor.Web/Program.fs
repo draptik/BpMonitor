@@ -158,6 +158,13 @@ let main args =
         TimeProvider.System
         true
 
+    // Members without a credential can't be claimed until they get a setup code (ADR 0012).
+    let memberRepo = sp.GetRequiredService<IFamilyMemberRepository>()
+
+    for m, code in SetupCode.issueMissing (memberRepo.GetAll()) do
+      memberRepo.Update m
+      Log.Information("Setup code for member {Name} (Id={Id}): {SetupCode}", m.Name, m.Id, code)
+
     // One structured log line per request (method, path, status, elapsed ms).
     // Successful /health polls are dropped to Verbose (below the configured minimum
     // level) so a container HEALTHCHECK doesn't flood stdout; a failing probe still
