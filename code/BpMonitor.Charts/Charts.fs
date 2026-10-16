@@ -641,6 +641,7 @@ module BpChart =
 
   // Hash each distinct name to a slot, then linear-probe past slots already taken by an
   // earlier name — a restarted medication (same name, two rows) keeps a single color.
+  // Once every slot is taken, colors repeat rather than probing forever.
   let private assignSlots (names: string list) : int list =
     let taken = System.Collections.Generic.HashSet<int>()
     let assigned = System.Collections.Generic.Dictionary<string, int>()
@@ -648,7 +649,7 @@ module BpChart =
     for name in List.distinct names do
       let mutable slot = medicationSlot name
 
-      while taken.Contains slot do
+      while taken.Count < medicationPalette.Length && taken.Contains slot do
         slot <- (slot + 1) % medicationPalette.Length
 
       taken.Add slot |> ignore

@@ -429,9 +429,14 @@ module ReadingHandlers =
         let log = logger ctx
         log.LogWarning("updateReading: reading {Id} not found for member {MemberId}", id, m.Id)
         notFound ctx
-      | Some _ ->
+      | Some existing ->
         submit ctx s "" m.Name m.IsAdmin s.Reading.EditReadingTitle (Routes.readingUpdate id) Routes.history (fun r ->
-          (repo ctx).Update { r with Id = id; MemberId = m.Id }))
+          (repo ctx).Update
+            { r with
+                Id = id
+                MemberId = m.Id
+                CreatedAt = existing.CreatedAt
+            }))
 
   // ── Export ──
 

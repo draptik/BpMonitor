@@ -1,12 +1,34 @@
 namespace BpMonitor.Core
 
-/// ISO-8601 week-numbering year + week (week 1..53).
+/// A year DateTime can represent (1..9999).
+type CalendarYear = private CalendarYear of int
+
+module CalendarYear =
+  let tryCreate (year: int) : CalendarYear option =
+    if year >= 1 && year <= 9999 then
+      Some(CalendarYear year)
+    else
+      None
+
+  let value (CalendarYear year) = year
+
+/// ISO-8601 week-numbering year + week (1..weeks in that year), valid by construction.
 /// NB: Year is the ISO week-numbering year, which can differ from the calendar
 /// year near year boundaries (e.g., 29 Dec 2025 can belong to ISO week 2026-W01).
-type IsoWeek = { Year: int; Week: int }
+type IsoWeek =
+  private
+    {
+      Year: CalendarYear
+      Week: int
+    }
 
-/// Calendar year + month (month 1..12).
-type YearMonth = { Year: int; Month: int }
+/// Calendar year + month (month 1..12), valid by construction.
+type YearMonth =
+  private
+    {
+      Year: CalendarYear
+      Month: int
+    }
 
 type Granularity =
   | Weekly
@@ -40,14 +62,39 @@ module IsoWeek =
   open System
   open System.Globalization
 
+  let tryCreate (year: CalendarYear) (week: int) : IsoWeek option =
+    if week >= 1 && week <= ISOWeek.GetWeeksInYear(CalendarYear.value year) then
+      Some { Year = year; Week = week }
+    else
+      None
+
+  // Every DateTime falls in an ISO year within 1..9999, so no validation is needed here.
   let ofDate (d: DateTime) : IsoWeek =
     {
-      Year = ISOWeek.GetYear(d)
-      Week = ISOWeek.GetWeekOfYear(d)
+      Year = CalendarYear(ISOWeek.GetYear d)
+      Week = ISOWeek.GetWeekOfYear d
     }
 
   let monday (w: IsoWeek) : DateTime =
-    ISOWeek.ToDateTime(w.Year, w.Week, DayOfWeek.Monday)
+    ISOWeek.ToDateTime(CalendarYear.value w.Year, w.Week, DayOfWeek.Monday)
+
+module YearMonth =
+  open System
+
+  let tryCreate (year: CalendarYear) (month: int) : YearMonth option =
+    if month >= 1 && month <= 12 then
+      Some { Year = year; Month = month }
+    else
+      None
+
+  let ofDate (d: DateTime) : YearMonth =
+    {
+      Year = CalendarYear d.Year
+      Month = d.Month
+    }
+
+  let firstDay (ym: YearMonth) : DateTime =
+    DateTime(CalendarYear.value ym.Year, ym.Month, 1)
 
 module TrendPeriod =
   open System
@@ -56,7 +103,8 @@ module TrendPeriod =
   let private localMidnight (date: DateTime) : DateTimeOffset =
     DateTimeOffset(date, TimeZoneInfo.Local.GetUtcOffset(date))
 
-  let private isoWeekKey (w: IsoWeek) = $"{w.Year}-W{w.Week:D2}"
+  let private isoWeekKey (w: IsoWeek) =
+    $"{CalendarYear.value w.Year}-W{w.Week:D2}"
 
   /// Matches a string that parses as an int.
   let private (|Int|_|) (s: string) : int option =
@@ -64,25 +112,36 @@ module TrendPeriod =
     | true, v -> Some v
     | _ -> None
 
+  /// Matches a string that parses as a year DateTime can represent.
+  let private (|YearText|_|) (s: string) : CalendarYear option =
+    match s with
+    | Int year -> CalendarYear.tryCreate year
+    | _ -> None
+
   let private parseIsoWeekKey (key: string) : IsoWeek option =
     match key.Split('-') with
-    | [| Int year; w |] when w.Length >= 2 && w[0] = 'W' ->
+    | [| YearText year; w |] when w.Length >= 2 && w[0] = 'W' ->
       match w[1..] with
-      | Int week when week >= 1 && week <= 53 -> Some { Year = year; Week = week }
+      | Int week -> IsoWeek.tryCreate year week
       | _ -> None
     | _ -> None
 
-  let private monthKey (ym: YearMonth) = $"{ym.Year}-{ym.Month:D2}"
+  let private monthKey (ym: YearMonth) =
+    $"{CalendarYear.value ym.Year}-{ym.Month:D2}"
 
   let private parseMonthKey (key: string) : YearMonth option =
     match key.Split('-') with
-    | [| Int year; Int month |] when month >= 1 && month <= 12 -> Some { Year = year; Month = month }
+    | [| YearText year; Int month |] -> YearMonth.tryCreate year month
     | _ -> None
 
-  let private parseYearKey (key: string) : int option =
+  let private parseYearKey (key: string) : CalendarYear option =
     match key with
-    | Int year when year >= 1000 && year <= 9999 -> Some year
+    | YearText year -> Some year
     | _ -> None
+
+  /// Whether a period starting at `start` ends within DateTime (fails only in year 9999).
+  let private endFits (stepBack: DateTime -> DateTime) (start: DateTime) =
+    start <= stepBack DateTime.MaxValue.Date
 
   let private previousIsoWeek (w: IsoWeek) : IsoWeek =
     let prevMonday = (IsoWeek.monday w).AddDays(-7.0)
@@ -97,37 +156,25 @@ module TrendPeriod =
       if period = prev then
         LastWeek
       elif period.Year <> now.Year then
-        CalendarWeekOfYear(period.Week, period.Year)
+        CalendarWeekOfYear(period.Week, CalendarYear.value period.Year)
       else
         CalendarWeek period.Week
 
   let private monthLabel (ym: YearMonth) (now: DateTimeOffset) : PeriodLabel =
     let local = now.ToLocalTime()
 
-    let nowYm =
-      {
-        Year = local.Year
-        Month = local.Month
-      }
+    let nowYm = YearMonth.ofDate local.Date
 
     if ym = nowYm then
       ThisMonth
+    elif ym = YearMonth.ofDate ((YearMonth.firstDay nowYm).AddMonths(-1)) then
+      LastMonth
     else
-      let prevDate = DateTime(local.Year, local.Month, 1).AddMonths(-1)
+      MonthOfYear(ym.Month, CalendarYear.value ym.Year)
 
-      let prevYm =
-        {
-          Year = prevDate.Year
-          Month = prevDate.Month
-        }
-
-      if ym = prevYm then
-        LastMonth
-      else
-        MonthOfYear(ym.Month, ym.Year)
-
-  let private yearLabel (year: int) (now: DateTimeOffset) : PeriodLabel =
+  let private yearLabel (calendarYear: CalendarYear) (now: DateTimeOffset) : PeriodLabel =
     let local = now.ToLocalTime()
+    let year = CalendarYear.value calendarYear
 
     if year = local.Year then ThisYear
     elif year = local.Year - 1 then LastYear
@@ -165,13 +212,8 @@ module TrendPeriod =
       }
 
     | Monthly ->
-      let ym =
-        {
-          Year = local.Year
-          Month = local.Month
-        }
-
-      let start = DateTime(ym.Year, ym.Month, 1)
+      let ym = YearMonth.ofDate local.Date
+      let start = YearMonth.firstDay ym
 
       {
         Granularity = Monthly
@@ -198,6 +240,7 @@ module TrendPeriod =
     match gran with
     | Weekly ->
       parseIsoWeekKey key
+      |> Option.filter (IsoWeek.monday >> endFits _.AddDays(-7.0))
       |> Option.map (fun w ->
         let monday = IsoWeek.monday w
         let nowW = IsoWeek.ofDate local.Date
@@ -212,8 +255,9 @@ module TrendPeriod =
 
     | Monthly ->
       parseMonthKey key
+      |> Option.filter (YearMonth.firstDay >> endFits _.AddMonths(-1))
       |> Option.map (fun ym ->
-        let start = DateTime(ym.Year, ym.Month, 1)
+        let start = YearMonth.firstDay ym
 
         {
           Granularity = Monthly
@@ -225,11 +269,14 @@ module TrendPeriod =
 
     | Yearly ->
       parseYearKey key
-      |> Option.map (fun year ->
+      |> Option.filter (fun y -> endFits _.AddYears(-1) (DateTime(CalendarYear.value y, 1, 1)))
+      |> Option.map (fun calendarYear ->
+        let year = CalendarYear.value calendarYear
+
         {
           Granularity = Yearly
           Key = key
-          Label = yearLabel year now
+          Label = yearLabel calendarYear now
           Start = localMidnight (DateTime(year, 1, 1))
           EndExclusive = localMidnight (DateTime(year + 1, 1, 1))
         })

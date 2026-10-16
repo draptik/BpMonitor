@@ -215,6 +215,27 @@ let ``updateReading saves changes and redirects`` () =
   test <@ updated.Systolic = 111 && updated.Comments = Some "updated" @>
 
 [<Fact>]
+let ``updateReading keeps the reading's original CreatedAt`` () =
+  let createdAt = System.DateTimeOffset(2026, 5, 1, 9, 5, 0, System.TimeSpan.Zero)
+  let repo = repoWith [ { sample with CreatedAt = createdAt } ]
+  let ctx = TestHost.context repo
+  TestHost.setRouteId ctx 1
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.timestamp, "2026-05-01 09:00"
+      FormFields.systolic, "111"
+      FormFields.diastolic, "70"
+      FormFields.heartRate, "60"
+      FormFields.comments, ""
+    ]
+
+  TestHost.run ReadingHandlers.updateReading ctx
+
+  test <@ (repo.GetAll(defaultMemberId) |> List.exactlyOne).CreatedAt = createdAt @>
+
+[<Fact>]
 let ``updateReading returns 404 for an unknown id`` () =
   let repo = repoWith [ sample ]
   let ctx = TestHost.context repo
