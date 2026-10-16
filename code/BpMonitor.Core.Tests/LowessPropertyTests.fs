@@ -1,26 +1,26 @@
 module LowessPropertyTests
 
+open System
 open FsCheck
 open FsCheck.FSharp
 open FsCheck.Xunit
 open BpMonitor.Core
 open Generators
 
+let private bandwidthGen = Gen.choose (1, 100) |> Gen.map (fun p -> float p / 100.0)
+
 [<Property>]
 let ``smooth never returns NaN or Infinity for any finite series and bandwidth`` () =
-  let arb =
-    Arb.fromGen (Gen.zip clusteredSeriesGen (Gen.choose (1, 100) |> Gen.map (fun p -> float p / 100.0)))
+  let arb = Arb.fromGen (Gen.zip clusteredSeriesGen bandwidthGen)
 
   Prop.forAll arb (fun ((xs, ys), bandwidth) ->
     let result = Lowess.smooth bandwidth xs ys
 
-    List.length result = List.length ys
-    && result
-       |> List.forall (fun y -> not (System.Double.IsNaN y || System.Double.IsInfinity y)))
+    List.length result = List.length ys && result |> List.forall Double.IsFinite)
 
-// With ties at the k-th distance, Reference.smooth (unstable sort) picks an arbitrary
+// With ties at the neighborhood radius, Reference.smooth (unstable sort) picks an arbitrary
 // subset, so only inputs without such ties can be compared with it. Distinct x values
-// make them rare; `hasTieAtNeighbourDistance` skips the rest (e.g. 4 and 6 around 5).
+// make them rare; `hasTieAtNeighborDistance` skips the rest (e.g. 4 and 6 around 5).
 let private distinctSeriesGen: Gen<float list * float list> =
   gen {
     let! n = Gen.choose (3, 40)
@@ -34,48 +34,41 @@ let private distinctSeriesGen: Gen<float list * float list> =
     return xs, ys
   }
 
-let private hasTieAtNeighbourDistance (bandwidth: float) (xs: float list) =
+let private hasTieAtNeighborDistance (bandwidth: float) (xs: float list) =
   let n = List.length xs
   let k = max 2 (int (ceil (bandwidth * float n)))
 
   xs
   |> List.exists (fun xi ->
-    let dists = xs |> List.map (fun x -> abs (x - xi)) |> List.sort
-    let dk = dists[k - 1]
-    (dists |> List.filter (fun d -> d <= dk) |> List.length) > k)
+    let sortedDistances = xs |> List.map (fun x -> abs (x - xi)) |> List.sort
+    let neighborhoodRadius = sortedDistances[k - 1]
 
-// At least half the points fitted exactly: the robustness scale is then 0 in one
-// implementation and float noise in the other, which flips the bisquare weights.
-let private nearExactFit (ys: float list) (fit: float list) =
-  (List.map2 (fun (y: float) f -> abs (y - f) < 1e-6) ys fit
-   |> List.filter id
-   |> List.length)
-  * 2
-  >= List.length ys
+    let pointsWithinRadius =
+      sortedDistances |> List.filter (fun d -> d <= neighborhoodRadius) |> List.length
 
-// Compared without robustifying iterations: those are discontinuous (a residual just past
-// the bisquare cutoff drops a point entirely), so float noise from a different summation
-// order can flip them. The neighbour selection and weighted fit — what changed — can't.
+    pointsWithinRadius > k)
+
+let private nearlyEqual (a: float) (b: float) = abs (a - b) <= 1e-9
+
+// Oracle test comparing the old reference implementation with the improved sliding-window implementation.
 [<Property>]
-let ``smoothWith 0 matches the reference implementation for inputs without ties`` () =
-  let arb =
-    Arb.fromGen (Gen.zip distinctSeriesGen (Gen.choose (1, 100) |> Gen.map (fun p -> float p / 100.0)))
+let ``smoothWith 0 matches the reference implementation oracle for inputs without ties`` () =
+  let arb = Arb.fromGen (Gen.zip distinctSeriesGen bandwidthGen)
 
   Prop.forAll arb (fun ((xs, ys), bandwidth) ->
-    hasTieAtNeighbourDistance bandwidth xs
-    || List.forall2
-      (fun (a: float) b -> abs (a - b) <= 1e-9)
-      (Lowess.smoothWith 0 bandwidth xs ys)
-      (Lowess.Reference.smoothWith 0 bandwidth xs ys))
+    let improved = Lowess.smoothWith 0 bandwidth xs ys
+    let oracle = Lowess.Reference.smoothWith 0 bandwidth xs ys
 
-// Ties at the k-th distance (e.g. several readings on one day) all count instead of an
+    hasTieAtNeighborDistance bandwidth xs
+    || List.forall2 nearlyEqual improved oracle)
+
+// Ties at the neighborhood radius (e.g. several readings on one day) all count instead of an
 // arbitrary subset, so the result can't depend on the order the readings arrive in.
 [<Property>]
 let ``smoothWith 0 does not depend on the input order, even with many readings on one day`` () =
-  let arb =
-    Arb.fromGen (Gen.zip clusteredSeriesGen (Gen.choose (1, 100) |> Gen.map (fun p -> float p / 100.0)))
+  let arb = Arb.fromGen (Gen.zip clusteredSeriesGen bandwidthGen)
 
   Prop.forAll arb (fun ((xs, ys), bandwidth) ->
     let forward = Lowess.smoothWith 0 bandwidth xs ys
     let backward = Lowess.smoothWith 0 bandwidth (List.rev xs) (List.rev ys) |> List.rev
-    List.forall2 (fun (a: float) b -> abs (a - b) <= 1e-9) forward backward)
+    List.forall2 nearlyEqual forward backward)
