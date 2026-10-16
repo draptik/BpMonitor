@@ -148,6 +148,7 @@ type ErrorStrings =
     NotAValidDateTime: string -> string
     NotAValidDate: string -> string -> string
     NameIsEmpty: string
+    NameAlreadyTaken: string
     AtLeastOneActiveAdmin: string
     SystolicMinMustBeLessThanMax: string
     DiastolicMinMustBeLessThanMax: string
@@ -333,6 +334,7 @@ module LocalizedStrings =
           NotAValidDateTime = fun value -> $"Timestamp: '{value}' is not a valid date/time"
           NotAValidDate = fun label value -> $"{label}: '{value}' is not a valid date (expected dd.mm.yyyy)"
           NameIsEmpty = "Name cannot be empty"
+          NameAlreadyTaken = "A member with this name already exists"
           AtLeastOneActiveAdmin = "At least one member must be an active admin"
           SystolicMinMustBeLessThanMax = "Systolic min must be less than systolic max"
           DiastolicMinMustBeLessThanMax = "Diastolic min must be less than diastolic max"
@@ -502,6 +504,7 @@ module LocalizedStrings =
           NotAValidDateTime = fun value -> $"Zeitstempel: '{value}' ist kein gültiges Datum/keine gültige Uhrzeit"
           NotAValidDate = fun label value -> $"{label}: '{value}' ist kein gültiges Datum (erwartet: dd.mm.yyyy)"
           NameIsEmpty = "Name darf nicht leer sein"
+          NameAlreadyTaken = "Ein Mitglied mit diesem Namen existiert bereits"
           AtLeastOneActiveAdmin = "Mindestens ein Mitglied muss ein aktiver Admin sein"
           SystolicMinMustBeLessThanMax = "Systolisch min muss kleiner sein als Systolisch max"
           DiastolicMinMustBeLessThanMax = "Diastolisch min muss kleiner sein als Diastolisch max"

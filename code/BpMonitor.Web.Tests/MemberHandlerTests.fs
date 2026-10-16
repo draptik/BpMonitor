@@ -52,6 +52,19 @@ let ``createMember without IsAdmin checkbox persists a non-admin member`` () =
   test <@ added.IsAdmin = false @>
 
 [<Fact>]
+let ``createMember rejects a name another member already has, ignoring case`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Bart" ]
+
+  TestHost.setForm ctx [ FormFields.name, "bart" ]
+  TestHost.run MemberHandlers.createMember ctx
+
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ (TestHost.readBody ctx).Contains "already" @>
+  let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+  test <@ memberRepo.GetAll().Length = 1 @>
+
+[<Fact>]
 let ``editMember prefills the form for an existing member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Me" ]
@@ -93,6 +106,30 @@ let ``updateMember saves changes and redirects to /members`` () =
 
   let updated = memberRepo.GetAll() |> List.exactlyOne
   test <@ updated.Name = "Myself" @>
+
+[<Fact>]
+let ``updateMember rejects renaming a member to another member's name`` () =
+  let repo = repoWith []
+
+  let ctx =
+    TestHost.contextWithMembers repo [ adminMember 1 "Me"; adminMember 2 "Alice" ]
+
+  TestHost.setRouteId ctx 1
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.name, "ALICE"
+      FormFields.isAdmin, "on"
+      FormFields.isActive, "on"
+    ]
+
+  TestHost.run MemberHandlers.updateMember ctx
+
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ (TestHost.readBody ctx).Contains "already" @>
+  let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+  test <@ (memberRepo.GetById 1).Value.Name = "Me" @>
 
 [<Fact>]
 let ``updateMember rejects demoting the last active admin with 422`` () =
