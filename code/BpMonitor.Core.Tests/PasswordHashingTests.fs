@@ -45,6 +45,17 @@ let ``verify returns false when the hash segment is not valid base64`` () =
   test <@ not (PasswordHashing.verify "any" "310000.AAAA.not-valid-base64!") @>
 
 [<Fact>]
+let ``verify returns false when the hash segment is empty`` () =
+  test <@ not (PasswordHashing.verify "any" "310000.AAAA.") @>
+
+[<Fact>]
+let ``verify returns false when the hash segment is shorter than 32 bytes`` () =
+  let parts = (PasswordHashing.hash "secret").Split('.')
+  let firstByte = System.Convert.FromBase64String(parts[2])[..0]
+  let truncated = $"{parts[0]}.{parts[1]}.{System.Convert.ToBase64String firstByte}"
+  test <@ not (PasswordHashing.verify "secret" truncated) @>
+
+[<Fact>]
 let ``verify returns false when hash section is tampered`` () =
   let encoded = PasswordHashing.hash "secret"
   let parts = encoded.Split('.')
