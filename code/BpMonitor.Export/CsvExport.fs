@@ -3,10 +3,11 @@ module BpMonitor.Export.CsvExport
 open System.Text
 open BpMonitor.Core
 
-// Characters that spreadsheet apps (Excel, Sheets) interpret as formula prefixes.
+// Characters that spreadsheet apps (Excel, Sheets) interpret as formula prefixes
+// (OWASP's CSV-injection list; tab and CR because some importers strip them first).
 // A field starting with one of these would execute as a formula when the CSV is
 // opened, so we prepend an apostrophe to force text interpretation.
-let private formulaTriggers = [| '='; '+'; '-'; '@' |]
+let private formulaTriggers = [| '='; '+'; '-'; '@'; '\t'; '\r' |]
 
 // RFC 4180: quote a field if it contains a comma, double-quote, CR, or LF;
 // double any embedded double-quotes.

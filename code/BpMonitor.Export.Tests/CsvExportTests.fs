@@ -114,6 +114,7 @@ let ``tryWriteToFile returns Error when path is invalid`` () =
 [<InlineData("+1+1")>]
 [<InlineData("-1+2")>]
 [<InlineData("@SUM(A1)")>]
+[<InlineData("\t=1+1")>]
 let ``serialize prefixes formula-trigger comments to prevent spreadsheet injection`` (comment: string) =
   let r = { reading with Comments = Some comment }
   let csv = serialize [ r ]
@@ -140,3 +141,14 @@ let ``serialize quotes and prefixes a formula-trigger comment that also contains
   let csv = serialize [ r ]
 
   test <@ csv.Contains "\"'=a,b\"" @>
+
+[<Fact>]
+let ``serialize quotes and prefixes a comment starting with a carriage return`` () =
+  let r =
+    { reading with
+        Comments = Some "\r=1+1"
+    }
+
+  let csv = serialize [ r ]
+
+  test <@ csv.Contains "\"'\r=1+1\"" @>
