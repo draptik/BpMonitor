@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.1] - 2026-10-16
+
 ### Changed
 
 - Recent view: the trend line is calculated much faster and with far less memory, especially with "Load full history".
-- **Deployment:** everyone is signed out once after the upgrade, because older login cookies can't be revoked.
+- **Deployment:** everyone is signed out once after the upgrade, because older login cookies can't be revoked. No database migration is needed.
+- **Deployment:** the minimum password length can be changed with the new setting `BpMonitor:MinPasswordLength` (default 8). See CONTRIBUTING.md.
 
 ### Security
 
@@ -539,7 +542,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.15.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.15.1...HEAD
+[1.15.1]: https://github.com/draptik/BpMonitor/compare/v1.15.0...v1.15.1
 [1.15.0]: https://github.com/draptik/BpMonitor/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/draptik/BpMonitor/compare/v1.13.2...v1.14.0
 [1.14.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.13.2...v1.14.0-rc1
