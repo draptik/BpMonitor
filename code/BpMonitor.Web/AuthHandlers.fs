@@ -47,10 +47,8 @@ module AuthHandlers =
   let claimsPrincipal (m: FamilyMember) : ClaimsPrincipal =
     let claims =
       [
-        yield Claim(ClaimTypes.NameIdentifier, string m.Id)
-        yield Claim(ClaimTypes.Name, m.Name)
-        if m.IsAdmin then
-          yield Claim(ClaimTypes.Role, "Admin")
+        Claim(ClaimTypes.NameIdentifier, string m.Id)
+        Claim(ClaimTypes.Name, m.Name)
       ]
 
     let identity =
