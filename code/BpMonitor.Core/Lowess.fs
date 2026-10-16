@@ -52,45 +52,161 @@ module Lowess =
         let a = meanY - b * meanX
         a + b * xi
 
+  /// The original implementation (sorts all n points for every point: O(n² log n) time,
+  /// n² allocations). Kept as the oracle for LowessPropertyTests and as the baseline in
+  /// BpMonitor.Benchmarks; production code uses `smooth`.
+  module Reference =
+    /// Smooths `ys` against `xs` using Cleveland's LOWESS: a tricube-weighted local linear
+    /// regression refined by robustifying iterations that downweight outlier residuals.
+    /// `bandwidth` is the fraction of points (0.0–1.0] included in each point's local
+    /// neighborhood. Returns one smoothed y per input x, in input order.
+    let smoothWith (iterations: int) (bandwidth: float) (xs: float list) (ys: float list) : float list =
+      let n = List.length xs
+
+      if n < 3 then
+        ys
+      else
+        let xs = List.toArray xs
+        let ys = List.toArray ys
+
+        // Number of neighbors considered for each point's local fit.
+        let k = max 2 (int (ceil (bandwidth * float n)))
+
+        // Each point's k nearest neighbors depend only on `xs`, not on the robustness
+        // weights — so they're identical across every robustifying iteration. Computed
+        // once here rather than re-sorting all n points per point on every iteration.
+        let neighbours =
+          Array.init n (fun i ->
+            let xi = xs[i]
+
+            Array.init n (fun j -> j, xs[j], ys[j], abs (xs[j] - xi))
+            |> Array.sortBy (fun (_, _, _, dist) -> dist)
+            |> Array.truncate k)
+
+        let fitAt (robustWeights: float array) (i: int) =
+          let xi = xs[i]
+          let pointNeighbours = neighbours[i]
+
+          let maxDist =
+            pointNeighbours |> Array.map (fun (_, _, _, dist) -> dist) |> Array.max
+
+          let points =
+            pointNeighbours
+            |> Array.map (fun (j, x, y, dist) -> tricube maxDist dist * robustWeights[j], x, y)
+
+          weightedLinearFitAt xi points
+
+        let rec iterate (robustWeights: float array) (remaining: int) =
+          let fitted = Array.init n (fitAt robustWeights)
+
+          if remaining = 0 then
+            fitted
+          else
+            let residuals = Array.map2 (fun y f -> abs (y - f)) ys fitted
+            let medianAbsResidual = residuals |> Array.sort |> (fun r -> r[r.Length / 2])
+            let scale = 6.0 * medianAbsResidual
+            let nextWeights = residuals |> Array.map (bisquare scale)
+            iterate nextWeights (remaining - 1)
+
+        iterate (Array.create n 1.0) iterations |> Array.toList
+
+    let smooth bandwidth xs ys =
+      smoothWith robustnessIterations bandwidth xs ys
+
   /// Smooths `ys` against `xs` using Cleveland's LOWESS: a tricube-weighted local linear
   /// regression refined by robustifying iterations that downweight outlier residuals.
   /// `bandwidth` is the fraction of points (0.0–1.0] included in each point's local
   /// neighborhood. Returns one smoothed y per input x, in input order.
-  let smooth (bandwidth: float) (xs: float list) (ys: float list) : float list =
+  ///
+  /// Works on the points sorted by x, where each point's k nearest neighbours form a
+  /// contiguous window found by expanding outwards (O(n·k) time, O(n) extra memory).
+  /// The window takes every point up to the k-th distance, ties included, so the result
+  /// never depends on input order (e.g. several readings on one day).
+  let smoothWith (iterations: int) (bandwidth: float) (xs: float list) (ys: float list) : float list =
     let n = List.length xs
 
     if n < 3 then
       ys
     else
-      let xs = List.toArray xs
-      let ys = List.toArray ys
-
-      // Number of neighbors considered for each point's local fit.
+      let xsIn = List.toArray xs
+      let ysIn = List.toArray ys
+      let order = Array.init n id |> Array.sortBy (fun i -> xsIn[i])
+      let sx = order |> Array.map (fun i -> xsIn[i])
+      let sy = order |> Array.map (fun i -> ysIn[i])
       let k = max 2 (int (ceil (bandwidth * float n)))
 
-      // Each point's k nearest neighbors depend only on `xs`, not on the robustness
-      // weights — so they're identical across every robustifying iteration. Computed
-      // once here rather than re-sorting all n points per point on every iteration.
-      let neighbours =
-        Array.init n (fun i ->
-          let xi = xs[i]
+      // Window [lo, hi] (positions in sorted order) and its largest distance, per point.
+      let windows =
+        Array.init n (fun p ->
+          let xi = sx[p]
+          let mutable lo = p
+          let mutable hi = p
 
-          Array.init n (fun j -> j, xs[j], ys[j], abs (xs[j] - xi))
-          |> Array.sortBy (fun (_, _, _, dist) -> dist)
-          |> Array.truncate k)
+          for _ in 2 .. min k n do
+            if hi = n - 1 || (lo > 0 && xi - sx[lo - 1] <= sx[hi + 1] - xi) then
+              lo <- lo - 1
+            else
+              hi <- hi + 1
 
-      let fitAt (robustWeights: float array) (i: int) =
-        let xi = xs[i]
-        let pointNeighbours = neighbours[i]
+          let maxDist = max (xi - sx[lo]) (sx[hi] - xi)
 
-        let maxDist =
-          pointNeighbours |> Array.map (fun (_, _, _, dist) -> dist) |> Array.max
+          // Ties at the k-th distance: take them all rather than an arbitrary subset.
+          while lo > 0 && xi - sx[lo - 1] <= maxDist do
+            lo <- lo - 1
 
-        let points =
-          pointNeighbours
-          |> Array.map (fun (j, x, y, dist) -> tricube maxDist dist * robustWeights[j], x, y)
+          while hi < n - 1 && sx[hi + 1] - xi <= maxDist do
+            hi <- hi + 1
 
-        weightedLinearFitAt xi points
+          lo, hi, maxDist)
+
+      // Same weighted linear fit as `weightedLinearFitAt`, summed in place over the window
+      // and centred on xi: same-day points then have dx exactly 0, so sxx is exactly 0
+      // for them instead of float noise that would turn the slope into garbage.
+      // Reused across fits (they run one after another): each neighbour's weight, computed once.
+      let weights = Array.zeroCreate n
+
+      let fitAt (robustWeights: float array) (p: int) =
+        let lo, hi, maxDist = windows[p]
+        let xi = sx[p]
+        let mutable sumW = 0.0
+        let mutable sumWDx = 0.0
+        let mutable sumWY = 0.0
+
+        for q in lo..hi do
+          // tricube, multiplied out: `**` (Math.Pow) dominated the run time.
+          let w =
+            if maxDist = 0.0 then
+              robustWeights[q]
+            else
+              let u = abs (sx[q] - xi) / maxDist
+              let t = 1.0 - u * u * u
+              t * t * t * robustWeights[q]
+
+          weights[q] <- w
+          sumW <- sumW + w
+          sumWDx <- sumWDx + w * (sx[q] - xi)
+          sumWY <- sumWY + w * sy[q]
+
+        if sumW = 0.0 then
+          let mutable sumY = 0.0
+
+          for q in lo..hi do
+            sumY <- sumY + sy[q]
+
+          sumY / float (hi - lo + 1)
+        else
+          let meanDx = sumWDx / sumW
+          let meanY = sumWY / sumW
+          let mutable sxx = 0.0
+          let mutable sxy = 0.0
+
+          for q in lo..hi do
+            let w = weights[q]
+            let dx = sx[q] - xi - meanDx
+            sxx <- sxx + w * dx * dx
+            sxy <- sxy + w * dx * (sy[q] - meanY)
+
+          if sxx = 0.0 then meanY else meanY - (sxy / sxx) * meanDx
 
       let rec iterate (robustWeights: float array) (remaining: int) =
         let fitted = Array.init n (fitAt robustWeights)
@@ -98,10 +214,27 @@ module Lowess =
         if remaining = 0 then
           fitted
         else
-          let residuals = Array.map2 (fun y f -> abs (y - f)) ys fitted
-          let medianAbsResidual = residuals |> Array.sort |> (fun r -> r[r.Length / 2])
-          let scale = 6.0 * medianAbsResidual
-          let nextWeights = residuals |> Array.map (bisquare scale)
-          iterate nextWeights (remaining - 1)
+          let residuals = Array.map2 (fun y f -> abs (y - f)) sy fitted
+          let medianAbsResidual = Array.sort residuals |> (fun r -> r[r.Length / 2])
+          // A near-exact fit leaves a median of float noise (~1e-14) rather than 0.0;
+          // treat it as 0, or bisquare would zero almost every weight.
+          let scale =
+            if medianAbsResidual < 1e-9 then
+              0.0
+            else
+              6.0 * medianAbsResidual
 
-      iterate (Array.create n 1.0) robustnessIterations |> Array.toList
+          iterate (residuals |> Array.map (bisquare scale)) (remaining - 1)
+
+      // Back from sorted positions to input order.
+      let smoothed = iterate (Array.create n 1.0) iterations
+      let result = Array.zeroCreate n
+
+      for p in 0 .. n - 1 do
+        result[order[p]] <- smoothed[p]
+
+      List.ofArray result
+
+  /// LOWESS with the standard three robustifying iterations (see `smoothWith`).
+  let smooth bandwidth xs ys =
+    smoothWith robustnessIterations bandwidth xs ys

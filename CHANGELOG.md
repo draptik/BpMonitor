@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Recent view: the trend line is calculated much faster and with far less memory, especially with "Load full history".
 - **Deployment:** everyone is signed out once after the upgrade, because older login cookies can't be revoked.
 
 ### Security

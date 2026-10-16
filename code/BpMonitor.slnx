@@ -45,6 +45,7 @@
     <File Path="..\TODOs.md" />
   </Folder>
   <Project Path="BpMonitor.Arch.Tests/BpMonitor.Arch.Tests.fsproj" />
+  <Project Path="BpMonitor.Benchmarks/BpMonitor.Benchmarks.fsproj" />
   <Project Path="BpMonitor.Charts/BpMonitor.Charts.fsproj" />
   <Project Path="BpMonitor.Charts.Tests/BpMonitor.Charts.Tests.fsproj" />
   <Project Path="BpMonitor.Core.Tests/BpMonitor.Core.Tests.fsproj" />

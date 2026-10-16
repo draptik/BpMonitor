@@ -33,6 +33,11 @@ run = "renovate-config-validator --strict"
 [tasks.lint]
 depends = ["lint:md", "lint:js", "lint:ts", "lint:shell", "lint:actions", "lint:renovate"]
 
+[tasks.bench]
+description = "Runs the BenchmarkDotNet suite (BpMonitor.Benchmarks); pass `-- --job short` for a quick run"
+dir = "code"
+run = "dotnet run -c Release --project BpMonitor.Benchmarks -- --filter '*'"
+
 [tasks.screenshots]
 description = "Regenerates docs/screenshots/*.png from a fresh self-seeded demo instance (run before cutting a release)"
 # Builds BpMonitor.Web.E2E.Tests first so its Microsoft.Playwright.dll is present and
