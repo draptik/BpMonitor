@@ -78,3 +78,17 @@ let ``view encodes user-supplied content`` () =
 
   test <@ not (html.Contains "<script>x</script>") @>
   test <@ html.Contains "&lt;script&gt;" @>
+
+[<Fact>]
+let ``edit form encodes quotes in the comment's value attribute`` () =
+  let reading =
+    { sample with
+        Comments = Some "x\" onmouseover=\"alert(1)"
+    }
+
+  let html =
+    renderHtml (
+      ReadingViews.readingForm s "" "Me" true "Edit reading" (Routes.readingUpdate 7) [] (Binding.ofReading reading)
+    )
+
+  test <@ html.Contains "value=\"x&quot; onmouseover=&quot;alert(1)\"" @>
