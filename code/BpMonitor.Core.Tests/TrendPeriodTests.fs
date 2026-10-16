@@ -263,6 +263,18 @@ let ``ofKey Yearly: invalid key returns None`` () =
 let ``ofKey Yearly: year 9999 returns None`` () =
   test <@ TrendPeriod.ofKey Yearly "9999" now = None @>
 
+// A period starting on 0001-01-01 can't be built east of UTC: its local midnight is
+// before DateTimeOffset.MinValue in UTC. Rejected regardless of the time zone.
+[<Fact>]
+let ``ofKey rejects periods that start on the first day DateTime can represent`` () =
+  test <@ TrendPeriod.ofKey Yearly "1" now = None @>
+  test <@ TrendPeriod.ofKey Monthly "1-01" now = None @>
+  test <@ TrendPeriod.ofKey Weekly "1-W01" now = None @>
+
+[<Fact>]
+let ``ofKey still accepts the second week of year 1`` () =
+  test <@ (TrendPeriod.ofKey Weekly "1-W02" now).IsSome @>
+
 // ── available ─────────────────────────────────────────────────────────────────
 // Fixed window: 12 weeks, 12 months, 5 years — always shown regardless of readings.
 // Chronological order: oldest first (left), newest/current last (right).

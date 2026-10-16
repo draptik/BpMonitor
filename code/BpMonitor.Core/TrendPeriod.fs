@@ -143,6 +143,10 @@ module TrendPeriod =
   let private endFits (stepBack: DateTime -> DateTime) (start: DateTime) =
     start <= stepBack DateTime.MaxValue.Date
 
+  /// Whether local midnight of `start` is a valid DateTimeOffset in every time zone:
+  /// on 0001-01-01 it falls before DateTimeOffset.MinValue east of UTC.
+  let private startFits (start: DateTime) = start > DateTime.MinValue.Date
+
   let private previousIsoWeek (w: IsoWeek) : IsoWeek =
     let prevMonday = (IsoWeek.monday w).AddDays(-7.0)
     IsoWeek.ofDate prevMonday
@@ -240,7 +244,7 @@ module TrendPeriod =
     match gran with
     | Weekly ->
       parseIsoWeekKey key
-      |> Option.filter (IsoWeek.monday >> endFits _.AddDays(-7.0))
+      |> Option.filter (IsoWeek.monday >> fun d -> startFits d && endFits _.AddDays(-7.0) d)
       |> Option.map (fun w ->
         let monday = IsoWeek.monday w
         let nowW = IsoWeek.ofDate local.Date
@@ -255,7 +259,7 @@ module TrendPeriod =
 
     | Monthly ->
       parseMonthKey key
-      |> Option.filter (YearMonth.firstDay >> endFits _.AddMonths(-1))
+      |> Option.filter (YearMonth.firstDay >> fun d -> startFits d && endFits _.AddMonths(-1) d)
       |> Option.map (fun ym ->
         let start = YearMonth.firstDay ym
 
@@ -269,7 +273,9 @@ module TrendPeriod =
 
     | Yearly ->
       parseYearKey key
-      |> Option.filter (fun y -> endFits _.AddYears(-1) (DateTime(CalendarYear.value y, 1, 1)))
+      |> Option.filter (fun y ->
+        let d = DateTime(CalendarYear.value y, 1, 1)
+        startFits d && endFits _.AddYears(-1) d)
       |> Option.map (fun calendarYear ->
         let year = CalendarYear.value calendarYear
 
