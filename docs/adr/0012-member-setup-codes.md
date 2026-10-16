@@ -23,7 +23,7 @@ Claiming an account requires a **one-time setup code**.
   - `NoCredential` — no password and no code (a fresh `Me` row, a pre-upgrade unclaimed member,
     or a demo member). Can't be claimed; exists only until the startup step below runs.
 - **Code format:** 8 characters from `ABCDEFGHJKMNPQRSTVWXYZ23456789` (no look-alikes such as
-  `0`/`O` or `1`/`I`/`L`), shown as `K7QX-M2PA`; about 39 bits. Input is normalised (upper-case,
+  `0`/`O` or `1`/`I`/`L`), shown as `K7QX-M2PA`; about 39 bits. Input is normalized (upper-case,
   dashes and spaces removed) before checking, so `k7qx m2pa` works.
 - **Storage:** only a hash is stored, using the same PBKDF2 scheme as passwords
   (`PasswordHashing`), in a new `Members.SetupCodeHash` column (`TEXT NOT NULL DEFAULT ''`, via

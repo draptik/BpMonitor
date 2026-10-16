@@ -11,7 +11,7 @@ code/
 ├── BpMonitor.Data.Tests     # Integration tests for Data
 ├── BpMonitor.Charts         # Plotly.NET chart generation
 ├── BpMonitor.Charts.Tests   # Snapshot tests for Charts
-├── BpMonitor.Export         # JSON and CSV serialisation and file write
+├── BpMonitor.Export         # JSON and CSV serialization and file write
 ├── BpMonitor.Export.Tests   # Tests for Export
 ├── BpMonitor.Web            # Falco web app (dashboard, add, history pages)
 ├── BpMonitor.Web.Tests      # Tests for Web layer
@@ -171,8 +171,8 @@ graph TD
 
 ### BpMonitor.Export
 
-- JSON serialisation of `BloodPressureReading` lists (`JsonExport.serialize`, `JsonExport.tryWriteToFile`)
-- CSV serialisation of `BloodPressureReading` lists (`CsvExport.serialize`, `CsvExport.tryWriteToFile`)
+- JSON serialization of `BloodPressureReading` lists (`JsonExport.serialize`, `JsonExport.tryWriteToFile`)
+- CSV serialization of `BloodPressureReading` lists (`CsvExport.serialize`, `CsvExport.tryWriteToFile`)
 - Referenced by `BpMonitor.Web` to serve the `/export` (JSON) and `/export.csv` endpoints
 - Depends on Core only
 
