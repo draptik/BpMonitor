@@ -177,6 +177,9 @@ module AuthHandlers =
       elif password <> confirm then
         ctx.Response.StatusCode <- 422
         do! htmlResponse (LoginViews.loginMember s m [ s.Login.PasswordsDoNotMatch ]) ctx
+      elif password.Length < minPasswordLength ctx then
+        ctx.Response.StatusCode <- 422
+        do! htmlResponse (LoginViews.loginMember s m [ s.Login.PasswordTooShort(minPasswordLength ctx) ]) ctx
       else
         let hashed = PasswordHashing.hash password
         let claimed = { m with Credential = Password hashed }

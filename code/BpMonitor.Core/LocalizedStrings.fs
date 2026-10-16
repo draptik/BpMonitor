@@ -53,6 +53,7 @@ type LoginStrings =
     AccountInactive: string
     PasswordCannotBeEmpty: string
     PasswordsDoNotMatch: string
+    PasswordTooShort: int -> string
   }
 
 type ReadingPageStrings =
@@ -248,6 +249,7 @@ module LocalizedStrings =
           AccountInactive = "This account is inactive"
           PasswordCannotBeEmpty = "Password cannot be empty"
           PasswordsDoNotMatch = "Passwords do not match"
+          PasswordTooShort = fun n -> $"Password must be at least {n} characters"
         }
       Reading =
         {
@@ -426,6 +428,7 @@ module LocalizedStrings =
           AccountInactive = "Dieses Konto ist inaktiv"
           PasswordCannotBeEmpty = "Passwort darf nicht leer sein"
           PasswordsDoNotMatch = "Passwörter stimmen nicht überein"
+          PasswordTooShort = fun n -> $"Das Passwort muss mindestens {n} Zeichen lang sein"
         }
       Reading =
         {

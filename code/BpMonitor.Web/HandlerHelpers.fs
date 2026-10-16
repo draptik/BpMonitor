@@ -28,6 +28,9 @@ module HandlerHelpers =
   let ranges (ctx: HttpContext) =
     Config.readRanges (ctx.RequestServices.GetRequiredService<IConfiguration>())
 
+  let minPasswordLength (ctx: HttpContext) =
+    Config.readMinPasswordLength (ctx.RequestServices.GetRequiredService<IConfiguration>())
+
   let timeProvider (ctx: HttpContext) =
     ctx.RequestServices.GetRequiredService<TimeProvider>()
 

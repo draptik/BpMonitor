@@ -55,6 +55,12 @@ one-time setup code for each of them (`Setup code for member … : XXXX-XXXX`).
 Sign in at `http://localhost:5000/login` with a member's name, then enter their
 code and choose a password. Marge Simpson is the admin.
 
+New passwords need at least 8 characters (`BpMonitor:MinPasswordLength`).
+`appsettings.Development.json` lowers that to 1, so any non-empty password works
+when you run the app locally (`ASPNETCORE_ENVIRONMENT=Development`, set by
+`launchSettings.json`). The app logs a warning at startup whenever the minimum is
+below 8.
+
 ## Project structure
 
 The solution is split into focused projects under `code/` — Core domain, Data
