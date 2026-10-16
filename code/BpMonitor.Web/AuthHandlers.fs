@@ -17,6 +17,7 @@ module AuthHandlers =
 
   /// Resolves the authenticated member from the principal's NameIdentifier claim.
   /// Only valid inside a `protect`ed route — the principal is guaranteed to be present.
+  /// A deactivated member resolves to None, so an existing cookie stops working.
   let authenticatedMember (ctx: HttpContext) : FamilyMember option =
     let claim = ctx.User.FindFirst(ClaimTypes.NameIdentifier)
 
@@ -24,7 +25,7 @@ module AuthHandlers =
       None
     else
       match Int32.TryParse(claim.Value) with
-      | true, id -> (memberRepo ctx).GetById(id)
+      | true, id -> (memberRepo ctx).GetById(id) |> Option.filter _.IsActive
       | _ -> None
 
   /// Returns the authenticated member's name, or "" if unauthenticated.
@@ -69,17 +70,21 @@ module AuthHandlers =
         ctx.Response.Redirect(Routes.login)
         Task.CompletedTask
 
-  /// Like `protect` but additionally requires the Admin role. Non-admin
-  /// authenticated requests get a 403.
+  /// Like `protect` but additionally requires the member to be an admin. Checks the
+  /// current IsAdmin flag, not the cookie's role claim, so a demotion takes effect at once.
+  /// Non-admin authenticated requests get a 403.
   let protectAdmin (handler: HttpContext -> Task) : HttpContext -> Task =
     fun ctx ->
       if ctx.User.Identity = null || not ctx.User.Identity.IsAuthenticated then
         ctx.Response.Redirect(Routes.login)
         Task.CompletedTask
-      elif not (ctx.User.IsInRole("Admin")) then
-        forbidden ctx
       else
-        handler ctx
+        match authenticatedMember ctx with
+        | None ->
+          ctx.Response.Redirect(Routes.login)
+          Task.CompletedTask
+        | Some m when not m.IsAdmin -> forbidden ctx
+        | Some _ -> handler ctx
 
   /// Resolves the authenticated member and passes it to `handler`. If the member
   /// cannot be resolved (e.g., stale principal after account removal), redirects to
