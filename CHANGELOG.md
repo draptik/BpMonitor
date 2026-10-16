@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recent view: comment tooltips appear for members using German; previously they only worked in English.
 - Medications Timeline: row labels show a medication's name as plain text, so markup in a name can't render as a link.
 - The version link in the page footer opens the matching GitHub release instead of a missing page.
+- History and Recent view: pages no longer hang when more than eight different medications are shown; from the ninth on, colours repeat.
+- Editing a reading keeps its original creation time; previously the export showed it as `0001-01-01` afterwards.
+- Trends: links to a week, month or year that doesn't exist (e.g. week 53 of a 52-week year) show the current period instead of an error page.
 
 ## [1.14.0] - 2026-10-03
 
