@@ -315,7 +315,7 @@ module ReadingHandlers =
           Language.tryParse (form[FormFields.language].ToString())
           |> Option.defaultValue m.Language
 
-        (memberRepo ctx).Update { m with Language = lang }
+        (memberRepo ctx).UpdateLanguage m.Id lang
         setLanguageCookie ctx lang
         ctx.Response.Redirect Routes.settings
       }
@@ -371,7 +371,7 @@ module ReadingHandlers =
         | Ok(sysMin, sysMax, diaMin, diaMax) ->
           match GoalRange.create sysMin sysMax diaMin diaMax with
           | Ok goal ->
-            (memberRepo ctx).Update { m with Goal = goal }
+            (memberRepo ctx).UpdateGoal m.Id goal
             ctx.Response.Redirect Routes.history
           | Error SystolicRangeInvalid -> do! renderErrors [ s.Errors.SystolicMinMustBeLessThanMax ]
           | Error DiastolicRangeInvalid -> do! renderErrors [ s.Errors.DiastolicMinMustBeLessThanMax ]

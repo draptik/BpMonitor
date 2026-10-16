@@ -4,6 +4,7 @@ open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.DependencyInjection
 open BpMonitor.Core
+open BpMonitor.Data
 open BpMonitor.Web
 open HandlerTestHelpers
 
@@ -224,3 +225,68 @@ let ``updateSettings accumulates an error for every invalid field, not just the 
   let body = TestHost.readBody ctx
   test <@ body.Contains "Systolic min: &#39;abc&#39; is not a valid integer" @>
   test <@ body.Contains "Diastolic min: &#39;xyz&#39; is not a valid integer" @>
+
+/// Hands out the member as it was, then applies an admin's change to the store right
+/// after — the window between a handler reading the member and writing it back.
+type private RacingMemberRepository(stored: FamilyMember, adminChange: FamilyMember -> FamilyMember) =
+  let inner =
+    InMemoryFamilyMemberRepository(Some [ stored ]) :> IFamilyMemberRepository
+
+  let mutable raced = false
+
+  interface IFamilyMemberRepository with
+    member _.GetAll() = inner.GetAll()
+
+    member _.GetById id =
+      let snapshot = inner.GetById id
+
+      if not raced then
+        raced <- true
+        snapshot |> Option.iter (fun m -> inner.Update(adminChange m))
+
+      snapshot
+
+    member _.Add m = inner.Add m
+    member _.Update m = inner.Update m
+    member _.UpdateLanguage id language = inner.UpdateLanguage id language
+    member _.UpdateGoal id goal = inner.UpdateGoal id goal
+
+[<Fact>]
+let ``updateLanguage keeps an admin's concurrent deactivation`` () =
+  let memberRepo =
+    RacingMemberRepository(sampleMember, (fun m -> { m with IsActive = false })) :> IFamilyMemberRepository
+
+  let ctx = TestHost.contextWithMemberRepo memberRepo sampleMember
+  TestHost.setForm ctx [ FormFields.language, "de" ]
+  TestHost.run ReadingHandlers.updateLanguage ctx
+
+  let stored = (memberRepo.GetById defaultMemberId).Value
+  test <@ stored.Language = German && not stored.IsActive @>
+
+[<Fact>]
+let ``updateSettings keeps an admin's concurrent password reset`` () =
+  let memberRepo =
+    RacingMemberRepository(
+      sampleMember,
+      (fun m ->
+        { m with
+            Credential = PendingSetup "code-hash"
+        })
+    )
+    :> IFamilyMemberRepository
+
+  let ctx = TestHost.contextWithMemberRepo memberRepo sampleMember
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.systolicGoalMin, "100"
+      FormFields.systolicGoalMax, "130"
+      FormFields.diastolicGoalMin, "65"
+      FormFields.diastolicGoalMax, "85"
+    ]
+
+  TestHost.run ReadingHandlers.updateSettings ctx
+
+  let stored = (memberRepo.GetById defaultMemberId).Value
+  test <@ stored.Goal.SystolicMax = 130 && stored.Credential = PendingSetup "code-hash" @>

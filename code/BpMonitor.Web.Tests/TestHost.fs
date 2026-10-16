@@ -124,6 +124,17 @@ let contextWithUser (repo: IReadingRepository) (members: FamilyMember list) (log
 
   newCtx (buildServices repo memberRepo (emptyMedicationRepo ()) TimeProvider.System) user
 
+/// Variant of `context` with a caller-supplied member repository (e.g. one that simulates
+/// a concurrent admin change), signed in as `signedIn`.
+let contextWithMemberRepo (memberRepo: IFamilyMemberRepository) (signedIn: FamilyMember) : HttpContext =
+  newCtx
+    (buildServices
+      (InMemoryReadingRepository(Some []) :> IReadingRepository)
+      memberRepo
+      (emptyMedicationRepo ())
+      TimeProvider.System)
+    (Some(buildPrincipal signedIn))
+
 /// Variant of `context` that seeds the medication repository with a custom initial
 /// list — for medication CRUD and Medications Timeline handler tests.
 let contextWithMedications (repo: IReadingRepository) (medications: Medication list) : HttpContext =

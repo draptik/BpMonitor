@@ -49,3 +49,13 @@ type InMemoryFamilyMemberRepository(initialMembers: FamilyMember list option) =
       match idx with
       | Some i -> members[i] <- m
       | None -> ()
+
+    member _.UpdateLanguage id language =
+      members
+      |> Seq.tryFindIndex (fun r -> r.Id = id)
+      |> Option.iter (fun i -> members[i] <- { members[i] with Language = language })
+
+    member _.UpdateGoal id goal =
+      members
+      |> Seq.tryFindIndex (fun r -> r.Id = id)
+      |> Option.iter (fun i -> members[i] <- { members[i] with Goal = goal })
