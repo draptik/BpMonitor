@@ -70,6 +70,23 @@ let ``dailyAverages: two readings on same day are averaged`` () =
   test <@ result[0].HeartRate = 70 @>
 
 [<Fact>]
+let ``dailyAverages: rounds the averaged chart point to the nearest mmHg`` () =
+  let day0 = now.Date
+
+  let at (h: float) =
+    DateTimeOffset(day0.AddHours h, TimeSpan.Zero)
+
+  let readings =
+    [
+      mkReading 1 1 139 80 70 (at 8.0)
+      mkReading 2 1 140 80 70 (at 12.0)
+      mkReading 3 1 140 81 70 (at 20.0)
+    ]
+
+  let result = ReadingStats.dailyAverages readings
+  test <@ result[0].Systolic = 140 && result[0].Diastolic = 80 @>
+
+[<Fact>]
 let ``dailyAverages: readings on different days produce one entry per day`` () =
   let r1 = mkReading 1 1 120 80 60 (now.AddDays(-2.0))
   let r2 = mkReading 2 1 130 85 70 (now.AddDays(-1.0))
@@ -345,14 +362,27 @@ let ``summarizeRange: single reading yields correct averages`` () =
   test <@ s.AvgHeartRate = 68 @>
 
 [<Fact>]
-let ``summarizeRange: averages are truncated to int`` () =
+let ``summarizeRange: averages are rounded to the nearest mmHg, halves up`` () =
   let r1 = mkReading 1 1 120 80 70 (now.AddDays(-1.0))
   let r2 = mkReading 2 1 121 81 71 (now.AddDays(-2.0))
   let s = ReadingStats.summarizeRange currentWeeklyPeriod [ r1; r2 ]
   test <@ s.Count = 2 @>
-  test <@ s.AvgSystolic = 120 @>
-  test <@ s.AvgDiastolic = 80 @>
-  test <@ s.AvgHeartRate = 70 @>
+  test <@ s.AvgSystolic = 121 @>
+  test <@ s.AvgDiastolic = 81 @>
+  test <@ s.AvgHeartRate = 71 @>
+
+[<Fact>]
+let ``summarizeRange: an average above .5 rounds up, below .5 rounds down`` () =
+  // Systolic 139.67 → 140 (would read as inside a 140 goal max if cut off), diastolic 80.33 → 80.
+  let readings =
+    [
+      mkReading 1 1 139 80 70 (now.AddDays(-1.0))
+      mkReading 2 1 140 80 70 (now.AddDays(-2.0))
+      mkReading 3 1 140 81 70 (now.AddDays(-3.0))
+    ]
+
+  let s = ReadingStats.summarizeRange currentWeeklyPeriod readings
+  test <@ s.AvgSystolic = 140 && s.AvgDiastolic = 80 @>
 
 [<Fact>]
 let ``summarizeRange: min and max are correct for multiple readings`` () =
