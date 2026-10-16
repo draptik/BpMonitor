@@ -20,7 +20,7 @@ type LoginAddHistoryTests(fixture: ChromiumFixture) =
       use! traced = fixture.NewTracedPageAsync()
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       // Add a reading.
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
@@ -50,7 +50,7 @@ type ReadingValidationTests(fixture: ChromiumFixture) =
       use! traced = fixture.NewTracedPageAsync()
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
       do! page.FillAsync("#Timestamp", "2026-06-19 08:30")
@@ -88,6 +88,7 @@ type CookieSecurityTests(fixture: ChromiumFixture) =
       use step2Body =
         new FormUrlEncodedContent(
           [
+            KeyValuePair("SetupCode", fixture.MemberSetupCode)
             KeyValuePair("Password", TestAccount.password)
             KeyValuePair("PasswordConfirm", TestAccount.password)
           ]
@@ -123,6 +124,7 @@ type RememberMeUncheckedCookieTests(fixture: ChromiumFixture) =
       use step2Body =
         new FormUrlEncodedContent(
           [
+            KeyValuePair("SetupCode", fixture.MemberSetupCode)
             KeyValuePair("Password", TestAccount.password)
             KeyValuePair("PasswordConfirm", TestAccount.password)
           ]
@@ -163,6 +165,7 @@ type RememberMeCheckedCookieTests(fixture: ChromiumFixture) =
       use claimStep2 =
         new FormUrlEncodedContent(
           [
+            KeyValuePair("SetupCode", fixture.MemberSetupCode)
             KeyValuePair("Password", TestAccount.password)
             KeyValuePair("PasswordConfirm", TestAccount.password)
           ]
@@ -201,7 +204,7 @@ type RecentChartHoverFormatTests(fixture: ChromiumFixture) =
       use! traced = fixture.NewTracedPageAsync()
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
       let now = DateTime.Now

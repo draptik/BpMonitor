@@ -44,6 +44,8 @@ type LoginStrings =
     NewPassword: string
     ConfirmPassword: string
     ClaimHint: string
+    SetupCode: string
+    InvalidSetupCode: string
     ClaimAccount: string
     Login: string
     InvalidNameOrPassword: string
@@ -235,7 +237,10 @@ module LocalizedStrings =
           LoginAs = fun name -> $"Login as {name}"
           NewPassword = "New password"
           ConfirmPassword = "Confirm password"
-          ClaimHint = "This account hasn't been claimed yet. Choose a password to activate it."
+          ClaimHint =
+            "This account hasn't been claimed yet. Enter the setup code from your admin and choose a password."
+          SetupCode = "Setup code"
+          InvalidSetupCode = "Invalid setup code"
           ClaimAccount = "Claim account"
           Login = "Login"
           InvalidNameOrPassword = "Invalid name or password"
@@ -410,7 +415,10 @@ module LocalizedStrings =
           LoginAs = fun name -> $"Anmelden als {name}"
           NewPassword = "Neues Passwort"
           ConfirmPassword = "Passwort bestätigen"
-          ClaimHint = "Dieses Konto wurde noch nicht aktiviert. Wähle ein Passwort, um es zu aktivieren."
+          ClaimHint =
+            "Dieses Konto wurde noch nicht aktiviert. Gib den Einrichtungscode von deinem Admin ein und wähle ein Passwort."
+          SetupCode = "Einrichtungscode"
+          InvalidSetupCode = "Ungültiger Einrichtungscode"
           ClaimAccount = "Konto aktivieren"
           Login = "Anmelden"
           InvalidNameOrPassword = "Ungültiger Name oder ungültiges Passwort"

@@ -15,7 +15,7 @@ type SettingsSectionMemoryTests(fixture: ChromiumFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
 

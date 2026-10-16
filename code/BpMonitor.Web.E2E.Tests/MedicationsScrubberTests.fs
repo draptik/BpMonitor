@@ -17,7 +17,7 @@ type MedicationsScrubberTests(fixture: ChromiumFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       // A medication spanning "now" so its bar covers both readings' x positions below.
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
@@ -91,7 +91,7 @@ type MedicationsScrubberEdgeTests(fixture: ChromiumFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")
@@ -154,7 +154,7 @@ type MedicationsScrubberOffscreenSnapTests(fixture: ChromiumFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       let now = DateTime.Now
 
@@ -229,7 +229,7 @@ type MedicationsScrubberZoomSyncTests(fixture: ChromiumFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")
@@ -281,7 +281,7 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: ChromiumFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")
@@ -357,7 +357,7 @@ type MedicationsScrubberHistoryPageTests(fixture: ChromiumFixture) =
       use! traced = fixture.NewTracedPageAsync(ViewportSize(Width = 1280, Height = 800))
       let page = traced.Page
 
-      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName page
+      do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/settings")
       do! page.FillAsync("#MedicationName", "Lisinopril")

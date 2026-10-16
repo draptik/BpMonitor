@@ -27,6 +27,7 @@ open System.Diagnostics
 open System.IO
 open System.Net.Http
 open System.Net.Sockets
+open System.Text.RegularExpressions
 open System.Threading.Tasks
 open Microsoft.Playwright
 
@@ -148,13 +149,33 @@ task {
     ProcessStartInfo(
       FileName = "dotnet",
       Arguments = $"run --no-build --project \"{webProjectPath}\" -c Release -- --urls={baseUrl}",
-      UseShellExecute = false
+      UseShellExecute = false,
+      RedirectStandardOutput = true
     )
 
   psi.EnvironmentVariables["ConnectionStrings__DefaultConnection"] <- $"Data Source={dbPath}"
   psi.EnvironmentVariables["BpMonitor__SeedDemoData"] <- "true"
 
+  // Captured (and still echoed) so the claim step can read Ned's setup code from the startup log (ADR 0012).
+  let appOutput = Text.StringBuilder()
+
   let webProcess = Process.Start psi
+
+  webProcess.OutputDataReceived.Add(fun e ->
+    if not (isNull e.Data) then
+      lock appOutput (fun () -> appOutput.AppendLine e.Data |> ignore)
+      printfn "%s" e.Data)
+
+  webProcess.BeginOutputReadLine()
+
+  let setupCodeFor (name: string) =
+    let pattern = $@"Setup code for member {Regex.Escape name} \(Id=\d+\): (\S+)"
+    let found = lock appOutput (fun () -> Regex.Match(appOutput.ToString(), pattern))
+
+    if found.Success then
+      found.Groups[1].Value
+    else
+      failwith $"The app didn't log a setup code for '{name}' — has the startup log line in Program.fs changed?"
   let mutable playwright: IPlaywright = null
   let mutable browser: IBrowser = null
 
@@ -168,10 +189,11 @@ task {
     let! context = browser.NewContextAsync(BrowserNewContextOptions(ViewportSize = ViewportSize(Width = 1440, Height = 900)))
     let! page = context.NewPageAsync()
 
-    // Ned starts unclaimed on a fresh seed — claim the account with a password.
+    // Ned starts unclaimed on a fresh seed — claim the account with his logged setup code and a password.
     let! _ = page.GotoAsync $"{baseUrl}/login"
     do! page.FillAsync("#Username", username)
     do! page.ClickAsync "button[type=submit]"
+    do! page.FillAsync("#SetupCode", setupCodeFor username)
     do! page.FillAsync("#Password", password)
     do! page.FillAsync("#PasswordConfirm", password)
     do! page.ClickAsync "button[type=submit]"

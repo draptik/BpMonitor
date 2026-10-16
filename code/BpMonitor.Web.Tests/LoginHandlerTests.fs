@@ -7,7 +7,12 @@ open BpMonitor.Core
 open BpMonitor.Web
 open HandlerTestHelpers
 
-let private unclaimedMember = sampleMember
+let private setupCode = "K7QX-M2PA"
+
+let private unclaimedMember =
+  { sampleMember with
+      Credential = PendingSetup(SetupCode.hash setupCode)
+  }
 
 let private claimedMember (hash: string) : FamilyMember =
   { unclaimedMember with
@@ -148,6 +153,7 @@ let ``loginSubmit claims unclaimed member and sets password hash`` () =
   TestHost.setForm
     ctx
     [
+      FormFields.setupCode, setupCode
       FormFields.password, "correct-horse"
       FormFields.passwordConfirm, "correct-horse"
     ]
@@ -167,11 +173,77 @@ let ``loginSubmit claims unclaimed member and sets password hash`` () =
     @>
 
 [<Fact>]
+let ``loginSubmit rejects a wrong setup code with 401 and leaves the account unclaimed`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
+  TestHost.setRouteId ctx 1
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.setupCode, "K7QX-M2PB"
+      FormFields.password, "correct-horse"
+      FormFields.passwordConfirm, "correct-horse"
+    ]
+
+  TestHost.run AuthHandlers.loginSubmit ctx
+
+  test <@ ctx.Response.StatusCode = 401 @>
+  test <@ (TestHost.readBody ctx).Contains "Invalid setup code" @>
+  let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+  test <@ not (FamilyMember.isClaimed (memberRepo.GetById(1) |> Option.get)) @>
+
+[<Fact>]
+let ``loginSubmit refuses to claim a member without a setup code`` () =
+  let repo = repoWith []
+
+  let ctx =
+    TestHost.contextWithMembers
+      repo
+      [
+        { sampleMember with
+            Credential = NoCredential
+        }
+      ]
+
+  TestHost.setRouteId ctx 1
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.setupCode, ""
+      FormFields.password, "correct-horse"
+      FormFields.passwordConfirm, "correct-horse"
+    ]
+
+  TestHost.run AuthHandlers.loginSubmit ctx
+
+  test <@ ctx.Response.StatusCode = 401 @>
+  let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+  test <@ not (FamilyMember.isClaimed (memberRepo.GetById(1) |> Option.get)) @>
+
+[<Fact>]
+let ``loginMember asks an unclaimed member for the setup code`` () =
+  let ctx = TestHost.contextWithMembers (repoWith []) [ unclaimedMember ]
+  TestHost.setRouteId ctx 1
+  TestHost.run AuthHandlers.loginMember ctx
+
+  test <@ (TestHost.readBody ctx).Contains $"name=\"{FormFields.setupCode}\"" @>
+
+[<Fact>]
 let ``loginSubmit rejects empty password for unclaimed member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
   TestHost.setRouteId ctx 1
-  TestHost.setForm ctx [ FormFields.password, ""; FormFields.passwordConfirm, "" ]
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.setupCode, setupCode
+      FormFields.password, ""
+      FormFields.passwordConfirm, ""
+    ]
+
   TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
@@ -182,7 +254,15 @@ let ``loginSubmit rejects mismatched confirm for unclaimed member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ unclaimedMember ]
   TestHost.setRouteId ctx 1
-  TestHost.setForm ctx [ FormFields.password, "abc"; FormFields.passwordConfirm, "xyz" ]
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.setupCode, setupCode
+      FormFields.password, "abc"
+      FormFields.passwordConfirm, "xyz"
+    ]
+
   TestHost.run AuthHandlers.loginSubmit ctx
 
   test <@ ctx.Response.StatusCode = 422 @>

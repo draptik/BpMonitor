@@ -140,8 +140,10 @@ module AuthHandlers =
     }
     :> Task
 
+  /// Claims an unclaimed account; the setup code is checked before anything else (ADR 0012).
   let private unclaimedLogin
     (m: FamilyMember)
+    (setupCode: string)
     (password: string)
     (confirm: string)
     (rememberMe: bool)
@@ -151,7 +153,17 @@ module AuthHandlers =
       let log = logger ctx
       let s = strings ctx
 
-      if String.IsNullOrWhiteSpace(password) then
+      let codeMatches =
+        match m.Credential with
+        | PendingSetup hash -> SetupCode.verify setupCode hash
+        | Password _
+        | NoCredential -> false
+
+      if not codeMatches then
+        log.LogWarning("Failed claim attempt for member {Name} (Id={Id})", m.Name, m.Id)
+        ctx.Response.StatusCode <- 401
+        do! htmlResponse (LoginViews.loginMember s m [ s.Login.InvalidSetupCode ]) ctx
+      elif String.IsNullOrWhiteSpace(password) then
         ctx.Response.StatusCode <- 422
         do! htmlResponse (LoginViews.loginMember s m [ s.Login.PasswordCannotBeEmpty ]) ctx
       elif password <> confirm then
@@ -244,7 +256,15 @@ module AuthHandlers =
                 (fun s -> LoginViews.loginMember s m [ s.Login.IncorrectPassword ])
                 ctx
           | PendingSetup _
-          | NoCredential -> do! unclaimedLogin m password (form[FormFields.passwordConfirm].ToString()) rememberMe ctx
+          | NoCredential ->
+            do!
+              unclaimedLogin
+                m
+                (form[FormFields.setupCode].ToString())
+                password
+                (form[FormFields.passwordConfirm].ToString())
+                rememberMe
+                ctx
       }
       :> Task)
 

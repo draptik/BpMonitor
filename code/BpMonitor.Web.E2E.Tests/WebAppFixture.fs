@@ -6,6 +6,7 @@ open System.Diagnostics
 open System.IO
 open System.Net.Http
 open System.Net.Sockets
+open System.Text.RegularExpressions
 open System.Threading
 open System.Threading.Tasks
 open Microsoft.Playwright
@@ -27,14 +28,15 @@ type TracedPage(context: IBrowserContext, page: IPage, tracePath: string) =
 module TestAccount =
   let password = "correct-horse-battery-staple"
 
-  /// Claims `username` (an unclaimed member) and signs in, leaving `page` on the
-  /// app's landing page.
-  let claimAndLogin (baseUrl: string) (username: string) (page: IPage) : Task =
+  /// Claims `username` (an unclaimed member) with its setup code and signs in,
+  /// leaving `page` on the app's landing page.
+  let claimAndLogin (baseUrl: string) (username: string) (setupCode: string) (page: IPage) : Task =
     task {
       let! _ = page.GotoAsync($"{baseUrl}/login")
       do! page.FillAsync("#Username", username)
       do! page.ClickAsync("button[type=submit]")
 
+      do! page.FillAsync("#SetupCode", setupCode)
       do! page.FillAsync("#Password", password)
       do! page.FillAsync("#PasswordConfirm", password)
       do! page.ClickAsync("button[type=submit]")
@@ -177,8 +179,9 @@ type AppFixture() =
     }
 
   /// Creates a fresh, unclaimed, non-admin member via the admin-only POST /members
-  /// route. Serialized: concurrent test classes share one SQLite writer.
-  member this.CreateMemberAsync() : Task<string> =
+  /// route and returns its name and the setup code the response page shows once.
+  /// Serialized: concurrent test classes share one SQLite writer.
+  member this.CreateMemberAsync() : Task<string * string> =
     task {
       do! memberLock.WaitAsync()
 
@@ -186,8 +189,14 @@ type AppFixture() =
         nextMemberIndex <- nextMemberIndex + 1
         let name = $"e2e-member-{nextMemberIndex}"
         use body = new FormUrlEncodedContent([ KeyValuePair("Name", name) ])
-        let! _ = adminClient.PostAsync($"{this.BaseUrl}/members", body)
-        return name
+        let! resp = adminClient.PostAsync($"{this.BaseUrl}/members", body)
+        let! html = resp.Content.ReadAsStringAsync()
+        let code = Regex.Match(html, "class=\"setup-code\">([^<]+)<").Groups[1].Value
+
+        if code = "" then
+          failwith $"No setup code on the create-member page for {name}"
+
+        return name, code
       finally
         memberLock.Release() |> ignore
     }
@@ -223,10 +232,17 @@ type AppFixture() =
         ()
     }
 
-  /// Claims the auto-seeded admin "Me" member and keeps the authenticated
-  /// `HttpClient` around to create per-class members for the rest of the run.
+  /// Claims the auto-seeded admin "Me" member with the setup code the app logged at
+  /// startup, and keeps the authenticated `HttpClient` around to create per-class
+  /// members for the rest of the run.
   member private this.ClaimAdminAsync() : Task =
     task {
+      let setupCode =
+        Regex.Match(capturedOutput (), @"Setup code for member Me \(Id=\d+\): (\S+)").Groups[1].Value
+
+      if setupCode = "" then
+        failwith "The app didn't log a setup code for Me"
+
       let handler = new HttpClientHandler(AllowAutoRedirect = false)
       let client = new HttpClient(handler)
 
@@ -239,6 +255,7 @@ type AppFixture() =
       use step2Body =
         new FormUrlEncodedContent(
           [
+            KeyValuePair("SetupCode", setupCode)
             KeyValuePair("Password", TestAccount.password)
             KeyValuePair("PasswordConfirm", TestAccount.password)
           ]
@@ -394,11 +411,13 @@ type AppFixture() =
 [<AbstractClass>]
 type MemberFixture(app: AppFixture) =
   let mutable memberName = ""
+  let mutable memberSetupCode = ""
 
   abstract member Browser: IBrowser
 
   member _.BaseUrl = app.BaseUrl
   member _.MemberName = memberName
+  member _.MemberSetupCode = memberSetupCode
 
   member this.NewTracedPageAsync(?viewport: ViewportSize) : Task<TracedPage> =
     app.NewTracedPageAsync(this.Browser, ?viewport = viewport)
@@ -406,8 +425,9 @@ type MemberFixture(app: AppFixture) =
   interface IAsyncLifetime with
     member _.InitializeAsync() : ValueTask =
       task {
-        let! name = app.CreateMemberAsync()
+        let! name, code = app.CreateMemberAsync()
         memberName <- name
+        memberSetupCode <- code
       }
       |> ValueTask
 
