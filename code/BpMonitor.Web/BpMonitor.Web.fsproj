@@ -23,6 +23,7 @@
     <Compile Include="ReadingHandlers.fs" />
     <Compile Include="MemberHandlers.fs" />
     <Compile Include="MedicationHandlers.fs" />
+    <Compile Include="Endpoints.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
