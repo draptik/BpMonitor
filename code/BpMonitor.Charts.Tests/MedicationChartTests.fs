@@ -261,6 +261,19 @@ let ``toHtmlMedications gives a restarted medication (same name, two rows) the s
   let color at = html.Substring(at + marker.Length, 7)
   test <@ color firstIdx = color secondIdx @>
 
+[<Fact(Timeout = 5000)>]
+let ``toHtmlMedications reuses colors once more distinct medications than palette slots are shown`` () : Task =
+  let meds =
+    [ 1..9 ]
+    |> List.map (fun i -> medication i $"Medication{i}" None None (DateOnly(2026, 1, i)) None)
+
+  task {
+    let! html =
+      Task.Run(fun () -> BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds)
+
+    test <@ html.Contains("Medication9") @>
+  }
+
 [<Fact>]
 let ``toHtmlMedications never assigns a palette slot with identical light and dark colors`` () =
   let metaOf (name: string) =
