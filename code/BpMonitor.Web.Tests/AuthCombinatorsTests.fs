@@ -65,6 +65,28 @@ let ``protectAdmin invokes the handler for an authenticated admin request`` () =
   test <@ TestHost.readBody ctx = "reached" @>
 
 [<Fact>]
+let ``protectAdmin returns 403 when the signed-in member is no longer an admin`` () =
+  // Cookie still carries the Admin role from before the demotion.
+  let ctx =
+    TestHost.contextWithMembers (repoWith []) [ { sampleMember with IsAdmin = false } ]
+
+  ctx.User <- TestHost.buildPrincipal sampleMember
+  TestHost.run (AuthHandlers.protectAdmin ok) ctx
+
+  test <@ ctx.Response.StatusCode = 403 @>
+
+[<Fact>]
+let ``protectAdmin redirects to login when the signed-in admin was deactivated`` () =
+  let ctx =
+    TestHost.contextWithMembers (repoWith []) [ { sampleMember with IsActive = false } ]
+
+  ctx.User <- TestHost.buildPrincipal sampleMember
+  TestHost.run (AuthHandlers.protectAdmin ok) ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.login @>
+
+[<Fact>]
 let ``withMember redirects to login when the principal's member id no longer resolves`` () =
   // Simulates a stale cookie after the signed-in member's account was deleted.
   let ctx = TestHost.contextWithMembers (repoWith []) [ sampleMember ]
