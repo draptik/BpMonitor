@@ -46,6 +46,10 @@ module ReadingStats =
 
   // ── stat helpers ─────────────────────────────────────────────────────────────
 
+  /// Mean rounded to the nearest whole value, halves up (120.5 → 121), not cut off.
+  let private roundedMean (sum: int) (n: int) : int =
+    Math.Round(float sum / float n, MidpointRounding.AwayFromZero) |> int
+
   /// Returns (min, max) for the given field selector.
   let private rangeOf (selector: BloodPressureReading -> int) rs =
     rs |> List.minBy selector |> selector, rs |> List.maxBy selector |> selector
@@ -53,7 +57,7 @@ module ReadingStats =
   /// Returns (min, avg, max) for the given field selector over n readings.
   let private statsOf (selector: BloodPressureReading -> int) n rs =
     rs |> List.minBy selector |> selector,
-    rs |> List.sumBy selector |> (fun s -> s / n),
+    roundedMean (rs |> List.sumBy selector) n,
     rs |> List.maxBy selector |> selector
 
   // ── aggregation ──────────────────────────────────────────────────────────────
@@ -81,9 +85,9 @@ module ReadingStats =
           {
             Id = 0
             MemberId = 0
-            Systolic = rs |> List.sumBy _.Systolic |> (fun s -> s / n)
-            Diastolic = rs |> List.sumBy _.Diastolic |> (fun s -> s / n)
-            HeartRate = rs |> List.sumBy _.HeartRate |> (fun s -> s / n)
+            Systolic = roundedMean (rs |> List.sumBy _.Systolic) n
+            Diastolic = roundedMean (rs |> List.sumBy _.Diastolic) n
+            HeartRate = roundedMean (rs |> List.sumBy _.HeartRate) n
             Timestamp = DateTimeOffset(date, offset)
             Comments = None
             CreatedAt = DateTimeOffset.MinValue
