@@ -24,6 +24,9 @@ bpmonitor.db-shm
 bpmonitor.db-wal
 bpmonitor.json
 
+# Benchmark output (BpMonitor.Benchmarks)
+BenchmarkDotNet.Artifacts/
+
 # Test output
 TestResults/
 CoverageReport/

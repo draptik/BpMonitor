@@ -65,6 +65,7 @@ code/
 ├── BpMonitor.Web.Tests
 ├── BpMonitor.Web.E2E.Tests     # Playwright .NET browser smoke tests against a real out-of-process BpMonitor.Web instance
 ├── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules
+├── BpMonitor.Benchmarks        # BenchmarkDotNet suite (LOWESS reference vs. sliding window); run with `mise run bench`, not part of `dotnet test`
 └── BpMonitor.TestSupport       # Shared test infrastructure (Verify snapshot settings, domain record builders, E2E process-readiness polling) for *.Tests projects
 docs/                           # Product vision, architecture, ADRs
 scripts/                        # Dev tooling scripts (e.g. extract-plotly-js.fsx, release-notes.sh)
@@ -151,4 +152,5 @@ All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also ho
 - Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:shell` / `lint:actions` / `lint:renovate` individually
 - Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium and Firefox)
 - Run `mise exec -- biome check --write` to auto-fix JS issues
+- Run `mise run bench` for the BenchmarkDotNet suite (`BpMonitor.Benchmarks`, a few minutes); `mise run bench -- --job short` for a quick check
 - Run `mise run screenshots` to regenerate `docs/screenshots/*.png` from a fresh self-seeded demo instance (`scripts/generate-screenshots.fsx`, logged in as Ned Flanders for his outlier-rich narrative) — part of the `cut-release` skill's changelog step, otherwise only needed after a UI change worth reflecting in the README

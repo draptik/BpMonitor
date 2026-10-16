@@ -128,6 +128,19 @@ cd code && dotnet test
 All code changes follow strict TDD (Red → Green → Refactor). See the "Working Rules"
 section in [AGENTS.md](AGENTS.md) for the full expectations.
 
+### Benchmarks
+
+`code/BpMonitor.Benchmarks` holds BenchmarkDotNet benchmarks, currently the original
+LOWESS (`Lowess.Reference`) against the sliding-window one for one and five years of
+readings. It is a console app, not a test project, so `dotnet test` and CI skip it:
+
+```bash
+mise run bench                  # full run, a few minutes
+mise run bench -- --job short   # quick check
+```
+
+Results land in `code/BenchmarkDotNet.Artifacts/` (git-ignored).
+
 ## Code style
 
 F# conventions (lambda shorthand, indexer syntax, `IDisposable` rules) are documented in
