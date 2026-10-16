@@ -1,5 +1,6 @@
 module AuthCombinatorsTests
 
+open System.Security.Claims
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 open Xunit
@@ -95,6 +96,70 @@ let ``withMember redirects to login when the principal's member id no longer res
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = Routes.login @>
+
+[<Fact>]
+let ``withMember redirects to login after the member's password was reset`` () =
+  // Cookie issued while the old password was set; an admin has since reset it.
+  let signedIn =
+    { sampleMember with
+        Credential = Password "old-hash"
+    }
+
+  let ctx =
+    TestHost.contextWithMembers
+      (repoWith [])
+      [
+        { sampleMember with
+            Credential = PendingSetup "code-hash"
+        }
+      ]
+
+  ctx.User <- TestHost.buildPrincipal signedIn
+  TestHost.run (AuthHandlers.withMember echoMember) ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+  test <@ ctx.Response.Headers.Location.ToString() = Routes.login @>
+
+[<Fact>]
+let ``withMember redirects to login when the member has since set a different password`` () =
+  // The reset account was claimed again: the old cookie must stay revoked.
+  let signedIn =
+    { sampleMember with
+        Credential = Password "old-hash"
+    }
+
+  let ctx =
+    TestHost.contextWithMembers
+      (repoWith [])
+      [
+        { sampleMember with
+            Credential = Password "new-hash"
+        }
+      ]
+
+  ctx.User <- TestHost.buildPrincipal signedIn
+  TestHost.run (AuthHandlers.withMember echoMember) ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
+
+[<Fact>]
+let ``withMember redirects to login for a cookie without a credential stamp`` () =
+  // Cookies issued before stamps existed can't be revoked, so they aren't accepted.
+  let ctx = TestHost.contextWithMembers (repoWith []) [ sampleMember ]
+
+  let identity =
+    ClaimsIdentity(
+      [
+        Claim(ClaimTypes.NameIdentifier, string sampleMember.Id)
+        Claim(ClaimTypes.Name, sampleMember.Name)
+      ],
+      "Cookies"
+    )
+
+  ctx.User <- ClaimsPrincipal(identity)
+  TestHost.run (AuthHandlers.withMember echoMember) ctx
+
+  test <@ ctx.Response.StatusCode = 302 @>
 
 [<Fact>]
 let ``withMember redirects to login when the signed-in member was deactivated`` () =

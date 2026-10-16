@@ -84,6 +84,22 @@ let ``nameTaken is false when a member keeps their own name in a different case`
   test <@ not (FamilyMember.nameTaken members (mkMember 1 "BART" false true)) @>
 
 [<Fact>]
+let ``credentialStamp changes when the password hash changes`` () =
+  test
+    <@
+      FamilyMember.credentialStamp (Password "hash-1")
+      <> FamilyMember.credentialStamp (Password "hash-2")
+    @>
+
+[<Fact>]
+let ``credentialStamp differs between a password and a setup code with the same hash`` () =
+  test
+    <@
+      FamilyMember.credentialStamp (Password "same")
+      <> FamilyMember.credentialStamp (PendingSetup "same")
+    @>
+
+[<Fact>]
 let ``isClaimed returns false for a member without a password`` () =
   match FamilyMember.create "Alice" true with
   | Error _ -> failwith "unexpected error"
