@@ -18,6 +18,7 @@
     <Compile Include="TrendPeriodTests.fs" />
     <Compile Include="ReadingStatsTests.fs" />
     <Compile Include="PasswordHashingTests.fs" />
+    <Compile Include="SetupCodeTests.fs" />
     <Compile Include="DemoDataTests.fs" />
     <Compile Include="LowessTests.fs" />
     <Compile Include="LowessPropertyTests.fs" />

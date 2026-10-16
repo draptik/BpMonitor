@@ -12,6 +12,7 @@
     <Compile Include="FamilyMember.fs" />
     <Compile Include="Medication.fs" />
     <Compile Include="PasswordHashing.fs" />
+    <Compile Include="SetupCode.fs" />
     <Compile Include="IFamilyMemberRepository.fs" />
     <Compile Include="BloodPressureReading.fs" />
     <Compile Include="DemoData.fs" />
