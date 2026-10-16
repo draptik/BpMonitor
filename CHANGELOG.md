@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Trends: links to a week, month or year that doesn't exist (e.g. week 53 of a 52-week year) show the current period instead of an error page.
 - Members: deactivating a member signs them out on their next page load; previously a "remember me" login kept working until it expired.
 - Members: removing a member's admin rights takes effect immediately; previously they kept access to the members page until they signed in again.
+- Members: a new or renamed member can't take a name another member already has (ignoring upper/lower case); previously the second member could never sign in with name and password.
 
 ## [1.14.0] - 2026-10-03
 

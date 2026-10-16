@@ -40,5 +40,13 @@ module FamilyMember =
   let hasActiveAdmin (members: FamilyMember list) =
     members |> List.exists (fun m -> m.IsAdmin && m.IsActive)
 
+  /// Returns true when a different member (by Id) already uses the candidate's name,
+  /// ignoring case and surrounding spaces — login looks members up the same way.
+  let nameTaken (members: FamilyMember list) (candidate: FamilyMember) =
+    members
+    |> List.exists (fun m ->
+      m.Id <> candidate.Id
+      && m.Name.Trim().Equals(candidate.Name.Trim(), StringComparison.OrdinalIgnoreCase))
+
   /// Returns true when the member has a password set (has claimed their account).
   let isClaimed (m: FamilyMember) = m.PasswordHash |> Option.isSome

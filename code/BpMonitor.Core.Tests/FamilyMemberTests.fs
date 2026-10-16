@@ -73,6 +73,17 @@ let ``hasActiveAdmin is true when at least one member is admin and active`` () =
   test <@ FamilyMember.hasActiveAdmin members = true @>
 
 [<Fact>]
+let ``nameTaken is true when another member has the same name, ignoring case and spaces`` () =
+  let members = [ mkMember 1 "Bart" false true ]
+  let candidate = mkMember 0 " bart " false true
+  test <@ FamilyMember.nameTaken members candidate @>
+
+[<Fact>]
+let ``nameTaken is false when a member keeps their own name in a different case`` () =
+  let members = [ mkMember 1 "Bart" false true ]
+  test <@ not (FamilyMember.nameTaken members (mkMember 1 "BART" false true)) @>
+
+[<Fact>]
 let ``isClaimed returns false when PasswordHash is None`` () =
   match FamilyMember.create "Alice" true with
   | Error _ -> failwith "unexpected error"

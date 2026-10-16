@@ -27,6 +27,10 @@ module MemberHandlers =
           let allMembers = (memberRepo ctx).GetAll()
           ctx.Response.StatusCode <- 422
           do! htmlResponse (MemberViews.members s allMembers active [ s.Errors.NameIsEmpty ]) ctx
+        | Ok m when FamilyMember.nameTaken ((memberRepo ctx).GetAll()) m ->
+          let allMembers = (memberRepo ctx).GetAll()
+          ctx.Response.StatusCode <- 422
+          do! htmlResponse (MemberViews.members s allMembers active [ s.Errors.NameAlreadyTaken ]) ctx
         | Ok m ->
           (memberRepo ctx).Add(m) |> ignore
           ctx.Response.Redirect Routes.members
@@ -91,12 +95,15 @@ module MemberHandlers =
               IsAdmin = isAdmin
               IsActive = isActive
           }
+
+        let allMembers = (memberRepo ctx).GetAll()
         // Compute what the member list would look like after the edit.
         let postEditList =
-          (memberRepo ctx).GetAll()
-          |> List.map (fun m -> if m.Id = id then updated else m)
+          allMembers |> List.map (fun m -> if m.Id = id then updated else m)
 
-        if not (FamilyMember.hasActiveAdmin postEditList) then
+        if FamilyMember.nameTaken allMembers updated then
+          do! renderMemberEditError s id adminName [ s.Errors.NameAlreadyTaken ] updated ctx
+        elif not (FamilyMember.hasActiveAdmin postEditList) then
           do! renderMemberEditError s id adminName [ s.Errors.AtLeastOneActiveAdmin ] updated ctx
         else
           (memberRepo ctx).Update(updated)
