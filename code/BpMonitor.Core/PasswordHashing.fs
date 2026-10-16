@@ -46,15 +46,19 @@ module PasswordHashing =
           let salt = Convert.FromBase64String(parts[1])
           let expected = Convert.FromBase64String(parts[2])
 
-          let actual =
-            Rfc2898DeriveBytes.Pbkdf2(
-              System.Text.Encoding.UTF8.GetBytes(password),
-              salt,
-              iterations,
-              HashAlgorithmName.SHA256,
-              expected.Length
-            )
+          // A shorter hash would match by chance (an empty one matches everything).
+          if expected.Length <> HashBytes then
+            false
+          else
+            let actual =
+              Rfc2898DeriveBytes.Pbkdf2(
+                System.Text.Encoding.UTF8.GetBytes(password),
+                salt,
+                iterations,
+                HashAlgorithmName.SHA256,
+                HashBytes
+              )
 
-          CryptographicOperations.FixedTimeEquals(ReadOnlySpan(actual), ReadOnlySpan(expected))
+            CryptographicOperations.FixedTimeEquals(ReadOnlySpan(actual), ReadOnlySpan(expected))
         with _ ->
           false
