@@ -50,9 +50,10 @@ BpMonitor__SeedDemoData=true dotnet run --project code/BpMonitor.Web
 The flag is **off by default** — production databases are never touched. Seeding
 only runs when the database is empty, so a second run with the flag is a no-op.
 
-Members are seeded **unclaimed** (no password). Use the first-login flow at
-`http://localhost:5000/login` to claim a member and set a password. Marge
-Simpson is the admin.
+Members are seeded **unclaimed** (no password). On startup the app logs a
+one-time setup code for each of them (`Setup code for member … : XXXX-XXXX`).
+Sign in at `http://localhost:5000/login` with a member's name, then enter their
+code and choose a password. Marge Simpson is the admin.
 
 ## Project structure
 

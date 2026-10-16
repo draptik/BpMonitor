@@ -27,6 +27,29 @@ BpMonitor Web ships as a self-contained Linux binary — no .NET runtime require
 
 The server binds `http://0.0.0.0:5000`.
 
+## First sign-in
+
+On first start, BpMonitor creates an admin member named `Me` and writes a one-time setup code
+for it to the log:
+
+```text
+[INF] Setup code for member Me (Id=1): K7QX-M2PA
+```
+
+Open `http://<host>:5000/login`, sign in as `Me`, enter the setup code and choose a password.
+With Docker Compose, find the code with:
+
+```bash
+docker compose -f docs/example-deploy/docker-compose.yml logs bpmonitor-web | grep "Setup code"
+```
+
+Add the rest of the family on the **Members** page. It shows each new member's setup code once —
+pass it on, and they use it to set their own password. Resetting a member's password shows a new
+code the same way. A code stays valid until it's used or replaced by another reset.
+
+**Upgrading from a version without setup codes:** members who haven't set a password yet get a
+setup code in the log on the first start after the upgrade.
+
 ## Configuration
 
 - **Database** — defaults to `Data Source=<install-dir>/bpmonitor.db`; override with `ConnectionStrings__DefaultConnection`.

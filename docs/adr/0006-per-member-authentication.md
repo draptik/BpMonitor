@@ -2,7 +2,8 @@
 
 **Date:** 2026-06-09  
 **Status:** Accepted  
-**Supersedes:** login-deferred note in ADR 0005
+**Supersedes:** login-deferred note in ADR 0005  
+**Superseded in part by:** ADR 0012 (claiming an account now requires a one-time setup code)
 
 ## Context
 

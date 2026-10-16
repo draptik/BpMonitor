@@ -1,7 +1,7 @@
 # ADR 0012 — One-time setup codes for claiming an account
 
 **Date:** 2026-10-16  
-**Status:** Proposed  
+**Status:** Accepted  
 **Supersedes:** the "First-login claim" part of ADR 0006
 
 ## Context

@@ -67,5 +67,6 @@ Containerfile's `HEALTHCHECK` and the Quadlet unit above poll it.
   bounds with `ReadingRanges__*` environment variables.
 
 > **Security:** access is protected by per-member cookie authentication (each
-> family member sets a password on first login). Avoid exposing port 5000 directly
+> family member claims their account with a one-time setup code and sets a password —
+> see [First sign-in](../install.md#first-sign-in)). Avoid exposing port 5000 directly
 > to the internet — use a reverse proxy with TLS for internet-facing deployments.
