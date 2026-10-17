@@ -1,7 +1,12 @@
 # ADR 0013 — One deployment-wide time zone, passed explicitly
 
 **Date:** 2026-10-17  
-**Status:** Proposed
+**Status:** Rejected (2026-10-17)
+
+> **Why rejected:** every user of a deployment shares one time zone, so the host's zone (`TZ`)
+> is the right one and the app keeps reading it directly. The testing gap this ADR described
+> isn't worth the change across Core, Charts and Web; #606 already made the existing tests
+> independent of the machine's zone. The implementation PR (#613) was closed unmerged.
 
 ## Context
 
