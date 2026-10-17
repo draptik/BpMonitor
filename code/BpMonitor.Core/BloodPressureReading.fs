@@ -41,17 +41,19 @@ module Timestamp =
   let utc year month day hour minute second =
     System.DateTimeOffset(year, month, day, hour, minute, second, System.TimeSpan.Zero)
 
-  let local year month day hour minute second =
+  /// The wall-clock time in `zone`, with that zone's offset at that moment (ADR 0013).
+  let local (zone: System.TimeZoneInfo) year month day hour minute second =
     let offset =
-      System.TimeZoneInfo.Local.GetUtcOffset(System.DateTime(year, month, day, hour, minute, second))
+      zone.GetUtcOffset(System.DateTime(year, month, day, hour, minute, second))
 
     System.DateTimeOffset(year, month, day, hour, minute, second, offset)
 
 module Formats =
   let timestamp = "yyyy-MM-dd HH:mm"
 
-  let formatLocal (ts: System.DateTimeOffset) =
-    ts.ToLocalTime().ToString(timestamp, System.Globalization.CultureInfo.InvariantCulture)
+  /// `ts` as wall-clock time in `zone` (ADR 0013).
+  let formatLocal (zone: System.TimeZoneInfo) (ts: System.DateTimeOffset) =
+    System.TimeZoneInfo.ConvertTime(ts, zone).ToString(timestamp, System.Globalization.CultureInfo.InvariantCulture)
 
   let date = "yyyy-MM-dd"
 

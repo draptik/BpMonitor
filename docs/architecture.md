@@ -18,7 +18,7 @@ code/
 ├── BpMonitor.Web.E2E.Tests  # Playwright .NET browser smoke tests (real out-of-process app + Chromium/Firefox)
 ├── BpMonitor.Arch.Tests     # ArchUnit tests enforcing Clean Architecture rules
 ├── BpMonitor.Benchmarks     # BenchmarkDotNet suite (e.g. LOWESS reference vs. sliding window); local only
-└── BpMonitor.TestSupport    # Shared test infrastructure (Verify snapshot settings, domain record builders, E2E process-readiness polling) for *.Tests projects
+└── BpMonitor.TestSupport    # Shared test infrastructure (Verify snapshot settings, domain record builders, culture and time-zone scopes, E2E process-readiness polling) for *.Tests projects
 ```
 
 ## Tech Stack
@@ -146,6 +146,7 @@ graph TD
 - `PasswordHashing` — PBKDF2-SHA256 hash/verify
 - `SetupCode` — one-time claim codes (ADR 0012): `generate` (`XXXX-XXXX`, no look-alike characters), `hash`/`verify` (case, dashes and spaces ignored), `issueMissing` (codes for `NoCredential` members, run at startup)
 - `ReadingStats` — date-window filter, AHA 2017 BP classification, windowed summary
+- Local time (ADR 0013): `Formats.formatLocal`, `Timestamp.local`, `ReadingStats` grouping and `TrendPeriod` take the deployment's `zone: TimeZoneInfo` explicitly instead of asking the host; `BpMonitor.Arch.Tests` fails if Core calls `TimeZoneInfo.Local`, `ToLocalTime()` or `GetLocalNow()`. Charts and Web still pass a temporary `TimeZoneInfo.Local` until the next two ADR 0013 PRs
 - `TrendPeriod.Label` is a `PeriodLabel` DU (`ThisWeek`, `CalendarWeek of int`, `MonthOfYear of int * int`, …), rendered via `LocalizedStrings.Trend` at the view layer rather than as English prose in Core
 - `DemoData` — deterministic Simpson-family fixture generator (fixed seed, ~5 years of readings)
 - Applicative validation via `FsToolkit.ErrorHandling`; no dependencies on other projects

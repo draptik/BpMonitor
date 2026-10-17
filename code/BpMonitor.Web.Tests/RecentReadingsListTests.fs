@@ -44,8 +44,8 @@ let ``recent readings section tags each row with the reading's chart x-label`` (
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  let expectedX1 = Formats.formatLocal r1.Timestamp
-  let expectedX2 = Formats.formatLocal r2.Timestamp
+  let expectedX1 = Formats.formatLocal System.TimeZoneInfo.Local r1.Timestamp
+  let expectedX2 = Formats.formatLocal System.TimeZoneInfo.Local r2.Timestamp
 
   test <@ body.Contains $"<tr data-x=\"{expectedX1}\">" @>
   test <@ body.Contains $"<tr data-x=\"{expectedX2}\">" @>
@@ -59,8 +59,8 @@ let ``recent readings section marks a row older than 30 days out-of-range, like 
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  let oldX = Formats.formatLocal oldReading.Timestamp
-  let recentX = Formats.formatLocal recentReading.Timestamp
+  let oldX = Formats.formatLocal System.TimeZoneInfo.Local oldReading.Timestamp
+  let recentX = Formats.formatLocal System.TimeZoneInfo.Local recentReading.Timestamp
 
   test <@ body.Contains $"<tr data-x=\"{oldX}\" class=\"out-of-range\">" @>
   test <@ body.Contains $"<tr data-x=\"{recentX}\">" @>
@@ -103,7 +103,7 @@ let ``recent readings section leaves a reading exactly 30 days old in range`` ()
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  let x = Formats.formatLocal atBoundary.Timestamp
+  let x = Formats.formatLocal System.TimeZoneInfo.Local atBoundary.Timestamp
   test <@ body.Contains $"<tr data-x=\"{x}\">" @>
   test <@ not (body.Contains $"<tr data-x=\"{x}\" class=\"out-of-range\">") @>
 
@@ -121,7 +121,7 @@ let ``recent readings section marks a reading just past 30 days old out-of-range
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  let x = Formats.formatLocal pastBoundary.Timestamp
+  let x = Formats.formatLocal System.TimeZoneInfo.Local pastBoundary.Timestamp
   test <@ body.Contains $"<tr data-x=\"{x}\" class=\"out-of-range\">" @>
 
 [<Fact>]
@@ -132,7 +132,7 @@ let ``recent full fragment marks a reading beyond the load window out-of-range i
   TestHost.run ReadingHandlers.recentFull ctx
 
   let body = TestHost.readBody ctx
-  let x = Formats.formatLocal beyondLoadWindow.Timestamp
+  let x = Formats.formatLocal System.TimeZoneInfo.Local beyondLoadWindow.Timestamp
   test <@ body.Contains $"<tr data-x=\"{x}\" class=\"out-of-range\">" @>
   test <@ body.Contains ">199<" @>
 

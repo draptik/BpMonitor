@@ -293,7 +293,11 @@ module BpChart =
   /// shared by every per-reading chart (/history and /recent).
   let private seriesOf (readings: BloodPressureReading list) =
     let sorted = readings |> List.sortBy _.Timestamp
-    let labels = sorted |> List.map (_.Timestamp >> Formats.formatLocal)
+
+    let labels =
+      sorted
+      |> List.map (_.Timestamp >> Formats.formatLocal System.TimeZoneInfo.Local)
+
     let systolic = sorted |> List.map _.Systolic
     let diastolic = sorted |> List.map _.Diastolic
     sorted, labels, systolic, diastolic
@@ -312,7 +316,10 @@ module BpChart =
     if commented.IsEmpty then
       []
     else
-      let cTimestamps = commented |> List.map (_.Timestamp >> Formats.formatLocal)
+      let cTimestamps =
+        commented
+        |> List.map (_.Timestamp >> Formats.formatLocal System.TimeZoneInfo.Local)
+
       let cBaseline = commented |> List.map (fun _ -> 0)
 
       let cTexts =
@@ -583,8 +590,10 @@ module BpChart =
     : string =
     let readings, timestamps, systolic, diastolic = seriesOf readings
     let dashes = dashPattern windowDays readings
-    let rangeLow = Formats.formatLocal windowStart
-    let rangeHigh = Formats.formatLocal (recentAxisEnd windowStart windowEnd)
+    let rangeLow = Formats.formatLocal System.TimeZoneInfo.Local windowStart
+
+    let rangeHigh =
+      Formats.formatLocal System.TimeZoneInfo.Local (recentAxisEnd windowStart windowEnd)
 
     [
       yield! seriesTraces systolicFadedColor s.Systolic dashes timestamps systolic

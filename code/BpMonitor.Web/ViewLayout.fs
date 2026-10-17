@@ -297,7 +297,9 @@ module ViewLayout =
       Elem.tr
         (rowAttrs r)
         [
-          Elem.td [ Attr.class' "col-timestamp" ] [ Text.enc (Formats.formatLocal r.Timestamp) ]
+          Elem.td
+            [ Attr.class' "col-timestamp" ]
+            [ Text.enc (Formats.formatLocal System.TimeZoneInfo.Local r.Timestamp) ]
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.Systolic) ]
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.Diastolic) ]
           Elem.td [ Attr.class' "col-center" ] [ Text.enc (string r.HeartRate) ]

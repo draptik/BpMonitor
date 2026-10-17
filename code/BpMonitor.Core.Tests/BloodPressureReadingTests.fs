@@ -5,6 +5,7 @@ open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
+open BpMonitor.TestSupport
 
 let private timeProvider = FakeTimeProvider(Timestamp.utc 2026 3 3 0 0 0)
 
@@ -21,13 +22,13 @@ let private ranges = ReadingRanges.defaults
 
 [<Fact>]
 let ``formatLocal is unaffected by the ambient culture`` () =
-  let ts = Timestamp.local 2026 3 3 9 5 0
+  let ts = Timestamp.local TestZones.berlin 2026 3 3 9 5 0
   let original = Threading.Thread.CurrentThread.CurrentCulture
 
   try
-    let invariant = Formats.formatLocal ts
+    let invariant = Formats.formatLocal TestZones.berlin ts
     Threading.Thread.CurrentThread.CurrentCulture <- Globalization.CultureInfo("ar-SA")
-    test <@ Formats.formatLocal ts = invariant @>
+    test <@ Formats.formatLocal TestZones.berlin ts = invariant @>
   finally
     Threading.Thread.CurrentThread.CurrentCulture <- original
 
@@ -188,3 +189,17 @@ let ``parse sets MemberId to 0`` () =
 [<Fact>]
 let ``formatDateEuropean renders as dd.MM.yyyy`` () =
   test <@ Formats.formatDateEuropean (DateOnly(2026, 4, 1)) = "01.04.2026" @>
+
+// ── time zone passed explicitly (ADR 0013) ──
+
+[<Fact>]
+let ``formatLocal shows an instant in the given zone, not the machine's`` () =
+  let midnightUtc = Timestamp.utc 2026 1 1 0 0 0
+  test <@ Formats.formatLocal TestZones.kolkata midnightUtc = "2026-01-01 05:30" @>
+  test <@ Formats.formatLocal TestZones.berlin midnightUtc = "2026-01-01 01:00" @>
+
+[<Fact>]
+let ``Timestamp.local TestZones.berlin uses the given zone's offset on each side of a DST switch`` () =
+  // Berlin switches to summer time on 2026-03-29 at 02:00.
+  test <@ (Timestamp.local TestZones.berlin 2026 3 29 1 0 0).Offset = TimeSpan.FromHours 1.0 @>
+  test <@ (Timestamp.local TestZones.berlin 2026 3 29 3 0 0).Offset = TimeSpan.FromHours 2.0 @>

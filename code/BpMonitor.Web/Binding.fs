@@ -41,7 +41,7 @@ module Binding =
       Systolic = string r.Systolic
       Diastolic = string r.Diastolic
       HeartRate = string r.HeartRate
-      Timestamp = Formats.formatLocal r.Timestamp
+      Timestamp = Formats.formatLocal System.TimeZoneInfo.Local r.Timestamp
       Comments = r.Comments |> Option.defaultValue ""
     }
 

@@ -32,7 +32,7 @@ let ``recent opens the Medications Timeline on the same padded range as the BP c
   let lo = now.AddDays(-30.0)
 
   let range =
-    $"\"range\":[\"{Formats.formatLocal lo}\",\"{Formats.formatLocal (BpChart.recentAxisEnd lo now)}\"]"
+    $"\"range\":[\"{Formats.formatLocal System.TimeZoneInfo.Local lo}\",\"{Formats.formatLocal System.TimeZoneInfo.Local (BpChart.recentAxisEnd lo now)}\"]"
 
   test <@ Regex.Matches(TestHost.readBody ctx, Regex.Escape range).Count = 2 @>
 
@@ -101,7 +101,7 @@ let ``history renders a medication when the member has no readings at all`` () =
 let ``history extends an ongoing medication's timeline span to today`` () =
   // EndDate = None means "still ongoing" — the span's high end should be today
   // (per the time provider), not e.g. the medication's own StartDate.
-  let today = Timestamp.local 2026 6 15 10 0 0
+  let today = Timestamp.local System.TimeZoneInfo.Local 2026 6 15 10 0 0
   let tp = FakeTimeProvider(today)
 
   let ongoing =
@@ -186,7 +186,9 @@ let ``recent still opens the Medications Timeline on the last 30 days`` () =
   TestHost.run ReadingHandlers.recent ctx
 
   // Once for the BP chart, once for the timeline below it.
-  let windowStart = Formats.formatLocal (recentNow.AddDays -30.0)
+  let windowStart =
+    Formats.formatLocal System.TimeZoneInfo.Local (recentNow.AddDays -30.0)
+
   let marker = $"\"range\":[\"{windowStart}\""
   let body = TestHost.readBody ctx
   test <@ body.Split(marker).Length - 1 = 2 @>
@@ -210,6 +212,6 @@ let ``history ends the timeline's initial range at the newest reading, not at mi
 
   // The full range pattern: the reading's time alone also appears in the BP chart's data.
   let pattern =
-    $"\"range\":\\[\"[^\"]+\",\"{Regex.Escape(Formats.formatLocal evening)}\"\\]"
+    $"\"range\":\\[\"[^\"]+\",\"{Regex.Escape(Formats.formatLocal System.TimeZoneInfo.Local evening)}\"\\]"
 
   test <@ Regex.IsMatch(TestHost.readBody ctx, pattern) @>

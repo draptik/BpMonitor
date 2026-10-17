@@ -62,10 +62,15 @@ module ReadingStats =
 
   // ── aggregation ──────────────────────────────────────────────────────────────
 
+  /// The reading's calendar date in `zone`.
+  let private localDate (zone: TimeZoneInfo) (r: BloodPressureReading) : DateTime =
+    TimeZoneInfo.ConvertTime(r.Timestamp, zone).Date
+
   /// Groups readings by `keyOf`, sorts by key, and produces one AggregatedReading per
-  /// group. The representative timestamp is `dateOf key` wrapped in the local UTC offset.
+  /// group. The representative timestamp is `dateOf key` wrapped in `zone`'s offset on that date.
   /// Comments are dropped (not meaningful for averages).
   let private buildAggregated
+    (zone: TimeZoneInfo)
     (keyOf: BloodPressureReading -> 'key)
     (dateOf: 'key -> DateTime)
     (readings: BloodPressureReading list)
@@ -76,7 +81,7 @@ module ReadingStats =
     |> List.map (fun (key, rs) ->
       let n = List.length rs
       let date = dateOf key
-      let offset = TimeZoneInfo.Local.GetUtcOffset(date)
+      let offset = zone.GetUtcOffset(date)
       let minSys, maxSys = rangeOf _.Systolic rs
       let minDia, maxDia = rangeOf _.Diastolic rs
 
@@ -100,38 +105,42 @@ module ReadingStats =
         MaxDiastolic = maxDia
       })
 
-  let private dailyAveragesWithCount =
-    buildAggregated _.Timestamp.ToLocalTime().Date id
+  let private dailyAveragesWithCount (zone: TimeZoneInfo) =
+    buildAggregated zone (localDate zone) id
 
-  /// Groups readings by local calendar date, sorted ascending.
-  /// The returned reading's Timestamp is midnight of that local date. Comments are dropped.
-  let dailyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
-    dailyAveragesWithCount readings |> List.map _.Reading
+  /// Groups readings by calendar date in `zone`, sorted ascending.
+  /// The returned reading's Timestamp is midnight of that date in `zone`. Comments are dropped.
+  let dailyAverages (zone: TimeZoneInfo) (readings: BloodPressureReading list) : BloodPressureReading list =
+    dailyAveragesWithCount zone readings |> List.map _.Reading
 
-  let private weeklyAveragesWithCount =
-    buildAggregated (fun r -> IsoWeek.ofDate (r.Timestamp.ToLocalTime().Date)) IsoWeek.monday
+  let private weeklyAveragesWithCount (zone: TimeZoneInfo) =
+    buildAggregated zone (localDate zone >> IsoWeek.ofDate) IsoWeek.monday
 
-  /// Groups readings by ISO week, sorted ascending.
+  /// Groups readings by ISO week in `zone`, sorted ascending.
   /// The returned reading's Timestamp is Monday midnight of that week. Comments are dropped.
-  let weeklyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
-    weeklyAveragesWithCount readings |> List.map _.Reading
+  let weeklyAverages (zone: TimeZoneInfo) (readings: BloodPressureReading list) : BloodPressureReading list =
+    weeklyAveragesWithCount zone readings |> List.map _.Reading
 
-  let private monthlyAveragesWithCount =
-    buildAggregated (fun r -> YearMonth.ofDate (r.Timestamp.ToLocalTime().Date)) YearMonth.firstDay
+  let private monthlyAveragesWithCount (zone: TimeZoneInfo) =
+    buildAggregated zone (localDate zone >> YearMonth.ofDate) YearMonth.firstDay
 
-  /// Groups readings by calendar month, sorted ascending.
+  /// Groups readings by calendar month in `zone`, sorted ascending.
   /// The returned reading's Timestamp is the 1st of that month midnight. Comments are dropped.
-  let monthlyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
-    monthlyAveragesWithCount readings |> List.map _.Reading
+  let monthlyAverages (zone: TimeZoneInfo) (readings: BloodPressureReading list) : BloodPressureReading list =
+    monthlyAveragesWithCount zone readings |> List.map _.Reading
 
   /// Aggregates readings at the granularity appropriate for the given view:
   /// Weekly → daily averages, Monthly → weekly averages, Yearly → monthly averages.
   /// Returns AggregatedReading so the caller can distinguish single vs. multi-reading periods.
-  let aggregate (gran: Granularity) (readings: BloodPressureReading list) : AggregatedReading list =
+  let aggregate
+    (zone: TimeZoneInfo)
+    (gran: Granularity)
+    (readings: BloodPressureReading list)
+    : AggregatedReading list =
     match gran with
-    | Weekly -> dailyAveragesWithCount readings
-    | Monthly -> weeklyAveragesWithCount readings
-    | Yearly -> monthlyAveragesWithCount readings
+    | Weekly -> dailyAveragesWithCount zone readings
+    | Monthly -> weeklyAveragesWithCount zone readings
+    | Yearly -> monthlyAveragesWithCount zone readings
 
   // ── summary ──────────────────────────────────────────────────────────────────
 

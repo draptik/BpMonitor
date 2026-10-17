@@ -86,8 +86,8 @@ module ReadingHandlers =
       BpChart.toHtmlMedications
         s.Charts
         showScrubber
-        (Formats.formatLocal rangeLow)
-        (Formats.formatLocal rangeHigh)
+        (Formats.formatLocal System.TimeZoneInfo.Local rangeLow)
+        (Formats.formatLocal System.TimeZoneInfo.Local rangeHigh)
         medications
 
     MedicationViews.timelinePanel s chartHtml
@@ -233,7 +233,7 @@ module ReadingHandlers =
     =
     let windowed = allReadings |> ReadingStats.between period.Start period.EndExclusive
     let summary = ReadingStats.summarizeRange period windowed
-    let periods = TrendPeriod.available gran now
+    let periods = TrendPeriod.available System.TimeZoneInfo.Local gran now
 
     let periodsWithData =
       periods
@@ -248,7 +248,7 @@ module ReadingHandlers =
     let tableReadings = windowed |> List.sortByDescending _.Timestamp
 
     let chartHtml =
-      BpChart.toHtmlDashed s.Charts m.Goal gran (ReadingStats.aggregate gran windowed)
+      BpChart.toHtmlDashed s.Charts m.Goal gran (ReadingStats.aggregate System.TimeZoneInfo.Local gran windowed)
 
     summary, periods, periodsWithData, tableReadings, chartHtml
 
@@ -257,7 +257,7 @@ module ReadingHandlers =
       let s = stringsForMember m
       let now = (timeProvider ctx).GetUtcNow()
       let allReadings = (repo ctx).GetAll(m.Id)
-      let period = TrendPeriod.current Weekly now
+      let period = TrendPeriod.current System.TimeZoneInfo.Local Weekly now
 
       let summary, periods, periodsWithData, tableReadings, chartHtml =
         renderTrendsData s Weekly period now m allReadings
@@ -275,8 +275,8 @@ module ReadingHandlers =
 
         let period =
           routeStr ctx "key"
-          |> Option.bind (fun k -> TrendPeriod.ofKey gran k now)
-          |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
+          |> Option.bind (fun k -> TrendPeriod.ofKey System.TimeZoneInfo.Local gran k now)
+          |> Option.defaultWith (fun () -> TrendPeriod.current System.TimeZoneInfo.Local gran now)
 
         let summary, periods, periodsWithData, tableReadings, chartHtml =
           renderTrendsData s gran period now m allReadings

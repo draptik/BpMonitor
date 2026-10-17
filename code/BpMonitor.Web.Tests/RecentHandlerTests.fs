@@ -126,7 +126,9 @@ let ``recent renders zoom shortcut buttons for the last 7 and 30 days, anchored 
 
   let range (days: float) =
     let lo = now.AddDays(-days)
-    Formats.formatLocal lo, Formats.formatLocal (BpChart.recentAxisEnd lo now)
+
+    Formats.formatLocal System.TimeZoneInfo.Local lo,
+    Formats.formatLocal System.TimeZoneInfo.Local (BpChart.recentAxisEnd lo now)
 
   let lo7, hi7 = range 7.0
   let lo30, hi30 = range 30.0

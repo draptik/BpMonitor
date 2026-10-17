@@ -4,12 +4,13 @@ open System
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
+open BpMonitor.TestSupport
 open BpMonitor.TestSupport.TestBuilders
 
 let private now = DateTimeOffset(2026, 6, 9, 12, 0, 0, TimeSpan.Zero)
 
 // Helper: build the "current weekly" period for `now`
-let private currentWeeklyPeriod = TrendPeriod.current Weekly now
+let private currentWeeklyPeriod = TrendPeriod.current TestZones.berlin Weekly now
 
 // ── between ───────────────────────────────────────────────────────────────────
 
@@ -43,12 +44,12 @@ let ``between: empty list returns empty`` () =
 
 [<Fact>]
 let ``dailyAverages: empty list returns empty`` () =
-  test <@ ReadingStats.dailyAverages [] = [] @>
+  test <@ ReadingStats.dailyAverages TestZones.berlin [] = [] @>
 
 [<Fact>]
 let ``dailyAverages: single reading returns one entry with same values`` () =
   let r = mkReading 1 1 130 85 68 (now.AddDays(-1.0))
-  let result = ReadingStats.dailyAverages [ r ]
+  let result = ReadingStats.dailyAverages TestZones.berlin [ r ]
   test <@ result.Length = 1 @>
   let day = result[0]
   test <@ day.Systolic = 130 @>
@@ -57,11 +58,11 @@ let ``dailyAverages: single reading returns one entry with same values`` () =
 
 [<Fact>]
 let ``dailyAverages: two readings on same day are averaged`` () =
-  let r1 = mkReading 1 1 120 80 60 (Timestamp.local 2026 6 9 8 0 0)
+  let r1 = mkReading 1 1 120 80 60 (Timestamp.local TestZones.berlin 2026 6 9 8 0 0)
 
-  let r2 = mkReading 2 1 140 90 80 (Timestamp.local 2026 6 9 20 0 0)
+  let r2 = mkReading 2 1 140 90 80 (Timestamp.local TestZones.berlin 2026 6 9 20 0 0)
 
-  let result = ReadingStats.dailyAverages [ r1; r2 ]
+  let result = ReadingStats.dailyAverages TestZones.berlin [ r1; r2 ]
   test <@ result.Length = 1 @>
   test <@ result[0].Systolic = 130 @>
   test <@ result[0].Diastolic = 85 @>
@@ -69,7 +70,8 @@ let ``dailyAverages: two readings on same day are averaged`` () =
 
 [<Fact>]
 let ``dailyAverages: rounds the averaged chart point to the nearest mmHg`` () =
-  let at (h: int) = Timestamp.local 2026 6 9 h 0 0
+  let at (h: int) =
+    Timestamp.local TestZones.berlin 2026 6 9 h 0 0
 
   let readings =
     [
@@ -78,28 +80,28 @@ let ``dailyAverages: rounds the averaged chart point to the nearest mmHg`` () =
       mkReading 3 1 140 81 70 (at 20)
     ]
 
-  let result = ReadingStats.dailyAverages readings
+  let result = ReadingStats.dailyAverages TestZones.berlin readings
   test <@ result[0].Systolic = 140 && result[0].Diastolic = 80 @>
 
 [<Fact>]
 let ``dailyAverages: readings on different days produce one entry per day`` () =
   let r1 = mkReading 1 1 120 80 60 (now.AddDays(-2.0))
   let r2 = mkReading 2 1 130 85 70 (now.AddDays(-1.0))
-  let result = ReadingStats.dailyAverages [ r1; r2 ]
+  let result = ReadingStats.dailyAverages TestZones.berlin [ r1; r2 ]
   test <@ result.Length = 2 @>
 
 [<Fact>]
 let ``dailyAverages: result is sorted ascending by date`` () =
   let r1 = mkReading 1 1 130 85 70 (now.AddDays(-1.0))
   let r2 = mkReading 2 1 120 80 60 (now.AddDays(-3.0))
-  let result = ReadingStats.dailyAverages [ r1; r2 ]
+  let result = ReadingStats.dailyAverages TestZones.berlin [ r1; r2 ]
   test <@ result[0].Timestamp < result[1].Timestamp @>
 
 [<Fact>]
 let ``dailyAverages: timestamp is midnight of the local date`` () =
   let r = mkReading 1 1 120 80 60 (now.AddDays(-1.0))
-  let day = ReadingStats.dailyAverages [ r ] |> List.exactlyOne
-  let ts = day.Timestamp.ToLocalTime()
+  let day = ReadingStats.dailyAverages TestZones.berlin [ r ] |> List.exactlyOne
+  let ts = TimeZoneInfo.ConvertTime(day.Timestamp, TestZones.berlin)
   let h, m, s = ts.Hour, ts.Minute, ts.Second
   test <@ h = 0 && m = 0 && s = 0 @>
 
@@ -110,23 +112,23 @@ let ``dailyAverages: Comments are dropped even when the source reading had one``
         Comments = Some "after a walk"
     }
 
-  let day = ReadingStats.dailyAverages [ r ] |> List.exactlyOne
+  let day = ReadingStats.dailyAverages TestZones.berlin [ r ] |> List.exactlyOne
   test <@ day.Comments = None @>
 
 // ── weeklyAverages ────────────────────────────────────────────────────────────
 
 [<Fact>]
 let ``weeklyAverages: empty list returns empty`` () =
-  test <@ ReadingStats.weeklyAverages [] = [] @>
+  test <@ ReadingStats.weeklyAverages TestZones.berlin [] = [] @>
 
 [<Fact>]
 let ``weeklyAverages: readings in same ISO week are averaged into one entry`` () =
   // 2026-W24: Mon 2026-06-08 ... Sun 2026-06-14
-  let r1 = mkReading 1 1 120 80 60 (Timestamp.local 2026 6 8 9 0 0)
+  let r1 = mkReading 1 1 120 80 60 (Timestamp.local TestZones.berlin 2026 6 8 9 0 0)
 
-  let r2 = mkReading 2 1 140 90 80 (Timestamp.local 2026 6 10 9 0 0)
+  let r2 = mkReading 2 1 140 90 80 (Timestamp.local TestZones.berlin 2026 6 10 9 0 0)
 
-  let result = ReadingStats.weeklyAverages [ r1; r2 ]
+  let result = ReadingStats.weeklyAverages TestZones.berlin [ r1; r2 ]
   test <@ result.Length = 1 @>
   test <@ result[0].Systolic = 130 @>
   test <@ result[0].Diastolic = 85 @>
@@ -140,7 +142,7 @@ let ``weeklyAverages: readings in different weeks produce one entry per week`` (
   let r2 =
     mkReading 2 1 130 85 70 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero)) // W24
 
-  let result = ReadingStats.weeklyAverages [ r1; r2 ]
+  let result = ReadingStats.weeklyAverages TestZones.berlin [ r1; r2 ]
   test <@ result.Length = 2 @>
 
 [<Fact>]
@@ -151,7 +153,7 @@ let ``weeklyAverages: result is sorted ascending`` () =
   let r2 =
     mkReading 2 1 130 85 70 (DateTimeOffset(2026, 6, 1, 9, 0, 0, TimeSpan.Zero)) // W23
 
-  let result = ReadingStats.weeklyAverages [ r1; r2 ]
+  let result = ReadingStats.weeklyAverages TestZones.berlin [ r1; r2 ]
   test <@ result[0].Timestamp < result[1].Timestamp @>
 
 [<Fact>]
@@ -159,8 +161,8 @@ let ``weeklyAverages: timestamp is Monday midnight of the ISO week`` () =
   let r =
     mkReading 1 1 120 80 60 (DateTimeOffset(2026, 6, 10, 15, 0, 0, TimeSpan.Zero)) // W24 (Wednesday)
 
-  let result = ReadingStats.weeklyAverages [ r ]
-  let ts = result[0].Timestamp.ToLocalTime()
+  let result = ReadingStats.weeklyAverages TestZones.berlin [ r ]
+  let ts = TimeZoneInfo.ConvertTime(result[0].Timestamp, TestZones.berlin)
   let y, mo, d = ts.Year, ts.Month, ts.Day
   // 2026-W24 starts on 2026-06-08 (Monday)
   test <@ y = 2026 && mo = 6 && d = 8 @>
@@ -169,7 +171,7 @@ let ``weeklyAverages: timestamp is Monday midnight of the ISO week`` () =
 
 [<Fact>]
 let ``monthlyAverages: empty list returns empty`` () =
-  test <@ ReadingStats.monthlyAverages [] = [] @>
+  test <@ ReadingStats.monthlyAverages TestZones.berlin [] = [] @>
 
 [<Fact>]
 let ``monthlyAverages: readings in same month are averaged into one entry`` () =
@@ -179,7 +181,7 @@ let ``monthlyAverages: readings in same month are averaged into one entry`` () =
   let r2 =
     mkReading 2 1 140 90 80 (DateTimeOffset(2026, 6, 20, 9, 0, 0, TimeSpan.Zero))
 
-  let result = ReadingStats.monthlyAverages [ r1; r2 ]
+  let result = ReadingStats.monthlyAverages TestZones.berlin [ r1; r2 ]
   test <@ result.Length = 1 @>
   test <@ result[0].Systolic = 130 @>
 
@@ -191,7 +193,7 @@ let ``monthlyAverages: readings in different months produce one entry per month`
   let r2 =
     mkReading 2 1 130 85 70 (DateTimeOffset(2026, 6, 15, 9, 0, 0, TimeSpan.Zero))
 
-  let result = ReadingStats.monthlyAverages [ r1; r2 ]
+  let result = ReadingStats.monthlyAverages TestZones.berlin [ r1; r2 ]
   test <@ result.Length = 2 @>
 
 [<Fact>]
@@ -202,7 +204,7 @@ let ``monthlyAverages: result is sorted ascending`` () =
   let r2 =
     mkReading 2 1 130 85 70 (DateTimeOffset(2026, 5, 15, 9, 0, 0, TimeSpan.Zero))
 
-  let result = ReadingStats.monthlyAverages [ r1; r2 ]
+  let result = ReadingStats.monthlyAverages TestZones.berlin [ r1; r2 ]
   test <@ result[0].Timestamp < result[1].Timestamp @>
 
 [<Fact>]
@@ -210,8 +212,8 @@ let ``monthlyAverages: timestamp is first of month midnight`` () =
   let r =
     mkReading 1 1 120 80 60 (DateTimeOffset(2026, 6, 15, 12, 0, 0, TimeSpan.Zero))
 
-  let result = ReadingStats.monthlyAverages [ r ]
-  let ts = result[0].Timestamp.ToLocalTime()
+  let result = ReadingStats.monthlyAverages TestZones.berlin [ r ]
+  let ts = TimeZoneInfo.ConvertTime(result[0].Timestamp, TestZones.berlin)
   let y, mo, d = ts.Year, ts.Month, ts.Day
   test <@ y = 2026 && mo = 6 && d = 1 @>
 
@@ -219,11 +221,11 @@ let ``monthlyAverages: timestamp is first of month midnight`` () =
 
 [<Fact>]
 let ``aggregate Weekly delegates to dailyAverages`` () =
-  let r1 = mkReading 1 1 120 80 60 (Timestamp.local 2026 6 8 9 0 0)
+  let r1 = mkReading 1 1 120 80 60 (Timestamp.local TestZones.berlin 2026 6 8 9 0 0)
 
-  let r2 = mkReading 2 1 140 90 80 (Timestamp.local 2026 6 8 20 0 0)
+  let r2 = mkReading 2 1 140 90 80 (Timestamp.local TestZones.berlin 2026 6 8 20 0 0)
 
-  let result = ReadingStats.aggregate Weekly [ r1; r2 ]
+  let result = ReadingStats.aggregate TestZones.berlin Weekly [ r1; r2 ]
   // Two readings on same day → one daily average
   test <@ result.Length = 1 @>
 
@@ -235,7 +237,7 @@ let ``aggregate Monthly delegates to weeklyAverages`` () =
   let r2 =
     mkReading 2 1 130 85 70 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero)) // W24
 
-  let result = ReadingStats.aggregate Monthly [ r1; r2 ]
+  let result = ReadingStats.aggregate TestZones.berlin Monthly [ r1; r2 ]
   // Two different weeks → two weekly averages
   test <@ result.Length = 2 @>
 
@@ -247,32 +249,32 @@ let ``aggregate Yearly delegates to monthlyAverages`` () =
   let r2 =
     mkReading 2 1 130 85 70 (DateTimeOffset(2026, 6, 15, 9, 0, 0, TimeSpan.Zero))
 
-  let result = ReadingStats.aggregate Yearly [ r1; r2 ]
+  let result = ReadingStats.aggregate TestZones.berlin Yearly [ r1; r2 ]
   // Two different months → two monthly averages
   test <@ result.Length = 2 @>
 
 [<Fact>]
 let ``aggregate Weekly: two readings on same day yields Count=2`` () =
-  let r1 = mkReading 1 1 120 80 60 (Timestamp.local 2026 6 8 9 0 0)
+  let r1 = mkReading 1 1 120 80 60 (Timestamp.local TestZones.berlin 2026 6 8 9 0 0)
 
-  let r2 = mkReading 2 1 140 90 80 (Timestamp.local 2026 6 8 20 0 0)
+  let r2 = mkReading 2 1 140 90 80 (Timestamp.local TestZones.berlin 2026 6 8 20 0 0)
 
-  let result = ReadingStats.aggregate Weekly [ r1; r2 ]
+  let result = ReadingStats.aggregate TestZones.berlin Weekly [ r1; r2 ]
   test <@ result[0].Count = 2 @>
 
 [<Fact>]
 let ``aggregate Weekly: single reading on a day yields Count=1`` () =
   let r = mkReading 1 1 120 80 60 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
-  let result = ReadingStats.aggregate Weekly [ r ]
+  let result = ReadingStats.aggregate TestZones.berlin Weekly [ r ]
   test <@ result[0].Count = 1 @>
 
 [<Fact>]
 let ``aggregate Monthly: two readings in same ISO week yields Count=2`` () =
-  let r1 = mkReading 1 1 120 80 60 (Timestamp.local 2026 6 8 9 0 0)
+  let r1 = mkReading 1 1 120 80 60 (Timestamp.local TestZones.berlin 2026 6 8 9 0 0)
 
-  let r2 = mkReading 2 1 140 90 80 (Timestamp.local 2026 6 9 9 0 0)
+  let r2 = mkReading 2 1 140 90 80 (Timestamp.local TestZones.berlin 2026 6 9 9 0 0)
 
-  let result = ReadingStats.aggregate Monthly [ r1; r2 ]
+  let result = ReadingStats.aggregate TestZones.berlin Monthly [ r1; r2 ]
   test <@ result[0].Count = 2 @>
 
 [<Fact>]
@@ -283,40 +285,50 @@ let ``aggregate Yearly: two readings in same calendar month yields Count=2`` () 
   let r2 =
     mkReading 2 1 140 90 80 (DateTimeOffset(2026, 6, 15, 9, 0, 0, TimeSpan.Zero))
 
-  let result = ReadingStats.aggregate Yearly [ r1; r2 ]
+  let result = ReadingStats.aggregate TestZones.berlin Yearly [ r1; r2 ]
   test <@ result[0].Count = 2 @>
 
 // ── aggregate: min/max fields ─────────────────────────────────────────────────
 
 [<Fact>]
 let ``aggregate Weekly: multi-reading period carries correct MinSystolic and MaxSystolic`` () =
-  let r1 = mkReading 1 1 110 75 60 (Timestamp.local 2026 6 8 8 0 0)
-  let r2 = mkReading 2 1 130 85 70 (Timestamp.local 2026 6 8 12 0 0)
-  let r3 = mkReading 3 1 150 95 80 (Timestamp.local 2026 6 8 20 0 0)
-  let a = ReadingStats.aggregate Weekly [ r1; r2; r3 ] |> List.exactlyOne
+  let r1 = mkReading 1 1 110 75 60 (Timestamp.local TestZones.berlin 2026 6 8 8 0 0)
+
+  let r2 = mkReading 2 1 130 85 70 (Timestamp.local TestZones.berlin 2026 6 8 12 0 0)
+
+  let r3 = mkReading 3 1 150 95 80 (Timestamp.local TestZones.berlin 2026 6 8 20 0 0)
+
+  let a =
+    ReadingStats.aggregate TestZones.berlin Weekly [ r1; r2; r3 ] |> List.exactlyOne
+
   test <@ a.MinSystolic = 110 @>
   test <@ a.MaxSystolic = 150 @>
 
 [<Fact>]
 let ``aggregate Weekly: multi-reading period carries correct MinDiastolic and MaxDiastolic`` () =
-  let r1 = mkReading 1 1 110 75 60 (Timestamp.local 2026 6 8 8 0 0)
-  let r2 = mkReading 2 1 130 85 70 (Timestamp.local 2026 6 8 12 0 0)
-  let r3 = mkReading 3 1 150 95 80 (Timestamp.local 2026 6 8 20 0 0)
-  let a = ReadingStats.aggregate Weekly [ r1; r2; r3 ] |> List.exactlyOne
+  let r1 = mkReading 1 1 110 75 60 (Timestamp.local TestZones.berlin 2026 6 8 8 0 0)
+
+  let r2 = mkReading 2 1 130 85 70 (Timestamp.local TestZones.berlin 2026 6 8 12 0 0)
+
+  let r3 = mkReading 3 1 150 95 80 (Timestamp.local TestZones.berlin 2026 6 8 20 0 0)
+
+  let a =
+    ReadingStats.aggregate TestZones.berlin Weekly [ r1; r2; r3 ] |> List.exactlyOne
+
   test <@ a.MinDiastolic = 75 @>
   test <@ a.MaxDiastolic = 95 @>
 
 [<Fact>]
 let ``aggregate Weekly: single-reading period has MinSystolic = MaxSystolic = Reading.Systolic`` () =
   let r = mkReading 1 1 130 85 70 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
-  let a = ReadingStats.aggregate Weekly [ r ] |> List.exactlyOne
+  let a = ReadingStats.aggregate TestZones.berlin Weekly [ r ] |> List.exactlyOne
   test <@ a.MinSystolic = a.Reading.Systolic @>
   test <@ a.MaxSystolic = a.Reading.Systolic @>
 
 [<Fact>]
 let ``aggregate Weekly: single-reading period has MinDiastolic = MaxDiastolic = Reading.Diastolic`` () =
   let r = mkReading 1 1 130 85 70 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
-  let a = ReadingStats.aggregate Weekly [ r ] |> List.exactlyOne
+  let a = ReadingStats.aggregate TestZones.berlin Weekly [ r ] |> List.exactlyOne
   test <@ a.MinDiastolic = a.Reading.Diastolic @>
   test <@ a.MaxDiastolic = a.Reading.Diastolic @>
 
@@ -396,3 +408,20 @@ let ``summarizeRange: min and max are 0 when window is empty`` () =
   test <@ s.MinSystolic = 0 && s.MaxSystolic = 0 @>
   test <@ s.MinDiastolic = 0 && s.MaxDiastolic = 0 @>
   test <@ s.MinHeartRate = 0 && s.MaxHeartRate = 0 @>
+
+// ── DST (ADR 0013): Berlin's 2026-03-29 has 23 hours ──
+
+[<Fact>]
+let ``dailyAverages groups a whole 23-hour spring-forward day into one entry at its local midnight`` () =
+  let early =
+    mkReading 1 1 120 80 60 (Timestamp.local TestZones.berlin 2026 3 29 0 30 0)
+
+  let late =
+    mkReading 2 1 140 90 80 (Timestamp.local TestZones.berlin 2026 3 29 23 30 0)
+
+  let day =
+    ReadingStats.dailyAverages TestZones.berlin [ early; late ] |> List.exactlyOne
+
+  test <@ day.Systolic = 130 @>
+  test <@ day.Timestamp = Timestamp.local TestZones.berlin 2026 3 29 0 0 0 @>
+  test <@ day.Timestamp.Offset = TimeSpan.FromHours 1.0 @>

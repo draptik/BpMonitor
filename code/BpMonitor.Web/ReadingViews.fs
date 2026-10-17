@@ -120,7 +120,7 @@ module ReadingViews =
               Elem.td
                 [
                   Attr.class' (cellClass (classify v) + staleClass)
-                  Attr.create "data-x" (Formats.formatLocal r.Timestamp)
+                  Attr.create "data-x" (Formats.formatLocal System.TimeZoneInfo.Local r.Timestamp)
                 ]
                 [ Text.raw (string v) ]
           ]
@@ -150,8 +150,8 @@ module ReadingViews =
           Attr.type' "button"
           Attr.class' "recent-zoom-button outline"
           Attr.create "aria-pressed" (if lo = windowStart then "true" else "false")
-          Attr.create "data-lo" (Formats.formatLocal lo)
-          Attr.create "data-hi" (Formats.formatLocal (BpChart.recentAxisEnd lo now))
+          Attr.create "data-lo" (Formats.formatLocal System.TimeZoneInfo.Local lo)
+          Attr.create "data-hi" (Formats.formatLocal System.TimeZoneInfo.Local (BpChart.recentAxisEnd lo now))
         ]
         [ Text.raw label ]
 
@@ -190,7 +190,7 @@ module ReadingViews =
             [ Attr.class' "recent-readings-table" ]
             (fun r ->
               [
-                Attr.create "data-x" (Formats.formatLocal r.Timestamp)
+                Attr.create "data-x" (Formats.formatLocal System.TimeZoneInfo.Local r.Timestamp)
                 if isOutOfRange windowStart r.Timestamp then
                   Attr.class' "out-of-range"
               ])

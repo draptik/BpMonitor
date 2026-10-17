@@ -8,6 +8,7 @@
     <Compile Include="Verifier.fs" />
     <Compile Include="TestBuilders.fs" />
     <Compile Include="CultureScope.fs" />
+    <Compile Include="TestZones.fs" />
   </ItemGroup>
 
   <ItemGroup>

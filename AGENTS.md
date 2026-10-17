@@ -71,7 +71,7 @@ code/
 ├── BpMonitor.Web.E2E.Tests     # Playwright .NET browser smoke tests against a real out-of-process BpMonitor.Web instance
 ├── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules
 ├── BpMonitor.Benchmarks        # BenchmarkDotNet suite (LOWESS reference vs. sliding window); run with `mise run bench`, not part of `dotnet test`
-└── BpMonitor.TestSupport       # Shared test infrastructure (Verify snapshot settings, domain record builders, E2E process-readiness polling) for *.Tests projects
+└── BpMonitor.TestSupport       # Shared test infrastructure (Verify snapshot settings, domain record builders, culture and time-zone scopes, E2E process-readiness polling) for *.Tests projects
 docs/                           # Product vision, architecture, ADRs
 scripts/                        # Dev tooling scripts (e.g. extract-plotly-js.fsx, release-notes.sh)
 ```

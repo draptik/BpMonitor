@@ -169,3 +169,56 @@ let ``every I*Repository in Core has matching Ef*Repository and InMemory*Reposit
       |> Array.ofList)
 
   Assert.Empty(violations)
+
+// ADR 0013: local time comes from a zone the caller passes in, never from the host.
+// ArchUnitNET doesn't load BCL members, so this reads each method's IL for call targets instead.
+let private hostZoneLookups =
+  set
+    [
+      "System.TimeZoneInfo.get_Local"
+      "System.DateTimeOffset.ToLocalTime"
+      "System.TimeProvider.GetLocalNow"
+    ]
+
+/// "Type.Method -> Callee" for every direct call in `assembly` to one of `targets`.
+let private callsTo (targets: Set<string>) (assembly: Assembly) : string list =
+  let flags =
+    BindingFlags.Public
+    ||| BindingFlags.NonPublic
+    ||| BindingFlags.Instance
+    ||| BindingFlags.Static
+    ||| BindingFlags.DeclaredOnly
+
+  let resolve (m: MethodBase) (token: int) =
+    try
+      let typeArgs =
+        if m.DeclaringType.IsGenericType then
+          m.DeclaringType.GetGenericArguments()
+        else
+          null
+
+      let methodArgs = if m.IsGenericMethod then m.GetGenericArguments() else null
+      Option.ofObj (m.Module.ResolveMethod(token, typeArgs, methodArgs))
+    with _ ->
+      None
+
+  [
+    for t in assembly.GetTypes() do
+      for m in Seq.append (t.GetMethods flags |> Seq.cast<MethodBase>) (t.GetConstructors flags |> Seq.cast) do
+        match m.GetMethodBody() with
+        | null -> ()
+        | body ->
+          let il = body.GetILAsByteArray()
+
+          for i in 0 .. il.Length - 5 do
+            // call (0x28) and callvirt (0x6F) take a 4-byte method token.
+            if il[i] = 0x28uy || il[i] = 0x6Fuy then
+              match resolve m (BitConverter.ToInt32(il, i + 1)) with
+              | Some callee when targets.Contains $"{callee.DeclaringType.FullName}.{callee.Name}" ->
+                $"{t.FullName}.{m.Name} -> {callee.DeclaringType.Name}.{callee.Name}"
+              | _ -> ()
+  ]
+
+[<Fact>]
+let ``Core never asks the host for its time zone`` () =
+  Assert.Empty(callsTo hostZoneLookups typeof<BloodPressureReading>.Assembly)

@@ -19,7 +19,7 @@ let private reading id systolic diastolic heartRate day hour comment =
     Systolic = systolic
     Diastolic = diastolic
     HeartRate = heartRate
-    Timestamp = Timestamp.local 2026 1 day hour 0 0
+    Timestamp = Timestamp.local System.TimeZoneInfo.Local 2026 1 day hour 0 0
     Comments = comment
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue
@@ -61,7 +61,7 @@ let private readings =
 
 /// `now` for /recent's x-axis range — past the latest test reading (day 30), so every
 /// fixture above falls inside the chart's initial 30-day window.
-let private now = Timestamp.local 2026 2 1 12 0 0
+let private now = Timestamp.local System.TimeZoneInfo.Local 2026 2 1 12 0 0
 let private windowStart10 = now.AddDays(-10.0)
 let private windowStart30 = now.AddDays(-30.0)
 
@@ -506,8 +506,11 @@ let ``toHtmlRecent opens focused on the last windowDays, even though all reading
   let html =
     BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
-  let rangeLow = Formats.formatLocal (now.AddDays(-30.0))
-  let rangeHigh = Formats.formatLocal (BpChart.recentAxisEnd windowStart30 now)
+  let rangeLow = Formats.formatLocal System.TimeZoneInfo.Local (now.AddDays(-30.0))
+
+  let rangeHigh =
+    Formats.formatLocal System.TimeZoneInfo.Local (BpChart.recentAxisEnd windowStart30 now)
+
   test <@ html.Contains($"\"range\":[\"{rangeLow}\",\"{rangeHigh}\"]") @>
 
 [<Fact>]
@@ -719,7 +722,7 @@ let ``toHtmlDashed Weekly: x-axis labels use German date format for German membe
   // May 1, 2026 → "1. Mai" in German, "1 May" in English
   let mayFirst =
     { reading 1 120 80 70 8 9 None with
-        Timestamp = Timestamp.local 2026 5 1 9 0 0
+        Timestamp = Timestamp.local System.TimeZoneInfo.Local 2026 5 1 9 0 0
     }
 
   let aggregated = asAggregated [ mayFirst ]
@@ -754,7 +757,7 @@ let ``toHtmlDashed Yearly: x-axis labels use German month-name format for German
   // March 8, 2026 → "Mär" in German, "Mar" in English
   let march =
     { reading 1 120 80 70 8 9 None with
-        Timestamp = Timestamp.local 2026 3 8 9 0 0
+        Timestamp = Timestamp.local System.TimeZoneInfo.Local 2026 3 8 9 0 0
     }
 
   let aggregated = asAggregated [ march ]

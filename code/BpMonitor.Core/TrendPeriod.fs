@@ -100,8 +100,8 @@ module TrendPeriod =
   open System
   // ── private helpers ─────────────────────────────────────────────────────────
 
-  let private localMidnight (date: DateTime) : DateTimeOffset =
-    DateTimeOffset(date, TimeZoneInfo.Local.GetUtcOffset(date))
+  let private localMidnight (zone: TimeZoneInfo) (date: DateTime) : DateTimeOffset =
+    DateTimeOffset(date, zone.GetUtcOffset(date))
 
   let private isoWeekKey (w: IsoWeek) =
     $"{CalendarYear.value w.Year}-W{w.Week:D2}"
@@ -164,8 +164,8 @@ module TrendPeriod =
       else
         CalendarWeek period.Week
 
-  let private monthLabel (ym: YearMonth) (now: DateTimeOffset) : PeriodLabel =
-    let local = now.ToLocalTime()
+  let private monthLabel (zone: TimeZoneInfo) (ym: YearMonth) (now: DateTimeOffset) : PeriodLabel =
+    let local = TimeZoneInfo.ConvertTime(now, zone)
 
     let nowYm = YearMonth.ofDate local.Date
 
@@ -176,8 +176,8 @@ module TrendPeriod =
     else
       MonthOfYear(ym.Month, CalendarYear.value ym.Year)
 
-  let private yearLabel (calendarYear: CalendarYear) (now: DateTimeOffset) : PeriodLabel =
-    let local = now.ToLocalTime()
+  let private yearLabel (zone: TimeZoneInfo) (calendarYear: CalendarYear) (now: DateTimeOffset) : PeriodLabel =
+    let local = TimeZoneInfo.ConvertTime(now, zone)
     let year = CalendarYear.value calendarYear
 
     if year = local.Year then ThisYear
@@ -199,8 +199,8 @@ module TrendPeriod =
     | "yearly" -> Some Yearly
     | _ -> None
 
-  let current (gran: Granularity) (now: DateTimeOffset) : TrendPeriod =
-    let local = now.ToLocalTime()
+  let current (zone: TimeZoneInfo) (gran: Granularity) (now: DateTimeOffset) : TrendPeriod =
+    let local = TimeZoneInfo.ConvertTime(now, zone)
 
     match gran with
     | Weekly ->
@@ -211,8 +211,8 @@ module TrendPeriod =
         Granularity = Weekly
         Key = isoWeekKey w
         Label = ThisWeek
-        Start = localMidnight monday
-        EndExclusive = localMidnight (monday.AddDays 7.0)
+        Start = localMidnight zone monday
+        EndExclusive = localMidnight zone (monday.AddDays 7.0)
       }
 
     | Monthly ->
@@ -223,8 +223,8 @@ module TrendPeriod =
         Granularity = Monthly
         Key = monthKey ym
         Label = ThisMonth
-        Start = localMidnight start
-        EndExclusive = localMidnight (start.AddMonths 1)
+        Start = localMidnight zone start
+        EndExclusive = localMidnight zone (start.AddMonths 1)
       }
 
     | Yearly ->
@@ -234,13 +234,13 @@ module TrendPeriod =
         Granularity = Yearly
         Key = string y
         Label = ThisYear
-        Start = localMidnight (DateTime(y, 1, 1))
-        EndExclusive = localMidnight (DateTime(y + 1, 1, 1))
+        Start = localMidnight zone (DateTime(y, 1, 1))
+        EndExclusive = localMidnight zone (DateTime(y + 1, 1, 1))
       }
 
   /// Only the canonical key (as `current` builds it) names a period; "2026-W5" or "+2026" don't.
-  let ofKey (gran: Granularity) (key: string) (now: DateTimeOffset) : TrendPeriod option =
-    let local = now.ToLocalTime()
+  let ofKey (zone: TimeZoneInfo) (gran: Granularity) (key: string) (now: DateTimeOffset) : TrendPeriod option =
+    let local = TimeZoneInfo.ConvertTime(now, zone)
 
     match gran with
     | Weekly ->
@@ -255,8 +255,8 @@ module TrendPeriod =
           Granularity = Weekly
           Key = key
           Label = weekLabel w nowW
-          Start = localMidnight monday
-          EndExclusive = localMidnight (monday.AddDays 7.0)
+          Start = localMidnight zone monday
+          EndExclusive = localMidnight zone (monday.AddDays 7.0)
         })
 
     | Monthly ->
@@ -269,9 +269,9 @@ module TrendPeriod =
         {
           Granularity = Monthly
           Key = key
-          Label = monthLabel ym now
-          Start = localMidnight start
-          EndExclusive = localMidnight (start.AddMonths 1)
+          Label = monthLabel zone ym now
+          Start = localMidnight zone start
+          EndExclusive = localMidnight zone (start.AddMonths 1)
         })
 
     | Yearly ->
@@ -286,14 +286,14 @@ module TrendPeriod =
         {
           Granularity = Yearly
           Key = key
-          Label = yearLabel calendarYear now
-          Start = localMidnight (DateTime(year, 1, 1))
-          EndExclusive = localMidnight (DateTime(year + 1, 1, 1))
+          Label = yearLabel zone calendarYear now
+          Start = localMidnight zone (DateTime(year, 1, 1))
+          EndExclusive = localMidnight zone (DateTime(year + 1, 1, 1))
         })
 
   /// Fixed-window list of periods ending at the current one, in chronological order
   /// (oldest first, newest/current last). Window sizes: Weekly = 12, Monthly = 12, Yearly = 5.
-  let available (gran: Granularity) (now: DateTimeOffset) : TrendPeriod list =
+  let available (zone: TimeZoneInfo) (gran: Granularity) (now: DateTimeOffset) : TrendPeriod list =
     let windowSize =
       match gran with
       | Weekly -> 12
@@ -305,11 +305,11 @@ module TrendPeriod =
       if remaining = 0 then
         acc
       else
-        let prevKey = (current gran (p.Start.AddDays(-1.0))).Key
+        let prevKey = (current zone gran (p.Start.AddDays(-1.0))).Key
 
-        match ofKey gran prevKey now with
+        match ofKey zone gran prevKey now with
         | None -> acc
         | Some prev -> collect prev (remaining - 1) (prev :: acc)
 
-    let curr = current gran now
+    let curr = current zone gran now
     collect curr (windowSize - 1) [ curr ]

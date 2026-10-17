@@ -96,7 +96,7 @@ let ``recent value strip uses a table so each reading's sys/dias values align in
 
 [<Fact>]
 let ``recent value strip tags each cell with the reading's chart x-label, for the scrubber bar to match against`` () =
-  // Scrubber bar: the chart's hover payload reports Formats.formatLocal r.Timestamp, so each value-strip cell needs a matching data-x attribute.
+  // Scrubber bar: the chart's hover payload reports Formats.formatLocal System.TimeZoneInfo.Local r.Timestamp, so each value-strip cell needs a matching data-x attribute.
   let r1 =
     { reading 3 1 with
         Systolic = 130
@@ -114,8 +114,8 @@ let ``recent value strip tags each cell with the reading's chart x-label, for th
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  let expectedX1 = Formats.formatLocal r1.Timestamp
-  let expectedX2 = Formats.formatLocal r2.Timestamp
+  let expectedX1 = Formats.formatLocal System.TimeZoneInfo.Local r1.Timestamp
+  let expectedX2 = Formats.formatLocal System.TimeZoneInfo.Local r2.Timestamp
 
   test <@ body.Contains $"data-x=\"{expectedX1}\"" @>
   test <@ body.Contains $"data-x=\"{expectedX2}\"" @>
