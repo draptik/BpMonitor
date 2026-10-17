@@ -8,6 +8,9 @@
     <Compile Include="InMemoryReadingRepositoryTests.fs" />
     <Compile Include="InMemoryMedicationRepositoryTests.fs" />
     <Compile Include="EfTestContext.fs" />
+    <Compile Include="RepositoryImplementations.fs" />
+    <Compile Include="ReadingRepositoryContractTests.fs" />
+    <Compile Include="MedicationRepositoryContractTests.fs" />
     <Compile Include="EfReadingRepositoryTests.fs" />
     <Compile Include="EfFamilyMemberRepositoryTests.fs" />
     <Compile Include="EfMedicationRepositoryTests.fs" />
@@ -27,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BpMonitor.Data\BpMonitor.Data.fsproj" />
+    <ProjectReference Include="..\BpMonitor.TestSupport\BpMonitor.TestSupport.fsproj" />
   </ItemGroup>
 
 </Project>
