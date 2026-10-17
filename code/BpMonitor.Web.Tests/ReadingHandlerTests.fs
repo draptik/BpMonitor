@@ -236,6 +236,52 @@ let ``updateReading keeps the reading's original CreatedAt`` () =
   test <@ (repo.GetAll(defaultMemberId) |> List.exactlyOne).CreatedAt = createdAt @>
 
 [<Fact>]
+let ``updateReading rejects an out-of-range reading with 422, keeps the stored reading, and posts back to it`` () =
+  let repo = repoWith [ sample ]
+  let ctx = TestHost.context repo
+  TestHost.setRouteId ctx 1
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.timestamp, "2026-05-01 09:00"
+      FormFields.systolic, "999"
+      FormFields.diastolic, "70"
+      FormFields.heartRate, "60"
+      FormFields.comments, ""
+    ]
+
+  TestHost.run ReadingHandlers.updateReading ctx
+
+  let body = TestHost.readBody ctx
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ body.Contains "out of range" @>
+  test <@ body.Contains $"action=\"{Routes.readingUpdate 1}\"" @>
+  test <@ repo.GetAll(defaultMemberId) = [ sample ] @>
+
+[<Fact>]
+let ``updateReading rejects a non-numeric field with 422 and keeps the stored reading`` () =
+  let repo = repoWith [ sample ]
+  let ctx = TestHost.context repo
+  TestHost.setRouteId ctx 1
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.timestamp, "2026-05-01 09:00"
+      FormFields.systolic, "abc"
+      FormFields.diastolic, "70"
+      FormFields.heartRate, "60"
+      FormFields.comments, ""
+    ]
+
+  TestHost.run ReadingHandlers.updateReading ctx
+
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ (TestHost.readBody ctx).Contains "not a valid integer" @>
+  test <@ repo.GetAll(defaultMemberId) = [ sample ] @>
+
+[<Fact>]
 let ``updateReading returns 404 for an unknown id`` () =
   let repo = repoWith [ sample ]
   let ctx = TestHost.context repo
