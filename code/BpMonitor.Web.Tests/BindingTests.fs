@@ -57,6 +57,28 @@ let ``toUnvalidated accepts a date-only timestamp with no time component`` () =
   | Ok u -> test <@ u.Timestamp.Hour = 0 && u.Timestamp.Minute = 0 @>
   | Error e -> failwith $"expected Ok, got {e}"
 
+[<Fact>]
+let ``toUnvalidated reads the timestamp in the Gregorian calendar, whatever the server culture`` () =
+  let result =
+    BpMonitor.TestSupport.CultureScope.withCulture "th-TH" (fun () ->
+      Binding.toUnvalidated LocalizedStrings.en (form "120" "80" "66" "2026-05-01 09:00" ""))
+
+  match result with
+  | Ok u -> test <@ (u.Timestamp.Year, u.Timestamp.Month, u.Timestamp.Day) = (2026, 5, 1) @>
+  | Error e -> failwith $"expected Ok, got {e}"
+
+[<Fact>]
+let ``toUnvalidated rejects a timestamp outside the yyyy-MM-dd HH:mm format, such as a dotted date`` () =
+  match Binding.toUnvalidated LocalizedStrings.en (form "120" "80" "66" "01.05.2026 09:00" "") with
+  | Ok u -> failwith $"expected Error, got {u.Timestamp}"
+  | Error errs -> test <@ errs |> List.exists (fun e -> e.Contains "01.05.2026 09:00") @>
+
+[<Fact>]
+let ``toUnvalidated names the expected timestamp format in its error`` () =
+  match Binding.toUnvalidated LocalizedStrings.en (form "120" "80" "66" "01.05.2026 09:00" "") with
+  | Ok u -> failwith $"expected Error, got {u.Timestamp}"
+  | Error errs -> test <@ errs |> List.exists (fun e -> e.Contains "(expected yyyy-MM-dd HH:mm)") @>
+
 [<Property>]
 let ``well-formed numeric strings round-trip to their ints`` (sys: int) (dia: int) (hr: int) =
   let m = form (string sys) (string dia) (string hr) "2026-01-01 00:00" ""

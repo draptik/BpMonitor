@@ -58,6 +58,18 @@ let ``newReading returns 200 and prefills timestamp with local time`` () =
   test <@ (TestHost.readBody ctx).Contains $"value=\"{expected}\"" @>
 
 [<Fact>]
+let ``newReading prefills the timestamp in the Gregorian calendar, whatever the server culture`` () =
+  let tp = FakeTimeProvider(Timestamp.utc 2026 6 9 8 0 0)
+  let ctx = TestHost.contextWithProvider (repoWith []) tp
+
+  BpMonitor.TestSupport.CultureScope.withCulture "th-TH" (fun () -> TestHost.run ReadingHandlers.newReading ctx)
+
+  let expected =
+    tp.GetLocalNow().ToString(Formats.timestamp, System.Globalization.CultureInfo.InvariantCulture)
+
+  test <@ (TestHost.readBody ctx).Contains $"value=\"{expected}\"" @>
+
+[<Fact>]
 let ``createReading persists a valid reading and redirects`` () =
   let repo = repoWith []
   let ctx = TestHost.context repo

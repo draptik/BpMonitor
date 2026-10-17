@@ -7,6 +7,7 @@
     <Compile Include="WebAppLauncher.fs" />
     <Compile Include="Verifier.fs" />
     <Compile Include="TestBuilders.fs" />
+    <Compile Include="CultureScope.fs" />
   </ItemGroup>
 
   <ItemGroup>

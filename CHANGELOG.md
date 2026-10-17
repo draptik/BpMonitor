@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Login: the sign-in page follows the browser's language preferences by weight, and skips a language marked as not wanted; previously it took the first supported language listed.
+- Readings: timestamps are read and shown in the standard calendar on any server language setting; previously a server set to Thai or Persian stored readings years off. Timestamps must now be entered as `yyyy-MM-dd HH:mm` or `yyyy-MM-dd`; other formats such as `01.05.2026` are rejected instead of being guessed, sometimes as 5 January.
 
 ## [1.15.1] - 2026-10-16
 

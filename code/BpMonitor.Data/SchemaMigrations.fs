@@ -74,7 +74,12 @@ module SchemaMigrations =
       withConn ctx (fun conn -> scalarInt64 conn "SELECT COUNT(*) FROM \"Members\"")
 
     if count = 0L then
-      let now = System.DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss zzz")
+      let now =
+        System.DateTimeOffset.UtcNow.ToString(
+          "yyyy-MM-dd HH:mm:ss zzz",
+          System.Globalization.CultureInfo.InvariantCulture
+        )
+
       let goal = GoalRange.defaults
 
       let lang = Language.code Language.defaultLanguage

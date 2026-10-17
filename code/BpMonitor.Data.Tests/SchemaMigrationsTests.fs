@@ -46,6 +46,14 @@ let ``apply seeds a default member named Me with admin rights`` () =
   test <@ members[0].IsActive = true @>
 
 [<Fact>]
+let ``apply stamps the default member in the Gregorian calendar, whatever the server culture`` () =
+  use ctx = createRawContext ()
+  BpMonitor.TestSupport.CultureScope.withCulture "th-TH" (fun () -> SchemaMigrations.apply ctx)
+
+  let m = ctx.Members |> Seq.exactlyOne
+  test <@ m.CreatedAt.Year = System.DateTimeOffset.UtcNow.Year @>
+
+[<Fact>]
 let ``apply seeds the default member with English as the language`` () =
   use ctx = createRawContext ()
   SchemaMigrations.apply ctx

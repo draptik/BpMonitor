@@ -52,8 +52,19 @@ module Binding =
     | true, v -> Ok v
     | _ -> Error(strings.Errors.NotAnInteger label s)
 
+  /// The form's own format, or a bare date; nothing else, so dd.MM vs. MM.dd can't be mixed up.
+  let private timestampFormats = [| Formats.timestamp; Formats.date |]
+
+  /// Parses `s` in the server's local offset, independent of the server's culture.
   let private tryTimestamp (strings: LocalizedStrings) (s: string) : Result<DateTimeOffset, string> =
-    match DateTimeOffset.TryParse(s) with
+    match
+      DateTimeOffset.TryParseExact(
+        s,
+        timestampFormats,
+        Globalization.CultureInfo.InvariantCulture,
+        Globalization.DateTimeStyles.AllowWhiteSpaces
+      )
+    with
     | true, v -> Ok v
     | _ -> Error(strings.Errors.NotAValidDateTime s)
 
