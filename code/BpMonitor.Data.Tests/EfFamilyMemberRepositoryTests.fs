@@ -222,6 +222,31 @@ let ``Update of a non-existent member is a no-op`` () =
   test <@ repo.GetAll() = [] @>
 
 [<Fact>]
+let ``UpdateLanguage of a non-existent member leaves every member unchanged`` () =
+  use ctx = createContext ()
+  let repo = createRepo ctx
+  repo.Add(newMember "Alice" true) |> ignore
+  let before = repo.GetAll()
+
+  repo.UpdateLanguage 999 German
+
+  test <@ repo.GetAll() = before @>
+
+[<Fact>]
+let ``UpdateGoal of a non-existent member leaves every member unchanged`` () =
+  use ctx = createContext ()
+  let repo = createRepo ctx
+  repo.Add(newMember "Alice" true) |> ignore
+  let before = repo.GetAll()
+
+  repo.UpdateGoal
+    999
+    (GoalRange.create 100 130 65 85
+     |> Result.defaultWith (fun _ -> failwith "invalid goal"))
+
+  test <@ repo.GetAll() = before @>
+
+[<Fact>]
 let ``Add persists a custom goal range and Update round-trips changes to it`` () =
   use ctx = createContext ()
 
