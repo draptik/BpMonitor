@@ -27,20 +27,6 @@ let ``GetAll returns default sample readings on startup`` () =
   test <@ repo.GetAll(defaultMemberId).Length > 0 @>
 
 [<Fact>]
-let ``Add makes reading available via GetAll`` () =
-  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
-  repo.Add defaultMemberId sample
-  test <@ repo.GetAll(defaultMemberId).Length = 1 @>
-
-[<Fact>]
-let ``Add stamps the reading with the given memberId`` () =
-  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
-  repo.Add 2 sample
-  test <@ repo.GetAll(2).Length = 1 @>
-  test <@ repo.GetAll(2).[0].MemberId = 2 @>
-  test <@ repo.GetAll(defaultMemberId).Length = 0 @>
-
-[<Fact>]
 let ``Add assigns sequential Ids starting at 1`` () =
   let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
   repo.Add defaultMemberId sample
@@ -74,56 +60,3 @@ let ``AddMany assigns sequential Ids`` () =
   let readings = repo.GetAll(defaultMemberId)
   test <@ readings[0].Id = 1 @>
   test <@ readings[1].Id = 2 @>
-
-[<Fact>]
-let ``Update modifies the stored reading`` () =
-  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
-  repo.Add defaultMemberId sample
-  let added = repo.GetAll(defaultMemberId)[0]
-  repo.Update { added with Systolic = 130 }
-  test <@ repo.GetAll(defaultMemberId).[0].Systolic = 130 @>
-
-[<Fact>]
-let ``Update of a non-existent reading is a no-op`` () =
-  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
-  repo.Add defaultMemberId sample
-
-  let ghost =
-    { sample with
-        Id = 999
-        MemberId = defaultMemberId
-    }
-
-  repo.Update(ghost)
-  test <@ repo.GetAll(defaultMemberId).Length = 1 @>
-
-[<Fact>]
-let ``Update does not affect a reading belonging to a different member`` () =
-  let repo = InMemoryReadingRepository(Some []) :> IReadingRepository
-  repo.Add 1 sample
-  let added = repo.GetAll(1)[0]
-
-  repo.Update(
-    { added with
-        Systolic = 999
-        MemberId = 2
-    }
-  )
-
-  test <@ repo.GetAll(1).[0].Systolic = 120 @>
-
-[<Fact>]
-let ``GetAll returns only readings for the requested member`` () =
-  let r1 = { sample with Id = 1; MemberId = 1 }
-
-  let r2 =
-    { sample with
-        Id = 2
-        MemberId = 2
-        Timestamp = Timestamp.utc 2026 1 2 9 0 0
-    }
-
-  let repo = InMemoryReadingRepository(Some [ r1; r2 ]) :> IReadingRepository
-  test <@ repo.GetAll(1).Length = 1 @>
-  test <@ repo.GetAll(2).Length = 1 @>
-  test <@ repo.GetAll(1).[0].Id = 1 @>

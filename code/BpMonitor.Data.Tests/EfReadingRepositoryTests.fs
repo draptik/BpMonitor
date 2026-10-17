@@ -55,33 +55,6 @@ let ``Add assigns a non-zero Id`` () =
   test <@ repo.GetAll(defaultMemberId).[0].Id > 0 @>
 
 [<Fact>]
-let ``Add stamps the reading with the given memberId`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  repo.Add defaultMemberId sample
-  test <@ repo.GetAll(defaultMemberId).[0].MemberId = defaultMemberId @>
-
-[<Fact>]
-let ``GetAll returns only readings for the requested member`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  repo.Add 1 sample
-
-  repo.Add
-    2
-    { sample with
-        Timestamp = Timestamp.utc 2026 1 2 9 0 0
-    }
-
-  test <@ repo.GetAll(1).Length = 1 @>
-  test <@ repo.GetAll(2).Length = 1 @>
-  test <@ repo.GetAll(1).[0].MemberId = 1 @>
-
-[<Fact>]
 let ``Add preserves Comments when present`` () =
   use ctx = createContext ()
 
@@ -162,42 +135,6 @@ let ``Update preserves CreatedAt and sets ModifiedAt to current time`` () =
   let result = repo.GetAll(defaultMemberId)[0]
   test <@ result.CreatedAt = createdAt @>
   test <@ result.ModifiedAt = updatedAt @>
-
-[<Fact>]
-let ``Update of a non-existent reading is a no-op`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  repo.Add defaultMemberId sample
-
-  let ghost =
-    { sample with
-        Id = 999
-        MemberId = defaultMemberId
-    }
-
-  repo.Update(ghost)
-  test <@ repo.GetAll(defaultMemberId).Length = 1 @>
-
-[<Fact>]
-let ``Update does not affect a reading belonging to a different member`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  repo.Add 1 sample
-  let added = repo.GetAll(1)[0]
-  // Attempt to update as member 2 — MemberId guard should prevent it
-  repo.Update(
-    { added with
-        Systolic = 999
-        MemberId = 2
-    }
-  )
-  // Reading should remain unchanged for member 1
-  // ReSharper disable once FSharpRedundantDotInIndexer
-  test <@ (repo.GetAll 1).[0].Systolic = 120 @>
 
 [<Fact>]
 let ``GetAll translates MemberId filter to SQL WHERE clause`` () =

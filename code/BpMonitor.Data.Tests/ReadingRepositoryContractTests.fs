@@ -112,5 +112,6 @@ let ``Update does not affect a reading belonging to a different member`` (impl: 
 let ``Update of a non-existent reading is a no-op`` (impl: string) =
   let repo, scope = RepositoryImplementations.readingRepo impl
   use _ = scope
-  repo.Update(mkReading 99 1 120 80 70 (Timestamp.utc 2026 1 1 9 0 0))
-  test <@ repo.GetAll(1) |> List.isEmpty @>
+  let stored = seed repo 1 (reading 120 80 70)
+  repo.Update({ stored with Id = 999; Systolic = 135 })
+  test <@ repo.GetAll(1) = [ stored ] @>
