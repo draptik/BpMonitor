@@ -100,6 +100,29 @@ let ``Add maps a setup code hash to PendingSetup`` () =
   let added = repo.Add m
   test <@ added.Credential = PendingSetup "codehash" @>
 
+// Rows written by older versions or by hand can hold values the app itself never stores.
+[<Fact>]
+let ``GetById maps a row with both a password hash and a setup code hash to Password`` () =
+  use ctx = createContext ()
+  let repo = createRepo ctx
+  let added = repo.Add(newMember "Alice" true)
+
+  ctx.Database.ExecuteSqlRaw("UPDATE \"Members\" SET \"PasswordHash\" = 'hashed', \"SetupCodeHash\" = 'codehash'")
+  |> ignore
+
+  test <@ (repo.GetById added.Id).Value.Credential = Password "hashed" @>
+
+[<Fact>]
+let ``GetById falls back to English for an unsupported stored language code`` () =
+  use ctx = createContext ()
+  let repo = createRepo ctx
+  let added = repo.Add(newMember "Alice" true)
+
+  ctx.Database.ExecuteSqlRaw("UPDATE \"Members\" SET \"Language\" = 'fr'")
+  |> ignore
+
+  test <@ (repo.GetById added.Id).Value.Language = English @>
+
 [<Fact>]
 let ``Update to Password clears the stored setup code hash`` () =
   use ctx = createContext ()
