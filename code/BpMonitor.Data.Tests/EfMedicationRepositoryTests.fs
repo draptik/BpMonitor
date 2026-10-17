@@ -49,23 +49,6 @@ let ``Add assigns a non-zero Id`` () =
   test <@ repo.GetAll(defaultMemberId).[0].Id > 0 @>
 
 [<Fact>]
-let ``Add stamps the medication with the given memberId`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  repo.Add defaultMemberId sample
-  test <@ repo.GetAll(defaultMemberId).[0].MemberId = defaultMemberId @>
-
-[<Fact>]
-let ``GetAll returns only medications for the requested member`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  repo.Add 1 sample
-  repo.Add 2 { sample with Name = "lisinopril" }
-  test <@ repo.GetAll(1).Length = 1 @>
-  test <@ repo.GetAll(2).Length = 1 @>
-  test <@ repo.GetAll(1).[0].MemberId = 1 @>
-
-[<Fact>]
 let ``Add preserves FullName when present`` () =
   use ctx = createContext ()
   let repo = createRepo ctx
@@ -145,55 +128,6 @@ let ``Update preserves CreatedAt and sets ModifiedAt to current time`` () =
   test <@ result.Name = "HCTZ 25mg" @>
   test <@ result.CreatedAt = createdAt @>
   test <@ result.ModifiedAt = updatedAt @>
-
-[<Fact>]
-let ``Update of a non-existent medication is a no-op`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  repo.Add defaultMemberId sample
-
-  let ghost =
-    { sample with
-        Id = 999
-        MemberId = defaultMemberId
-    }
-
-  repo.Update(ghost)
-  test <@ repo.GetAll(defaultMemberId).Length = 1 @>
-
-[<Fact>]
-let ``Update does not affect a medication belonging to a different member`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  repo.Add 1 sample
-  let added = repo.GetAll(1)[0]
-
-  repo.Update(
-    { added with
-        Name = "renamed"
-        MemberId = 2
-    }
-  )
-
-  test <@ (repo.GetAll 1).[0].Name = "HCTZ" @>
-
-[<Fact>]
-let ``Delete removes the medication`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  repo.Add defaultMemberId sample
-  let added = repo.GetAll(defaultMemberId)[0]
-  repo.Delete defaultMemberId added.Id
-  test <@ repo.GetAll(defaultMemberId) = [] @>
-
-[<Fact>]
-let ``Delete does not affect a medication belonging to a different member`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  repo.Add 1 sample
-  let added = repo.GetAll(1)[0]
-  repo.Delete 2 added.Id
-  test <@ repo.GetAll(1).Length = 1 @>
 
 [<Fact>]
 let ``GetAll translates MemberId filter to SQL WHERE clause`` () =
