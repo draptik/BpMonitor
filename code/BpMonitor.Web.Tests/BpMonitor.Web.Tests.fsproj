@@ -27,6 +27,7 @@
     <Compile Include="ConfigTests.fs" />
     <Compile Include="HandlerHelpersTests.fs" />
     <Compile Include="AuthCombinatorsTests.fs" />
+    <Compile Include="EndpointAuthTests.fs" />
     <Compile Include="ReadingHandlerTests.fs" />
     <Compile Include="MemberHandlerTests.fs" />
     <Compile Include="LoginHandlerTests.fs" />
