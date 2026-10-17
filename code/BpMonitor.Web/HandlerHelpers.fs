@@ -44,6 +44,21 @@ module HandlerHelpers =
     | true, v -> Language.tryParse v
     | _ -> None
 
+  /// An Accept-Language entry's q-weight; a missing or malformed one counts as 1.
+  let private qWeight (parameters: string array) : float =
+    parameters
+    |> Array.tryPick (fun p ->
+      match p.Split('=') with
+      | [| key; value |] when key.Trim().Equals("q", StringComparison.OrdinalIgnoreCase) ->
+        match
+          Double.TryParse(value.Trim(), Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture)
+        with
+        | true, q -> Some q
+        | _ -> None
+      | _ -> None)
+    |> Option.defaultValue 1.0
+
+  /// The supported language with the highest q-weight; q=0 means "not acceptable".
   let private languageFromAcceptHeader (ctx: HttpContext) : Language option =
     let header = ctx.Request.Headers.AcceptLanguage.ToString()
 
@@ -51,9 +66,17 @@ module HandlerHelpers =
       None
     else
       header.Split(',')
-      |> Array.tryPick (fun part ->
-        let code = part.Split(';')[0]
-        Language.tryParse (code.Trim()))
+      |> Array.toList
+      |> List.choose (fun part ->
+        let pieces = part.Split(';')
+
+        Language.tryParse (pieces[0].Trim())
+        |> Option.map (fun lang -> lang, qWeight pieces[1..]))
+      |> List.filter (fun (_, q) -> q > 0.0)
+      // List.sortByDescending is stable, so equal weights keep header order.
+      |> List.sortByDescending snd
+      |> List.tryHead
+      |> Option.map fst
 
   /// Resolves the UI language for an unauthenticated request: cookie, then
   /// Accept-Language, then the deployment's configured default.
