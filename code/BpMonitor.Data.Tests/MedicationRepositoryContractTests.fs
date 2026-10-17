@@ -65,6 +65,23 @@ let ``Update does not affect a medication belonging to a different member`` (imp
 [<Theory>]
 [<InlineData("InMemory")>]
 [<InlineData("Ef")>]
+let ``Update of a non-existent medication is a no-op`` (impl: string) =
+  let repo, scope = RepositoryImplementations.medicationRepo impl
+  use _ = scope
+  let stored = seed repo 1 (medication "HCTZ")
+
+  repo.Update(
+    { stored with
+        Id = 999
+        Name = "renamed"
+    }
+  )
+
+  test <@ repo.GetAll(1) = [ stored ] @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
 let ``Delete removes the medication with the matching Id`` (impl: string) =
   let repo, scope = RepositoryImplementations.medicationRepo impl
   use _ = scope
@@ -88,5 +105,6 @@ let ``Delete does not affect a medication belonging to a different member`` (imp
 let ``Delete of a non-existent medication is a no-op`` (impl: string) =
   let repo, scope = RepositoryImplementations.medicationRepo impl
   use _ = scope
-  repo.Delete 1 99
-  test <@ repo.GetAll(1) |> List.isEmpty @>
+  let stored = seed repo 1 (medication "HCTZ")
+  repo.Delete 1 999
+  test <@ repo.GetAll(1) = [ stored ] @>
