@@ -386,7 +386,10 @@ module ReadingHandlers =
 
       let prefill =
         { Binding.empty with
-            Binding.Timestamp = (timeProvider ctx).GetLocalNow().ToString(Formats.timestamp)
+            Binding.Timestamp =
+              (timeProvider ctx)
+                .GetLocalNow()
+                .ToString(Formats.timestamp, System.Globalization.CultureInfo.InvariantCulture)
         }
 
       htmlResponse

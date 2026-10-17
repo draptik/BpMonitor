@@ -346,7 +346,7 @@ module LocalizedStrings =
       Errors =
         {
           NotAnInteger = fun label value -> $"{label}: '{value}' is not a valid integer"
-          NotAValidDateTime = fun value -> $"Timestamp: '{value}' is not a valid date/time"
+          NotAValidDateTime = fun value -> $"Timestamp: '{value}' is not a valid date/time (expected yyyy-MM-dd HH:mm)"
           NotAValidDate = fun label value -> $"{label}: '{value}' is not a valid date (expected dd.mm.yyyy)"
           NameIsEmpty = "Name cannot be empty"
           NameAlreadyTaken = "A member with this name already exists"
@@ -525,7 +525,9 @@ module LocalizedStrings =
       Errors =
         {
           NotAnInteger = fun label value -> $"{label}: '{value}' ist keine gültige Ganzzahl"
-          NotAValidDateTime = fun value -> $"Zeitstempel: '{value}' ist kein gültiges Datum/keine gültige Uhrzeit"
+          NotAValidDateTime =
+            fun value ->
+              $"Zeitstempel: '{value}' ist kein gültiges Datum/keine gültige Uhrzeit (erwartet: yyyy-MM-dd HH:mm)"
           NotAValidDate = fun label value -> $"{label}: '{value}' ist kein gültiges Datum (erwartet: dd.mm.yyyy)"
           NameIsEmpty = "Name darf nicht leer sein"
           NameAlreadyTaken = "Ein Mitglied mit diesem Namen existiert bereits"
