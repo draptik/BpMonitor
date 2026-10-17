@@ -238,12 +238,14 @@ module TrendPeriod =
         EndExclusive = localMidnight (DateTime(y + 1, 1, 1))
       }
 
+  /// Only the canonical key (as `current` builds it) names a period; "2026-W5" or "+2026" don't.
   let ofKey (gran: Granularity) (key: string) (now: DateTimeOffset) : TrendPeriod option =
     let local = now.ToLocalTime()
 
     match gran with
     | Weekly ->
       parseIsoWeekKey key
+      |> Option.filter (fun w -> isoWeekKey w = key)
       |> Option.filter (IsoWeek.monday >> fun d -> startFits d && endFits _.AddDays(-7.0) d)
       |> Option.map (fun w ->
         let monday = IsoWeek.monday w
@@ -259,6 +261,7 @@ module TrendPeriod =
 
     | Monthly ->
       parseMonthKey key
+      |> Option.filter (fun ym -> monthKey ym = key)
       |> Option.filter (YearMonth.firstDay >> fun d -> startFits d && endFits _.AddMonths(-1) d)
       |> Option.map (fun ym ->
         let start = YearMonth.firstDay ym
@@ -273,6 +276,7 @@ module TrendPeriod =
 
     | Yearly ->
       parseYearKey key
+      |> Option.filter (fun y -> string (CalendarYear.value y) = key)
       |> Option.filter (fun y ->
         let d = DateTime(CalendarYear.value y, 1, 1)
         startFits d && endFits _.AddYears(-1) d)

@@ -263,6 +263,30 @@ let ``ofKey Yearly: invalid key returns None`` () =
 let ``ofKey Yearly: year 9999 returns None`` () =
   test <@ TrendPeriod.ofKey Yearly "9999" now = None @>
 
+// Hand-typed URLs: only the canonical key the app itself generates names a period, so
+// the period pill whose key matches is always the one highlighted.
+[<Theory>]
+[<InlineData("2026-W5")>]
+[<InlineData("2026-W+5")>]
+[<InlineData(" 2026-W05")>]
+[<InlineData("02026-W05")>]
+let ``ofKey Weekly: a non-canonical spelling of a valid week returns None`` (key: string) =
+  test <@ TrendPeriod.ofKey Weekly key now = None @>
+
+[<Theory>]
+[<InlineData("2026-6")>]
+[<InlineData("2026- 6")>]
+[<InlineData("+2026-06")>]
+let ``ofKey Monthly: a non-canonical spelling of a valid month returns None`` (key: string) =
+  test <@ TrendPeriod.ofKey Monthly key now = None @>
+
+[<Theory>]
+[<InlineData("+2026")>]
+[<InlineData(" 2026")>]
+[<InlineData("02026")>]
+let ``ofKey Yearly: a non-canonical spelling of a valid year returns None`` (key: string) =
+  test <@ TrendPeriod.ofKey Yearly key now = None @>
+
 // A period starting on 0001-01-01 can't be built east of UTC: its local midnight is
 // before DateTimeOffset.MinValue in UTC. Rejected regardless of the time zone.
 [<Fact>]
