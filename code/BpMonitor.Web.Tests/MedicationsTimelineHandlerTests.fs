@@ -84,7 +84,7 @@ let ``history renders a medication when the member has no readings at all`` () =
 let ``history extends an ongoing medication's timeline span to today`` () =
   // EndDate = None means "still ongoing" — the span's high end should be today
   // (per the time provider), not e.g. the medication's own StartDate.
-  let today = DateTimeOffset(2026, 6, 15, 10, 0, 0, TimeSpan.Zero)
+  let today = Timestamp.local 2026 6 15 10 0 0
   let tp = FakeTimeProvider(today)
 
   let ongoing =

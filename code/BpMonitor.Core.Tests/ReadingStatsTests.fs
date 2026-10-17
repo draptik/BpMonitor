@@ -57,11 +57,9 @@ let ``dailyAverages: single reading returns one entry with same values`` () =
 
 [<Fact>]
 let ``dailyAverages: two readings on same day are averaged`` () =
-  let day0 = now.Date
-  let r1 = mkReading 1 1 120 80 60 (DateTimeOffset(day0.AddHours(8.0), TimeSpan.Zero))
+  let r1 = mkReading 1 1 120 80 60 (Timestamp.local 2026 6 9 8 0 0)
 
-  let r2 =
-    mkReading 2 1 140 90 80 (DateTimeOffset(day0.AddHours(20.0), TimeSpan.Zero))
+  let r2 = mkReading 2 1 140 90 80 (Timestamp.local 2026 6 9 20 0 0)
 
   let result = ReadingStats.dailyAverages [ r1; r2 ]
   test <@ result.Length = 1 @>
@@ -71,16 +69,13 @@ let ``dailyAverages: two readings on same day are averaged`` () =
 
 [<Fact>]
 let ``dailyAverages: rounds the averaged chart point to the nearest mmHg`` () =
-  let day0 = now.Date
-
-  let at (h: float) =
-    DateTimeOffset(day0.AddHours h, TimeSpan.Zero)
+  let at (h: int) = Timestamp.local 2026 6 9 h 0 0
 
   let readings =
     [
-      mkReading 1 1 139 80 70 (at 8.0)
-      mkReading 2 1 140 80 70 (at 12.0)
-      mkReading 3 1 140 81 70 (at 20.0)
+      mkReading 1 1 139 80 70 (at 8)
+      mkReading 2 1 140 80 70 (at 12)
+      mkReading 3 1 140 81 70 (at 20)
     ]
 
   let result = ReadingStats.dailyAverages readings
@@ -127,11 +122,9 @@ let ``weeklyAverages: empty list returns empty`` () =
 [<Fact>]
 let ``weeklyAverages: readings in same ISO week are averaged into one entry`` () =
   // 2026-W24: Mon 2026-06-08 ... Sun 2026-06-14
-  let r1 =
-    mkReading 1 1 120 80 60 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
+  let r1 = mkReading 1 1 120 80 60 (Timestamp.local 2026 6 8 9 0 0)
 
-  let r2 =
-    mkReading 2 1 140 90 80 (DateTimeOffset(2026, 6, 10, 9, 0, 0, TimeSpan.Zero))
+  let r2 = mkReading 2 1 140 90 80 (Timestamp.local 2026 6 10 9 0 0)
 
   let result = ReadingStats.weeklyAverages [ r1; r2 ]
   test <@ result.Length = 1 @>
@@ -226,11 +219,9 @@ let ``monthlyAverages: timestamp is first of month midnight`` () =
 
 [<Fact>]
 let ``aggregate Weekly delegates to dailyAverages`` () =
-  let r1 =
-    mkReading 1 1 120 80 60 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
+  let r1 = mkReading 1 1 120 80 60 (Timestamp.local 2026 6 8 9 0 0)
 
-  let r2 =
-    mkReading 2 1 140 90 80 (DateTimeOffset(2026, 6, 8, 20, 0, 0, TimeSpan.Zero))
+  let r2 = mkReading 2 1 140 90 80 (Timestamp.local 2026 6 8 20 0 0)
 
   let result = ReadingStats.aggregate Weekly [ r1; r2 ]
   // Two readings on same day → one daily average
@@ -262,11 +253,9 @@ let ``aggregate Yearly delegates to monthlyAverages`` () =
 
 [<Fact>]
 let ``aggregate Weekly: two readings on same day yields Count=2`` () =
-  let r1 =
-    mkReading 1 1 120 80 60 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
+  let r1 = mkReading 1 1 120 80 60 (Timestamp.local 2026 6 8 9 0 0)
 
-  let r2 =
-    mkReading 2 1 140 90 80 (DateTimeOffset(2026, 6, 8, 20, 0, 0, TimeSpan.Zero))
+  let r2 = mkReading 2 1 140 90 80 (Timestamp.local 2026 6 8 20 0 0)
 
   let result = ReadingStats.aggregate Weekly [ r1; r2 ]
   test <@ result[0].Count = 2 @>
@@ -279,11 +268,9 @@ let ``aggregate Weekly: single reading on a day yields Count=1`` () =
 
 [<Fact>]
 let ``aggregate Monthly: two readings in same ISO week yields Count=2`` () =
-  let r1 =
-    mkReading 1 1 120 80 60 (DateTimeOffset(2026, 6, 8, 9, 0, 0, TimeSpan.Zero))
+  let r1 = mkReading 1 1 120 80 60 (Timestamp.local 2026 6 8 9 0 0)
 
-  let r2 =
-    mkReading 2 1 140 90 80 (DateTimeOffset(2026, 6, 9, 9, 0, 0, TimeSpan.Zero))
+  let r2 = mkReading 2 1 140 90 80 (Timestamp.local 2026 6 9 9 0 0)
 
   let result = ReadingStats.aggregate Monthly [ r1; r2 ]
   test <@ result[0].Count = 2 @>
@@ -303,20 +290,18 @@ let ``aggregate Yearly: two readings in same calendar month yields Count=2`` () 
 
 [<Fact>]
 let ``aggregate Weekly: multi-reading period carries correct MinSystolic and MaxSystolic`` () =
-  let day = DateTimeOffset(2026, 6, 8, 0, 0, 0, TimeSpan.Zero)
-  let r1 = mkReading 1 1 110 75 60 (day.AddHours(8.0))
-  let r2 = mkReading 2 1 130 85 70 (day.AddHours(12.0))
-  let r3 = mkReading 3 1 150 95 80 (day.AddHours(20.0))
+  let r1 = mkReading 1 1 110 75 60 (Timestamp.local 2026 6 8 8 0 0)
+  let r2 = mkReading 2 1 130 85 70 (Timestamp.local 2026 6 8 12 0 0)
+  let r3 = mkReading 3 1 150 95 80 (Timestamp.local 2026 6 8 20 0 0)
   let a = ReadingStats.aggregate Weekly [ r1; r2; r3 ] |> List.exactlyOne
   test <@ a.MinSystolic = 110 @>
   test <@ a.MaxSystolic = 150 @>
 
 [<Fact>]
 let ``aggregate Weekly: multi-reading period carries correct MinDiastolic and MaxDiastolic`` () =
-  let day = DateTimeOffset(2026, 6, 8, 0, 0, 0, TimeSpan.Zero)
-  let r1 = mkReading 1 1 110 75 60 (day.AddHours(8.0))
-  let r2 = mkReading 2 1 130 85 70 (day.AddHours(12.0))
-  let r3 = mkReading 3 1 150 95 80 (day.AddHours(20.0))
+  let r1 = mkReading 1 1 110 75 60 (Timestamp.local 2026 6 8 8 0 0)
+  let r2 = mkReading 2 1 130 85 70 (Timestamp.local 2026 6 8 12 0 0)
+  let r3 = mkReading 3 1 150 95 80 (Timestamp.local 2026 6 8 20 0 0)
   let a = ReadingStats.aggregate Weekly [ r1; r2; r3 ] |> List.exactlyOne
   test <@ a.MinDiastolic = 75 @>
   test <@ a.MaxDiastolic = 95 @>
