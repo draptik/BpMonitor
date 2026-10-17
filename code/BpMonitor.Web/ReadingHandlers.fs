@@ -172,7 +172,8 @@ module ReadingHandlers =
         (medicationRepo ctx).GetAll(m.Id)
         |> Medication.overlapping (toLocalDateOnly loadWindowStart) (toLocalDateOnly now)
 
-      let panel = medicationsPanel s medications true windowStart now
+      let panel =
+        medicationsPanel s medications true windowStart (BpChart.recentAxisEnd windowStart now)
 
       htmlResponse
         (ReadingViews.recent
@@ -206,7 +207,8 @@ module ReadingHandlers =
         (medicationRepo ctx).GetAll(m.Id)
         |> Medication.overlapping System.DateOnly.MinValue (toLocalDateOnly now)
 
-      let panel = medicationsPanel s medications true windowStart now
+      let panel =
+        medicationsPanel s medications true windowStart (BpChart.recentAxisEnd windowStart now)
 
       htmlResponse
         (ReadingViews.recentChartContainer

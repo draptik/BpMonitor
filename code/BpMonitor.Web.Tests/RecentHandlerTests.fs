@@ -6,6 +6,7 @@ open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
 open BpMonitor.Web
+open BpMonitor.Charts
 open HandlerTestHelpers
 open RecentTestFixtures
 
@@ -122,12 +123,16 @@ let ``recent renders zoom shortcut buttons for the last 7 and 30 days, anchored 
   TestHost.run ReadingHandlers.recent ctx
 
   let body = TestHost.readBody ctx
-  let hi = Formats.formatLocal now
-  let lo7 = Formats.formatLocal (now.AddDays(-7.0))
-  let lo30 = Formats.formatLocal (now.AddDays(-30.0))
 
-  test <@ body.Contains $"data-lo=\"{lo7}\" data-hi=\"{hi}\"" @>
-  test <@ body.Contains $"data-lo=\"{lo30}\" data-hi=\"{hi}\"" @>
+  let range (days: float) =
+    let lo = now.AddDays(-days)
+    Formats.formatLocal lo, Formats.formatLocal (BpChart.recentAxisEnd lo now)
+
+  let lo7, hi7 = range 7.0
+  let lo30, hi30 = range 30.0
+
+  test <@ body.Contains $"data-lo=\"{lo7}\" data-hi=\"{hi7}\"" @>
+  test <@ body.Contains $"data-lo=\"{lo30}\" data-hi=\"{hi30}\"" @>
   test <@ body.Contains "Last 7 days" @>
   test <@ body.Contains "Last 30 days" @>
 

@@ -2,6 +2,7 @@ namespace BpMonitor.Web
 
 open Falco.Markup
 open BpMonitor.Core
+open BpMonitor.Charts
 
 /// Server-rendered HTML views for reading-related pages (landing, history, add/edit form).
 module ReadingViews =
@@ -140,8 +141,6 @@ module ReadingViews =
         ]
 
     // Snaps the chart's x-axis via Plotly.relayout (wwwroot/recent-zoom.js).
-    let hiFormatted = Formats.formatLocal now
-
     // The button matching `windowStart` renders as the active pill on load.
     let zoomButton (label: string) (days: float) =
       let lo = now.AddDays(-days)
@@ -152,7 +151,7 @@ module ReadingViews =
           Attr.class' "recent-zoom-button outline"
           Attr.create "aria-pressed" (if lo = windowStart then "true" else "false")
           Attr.create "data-lo" (Formats.formatLocal lo)
-          Attr.create "data-hi" hiFormatted
+          Attr.create "data-hi" (Formats.formatLocal (BpChart.recentAxisEnd lo now))
         ]
         [ Text.raw label ]
 
