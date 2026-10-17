@@ -164,6 +164,30 @@ let ``create rejects an end date before the start date with 422 and does not per
   test <@ medicationRepo.GetAll(defaultMemberId) = [] @>
 
 [<Fact>]
+let ``create rejects a non-parseable end date with 422 and does not persist`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMedications repo []
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.medicationName, "HCTZ"
+      FormFields.medicationFullName, ""
+      FormFields.medicationComment, ""
+      FormFields.medicationStartDate, "2026-01-01"
+      FormFields.medicationEndDate, "not-a-date"
+    ]
+
+  TestHost.run MedicationHandlers.create ctx
+
+  let body = TestHost.readBody ctx
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ body.Contains "End date:" && body.Contains "is not a valid date" @>
+
+  let medicationRepo = ctx.RequestServices.GetRequiredService<IMedicationRepository>()
+  test <@ medicationRepo.GetAll(defaultMemberId) = [] @>
+
+[<Fact>]
 let ``create rejects a non-parseable date with 422`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMedications repo []
@@ -270,6 +294,52 @@ let ``update rejects an empty name with 422 and does not persist`` () =
   test <@ ctx.Response.StatusCode = 422 @>
   let medicationRepo = ctx.RequestServices.GetRequiredService<IMedicationRepository>()
   test <@ (medicationRepo.GetAll(defaultMemberId) |> List.exactlyOne).Name = "HCTZ" @>
+
+[<Fact>]
+let ``update rejects a non-parseable date with 422 and keeps the stored medication`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMedications repo [ sampleMedication ]
+  TestHost.setRouteId ctx sampleMedication.Id
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.medicationName, "HCTZ 25mg"
+      FormFields.medicationFullName, ""
+      FormFields.medicationComment, ""
+      FormFields.medicationStartDate, "not-a-date"
+      FormFields.medicationEndDate, ""
+    ]
+
+  TestHost.run MedicationHandlers.update ctx
+
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ (TestHost.readBody ctx).Contains "is not a valid date" @>
+  let medicationRepo = ctx.RequestServices.GetRequiredService<IMedicationRepository>()
+  test <@ medicationRepo.GetAll(defaultMemberId) = [ sampleMedication ] @>
+
+[<Fact>]
+let ``update rejects an end date before the start date with 422 and keeps the stored medication`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMedications repo [ sampleMedication ]
+  TestHost.setRouteId ctx sampleMedication.Id
+
+  TestHost.setForm
+    ctx
+    [
+      FormFields.medicationName, "HCTZ"
+      FormFields.medicationFullName, ""
+      FormFields.medicationComment, ""
+      FormFields.medicationStartDate, "2026-04-10"
+      FormFields.medicationEndDate, "2026-04-01"
+    ]
+
+  TestHost.run MedicationHandlers.update ctx
+
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ (TestHost.readBody ctx).Contains "End date must be on or after the start date" @>
+  let medicationRepo = ctx.RequestServices.GetRequiredService<IMedicationRepository>()
+  test <@ medicationRepo.GetAll(defaultMemberId) = [ sampleMedication ] @>
 
 [<Fact>]
 let ``update returns 404 for a medication belonging to a different member`` () =
