@@ -569,6 +569,10 @@ module BpChart =
         |> GenericChart.mapTrace (Trace2DStyle.Scatter(HoverInfo = StyleParam.HoverInfo.Skip))
       ]
 
+  /// /recent's x-axis right edge: 2% of the window past its end, so the newest reading isn't drawn on the plot's edge.
+  let recentAxisEnd (windowStart: System.DateTimeOffset) (windowEnd: System.DateTimeOffset) =
+    windowEnd + (windowEnd - windowStart) * 0.02
+
   let private renderRecent
     (s: ChartStrings)
     (goal: GoalRange)
@@ -580,7 +584,7 @@ module BpChart =
     let readings, timestamps, systolic, diastolic = seriesOf readings
     let dashes = dashPattern windowDays readings
     let rangeLow = Formats.formatLocal windowStart
-    let rangeHigh = Formats.formatLocal windowEnd
+    let rangeHigh = Formats.formatLocal (recentAxisEnd windowStart windowEnd)
 
     [
       yield! seriesTraces systolicFadedColor s.Systolic dashes timestamps systolic

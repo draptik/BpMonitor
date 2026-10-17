@@ -8,6 +8,7 @@ open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
 open BpMonitor.Web
+open BpMonitor.Charts
 open HandlerTestHelpers
 
 [<Fact>]
@@ -18,6 +19,22 @@ let ``recent renders the Medications Timeline panel when the member has medicati
   TestHost.run ReadingHandlers.recent ctx
 
   test <@ (TestHost.readBody ctx).Contains "Medications Timeline" @>
+
+[<Fact>]
+let ``recent opens the Medications Timeline on the same padded range as the BP chart`` () =
+  let now = Timestamp.utc 2026 5 2 9 0 0
+
+  let ctx =
+    TestHost.contextWithMedicationsAndProvider (repoWith [ sample ]) [ sampleMedication ] (FakeTimeProvider now)
+
+  TestHost.run ReadingHandlers.recent ctx
+
+  let lo = now.AddDays(-30.0)
+
+  let range =
+    $"\"range\":[\"{Formats.formatLocal lo}\",\"{Formats.formatLocal (BpChart.recentAxisEnd lo now)}\"]"
+
+  test <@ Regex.Matches(TestHost.readBody ctx, Regex.Escape range).Count = 2 @>
 
 [<Fact>]
 let ``recent omits the Medications Timeline panel when the member has no medications`` () =

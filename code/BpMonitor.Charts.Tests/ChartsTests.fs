@@ -507,8 +507,13 @@ let ``toHtmlRecent opens focused on the last windowDays, even though all reading
     BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now readings
 
   let rangeLow = Formats.formatLocal (now.AddDays(-30.0))
-  let rangeHigh = Formats.formatLocal now
+  let rangeHigh = Formats.formatLocal (BpChart.recentAxisEnd windowStart30 now)
   test <@ html.Contains($"\"range\":[\"{rangeLow}\",\"{rangeHigh}\"]") @>
+
+[<Fact>]
+let ``recentAxisEnd pads the window's end by 2% of its length, so the newest reading isn't on the plot's edge`` () =
+  test <@ BpChart.recentAxisEnd windowStart30 now = now.AddHours(14.0).AddMinutes(24.0) @>
+  test <@ BpChart.recentAxisEnd (now.AddDays(-7.0)) now = now.AddHours(3.0).AddMinutes(21.0).AddSeconds(36.0) @>
 
 [<Fact>]
 let ``toHtml (history) does not show a spikeline`` () =
