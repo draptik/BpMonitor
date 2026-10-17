@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Login: a damaged or truncated password entry in the database no longer accepts any password; previously an empty one let anyone sign in as that member.
 
+### Fixed
+
+- Login: the sign-in page follows the browser's language preferences by weight, and skips a language marked as not wanted; previously it took the first supported language listed.
+
 ## [1.15.1] - 2026-10-16
 
 ### Changed
