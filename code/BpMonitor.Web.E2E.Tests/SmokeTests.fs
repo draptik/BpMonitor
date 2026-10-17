@@ -207,7 +207,7 @@ type RecentChartHoverFormatTests(fixture: ChromiumFixture) =
       do! TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName fixture.MemberSetupCode page
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
-      let now = DateTime.Now
+      let now = ReadingTimes.insideWindow ()
       let ts = now.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)
       do! page.FillAsync("#Timestamp", ts)
       do! page.FillAsync("#Systolic", "118")

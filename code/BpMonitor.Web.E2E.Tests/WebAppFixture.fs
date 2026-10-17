@@ -45,6 +45,10 @@ module TestAccount =
     }
 
 /// Waits keyed to the app's own Plotly readiness signals instead of a fixed sleep.
+/// Charts end at "now", so a reading taken now sits on the plot's right edge; hovered readings use this instead.
+module ReadingTimes =
+  let insideWindow () = DateTime.Now.AddDays(-1.0)
+
 module PlotWaits =
   /// Flushes a double-rAF update, then 60ms — just above Plotly's own HOVERMINTIME (50ms) hover-redraw throttle.
   let framesSettled (page: IPage) : Task =

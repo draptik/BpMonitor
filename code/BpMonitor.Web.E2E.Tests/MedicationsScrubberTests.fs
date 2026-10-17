@@ -26,9 +26,9 @@ type MedicationsScrubberTests(fixture: ChromiumFixture) =
       do! page.ClickAsync("form[action='/medications'] button[type=submit]")
       let! _ = page.WaitForSelectorAsync("text=Lisinopril")
 
-      let now = DateTime.Now
+      let now = ReadingTimes.insideWindow ()
 
-      for hoursAgo in [ 4.0; 0.0 ] do
+      for hoursAgo in [ 24.0; 0.0 ] do
         let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
         do! page.FillAsync("#Timestamp", now.AddHours(-hoursAgo).ToString("yyyy-MM-dd HH:mm"))
         do! page.FillAsync("#Systolic", "118")
@@ -100,7 +100,7 @@ type MedicationsScrubberEdgeTests(fixture: ChromiumFixture) =
       let! _ = page.WaitForSelectorAsync("text=Lisinopril")
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
-      do! page.FillAsync("#Timestamp", DateTime.Now.ToString("yyyy-MM-dd HH:mm"))
+      do! page.FillAsync("#Timestamp", ReadingTimes.insideWindow().ToString("yyyy-MM-dd HH:mm"))
       do! page.FillAsync("#Systolic", "118")
       do! page.FillAsync("#Diastolic", "76")
       do! page.FillAsync("#HeartRate", "62")
@@ -290,7 +290,7 @@ type MedicationsScrubberBpToTimelineHoverTests(fixture: ChromiumFixture) =
       let! _ = page.WaitForSelectorAsync("text=Lisinopril")
 
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
-      do! page.FillAsync("#Timestamp", DateTime.Now.ToString("yyyy-MM-dd HH:mm"))
+      do! page.FillAsync("#Timestamp", ReadingTimes.insideWindow().ToString("yyyy-MM-dd HH:mm"))
       do! page.FillAsync("#Systolic", "118")
       do! page.FillAsync("#Diastolic", "76")
       do! page.FillAsync("#HeartRate", "62")
@@ -365,8 +365,9 @@ type MedicationsScrubberHistoryPageTests(fixture: ChromiumFixture) =
       do! page.ClickAsync("form[action='/medications'] button[type=submit]")
       let! _ = page.WaitForSelectorAsync("text=Lisinopril")
 
+      let readingTime = ReadingTimes.insideWindow().ToString("yyyy-MM-dd HH:mm")
       let! _ = page.GotoAsync($"{fixture.BaseUrl}/add")
-      do! page.FillAsync("#Timestamp", DateTime.Now.ToString("yyyy-MM-dd HH:mm"))
+      do! page.FillAsync("#Timestamp", readingTime)
       do! page.FillAsync("#Systolic", "118")
       do! page.FillAsync("#Diastolic", "76")
       do! page.FillAsync("#HeartRate", "62")
@@ -403,8 +404,7 @@ type MedicationsScrubberHistoryPageTests(fixture: ChromiumFixture) =
           x
         )
 
-      let nowLocal = DateTime.Now.ToString("yyyy-MM-dd HH:mm")
-      let! point = pixelFor ".medications-chart .js-plotly-plot" nowLocal
+      let! point = pixelFor ".medications-chart .js-plotly-plot" readingTime
 
       do! page.Mouse.MoveAsync(float32 point[0], float32 point[1])
 
