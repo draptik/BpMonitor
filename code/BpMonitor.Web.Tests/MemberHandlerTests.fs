@@ -64,6 +64,19 @@ let ``createMember without IsAdmin checkbox persists a non-admin member`` () =
   test <@ added.IsAdmin = false @>
 
 [<Fact>]
+let ``createMember rejects a blank name with 422 and adds no member`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Me" ]
+
+  TestHost.setForm ctx [ FormFields.name, "   " ]
+  TestHost.run MemberHandlers.createMember ctx
+
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ (TestHost.readBody ctx).Contains "Name cannot be empty" @>
+  let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+  test <@ memberRepo.GetAll().Length = 1 @>
+
+[<Fact>]
 let ``createMember rejects a name another member already has, ignoring case`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Bart" ]
@@ -198,6 +211,35 @@ let ``updateMember rejects demoting the last active admin with 422`` () =
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "active admin" @>
+
+[<Fact>]
+let ``updateMember rejects deactivating the last active admin, even when they stay admin`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Me" ]
+  TestHost.setRouteId ctx 1
+
+  TestHost.setForm ctx [ FormFields.name, "Me"; FormFields.isAdmin, "on" ]
+  TestHost.run MemberHandlers.updateMember ctx
+
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ (TestHost.readBody ctx).Contains "active admin" @>
+  let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+  test <@ (memberRepo.GetById 1).Value.IsActive @>
+
+[<Fact>]
+let ``updateMember rejects a blank name with 422 and keeps the stored name`` () =
+  let repo = repoWith []
+  let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Me" ]
+  TestHost.setRouteId ctx 1
+
+  TestHost.setForm ctx [ FormFields.name, "   "; FormFields.isAdmin, "on"; FormFields.isActive, "on" ]
+
+  TestHost.run MemberHandlers.updateMember ctx
+
+  test <@ ctx.Response.StatusCode = 422 @>
+  test <@ (TestHost.readBody ctx).Contains "Name cannot be empty" @>
+  let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
+  test <@ (memberRepo.GetById 1).Value.Name = "Me" @>
 
 [<Fact>]
 let ``updateMember allows demoting one admin when another active admin exists`` () =
