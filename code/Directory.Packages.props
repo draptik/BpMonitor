@@ -16,13 +16,13 @@
     <PackageVersion Include="Verify.XunitV3" Version="33.3.3" />
   </ItemGroup>
   <ItemGroup Label="FSharp">
-    <PackageVersion Include="FSharp.Core" Version="11.0.101-rc1.26425.128" />
+    <PackageVersion Include="FSharp.Core" Version="11.0.101-rc2.26504.105" />
     <PackageVersion Include="FsToolkit.ErrorHandling" Version="5.2.0" />
     <PackageVersion Include="FSharp.SystemTextJson" Version="1.4.36" />
   </ItemGroup>
   <ItemGroup Label="Data">
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="11.0.0-rc.1.26425.128" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="11.0.0-rc.1.26425.128" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="11.0.0-rc.2.26504.105" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="11.0.0-rc.2.26504.105" />
   </ItemGroup>
   <ItemGroup Label="Test">
     <PackageVersion Include="Unquote" Version="7.0.1" />
