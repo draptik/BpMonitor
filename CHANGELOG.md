@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Readings: saving or canceling an edit returns to the page it was started from (History, Recent view or Trends, where the same week, month or year stays open); previously it always went to History.
 
+### Maintenance
+
+- Docs and code are spell-checked with typos, which also enforces American spelling, and Markdown prose is linted with Vale (proselint plus a project rule for "Recent view" naming); both run as pre-commit hooks and in CI. No user-facing changes.
+
 ## [1.16.0] - 2026-10-21
 
 <!-- released notes stay as published; Vale checks only newer sections -->
