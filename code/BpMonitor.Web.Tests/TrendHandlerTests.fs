@@ -1,5 +1,6 @@
 module TrendHandlerTests
 
+open System.Text.RegularExpressions
 open Xunit
 open Swensen.Unquote
 open Microsoft.AspNetCore.Http
@@ -47,8 +48,8 @@ let ``trends renders 200 with granularity buttons and current Weekly panel`` () 
   test <@ body.Contains "aria-current=\"page\"" @>
   // Inline chart rendered
   test <@ body.Contains "Plotly.newPlot" @>
-  // Edit links return to trends
-  test <@ body.Contains(Routes.readingEdit r.Id Routes.trends) @>
+  // Edit links return to the current period
+  test <@ body.Contains(Routes.readingEdit r.Id (Routes.trendsPeriod Weekly "2026-W24")) @>
 
 [<Fact>]
 let ``trends renders the chart with the authenticated member's goal range`` () =
@@ -130,8 +131,8 @@ let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and 
   test <@ body.Contains "Last Week" @>
   // Inline chart rendered
   test <@ body.Contains "Plotly.newPlot" @>
-  // Edit links return to trends
-  test <@ body.Contains(Routes.readingEdit r.Id Routes.trends) @>
+  // Edit links return to the current period
+  test <@ body.Contains(Routes.readingEdit r.Id (Routes.trendsPeriod Weekly "2026-W24")) @>
 
 [<Fact>]
 let ``trendsPanel with gran=monthly returns monthly sub-period buttons`` () =
@@ -169,8 +170,8 @@ let ``trendsPanel with gran + key uses that specific sub-period`` () =
   test <@ body.Contains "77" @>
   // Inline chart rendered
   test <@ body.Contains "Plotly.newPlot" @>
-  // Edit links return to trends
-  test <@ body.Contains(Routes.readingEdit r.Id Routes.trends) @>
+  // Edit links return to this period
+  test <@ body.Contains(Routes.readingEdit r.Id (Routes.trendsPeriod Weekly "2026-W23")) @>
 
 [<Fact>]
 let ``trendsPanel includes readings table with in-period readings`` () =
@@ -298,3 +299,40 @@ let ``trendsPanel period pills without data are aria-disabled and have no href``
   // W23 (Last Week) pill should be disabled — no href, has aria-disabled
   test <@ body.Contains $"href=\"{w23Route}\"" |> not @>
   test <@ body.Contains "aria-disabled=\"true\"" @>
+
+[<Fact>]
+let ``trends page opens the granularity and period named in its query`` () =
+  let tp = FakeTimeProvider(trendsNow)
+
+  let r =
+    { sample with
+        Timestamp = Timestamp.utc 2026 6 3 9 0 0 // W23, last week
+        Systolic = 118
+    }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  ctx.Request.QueryString <- QueryString "?gran=weekly&key=2026-W23"
+  TestHost.run ReadingHandlers.trends ctx
+
+  let body = TestHost.readBody ctx
+  test <@ body.Contains "<h1>" @>
+  test <@ body.Contains "118" @>
+
+[<Fact>]
+let ``trends page opens a non-default granularity named in its query`` () =
+  let tp = FakeTimeProvider(trendsNow)
+
+  let r =
+    { sample with
+        Timestamp = Timestamp.utc 2026 4 15 9 0 0
+        Systolic = 119
+    }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  ctx.Request.QueryString <- QueryString "?gran=monthly&key=2026-04"
+  TestHost.run ReadingHandlers.trends ctx
+
+  let body = TestHost.readBody ctx
+  let april = Routes.trendsGranKey (TrendPeriod.slug Monthly) "2026-04"
+  test <@ Regex.IsMatch(body, $"<a href=\"{april}\"[^>]*aria-current=\"page\"") @>
+  test <@ body.Contains "119" @>

@@ -31,9 +31,28 @@ module ReadingHandlers =
     htmlResponse (ReadingViews.readingForm s active memberName isAdmin title action returnTo errors model) ctx
 
   /// Allowlists where a reading edit may return to, so the param can't redirect off-site.
-  let private returnTarget (page: string) =
+  /// A Trends period must rebuild to the exact same URL, since the form's Cancel href is written unencoded.
+  let private returnTarget (now: System.DateTimeOffset) (page: string) =
     if List.contains page Routes.readingReturnTargets then
       page
+    elif page.StartsWith(Routes.trends + "?", System.StringComparison.Ordinal) then
+      let query =
+        Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(page.Substring Routes.trends.Length)
+
+      let param (key: string) =
+        match query.TryGetValue key with
+        | true, v -> Some(v.ToString())
+        | _ -> None
+
+      let rebuilt =
+        param "gran"
+        |> Option.bind TrendPeriod.parseGranularity
+        |> Option.bind (fun gran ->
+          param "key"
+          |> Option.bind (fun key -> TrendPeriod.ofKey gran key now)
+          |> Option.map (fun p -> Routes.trendsPeriod gran p.Key))
+
+      if rebuilt = Some page then page else Routes.trends
     else
       Routes.history
 
@@ -271,15 +290,28 @@ module ReadingHandlers =
 
     summary, periods, periodsWithData, tableReadings, chartHtml
 
+  /// The period `key` names, or the current one when it's missing or unknown.
+  let private periodFor (gran: Granularity) (key: string option) (now: System.DateTimeOffset) =
+    key
+    |> Option.bind (fun k -> TrendPeriod.ofKey gran k now)
+    |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
+
+  /// The full page; `?gran=&key=` picks the panel, defaulting to Weekly/current.
   let trends: HttpContext -> Task =
     withMember (fun m ctx ->
       let s = stringsForMember m
       let now = (timeProvider ctx).GetUtcNow()
       let allReadings = (repo ctx).GetAll(m.Id)
-      let period = TrendPeriod.current Weekly now
+
+      let gran =
+        queryStr ctx "gran"
+        |> Option.bind TrendPeriod.parseGranularity
+        |> Option.defaultValue Weekly
+
+      let period = periodFor gran (queryStr ctx "key") now
 
       let summary, periods, periodsWithData, tableReadings, chartHtml =
-        renderTrendsData s Weekly period now m allReadings
+        renderTrendsData s gran period now m allReadings
 
       htmlResponse (TrendViews.trends s m summary periods periodsWithData tableReadings chartHtml) ctx)
 
@@ -292,10 +324,7 @@ module ReadingHandlers =
         let now = (timeProvider ctx).GetUtcNow()
         let allReadings = (repo ctx).GetAll(m.Id)
 
-        let period =
-          routeStr ctx "key"
-          |> Option.bind (fun k -> TrendPeriod.ofKey gran k now)
-          |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
+        let period = periodFor gran (routeStr ctx "key") now
 
         let summary, periods, periodsWithData, tableReadings, chartHtml =
           renderTrendsData s gran period now m allReadings
@@ -448,6 +477,11 @@ module ReadingHandlers =
 
       match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
       | Some r ->
+        let returnTo =
+          queryStr ctx FormFields.returnTo
+          |> Option.defaultValue ""
+          |> returnTarget ((timeProvider ctx).GetUtcNow())
+
         htmlResponse
           (ReadingViews.readingForm
             s
@@ -456,7 +490,7 @@ module ReadingHandlers =
             m.IsAdmin
             s.Reading.EditReadingTitle
             (Routes.readingUpdate id)
-            (Some(returnTarget (ctx.Request.Query[FormFields.returnTo].ToString())))
+            (Some returnTo)
             []
             (Binding.ofReading r))
           ctx
@@ -478,7 +512,8 @@ module ReadingHandlers =
         task {
           let! form = ctx.Request.ReadFormAsync()
 
-          let returnTo = returnTarget (form[FormFields.returnTo].ToString())
+          let returnTo =
+            returnTarget ((timeProvider ctx).GetUtcNow()) (form[FormFields.returnTo].ToString())
 
           do!
             submit

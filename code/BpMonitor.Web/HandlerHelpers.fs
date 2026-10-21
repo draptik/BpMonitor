@@ -138,6 +138,11 @@ module HandlerHelpers =
       if String.IsNullOrEmpty s then None else Some s
     | _ -> None
 
+  let queryStr (ctx: HttpContext) (key: string) : string option =
+    match ctx.Request.Query[key].ToString() with
+    | "" -> None
+    | v -> Some v
+
   let formModel (ctx: HttpContext) : Task<Binding.FormModel> =
     task {
       let! form = ctx.Request.ReadFormAsync()

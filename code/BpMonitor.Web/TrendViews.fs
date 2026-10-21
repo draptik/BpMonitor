@@ -135,7 +135,7 @@ module TrendViews =
                 ]
             ]
           Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
-          ViewLayout.readingsTable s Routes.trends readings
+          ViewLayout.readingsTable s (Routes.trendsPeriod gran summary.PeriodKey) readings
         ]
 
     Elem.div
@@ -151,7 +151,7 @@ module TrendViews =
         yield! content
       ]
 
-  /// The /trends full page. Pre-renders the Weekly/current panel (including toggle buttons).
+  /// The /trends full page around the panel for the requested period (default Weekly/current).
   let trends
     (s: LocalizedStrings)
     (m: FamilyMember)
