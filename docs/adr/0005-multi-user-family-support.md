@@ -19,7 +19,7 @@ Two design questions arose:
 
 ### 1. Stay on SQLite — multi-user is a data-model change, not a DB-engine change
 
-"Multi-user" for a family means a handful of profiles and very light, mostly-serial write load. SQLite's only real constraint is concurrent *writers* under heavy load. With WAL mode enabled and per-request scoped `DbContext`, even a busy family's write pattern is well within SQLite's capabilities.
+"Multi-user" for a family means a handful of profiles and light, mostly-serial write load. SQLite's only real constraint is concurrent *writers* under heavy load. With WAL mode enabled and per-request scoped `DbContext`, even a busy family's write pattern is well within SQLite's capabilities.
 
 Postgres would add an external server, credentials, container, backup strategy, and connection management for zero practical benefit at this scale. The correct response to "do we need Postgres?" is: "only when we genuinely have many concurrent writers or require DB-level features SQLite can't provide."
 

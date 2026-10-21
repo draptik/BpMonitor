@@ -7,6 +7,7 @@ actionlint = "1.7.12"
 hadolint = "2.15.1"
 trivy = "0.76.0"
 typos = "1.51.1"
+vale = "3.24.0"
 "npm:typescript" = "7.0.2"
 # @yarnpkg/libzip 3.2.2 was hand-published by Yarn's maintainer without provenance (3.2.0/3.2.1 had it)
 "npm:renovate" = { version = "44.131.0", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
@@ -17,6 +18,10 @@ run = 'markdownlint-cli2 "**/*.md"'
 [tasks."lint:spelling"]
 # config in _typos.toml (en-us locale, so British spellings fail too)
 run = "typos"
+
+[tasks."lint:prose"]
+# config in .vale.ini; sync fetches the pinned proselint package into .vale/styles (gitignored)
+run = ["vale sync", "git ls-files -z '*.md' | xargs -0 vale"]
 
 [tasks."lint:js"]
 run = "biome check"
@@ -45,7 +50,7 @@ env = { RENOVATE_X_IGNORE_RE2 = "true" }  # re2 native build is skipped by mise;
 run = "renovate-config-validator --strict"
 
 [tasks.lint]
-depends = ["lint:md", "lint:spelling", "lint:js", "lint:ts", "lint:shell", "lint:actions", "lint:container", "lint:renovate"]
+depends = ["lint:md", "lint:spelling", "lint:prose", "lint:js", "lint:ts", "lint:shell", "lint:actions", "lint:container", "lint:renovate"]
 
 [tasks.bench]
 description = "Runs the BenchmarkDotNet suite (BpMonitor.Benchmarks); pass `-- --job short` for a quick run"

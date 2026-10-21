@@ -1,0 +1,5 @@
+extends: existence
+message: "Call the /recent page 'Recent view', not bare 'Recent'."
+level: error
+tokens:
+  - 'Recent(?! view)'

@@ -14,7 +14,7 @@ A blood pressure monitoring application for families and households, built with 
 
 | | |
 | --- | --- |
-| ![Recent readings with scrubber](docs/screenshots/recent-scrubber-light.png) | ![Trends](docs/screenshots/trends-light.png) |
+| ![Recent view with scrubber](docs/screenshots/recent-scrubber-light.png) | ![Trends](docs/screenshots/trends-light.png) |
 
 ## Docs
 
