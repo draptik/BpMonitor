@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - [.NET 11 SDK](https://dotnet.microsoft.com/download) (currently a release candidate) — version is pinned in `code/global.json`; Fantomas also needs the .NET 10 runtime
-- [mise](https://mise.jdx.dev/) — manages all non-dotnet tools (node, Biome, markdownlint-cli2, shellcheck, actionlint, hadolint, TypeScript, Renovate)
+- [mise](https://mise.jdx.dev/) — manages all non-dotnet tools (node, Biome, markdownlint-cli2, shellcheck, actionlint, hadolint, Trivy, TypeScript, Renovate)
 
 ## Getting started
 
@@ -208,7 +208,12 @@ git push origin v1.2.3
 ```
 
 `release.yml` builds the self-contained tarball (`bpmonitor-web-linux-x64.tar.gz`)
-and publishes a container image to `ghcr.io/draptik/bpmonitor-web`. Tags containing
+and publishes a container image to `ghcr.io/draptik/bpmonitor-web`, but only after
+Trivy finds no fixable CRITICAL/HIGH CVEs in it; the GitHub release is only created
+after that. If the scan blocks a release on a base-image CVE that only Microsoft can
+fix, add a path-scoped, expiring entry to `.trivyignore.yaml` via a PR and tag a new
+patch version. Re-running the failed job won't help, because it uses the tagged
+commit's ignore file. Tags containing
 `-` (e.g. `v1.2.3-rc1`) are automatically flagged as GitHub pre-releases, keeping
 `/releases/latest` on the stable release.
 

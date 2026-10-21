@@ -155,6 +155,7 @@ All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also ho
 - `tsconfig.json` + `typings/globals.d.ts` — zero-build TypeScript checking of the same `wwwroot/` JS via JSDoc (`tsc --checkJs`); the JS ships as-is, no bundler
 - `.markdownlint-cli2.yaml` — markdownlint config
 - `.hadolint.yaml` — hadolint config for `code/BpMonitor.Web/Containerfile`
+- `.trivyignore.yaml` — path-scoped, expiring CVE exceptions for the release image gate (`mise run scan:image -- <image>`, run by `release.yml` before pushing); `image-scan.yml` rescans `:latest` weekly into the Security tab
 - Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:shell` / `lint:actions` / `lint:container` / `lint:renovate` individually
 - Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium and Firefox)
 - Run `mise exec -- biome check --write` to auto-fix JS issues

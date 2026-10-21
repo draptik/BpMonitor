@@ -8,6 +8,8 @@ on:
 jobs:
   release:
     name: Create Release
+    # No GitHub release for an image the scan blocked.
+    needs: publish-image
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -88,13 +90,24 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
 
-      - name: Build and push image
+      # Build into the local daemon first so the scan gates the push.
+      - name: Build image
         uses: docker/build-push-action@v7
         with:
           context: code
           file: code/BpMonitor.Web/Containerfile
-          push: true
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VERSION=${{ steps.meta.outputs.version }}
+
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: trivy
+
+      - name: Scan image
+        run: mise run scan:image -- "ghcr.io/draptik/bpmonitor-web:${{ steps.meta.outputs.version }}"
+
+      - name: Push image
+        run: docker push --all-tags ghcr.io/draptik/bpmonitor-web
