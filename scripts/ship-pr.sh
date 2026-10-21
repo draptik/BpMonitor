@@ -12,7 +12,8 @@ Usage:
   scripts/ship-pr.sh --yes --body-file <file> ["<title>"]
     Non-interactive (used by the `ship` skill): never commits, takes the PR
     body from <file>, skips confirm prompts. The title defaults to the commit
-    subject when the branch has exactly one commit.
+    subject when the branch has exactly one commit. If the PR already exists,
+    <file> replaces its body.
 
 GitHub merges only once every required check has passed (--auto, and the
 direct merge after green CI never uses --admin), so this never merges on red.
@@ -143,6 +144,10 @@ create_pr() {
   existing=$(pr_number_for_branch)
   if [ -n "$existing" ]; then
     echo "PR #$existing already open for $branch." >&2
+    # A given body replaces the existing one, so a re-run can correct it.
+    if [ -n "$body_file" ]; then
+      gh pr edit "$existing" --body-file "$body_file" >&2
+    fi
     echo "$existing"
     return
   fi

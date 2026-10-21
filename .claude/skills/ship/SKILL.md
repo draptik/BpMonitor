@@ -21,12 +21,21 @@ to, and aborts on uncommitted changes.
 
 ## Steps
 
-1. **Draft the PR body** (skip if `gh pr list --head "$(git branch
-   --show-current)" --state open` already shows a PR): read `git log
-   origin/main..HEAD` and `git diff origin/main...HEAD --stat`, then write a
-   `## Summary` section of bullets — and nothing else, no other headings (a
-   hook rejects them).
-2. **Write the body and run the script in one Bash command**, in the
+1. **Get the PR body.** If the invocation text above contains a
+   `## Summary` section, the caller drafted it with full context: use it
+   verbatim (even if a PR is already open — the script then replaces its
+   body). Otherwise, skip this step if `gh pr list --head "$(git branch
+   --show-current)" --state open` already shows a PR; if not, read `git log
+   origin/main..HEAD` (full messages) and the full `git diff
+   origin/main...HEAD`, then write a `## Summary` section of bullets — and
+   nothing else, no other headings (a hook rejects them). Accuracy rules:
+   - Describe only what the diff shows; name the files/settings it touches.
+   - Claim a reason or "before" behavior only if a commit message or the
+     diff's removed lines state it — never infer one.
+   - Don't call something "consistent with" or "matching" other code you
+     haven't checked.
+2. **Write the body and run the script in one Bash command** (if you
+   skipped step 1, run `scripts/ship-pr.sh --yes` without `--body-file`), in the
    foreground, exactly once (a temp path doesn't survive between commands):
 
    ```bash
