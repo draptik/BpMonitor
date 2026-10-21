@@ -87,7 +87,9 @@ while IFS= read -r subject; do
     case "$type" in
       feat) added+=("$entry") ;;
       fix) fixed+=("$entry") ;;
-      perf | refactor | style) changed+=("$entry") ;;
+      # refactor(test) only reshuffles tests, so it sits with test commits.
+      refactor) if [ "$scope" = "test" ]; then maintenance+=("$entry"); else changed+=("$entry"); fi ;;
+      perf | style) changed+=("$entry") ;;
       docs | test | chore | ci | build) maintenance+=("$entry") ;;
       *) maintenance+=("$entry") ;;
     esac
