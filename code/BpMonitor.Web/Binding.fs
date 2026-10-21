@@ -15,6 +15,8 @@ module Binding =
       HeartRate: string
       Timestamp: string
       Comments: string
+      /// The page to go back to after an edit; validated by the handler, not here.
+      ReturnTo: string
     }
 
   let empty =
@@ -24,6 +26,7 @@ module Binding =
       HeartRate = ""
       Timestamp = ""
       Comments = ""
+      ReturnTo = ""
     }
 
   /// Raw (unvalidated) goal-range form fields — grouped so the four adjacent
@@ -43,6 +46,7 @@ module Binding =
       HeartRate = string r.HeartRate
       Timestamp = Formats.formatLocal r.Timestamp
       Comments = r.Comments |> Option.defaultValue ""
+      ReturnTo = ""
     }
 
   /// Parses `s` as an int, or an `Errors.NotAnInteger` message.

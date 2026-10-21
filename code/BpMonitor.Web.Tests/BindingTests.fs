@@ -13,6 +13,7 @@ let private form sys dia hr ts comments : Binding.FormModel =
     HeartRate = hr
     Timestamp = ts
     Comments = comments
+    ReturnTo = ""
   }
 
 [<Fact>]
