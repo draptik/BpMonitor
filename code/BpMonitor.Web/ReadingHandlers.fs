@@ -19,8 +19,20 @@ module ReadingHandlers =
     ctx.Response.StatusCode <- 422
     htmlResponse (ReadingViews.readingForm s m page errors model) ctx
 
+  /// What a full-Trends query selects (`param` looks up one query parameter): its
+  /// granularity (default Weekly) and, if its key is valid, the period.
+  let private trendsSelection (param: string -> string option) (now: System.DateTimeOffset) =
+    let gran =
+      param Routes.trendsGranParam
+      |> Option.bind TrendPeriod.parseGranularity
+      |> Option.defaultValue Weekly
+
+    gran,
+    param Routes.trendsKeyParam
+    |> Option.bind (fun key -> TrendPeriod.ofKey gran key now)
+
   /// Allowlists where a reading edit may return to, so the param can't redirect off-site.
-  /// A Trends period must rebuild to the exact same URL, so only canonical period links pass.
+  /// A Trends query returns to the canonical URL of the period that page would show.
   let private returnTarget (now: System.DateTimeOffset) (page: string) =
     if List.contains page Routes.readingReturnTargets then
       page
@@ -33,15 +45,9 @@ module ReadingHandlers =
         | true, v -> Some(v.ToString())
         | _ -> None
 
-      let rebuilt =
-        param Routes.trendsGranParam
-        |> Option.bind TrendPeriod.parseGranularity
-        |> Option.bind (fun gran ->
-          param Routes.trendsKeyParam
-          |> Option.bind (fun key -> TrendPeriod.ofKey gran key now)
-          |> Option.map (fun p -> Routes.trendsPeriod gran p.Key))
-
-      if rebuilt = Some page then page else Routes.trends
+      match trendsSelection param now with
+      | gran, Some period -> Routes.trendsPeriod gran period.Key
+      | _, None -> Routes.trends
     else
       Routes.history
 
@@ -289,12 +295,8 @@ module ReadingHandlers =
       let now = (timeProvider ctx).GetUtcNow()
       let allReadings = (repo ctx).GetAll(m.Id)
 
-      let gran =
-        queryStr ctx Routes.trendsGranParam
-        |> Option.bind TrendPeriod.parseGranularity
-        |> Option.defaultValue Weekly
-
-      let period = periodFor gran (queryStr ctx Routes.trendsKeyParam) now
+      let gran, selected = trendsSelection (queryStr ctx) now
+      let period = selected |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
 
       let summary, periods, periodsWithData, tableReadings, chartHtml =
         renderTrendsData s gran period now m allReadings
