@@ -280,10 +280,20 @@ let ``updateReading redirects back to the Trends period the edit was started fro
   test <@ updateReturningTo period = period @>
 
 [<Theory>]
+[<InlineData("/trends?key=2026-05&gran=monthly", "/trends?gran=monthly&key=2026-05")>]
+[<InlineData("/trends?gran=Monthly&key=2026-05", "/trends?gran=monthly&key=2026-05")>]
+[<InlineData("/trends?gran=weekly&key=2026-W23&x=1", "/trends?gran=weekly&key=2026-W23")>]
+[<InlineData("/trends?key=2026-W23", "/trends?gran=weekly&key=2026-W23")>]
+let ``updateReading returns to the canonical URL of the Trends period the page would show``
+  (returnTo: string, expected: string)
+  =
+  test <@ updateReturningTo returnTo = expected @>
+
+[<Theory>]
 [<InlineData("/trends?gran=x\"><script>alert(1)</script>")>]
 [<InlineData("/trends?gran=weekly&key=2026-W5")>]
-[<InlineData("/trends?gran=weekly&key=2026-W23&x=1")>]
-let ``updateReading falls back to plain Trends for a period it can't rebuild exactly`` (returnTo: string) =
+[<InlineData("/trends?gran=monthly")>]
+let ``updateReading falls back to plain Trends for a query that selects no valid period`` (returnTo: string) =
   test <@ updateReturningTo returnTo = Routes.trends @>
 
 [<Fact>]
