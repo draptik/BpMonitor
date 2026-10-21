@@ -145,50 +145,46 @@ module MedicationViews =
         ]
     ]
 
-  /// Shared add/edit form for a single medication. `action` is the POST target;
-  /// `errors` are rendered above the fields when re-displaying after a failed submit.
+  /// Edit form for medication `id` (adding happens on /settings); `errors` are
+  /// rendered above the fields when re-displaying after a failed submit.
   let medicationForm
     (s: LocalizedStrings)
-    (memberName: string)
-    (isAdmin: bool)
-    (title: string)
-    (action: string)
+    (activeMember: FamilyMember)
+    (id: int)
     (errors: string list)
-    (name: string)
-    (fullName: string)
-    (comment: string)
-    (startDate: string)
-    (endDate: string)
+    (f: Binding.MedicationFormModel)
     : XmlNode =
+    let title = s.Medication.EditMedicationTitle
+
     ViewLayout.layout
       s
       Routes.settings
-      memberName
-      isAdmin
+      activeMember.Name
+      activeMember.IsAdmin
       title
       [
         Elem.h1 [] [ Text.raw title ]
         ViewLayout.errorBox errors
         Elem.form
-          [ Attr.method "post"; Attr.action action ]
+          [ Attr.method "post"; Attr.action (Routes.medicationUpdate id) ]
           [
-            fieldWithHint s s.Shell.Name s.Medication.NameHint true FormFields.medicationName name "text"
+            fieldWithHint s s.Shell.Name s.Medication.NameHint true FormFields.medicationName f.Name "text"
             fieldWithHint
               s
               s.Medication.FullNameHeader
               s.Medication.FullNameHint
               false
               FormFields.medicationFullName
-              fullName
+              f.FullName
               "text"
-            field s s.Shell.Comment None false FormFields.medicationComment comment "text"
+            field s s.Shell.Comment None false FormFields.medicationComment f.Comment "text"
             fieldWithHint
               s
               s.Medication.StartDateLabel
               s.Medication.StartDateHint
               true
               FormFields.medicationStartDate
-              startDate
+              f.StartDate
               "text"
             fieldWithHint
               s
@@ -196,7 +192,7 @@ module MedicationViews =
               s.Medication.EndDateHint
               false
               FormFields.medicationEndDate
-              endDate
+              f.EndDate
               "text"
             ViewLayout.formActions s Routes.settings
           ]

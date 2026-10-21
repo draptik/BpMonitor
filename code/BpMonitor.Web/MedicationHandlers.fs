@@ -12,16 +12,7 @@ open AuthHandlers
 
 /// Handlers for medication CRUD (self-service, member-scoped — lives on `/settings`).
 module MedicationHandlers =
-  type private FormValues =
-    {
-      Name: string
-      FullName: string
-      Comment: string
-      StartDate: string
-      EndDate: string
-    }
-
-  let private readForm (ctx: HttpContext) : Task<FormValues> =
+  let private readForm (ctx: HttpContext) : Task<Binding.MedicationFormModel> =
     task {
       let! form = ctx.Request.ReadFormAsync()
 
@@ -30,7 +21,7 @@ module MedicationHandlers =
         | true, v -> v.ToString()
         | _ -> ""
 
-      return
+      let model: Binding.MedicationFormModel =
         {
           Name = get FormFields.medicationName
           FullName = get FormFields.medicationFullName
@@ -38,6 +29,8 @@ module MedicationHandlers =
           StartDate = get FormFields.medicationStartDate
           EndDate = get FormFields.medicationEndDate
         }
+
+      return model
     }
 
   /// "d.M.yyyy" accepts 1- or 2-digit day/month; yyyy-MM-dd is accepted too for pasted ISO dates.
@@ -56,7 +49,10 @@ module MedicationHandlers =
 
   /// Parse-level conversion (bad dates), mirroring Binding.toUnvalidated. Domain
   /// validation (empty name, end before start) happens afterward via Medication.parse.
-  let private toUnvalidated (s: LocalizedStrings) (f: FormValues) : Validation<MedicationUnvalidated, string> =
+  let private toUnvalidated
+    (s: LocalizedStrings)
+    (f: Binding.MedicationFormModel)
+    : Validation<MedicationUnvalidated, string> =
     validation {
       let! startDate =
         tryDate s s.Medication.StartDateLabel f.StartDate |> Validation.ofResult
@@ -125,84 +121,43 @@ module MedicationHandlers =
       :> Task)
 
   let edit: HttpContext -> Task =
-    withMemberAndRouteId "editMedication" (fun m id ctx ->
-      let s = stringsForMember m
-
-      match (medicationRepo ctx).GetAll(m.Id) |> List.tryFind (fun x -> x.Id = id) with
-      | None ->
-        let log = logger ctx
-        log.LogWarning("editMedication: medication {Id} not found for member {MemberId}", id, m.Id)
-        notFound ctx
-      | Some med ->
-        htmlResponse
-          (MedicationViews.medicationForm
-            s
-            m.Name
-            m.IsAdmin
-            s.Medication.EditMedicationTitle
-            (Routes.medicationUpdate id)
-            []
-            med.Name
-            (med.FullName |> Option.defaultValue "")
-            (med.Comment |> Option.defaultValue "")
-            (Formats.formatDateEuropean med.StartDate)
-            (med.EndDate |> Option.map Formats.formatDateEuropean |> Option.defaultValue ""))
-          ctx)
+    withOwnedRecord "editMedication" (fun ctx -> (medicationRepo ctx).GetAll) _.Id (fun m med ctx ->
+      htmlResponse (MedicationViews.medicationForm (stringsForMember m) m med.Id [] (Binding.ofMedication med)) ctx)
 
   let private renderEditErrors
     (s: LocalizedStrings)
     (id: int)
     (m: FamilyMember)
     (errors: string list)
-    (f: FormValues)
+    (f: Binding.MedicationFormModel)
     (ctx: HttpContext)
     : Task =
     ctx.Response.StatusCode <- 422
-
-    htmlResponse
-      (MedicationViews.medicationForm
-        s
-        m.Name
-        m.IsAdmin
-        s.Medication.EditMedicationTitle
-        (Routes.medicationUpdate id)
-        errors
-        f.Name
-        f.FullName
-        f.Comment
-        f.StartDate
-        f.EndDate)
-      ctx
+    htmlResponse (MedicationViews.medicationForm s m id errors f) ctx
 
   let update: HttpContext -> Task =
-    withMemberAndRouteId "updateMedication" (fun m id ctx ->
+    withOwnedRecord "updateMedication" (fun ctx -> (medicationRepo ctx).GetAll) _.Id (fun m existing ctx ->
       task {
         let s = stringsForMember m
+        let! form = readForm ctx
 
-        match (medicationRepo ctx).GetAll(m.Id) |> List.tryFind (fun x -> x.Id = id) with
-        | None ->
-          let log = logger ctx
-          log.LogWarning("updateMedication: medication {Id} not found for member {MemberId}", id, m.Id)
-          do! notFound ctx
-        | Some existing ->
-          let! form = readForm ctx
+        match toUnvalidated s form with
+        | Error errors -> do! renderEditErrors s existing.Id m errors form ctx
+        | Ok unvalidated ->
+          match Medication.parse unvalidated with
+          | Ok medication ->
+            (medicationRepo ctx)
+              .Update(
+                { medication with
+                    Id = existing.Id
+                    MemberId = m.Id
+                    CreatedAt = existing.CreatedAt
+                }
+              )
 
-          match toUnvalidated s form with
-          | Error errors -> do! renderEditErrors s id m errors form ctx
-          | Ok unvalidated ->
-            match Medication.parse unvalidated with
-            | Ok medication ->
-              (medicationRepo ctx)
-                .Update(
-                  { medication with
-                      Id = id
-                      MemberId = m.Id
-                      CreatedAt = existing.CreatedAt
-                  }
-                )
-
-              ctx.Response.Redirect Routes.settings
-            | Error errors -> do! renderEditErrors s id m (errors |> List.map (medicationErrorMessage s)) form ctx
+            ctx.Response.Redirect Routes.settings
+          | Error errors ->
+            do! renderEditErrors s existing.Id m (errors |> List.map (medicationErrorMessage s)) form ctx
       }
       :> Task)
 
