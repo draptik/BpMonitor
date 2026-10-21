@@ -257,7 +257,7 @@ let ``trendsPanel with invalid gran string returns 400`` () =
   test <@ ctx.Response.StatusCode = 400 @>
 
 [<Fact>]
-let ``trendsPanel with an unparseable key falls back to the current period`` () =
+let ``trendsPanel with an unparsable key falls back to the current period`` () =
   let tp = FakeTimeProvider(trendsNow)
 
   let r =
