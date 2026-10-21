@@ -221,7 +221,7 @@ graph TD
 | actionlint | `mise.toml` | GitHub Actions workflow linter; also shellchecks `run:` scripts |
 | hadolint | `mise.toml` | Containerfile linter (config in `.hadolint.yaml`; ignores DL3008 since apt pins break under the floating .NET base image tag) |
 | typos | `mise.toml` | Spell checker for code and docs (config in `_typos.toml`; `en-us` locale, so British spellings fail; skips vendored `*.min.js` and the German strings in `LocalizedStrings.fs`) |
-| Vale | `mise.toml` | Prose linter for all tracked Markdown (config in `.vale.ini`): Vale core + the pinned proselint package (fetched by `vale sync`, gitignored) + a committed `BpMonitor` style in `.vale/styles/` enforcing `Recent view` over bare `Recent`; released CHANGELOG sections are skipped via `<!-- vale off -->`, so only new entries are checked |
+| Vale | `mise.toml` | Prose linter for all tracked Markdown (config in `.vale.ini`): Vale core + the pinned proselint package (fetched by `vale sync`, gitignored; Renovate bumps its release URL via a regex custom manager in `renovate.json`) + a committed `BpMonitor` style in `.vale/styles/` enforcing `Recent view` over bare `Recent`; released CHANGELOG sections are skipped via `<!-- vale off -->`, so only new entries are checked |
 | Trivy | `mise.toml` | Container image CVE scanner; `mise run scan:image -- <image>` gates the release push on fixable CRITICAL/HIGH findings (path-scoped, expiring exceptions in `.trivyignore.yaml`) |
 | Renovate | `mise.toml` (npm backend) | `renovate-config-validator --strict` on `renovate.json`; one trust-policy exemption for `@yarnpkg/libzip@3.2.2` (hand-published without provenance) |
 
