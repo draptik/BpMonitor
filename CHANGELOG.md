@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Maintenance
 
 - Docs and code are spell-checked with typos, which also enforces American spelling, and Markdown prose is linted with Vale (proselint plus a project rule for "Recent view" naming); both run as pre-commit hooks and in CI. No user-facing changes.
+- CI workflows are hardened against supply-chain and token-misuse risks (read-only default permissions, no persisted checkout credentials, no build cache in the release job) and linted with zizmor; Renovate pins GitHub Actions to commit SHAs. No user-facing changes.
+- A weekly link check (lychee) verifies the links in the docs and keeps a single "Broken links in docs" issue open while any are broken. No user-facing changes.
 
 ## [1.16.0] - 2026-10-21
 
