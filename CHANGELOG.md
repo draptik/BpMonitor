@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-10-21
+
+### Changed
+
+- **Deployment:** the container now runs as an unprivileged user (UID 1654) instead of root. Existing data must be handed to that user once before upgrading, or the app can no longer save readings. Podman users can add `:U` to the volume; Docker users run `chown` once. See docs/example-deploy/README.md.
+- **Deployment:** no database migration is needed.
+
+### Security
+
+- Login: a damaged or truncated password entry in the database no longer accepts any password; previously an empty one let anyone sign in as that member.
+
+### Fixed
+
+- Container: building the image locally without `--build-arg VERSION=…` no longer fails during `dotnet publish`. Local builds now report version `0.0.0-dev`.
+- Login: the sign-in page follows the browser's language preferences by weight, and skips a language marked as not wanted; previously it took the first supported language listed.
+- Readings: timestamps are read and shown in the standard calendar on any server language setting; previously a server set to Thai or Persian stored readings years off. Timestamps must now be entered as `yyyy-MM-dd HH:mm` or `yyyy-MM-dd`; other formats such as `01.05.2026` are rejected instead of being guessed, sometimes as 5 January.
+- Trends: a hand-edited period link such as `/trends/weekly/2026-W5` shows the current period, like any other unknown link; previously it opened that week without highlighting it in the period list.
+- Recent view: the chart and the medications timeline end a little after now, so the newest reading is no longer drawn on the chart's right edge, where it was hard to hover.
+
 ## [1.16.0-rc1] - 2026-10-21
 
 ### Changed
@@ -561,7 +580,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.16.0-rc1...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.16.0...HEAD
+[1.16.0]: https://github.com/draptik/BpMonitor/compare/v1.15.1...v1.16.0
 [1.16.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.15.1...v1.16.0-rc1
 [1.15.1]: https://github.com/draptik/BpMonitor/compare/v1.15.0...v1.15.1
 [1.15.0]: https://github.com/draptik/BpMonitor/compare/v1.14.0...v1.15.0
