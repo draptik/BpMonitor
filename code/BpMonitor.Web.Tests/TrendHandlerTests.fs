@@ -47,6 +47,8 @@ let ``trends renders 200 with granularity buttons and current Weekly panel`` () 
   test <@ body.Contains "aria-current=\"page\"" @>
   // Inline chart rendered
   test <@ body.Contains "Plotly.newPlot" @>
+  // Edit links return to trends
+  test <@ body.Contains(Routes.readingEdit r.Id Routes.trends) @>
 
 [<Fact>]
 let ``trends renders the chart with the authenticated member's goal range`` () =
@@ -128,6 +130,8 @@ let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and 
   test <@ body.Contains "Last Week" @>
   // Inline chart rendered
   test <@ body.Contains "Plotly.newPlot" @>
+  // Edit links return to trends
+  test <@ body.Contains(Routes.readingEdit r.Id Routes.trends) @>
 
 [<Fact>]
 let ``trendsPanel with gran=monthly returns monthly sub-period buttons`` () =
@@ -165,6 +169,8 @@ let ``trendsPanel with gran + key uses that specific sub-period`` () =
   test <@ body.Contains "77" @>
   // Inline chart rendered
   test <@ body.Contains "Plotly.newPlot" @>
+  // Edit links return to trends
+  test <@ body.Contains(Routes.readingEdit r.Id Routes.trends) @>
 
 [<Fact>]
 let ``trendsPanel includes readings table with in-period readings`` () =

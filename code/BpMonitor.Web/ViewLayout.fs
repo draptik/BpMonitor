@@ -271,8 +271,10 @@ module ViewLayout =
 
   /// The readings table's markup, with the container and each row's extra attributes
   /// left to the caller — e.g. tagging rows with `data-x` for chart-zoom syncing.
+  /// `returnTo` is the hosting page, where the Edit links lead back to.
   let readingsTableWith
     (s: LocalizedStrings)
+    (returnTo: string)
     (containerAttrs: XmlAttribute list)
     (rowAttrs: BloodPressureReading -> XmlAttribute list)
     (readings: BloodPressureReading list)
@@ -307,7 +309,7 @@ module ViewLayout =
             [
               Elem.a
                 [
-                  Attr.href (Routes.readingEdit r.Id)
+                  Attr.href (Routes.readingEdit r.Id returnTo)
                   Attr.role "button"
                   Attr.class' "outline secondary"
                 ]
@@ -319,5 +321,5 @@ module ViewLayout =
 
   /// The readings' table; wrapped in an id'd container so it can be targeted for
   /// partial swaps later.
-  let readingsTable (s: LocalizedStrings) (readings: BloodPressureReading list) : XmlNode =
-    readingsTableWith s [ Attr.id "readings" ] (fun _ -> []) readings
+  let readingsTable (s: LocalizedStrings) (returnTo: string) (readings: BloodPressureReading list) : XmlNode =
+    readingsTableWith s returnTo [ Attr.id "readings" ] (fun _ -> []) readings

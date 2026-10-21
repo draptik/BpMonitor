@@ -15,9 +15,27 @@ module ReadingHandlers =
   // ── Form helpers ──
 
   /// Renders the add/edit form after a failed submit (status 422).
-  let private renderFormErrors (ctx: HttpContext) s active memberName isAdmin title action errors model : Task =
+  let private renderFormErrors
+    (ctx: HttpContext)
+    s
+    active
+    memberName
+    isAdmin
+    title
+    action
+    returnTo
+    errors
+    model
+    : Task =
     ctx.Response.StatusCode <- 422
-    htmlResponse (ReadingViews.readingForm s active memberName isAdmin title action errors model) ctx
+    htmlResponse (ReadingViews.readingForm s active memberName isAdmin title action returnTo errors model) ctx
+
+  /// Allowlists where a reading edit may return to, so the param can't redirect off-site.
+  let private returnTarget (page: string) =
+    if List.contains page Routes.readingReturnTargets then
+      page
+    else
+      Routes.history
 
   /// Validates a submitted form and persists via `save`; on any error re-renders
   /// the form with messages. Shared by create and update.
@@ -29,6 +47,7 @@ module ReadingHandlers =
     isAdmin
     title
     action
+    returnTo
     redirectTo
     (save: BloodPressureReading -> unit)
     : Task =
@@ -40,7 +59,7 @@ module ReadingHandlers =
       match Binding.toUnvalidated s model with
       | Error errorMessages ->
         log.LogWarning("Reading form validation failed (binding): {Errors}", errorMessages)
-        do! renderFormErrors ctx s active memberName isAdmin title action errorMessages model
+        do! renderFormErrors ctx s active memberName isAdmin title action returnTo errorMessages model
       | Ok unvalidated ->
         match BloodPressureReading.parse rg unvalidated with
         | Ok reading ->
@@ -58,7 +77,7 @@ module ReadingHandlers =
         | Error errors ->
           let messages = Config.formatValidationErrors s rg errors
           log.LogWarning("Reading form validation failed (domain): {Errors}", messages)
-          do! renderFormErrors ctx s active memberName isAdmin title action messages model
+          do! renderFormErrors ctx s active memberName isAdmin title action returnTo messages model
     }
     :> Task
 
@@ -395,7 +414,16 @@ module ReadingHandlers =
         }
 
       htmlResponse
-        (ReadingViews.readingForm s Routes.add m.Name m.IsAdmin s.Reading.AddReadingTitle Routes.readings [] prefill)
+        (ReadingViews.readingForm
+          s
+          Routes.add
+          m.Name
+          m.IsAdmin
+          s.Reading.AddReadingTitle
+          Routes.readings
+          None
+          []
+          prefill)
         ctx)
 
   let createReading: HttpContext -> Task =
@@ -410,6 +438,7 @@ module ReadingHandlers =
         m.IsAdmin
         s.Reading.AddReadingTitle
         Routes.readings
+        None
         Routes.recent
         ((repo ctx).Add m.Id))
 
@@ -427,6 +456,7 @@ module ReadingHandlers =
             m.IsAdmin
             s.Reading.EditReadingTitle
             (Routes.readingUpdate id)
+            (Some(returnTarget (ctx.Request.Query[FormFields.returnTo].ToString())))
             []
             (Binding.ofReading r))
           ctx
@@ -445,13 +475,31 @@ module ReadingHandlers =
         log.LogWarning("updateReading: reading {Id} not found for member {MemberId}", id, m.Id)
         notFound ctx
       | Some existing ->
-        submit ctx s "" m.Name m.IsAdmin s.Reading.EditReadingTitle (Routes.readingUpdate id) Routes.history (fun r ->
-          (repo ctx).Update
-            { r with
-                Id = id
-                MemberId = m.Id
-                CreatedAt = existing.CreatedAt
-            }))
+        task {
+          let! form = ctx.Request.ReadFormAsync()
+
+          let returnTo = returnTarget (form[FormFields.returnTo].ToString())
+
+          do!
+            submit
+              ctx
+              s
+              ""
+              m.Name
+              m.IsAdmin
+              s.Reading.EditReadingTitle
+              (Routes.readingUpdate id)
+              (Some returnTo)
+              returnTo
+              (fun r ->
+                (repo ctx).Update
+                  { r with
+                      Id = id
+                      MemberId = m.Id
+                      CreatedAt = existing.CreatedAt
+                  })
+        }
+        :> Task)
 
   // ── Export ──
 

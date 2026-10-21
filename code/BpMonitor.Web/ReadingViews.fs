@@ -72,7 +72,7 @@ module ReadingViews =
             Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
           ]
         medicationsPanel
-        ViewLayout.readingsTable s readings
+        ViewLayout.readingsTable s Routes.history readings
       ]
 
   /// A reading older than `windowStart` is tagged `out-of-range` (app.css hides it) until
@@ -187,6 +187,7 @@ module ReadingViews =
           Elem.summary [] [ Text.raw s.Reading.RecentReadingsSection ]
           ViewLayout.readingsTableWith
             s
+            Routes.recent
             [ Attr.class' "recent-readings-table" ]
             (fun r ->
               [
@@ -256,6 +257,7 @@ module ReadingViews =
     (isAdmin: bool)
     (title: string)
     (action: string)
+    (returnTo: string option)
     (errors: string list)
     (m: Binding.FormModel)
     : XmlNode =
@@ -309,6 +311,16 @@ module ReadingViews =
             fieldWithHint s.Table.Diastolic s.Table.MmHg FormFields.diastolic m.Diastolic "number"
             fieldWithHint s.Table.HeartRate s.Table.Bpm FormFields.heartRate m.HeartRate "number"
             ViewLayout.field s.Shell.Comment FormFields.comments m.Comments "text"
-            ViewLayout.formActions s Routes.history
+            // Edit only: where save/cancel lead back to (History, Recent view or Trends).
+            match returnTo with
+            | Some page ->
+              Elem.input
+                [
+                  Attr.type' "hidden"
+                  Attr.name FormFields.returnTo
+                  ViewLayout.encAttr "value" page
+                ]
+            | None -> ()
+            ViewLayout.formActions s (returnTo |> Option.defaultValue Routes.history)
           ]
       ]

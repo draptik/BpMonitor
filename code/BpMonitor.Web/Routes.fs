@@ -19,8 +19,14 @@ module Routes =
   let medications = "/medications"
   let health = "/health"
 
+  /// Pages hosting a readings table, and so the only places a reading edit may return to.
+  let readingReturnTargets = [ history; recent; trends ]
+
   // Parametric URL builders for id-scoped resources.
-  let readingEdit (id: int) = $"/readings/{id}/edit"
+  /// `returnTo` is the page that save/cancel lead back to.
+  let readingEdit (id: int) (returnTo: string) =
+    $"/readings/{id}/edit?{FormFields.returnTo}={System.Uri.EscapeDataString returnTo}"
+
   let readingUpdate (id: int) = $"/readings/{id}"
   let memberEdit (id: int) = $"/members/{id}/edit"
   let memberUpdate (id: int) = $"/members/{id}"

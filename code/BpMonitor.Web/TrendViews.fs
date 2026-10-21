@@ -135,7 +135,7 @@ module TrendViews =
                 ]
             ]
           Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
-          ViewLayout.readingsTable s readings
+          ViewLayout.readingsTable s Routes.trends readings
         ]
 
     Elem.div
