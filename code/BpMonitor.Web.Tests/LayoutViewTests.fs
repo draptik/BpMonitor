@@ -58,7 +58,7 @@ let ``every page has a BpMonitor footer`` () =
     [
       renderHtml (ReadingViews.landing s defaultMember)
       renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
-      renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings None [] Binding.empty)
+      renderHtml (ReadingViews.readingForm s defaultMember (ReadingViews.addPage s) [] Binding.empty)
     ]
 
   for html in pages do
@@ -71,7 +71,7 @@ let ``every authenticated page shows the logout button`` () =
     [
       renderHtml (ReadingViews.landing s defaultMember)
       renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
-      renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings None [] Binding.empty)
+      renderHtml (ReadingViews.readingForm s defaultMember (ReadingViews.addPage s) [] Binding.empty)
     ]
 
   for html in pages do

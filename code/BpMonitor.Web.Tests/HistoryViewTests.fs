@@ -33,16 +33,7 @@ let ``history chart section is a collapsible that persists its open state`` () =
 let ``edit form is prefilled from the reading`` () =
   let html =
     renderHtml (
-      ReadingViews.readingForm
-        s
-        ""
-        "Me"
-        true
-        "Edit reading"
-        (Routes.readingUpdate 7)
-        (Some Routes.history)
-        []
-        (Binding.ofReading sample)
+      ReadingViews.readingForm s defaultMember (ReadingViews.editPage s 7 Routes.history) [] (Binding.ofReading sample)
     )
 
   test <@ html.Contains "name=\"Systolic\" value=\"123\"" @>
@@ -53,16 +44,7 @@ let ``edit form is prefilled from the reading`` () =
 let ``edit form carries its return target and cancels back to it`` () =
   let html =
     renderHtml (
-      ReadingViews.readingForm
-        s
-        ""
-        "Me"
-        true
-        "Edit reading"
-        (Routes.readingUpdate 7)
-        (Some Routes.recent)
-        []
-        (Binding.ofReading sample)
+      ReadingViews.readingForm s defaultMember (ReadingViews.editPage s 7 Routes.recent) [] (Binding.ofReading sample)
     )
 
   test <@ html.Contains $"type=\"hidden\" name=\"{FormFields.returnTo}\" value=\"{Routes.recent}\"" @>
@@ -72,16 +54,7 @@ let ``edit form carries its return target and cancels back to it`` () =
 let ``edit form encodes its cancel href`` () =
   let html =
     renderHtml (
-      ReadingViews.readingForm
-        s
-        ""
-        "Me"
-        true
-        "Edit reading"
-        (Routes.readingUpdate 7)
-        (Some "/recent\"x")
-        []
-        (Binding.ofReading sample)
+      ReadingViews.readingForm s defaultMember (ReadingViews.editPage s 7 "/recent\"x") [] (Binding.ofReading sample)
     )
 
   test <@ html.Contains "href=\"/recent&quot;x\" role=\"button\"" @>
@@ -89,14 +62,14 @@ let ``edit form encodes its cancel href`` () =
 [<Fact>]
 let ``add form carries no return target`` () =
   let html =
-    renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings None [] Binding.empty)
+    renderHtml (ReadingViews.readingForm s defaultMember (ReadingViews.addPage s) [] Binding.empty)
 
   test <@ not (html.Contains $"name=\"{FormFields.returnTo}\"") @>
 
 [<Fact>]
 let ``add form autofocuses the systolic field`` () =
   let html =
-    renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings None [] Binding.empty)
+    renderHtml (ReadingViews.readingForm s defaultMember (ReadingViews.addPage s) [] Binding.empty)
 
   test <@ html.Contains "id=\"Systolic\" name=\"Systolic\" value=\"\" autofocus=\"autofocus\"" @>
 
@@ -104,16 +77,7 @@ let ``add form autofocuses the systolic field`` () =
 let ``edit form does not autofocus any field`` () =
   let html =
     renderHtml (
-      ReadingViews.readingForm
-        s
-        ""
-        "Me"
-        true
-        "Edit reading"
-        (Routes.readingUpdate 7)
-        (Some Routes.history)
-        []
-        (Binding.ofReading sample)
+      ReadingViews.readingForm s defaultMember (ReadingViews.editPage s 7 Routes.history) [] (Binding.ofReading sample)
     )
 
   test <@ not (html.Contains "autofocus") @>
@@ -123,7 +87,7 @@ let ``form renders the validation errors it is given`` () =
   let errors = [ "Systolic 999 is out of range (1–300)" ]
 
   let html =
-    renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings None errors Binding.empty)
+    renderHtml (ReadingViews.readingForm s defaultMember (ReadingViews.addPage s) errors Binding.empty)
 
   test <@ html.Contains "errors" @>
   test <@ html.Contains "out of range" @>
@@ -150,16 +114,7 @@ let ``edit form encodes quotes in the comment's value attribute`` () =
 
   let html =
     renderHtml (
-      ReadingViews.readingForm
-        s
-        ""
-        "Me"
-        true
-        "Edit reading"
-        (Routes.readingUpdate 7)
-        (Some Routes.history)
-        []
-        (Binding.ofReading reading)
+      ReadingViews.readingForm s defaultMember (ReadingViews.editPage s 7 Routes.history) [] (Binding.ofReading reading)
     )
 
   test <@ html.Contains "value=\"x&quot; onmouseover=&quot;alert(1)\"" @>

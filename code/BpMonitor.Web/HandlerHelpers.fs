@@ -159,6 +159,7 @@ module HandlerHelpers =
           Binding.HeartRate = get FormFields.heartRate
           Binding.Timestamp = get FormFields.timestamp
           Binding.Comments = get FormFields.comments
+          Binding.ReturnTo = get FormFields.returnTo
         }
     }
 

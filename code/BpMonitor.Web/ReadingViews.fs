@@ -248,16 +248,38 @@ module ReadingViews =
           medicationsPanel
       ]
 
-  /// Shared add/edit form. `action` is the POST target; `errors` are rendered
-  /// above the fields when re-displaying after a failed submit.
+  /// The add or edit form: its nav entry, title, POST target and return target
+  /// (None: no hidden ReturnTo input, and Cancel goes to History).
+  type ReadingFormPage =
+    {
+      Active: string
+      Title: string
+      Action: string
+      ReturnTo: string option
+    }
+
+  let addPage (s: LocalizedStrings) =
+    {
+      Active = Routes.add
+      Title = s.Reading.AddReadingTitle
+      Action = Routes.readings
+      ReturnTo = None
+    }
+
+  let editPage (s: LocalizedStrings) (id: int) (returnTo: string) =
+    {
+      Active = ""
+      Title = s.Reading.EditReadingTitle
+      Action = Routes.readingUpdate id
+      ReturnTo = Some returnTo
+    }
+
+  /// Shared add/edit form; `errors` are rendered above the fields when
+  /// re-displaying after a failed submit.
   let readingForm
     (s: LocalizedStrings)
-    (active: string)
-    (memberName: string)
-    (isAdmin: bool)
-    (title: string)
-    (action: string)
-    (returnTo: string option)
+    (activeMember: FamilyMember)
+    (page: ReadingFormPage)
     (errors: string list)
     (m: Binding.FormModel)
     : XmlNode =
@@ -289,22 +311,22 @@ module ReadingViews =
 
     // Only the add page gets autofocus; on edit the user targets a specific field.
     let systolicAttrs =
-      if active = Routes.add then
+      if page.Active = Routes.add then
         [ Attr.create "autofocus" "autofocus" ]
       else
         []
 
     ViewLayout.layout
       s
-      active
-      memberName
-      isAdmin
-      title
+      page.Active
+      activeMember.Name
+      activeMember.IsAdmin
+      page.Title
       [
-        Elem.h1 [] [ Text.raw title ]
+        Elem.h1 [] [ Text.raw page.Title ]
         ViewLayout.errorBox errors
         Elem.form
-          [ Attr.method "post"; Attr.action action ]
+          [ Attr.method "post"; Attr.action page.Action ]
           [
             fieldWithHint s.Table.Timestamp s.Reading.TimestampHint FormFields.timestamp m.Timestamp "text"
             fieldWithHintAttrs systolicAttrs s.Table.Systolic s.Table.MmHg FormFields.systolic m.Systolic "number"
@@ -312,7 +334,7 @@ module ReadingViews =
             fieldWithHint s.Table.HeartRate s.Table.Bpm FormFields.heartRate m.HeartRate "number"
             ViewLayout.field s.Shell.Comment FormFields.comments m.Comments "text"
             // Edit only: where save/cancel lead back to (History, Recent view or Trends).
-            match returnTo with
+            match page.ReturnTo with
             | Some page ->
               Elem.input
                 [
@@ -321,6 +343,6 @@ module ReadingViews =
                   ViewLayout.encAttr "value" page
                 ]
             | None -> ()
-            ViewLayout.formActions s (returnTo |> Option.defaultValue Routes.history)
+            ViewLayout.formActions s (page.ReturnTo |> Option.defaultValue Routes.history)
           ]
       ]

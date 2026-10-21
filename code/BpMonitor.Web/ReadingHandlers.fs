@@ -15,20 +15,9 @@ module ReadingHandlers =
   // ── Form helpers ──
 
   /// Renders the add/edit form after a failed submit (status 422).
-  let private renderFormErrors
-    (ctx: HttpContext)
-    s
-    active
-    memberName
-    isAdmin
-    title
-    action
-    returnTo
-    errors
-    model
-    : Task =
+  let private renderFormErrors (ctx: HttpContext) s m page errors model : Task =
     ctx.Response.StatusCode <- 422
-    htmlResponse (ReadingViews.readingForm s active memberName isAdmin title action returnTo errors model) ctx
+    htmlResponse (ReadingViews.readingForm s m page errors model) ctx
 
   /// Allowlists where a reading edit may return to, so the param can't redirect off-site.
   /// A Trends period must rebuild to the exact same URL, so only canonical period links pass.
@@ -61,24 +50,21 @@ module ReadingHandlers =
   let private submit
     (ctx: HttpContext)
     (s: LocalizedStrings)
-    active
-    memberName
-    isAdmin
-    title
-    action
-    returnTo
-    redirectTo
+    (m: FamilyMember)
+    (pageFor: Binding.FormModel -> ReadingViews.ReadingFormPage)
     (save: BloodPressureReading -> unit)
     : Task =
     task {
       let log = logger ctx
       let! model = formModel ctx
+      let page = pageFor model
+      let rerender = renderFormErrors ctx s m page
       let rg = ranges ctx
 
       match Binding.toUnvalidated s model with
       | Error errorMessages ->
         log.LogWarning("Reading form validation failed (binding): {Errors}", errorMessages)
-        do! renderFormErrors ctx s active memberName isAdmin title action returnTo errorMessages model
+        do! rerender errorMessages model
       | Ok unvalidated ->
         match BloodPressureReading.parse rg unvalidated with
         | Ok reading ->
@@ -92,11 +78,11 @@ module ReadingHandlers =
             reading.Timestamp
           )
 
-          ctx.Response.Redirect redirectTo
+          ctx.Response.Redirect(page.ReturnTo |> Option.defaultValue Routes.recent)
         | Error errors ->
           let messages = Config.formatValidationErrors s rg errors
           log.LogWarning("Reading form validation failed (domain): {Errors}", messages)
-          do! renderFormErrors ctx s active memberName isAdmin title action returnTo messages model
+          do! rerender messages model
     }
     :> Task
 
@@ -442,34 +428,13 @@ module ReadingHandlers =
                 .ToString(Formats.timestamp, System.Globalization.CultureInfo.InvariantCulture)
         }
 
-      htmlResponse
-        (ReadingViews.readingForm
-          s
-          Routes.add
-          m.Name
-          m.IsAdmin
-          s.Reading.AddReadingTitle
-          Routes.readings
-          None
-          []
-          prefill)
-        ctx)
+      htmlResponse (ReadingViews.readingForm s m (ReadingViews.addPage s) [] prefill) ctx)
 
   let createReading: HttpContext -> Task =
     withMember (fun m ctx ->
       let s = stringsForMember m
 
-      submit
-        ctx
-        s
-        Routes.add
-        m.Name
-        m.IsAdmin
-        s.Reading.AddReadingTitle
-        Routes.readings
-        None
-        Routes.recent
-        ((repo ctx).Add m.Id))
+      submit ctx s m (fun _ -> ReadingViews.addPage s) ((repo ctx).Add m.Id))
 
   let editReading: HttpContext -> Task =
     withMemberAndRouteId "editReading" (fun m id ctx ->
@@ -482,18 +447,7 @@ module ReadingHandlers =
           |> Option.defaultValue ""
           |> returnTarget ((timeProvider ctx).GetUtcNow())
 
-        htmlResponse
-          (ReadingViews.readingForm
-            s
-            ""
-            m.Name
-            m.IsAdmin
-            s.Reading.EditReadingTitle
-            (Routes.readingUpdate id)
-            (Some returnTo)
-            []
-            (Binding.ofReading r))
-          ctx
+        htmlResponse (ReadingViews.readingForm s m (ReadingViews.editPage s id returnTo) [] (Binding.ofReading r)) ctx
       | None ->
         let log = logger ctx
         log.LogWarning("editReading: reading {Id} not found for member {MemberId}", id, m.Id)
@@ -509,32 +463,15 @@ module ReadingHandlers =
         log.LogWarning("updateReading: reading {Id} not found for member {MemberId}", id, m.Id)
         notFound ctx
       | Some existing ->
-        task {
-          let! form = ctx.Request.ReadFormAsync()
+        let now = (timeProvider ctx).GetUtcNow()
 
-          let returnTo =
-            returnTarget ((timeProvider ctx).GetUtcNow()) (form[FormFields.returnTo].ToString())
-
-          do!
-            submit
-              ctx
-              s
-              ""
-              m.Name
-              m.IsAdmin
-              s.Reading.EditReadingTitle
-              (Routes.readingUpdate id)
-              (Some returnTo)
-              returnTo
-              (fun r ->
-                (repo ctx).Update
-                  { r with
-                      Id = id
-                      MemberId = m.Id
-                      CreatedAt = existing.CreatedAt
-                  })
-        }
-        :> Task)
+        submit ctx s m (_.ReturnTo >> returnTarget now >> ReadingViews.editPage s id) (fun r ->
+          (repo ctx).Update
+            { r with
+                Id = id
+                MemberId = m.Id
+                CreatedAt = existing.CreatedAt
+            }))
 
   // ── Export ──
 
