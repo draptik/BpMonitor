@@ -187,6 +187,8 @@ let ``editReading prefills the form for an existing reading`` () =
 [<Theory>]
 [<InlineData("/recent", "/recent")>]
 [<InlineData("javascript:alert(1)", "/history")>]
+[<InlineData("/trends?gran=monthly&key=2026-05", "/trends?gran=monthly&amp;key=2026-05")>]
+[<InlineData("/trends?gran=monthly&key=2026-05\"", "/trends")>]
 let ``editReading hands an allowlisted return target to the form`` (requested: string, expected: string) =
   let repo = repoWith [ sample ]
   let ctx = TestHost.context repo
@@ -238,36 +240,7 @@ let ``updateReading saves changes and redirects`` () =
   let updated = repo.GetAll(defaultMemberId) |> List.exactlyOne
   test <@ updated.Systolic = 111 && updated.Comments = Some "updated" @>
 
-let returnTargets: obj array seq =
-  Routes.readingReturnTargets |> Seq.map (fun page -> [| box page |])
-
-[<Theory>]
-[<MemberData(nameof returnTargets)>]
-let ``updateReading redirects back to the page the edit was started from`` (page: string) =
-  let repo = repoWith [ sample ]
-  let ctx = TestHost.context repo
-  TestHost.setRouteId ctx 1
-
-  TestHost.setForm
-    ctx
-    [
-      FormFields.timestamp, "2026-05-01 09:00"
-      FormFields.systolic, "111"
-      FormFields.diastolic, "70"
-      FormFields.heartRate, "60"
-      FormFields.comments, ""
-      FormFields.returnTo, page
-    ]
-
-  TestHost.run ReadingHandlers.updateReading ctx
-
-  test <@ ctx.Response.Headers.Location.ToString() = page @>
-
-[<Theory>]
-[<InlineData("https://evil.example")>]
-[<InlineData("//evil.example")>]
-[<InlineData("/settings")>]
-let ``updateReading falls back to history for an unrecognized return target`` (returnTo: string) =
+let private updateReturningTo (returnTo: string) =
   let repo = repoWith [ sample ]
   let ctx = TestHost.context repo
   TestHost.setRouteId ctx 1
@@ -284,8 +257,34 @@ let ``updateReading falls back to history for an unrecognized return target`` (r
     ]
 
   TestHost.run ReadingHandlers.updateReading ctx
+  ctx.Response.Headers.Location.ToString()
 
-  test <@ ctx.Response.Headers.Location.ToString() = Routes.history @>
+let returnTargets: obj array seq =
+  Routes.readingReturnTargets |> Seq.map (fun page -> [| box page |])
+
+[<Theory>]
+[<MemberData(nameof returnTargets)>]
+let ``updateReading redirects back to the page the edit was started from`` (page: string) =
+  test <@ updateReturningTo page = page @>
+
+[<Theory>]
+[<InlineData("https://evil.example")>]
+[<InlineData("//evil.example")>]
+[<InlineData("/settings")>]
+let ``updateReading falls back to history for an unrecognized return target`` (returnTo: string) =
+  test <@ updateReturningTo returnTo = Routes.history @>
+
+[<Fact>]
+let ``updateReading redirects back to the Trends period the edit was started from`` () =
+  let period = Routes.trendsPeriod Monthly "2026-05"
+  test <@ updateReturningTo period = period @>
+
+[<Theory>]
+[<InlineData("/trends?gran=x\"><script>alert(1)</script>")>]
+[<InlineData("/trends?gran=weekly&key=2026-W5")>]
+[<InlineData("/trends?gran=weekly&key=2026-W23&x=1")>]
+let ``updateReading falls back to plain Trends for a period it can't rebuild exactly`` (returnTo: string) =
+  test <@ updateReturningTo returnTo = Routes.trends @>
 
 [<Fact>]
 let ``updateReading keeps the reading's original CreatedAt`` () =

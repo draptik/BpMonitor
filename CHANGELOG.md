@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Readings: saving or canceling an edit returns to the page it was started from (History, Recent view or Trends); previously it always went to History.
+- Readings: saving or canceling an edit returns to the page it was started from (History, Recent view or Trends, where the same week, month or year stays open); previously it always went to History.
 
 ## [1.16.0] - 2026-10-21
 

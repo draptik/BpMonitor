@@ -19,7 +19,7 @@ module Routes =
   let medications = "/medications"
   let health = "/health"
 
-  /// Pages hosting a readings table, and so the only places a reading edit may return to.
+  /// Pages hosting a readings table, where a reading edit may return to (Trends also with a `trendsPeriod`).
   let readingReturnTargets = [ history; recent; trends ]
 
   // Parametric URL builders for id-scoped resources.
@@ -37,3 +37,7 @@ module Routes =
   let loginMember (id: int) = $"{login}/{id}"
   let trendsGran (gran: string) = $"{trends}/{gran}"
   let trendsGranKey (gran: string) (key: string) = $"{trends}/{gran}/{key}"
+
+  /// The full Trends page opened on one period (the `/trends/{gran}/{key}` routes are fragments).
+  let trendsPeriod (gran: BpMonitor.Core.Granularity) (key: string) =
+    $"{trends}?gran={BpMonitor.Core.TrendPeriod.slug gran}&key={System.Uri.EscapeDataString key}"
