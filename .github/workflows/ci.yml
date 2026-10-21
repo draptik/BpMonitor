@@ -24,6 +24,9 @@ jobs:
       - name: Run markdownlint-cli2
         run: mise run lint:md
 
+      - name: Run typos
+        run: mise run lint:spelling
+
   lint-js:
     name: Lint JS
     runs-on: ubuntu-latest

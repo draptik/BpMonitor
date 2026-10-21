@@ -1,0 +1,12 @@
+# Spell check for code and docs (`mise run lint:spelling`); enforces American spelling
+[files]
+# vendored bundles, the German half of the string table, Rider's own XML
+extend-exclude = ["*.min.js", "LocalizedStrings.fs", "*.DotSettings"]
+
+[default]
+locale = "en-us"
+
+[default.extend-words]
+ned = "ned"       # Ned Flanders, demo member
+EHR = "EHR"       # electronic health record
+alikes = "alikes" # "look-alikes", split at the hyphen
