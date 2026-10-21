@@ -242,7 +242,7 @@ mise exec -- biome check --write  # auto-fix safe JS issues
 
 **Image scanning:** `release.yml` builds the image into the runner's Docker daemon, runs `mise run scan:image` on it, and only then pushes to GHCR (the GitHub release job waits for it), so a release with a fixable CRITICAL/HIGH CVE never reaches `:latest`. Trivy is installed via mise rather than `aquasecurity/trivy-action`, whose tags were hijacked in a March 2026 supply-chain attack. `.github/workflows/image-scan.yml` rescans the published `:latest` weekly (and on demand) and uploads SARIF to the Security tab, without the gate's exceptions, because base-image CVEs appear after a release; a fixed one needs a new release, since the rebuild picks up the patched base image.
 
-**Release notes:** `.github/workflows/release.yml` builds the GitHub release body from the pushed tag's annotation followed by categorized notes from `scripts/release-notes.sh <tag>`, which groups commits since the previous tag by conventional-commit type into the same Added/Changed/Fixed/Security/Maintenance headings as `CHANGELOG.md`, collapsing routine dependency bumps into a `<details>` block.
+**Release notes:** `.github/workflows/release.yml` builds the GitHub release body from the pushed tag's annotation followed by categorized notes from `scripts/release-notes.sh <tag>`, which groups commits since the previous tag (for a stable release, the previous stable one, skipping RCs) by conventional-commit type into the same Added/Changed/Fixed/Security/Maintenance headings as `CHANGELOG.md`, collapsing routine dependency bumps into a `<details>` block.
 
 ## Architecture Decision Records
 

@@ -22,7 +22,11 @@ if [ -z "$tag" ]; then
   exit 1
 fi
 
-prev_tag=$(git describe --tags --abbrev=0 "${tag}^" 2>/dev/null || true)
+# A stable release skips earlier RCs, so its notes cover everything since the last stable one.
+case "$tag" in
+  *-*) prev_tag=$(git describe --tags --abbrev=0 "${tag}^" 2>/dev/null || true) ;;
+  *) prev_tag=$(git describe --tags --abbrev=0 --exclude '*-*' "${tag}^" 2>/dev/null || true) ;;
+esac
 if [ -n "$prev_tag" ]; then
   range="${prev_tag}..${tag}"
 else
