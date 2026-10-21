@@ -19,6 +19,10 @@ module ReadingHandlers =
     ctx.Response.StatusCode <- 422
     htmlResponse (ReadingViews.readingForm s m page errors model) ctx
 
+  /// The period `key` names, if it's in the period strip (a stale bookmark's isn't).
+  let private visiblePeriod gran (key: string) now =
+    TrendPeriod.available gran now |> List.tryFind (fun p -> p.Key = key)
+
   /// What a full-Trends query selects (`param` looks up one query parameter): its
   /// granularity (default Weekly) and, if its key is valid, the period.
   let private trendsSelection (param: string -> string option) (now: System.DateTimeOffset) =
@@ -29,7 +33,7 @@ module ReadingHandlers =
 
     gran,
     param Routes.trendsKeyParam
-    |> Option.bind (fun key -> TrendPeriod.ofKey gran key now)
+    |> Option.bind (fun key -> visiblePeriod gran key now)
 
   /// Allowlists where a reading edit may return to, so the param can't redirect off-site.
   /// A Trends query returns to the canonical URL of the period that page would show.
@@ -282,10 +286,10 @@ module ReadingHandlers =
 
     summary, periods, periodsWithData, tableReadings, chartHtml
 
-  /// The period `key` names, or the current one when it's missing or unknown.
+  /// The period `key` names, or the current one when it's missing or outside the strip.
   let private periodFor (gran: Granularity) (key: string option) (now: System.DateTimeOffset) =
     key
-    |> Option.bind (fun k -> TrendPeriod.ofKey gran k now)
+    |> Option.bind (fun k -> visiblePeriod gran k now)
     |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
 
   /// The full page; `?gran=&key=` picks the panel, defaulting to Weekly/current.

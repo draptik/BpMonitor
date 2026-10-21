@@ -336,3 +336,25 @@ let ``trends page opens a non-default granularity named in its query`` () =
   let april = Routes.trendsGranKey (TrendPeriod.slug Monthly) "2026-04"
   test <@ Regex.IsMatch(body, $"<a href=\"{april}\"[^>]*aria-current=\"page\"") @>
   test <@ body.Contains "119" @>
+
+[<Fact>]
+let ``trends page opens the current period for a key outside the period strip`` () =
+  let tp = FakeTimeProvider(trendsNow)
+  let ctx = TestHost.contextWithProvider (repoWith []) tp
+  ctx.Request.QueryString <- QueryString "?gran=weekly&key=2020-W10"
+  TestHost.run ReadingHandlers.trends ctx
+
+  let body = TestHost.readBody ctx
+  let w24 = Routes.trendsGranKey (TrendPeriod.slug Weekly) "2026-W24"
+  test <@ Regex.IsMatch(body, $"<a href=\"{w24}\"[^>]*aria-current=\"page\"") @>
+
+[<Fact>]
+let ``trendsPanel opens the current period for a key outside the period strip`` () =
+  let tp = FakeTimeProvider(trendsNow)
+  let ctx = TestHost.contextWithProvider (repoWith []) tp
+  setRouteGranKey ctx (TrendPeriod.slug Weekly) "2020-W10"
+  TestHost.run ReadingHandlers.trendsPanel ctx
+
+  let body = TestHost.readBody ctx
+  let w24 = Routes.trendsGranKey (TrendPeriod.slug Weekly) "2026-W24"
+  test <@ Regex.IsMatch(body, $"<a href=\"{w24}\"[^>]*aria-current=\"page\"") @>

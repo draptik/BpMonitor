@@ -121,7 +121,7 @@ let ``history extends an ongoing medication's timeline span to today`` () =
 
 // /recent loads a year of readings behind a 30-day view; panning the BP chart back
 // pans the timeline too (medications-sync.js), so it needs those medications as well.
-let private recentNow = DateTimeOffset(2026, 10, 15, 10, 0, 0, TimeSpan.Zero)
+let private recentNow = Timestamp.utc 2026 10 15 10 0 0
 
 let private springMedication =
   { sampleMedication with
@@ -193,7 +193,7 @@ let ``recent still opens the Medications Timeline on the last 30 days`` () =
 
 [<Fact>]
 let ``history ends the timeline's initial range at the newest reading, not at midnight that day`` () =
-  let evening = DateTimeOffset(2026, 6, 15, 20, 0, 0, TimeSpan.Zero)
+  let evening = Timestamp.utc 2026 6 15 20 0 0
 
   let earlierMedication =
     { sampleMedication with
