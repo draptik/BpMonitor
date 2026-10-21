@@ -7,4 +7,6 @@ exclude = [
   # publishers that answer bots with 403; the links work in a browser
   '^https://doi\.org/10\.1093/',
   '^https://academic\.oup\.com/',
+  # bot protection rejects GitHub runner IPs (passes locally)
+  '^https://claude\.ai/',
 ]
