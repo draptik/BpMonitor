@@ -17,6 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          persist-credentials: false
           fetch-depth: 0
           fetch-tags: true
 
@@ -72,6 +73,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
@@ -105,9 +108,13 @@ jobs:
       - uses: jdx/mise-action@v5
         with:
           install_args: trivy
+          # a release must not restore a cache other runs could have written
+          cache: false
 
       - name: Scan image
-        run: mise run scan:image -- "ghcr.io/draptik/bpmonitor-web:${{ steps.meta.outputs.version }}"
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: mise run scan:image -- "ghcr.io/draptik/bpmonitor-web:${VERSION}"
 
       - name: Push image
         run: docker push --all-tags ghcr.io/draptik/bpmonitor-web
