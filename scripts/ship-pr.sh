@@ -51,7 +51,10 @@ fi
 
 case "$branch" in
   feat/* | fix/* | chore/*) ;;
-  *) echo "Warning: branch '$branch' doesn't match feat/|fix/|chore/ convention" >&2 ;;
+  *)
+    echo "Error: branch '$branch' needs a feat/, fix/ or chore/ prefix" >&2
+    exit 1
+    ;;
 esac
 
 confirm() {

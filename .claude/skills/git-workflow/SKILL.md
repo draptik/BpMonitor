@@ -28,7 +28,7 @@ main          ← protected, always stable, squash-merged only
 ```
 
 - Branch off `main` for every change
-- Branch names: lowercase, hyphenated, prefixed by type (`feat/`, `fix/`, `chore/`)
+- Branch names: lowercase, hyphenated, prefixed by type (`feat/`, `fix/`, `chore/`; other prefixes are rejected by the pre-commit hook, so use `chore/` for refactor/docs/test/ci work)
 - Delete branch after merge
 - **Before making any code changes**, always create a feature branch first — it is the first step, not an afterthought
 
