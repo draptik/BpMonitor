@@ -69,6 +69,24 @@ let ``edit form carries its return target and cancels back to it`` () =
   test <@ html.Contains $"href=\"{Routes.recent}\" role=\"button\" class=\"secondary\"" @>
 
 [<Fact>]
+let ``edit form encodes its cancel href`` () =
+  let html =
+    renderHtml (
+      ReadingViews.readingForm
+        s
+        ""
+        "Me"
+        true
+        "Edit reading"
+        (Routes.readingUpdate 7)
+        (Some "/recent\"x")
+        []
+        (Binding.ofReading sample)
+    )
+
+  test <@ html.Contains "href=\"/recent&quot;x\" role=\"button\"" @>
+
+[<Fact>]
 let ``add form carries no return target`` () =
   let html =
     renderHtml (ReadingViews.readingForm s Routes.add "Me" true "Add reading" Routes.readings None [] Binding.empty)

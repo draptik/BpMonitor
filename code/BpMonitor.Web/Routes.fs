@@ -38,6 +38,10 @@ module Routes =
   let trendsGran (gran: string) = $"{trends}/{gran}"
   let trendsGranKey (gran: string) (key: string) = $"{trends}/{gran}/{key}"
 
+  /// Query parameter names of the full Trends page.
+  let trendsGranParam = "gran"
+  let trendsKeyParam = "key"
+
   /// The full Trends page opened on one period (the `/trends/{gran}/{key}` routes are fragments).
   let trendsPeriod (gran: BpMonitor.Core.Granularity) (key: string) =
-    $"{trends}?gran={BpMonitor.Core.TrendPeriod.slug gran}&key={System.Uri.EscapeDataString key}"
+    $"{trends}?{trendsGranParam}={BpMonitor.Core.TrendPeriod.slug gran}&{trendsKeyParam}={System.Uri.EscapeDataString key}"
