@@ -49,6 +49,15 @@ type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvi
       |> Seq.map Mapping.toDomain
       |> Seq.toList
 
+    member _.TryGet memberId id =
+      query {
+        for r in ctx.Readings.AsNoTracking() do
+          where (r.MemberId = memberId && r.Id = id)
+          select r
+      }
+      |> Seq.tryHead
+      |> Option.map Mapping.toDomain
+
     member _.Add memberId reading =
       let now = timeProvider.GetUtcNow()
 

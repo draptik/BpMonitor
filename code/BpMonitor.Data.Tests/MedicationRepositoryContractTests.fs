@@ -108,3 +108,31 @@ let ``Delete of a non-existent medication is a no-op`` (impl: string) =
   let stored = seed repo 1 (medication "HCTZ")
   repo.Delete 1 999
   test <@ repo.GetAll(1) = [ stored ] @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
+let ``TryGet returns the member's medication with that Id`` (impl: string) =
+  let repo, scope = RepositoryImplementations.medicationRepo impl
+  use _ = scope
+  seed repo 1 (medication "HCTZ") |> ignore
+  let stored = seed repo 1 (medication "lisinopril")
+  test <@ repo.TryGet 1 stored.Id = Some stored @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
+let ``TryGet returns None for another member's medication`` (impl: string) =
+  let repo, scope = RepositoryImplementations.medicationRepo impl
+  use _ = scope
+  let stored = seed repo 2 (medication "HCTZ")
+  test <@ repo.TryGet 1 stored.Id = None @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
+let ``TryGet returns None for an unknown medication Id`` (impl: string) =
+  let repo, scope = RepositoryImplementations.medicationRepo impl
+  use _ = scope
+  seed repo 1 (medication "HCTZ") |> ignore
+  test <@ repo.TryGet 1 999 = None @>
