@@ -9,6 +9,7 @@ trivy = "0.76.0"
 typos = "1.51.1"
 vale = "3.24.0"
 zizmor = "1.31.1"
+lychee = "0.24.2"
 "npm:typescript" = "7.0.2"
 # @yarnpkg/libzip 3.2.2 was hand-published by Yarn's maintainer without provenance (3.2.0/3.2.1 had it)
 "npm:renovate" = { version = "44.131.0", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
@@ -23,6 +24,10 @@ run = "typos"
 [tasks."lint:prose"]
 # config in .vale.ini; sync fetches the pinned proselint package into .vale/styles (gitignored)
 run = ["vale sync", "git ls-files -z '*.md' | xargs -0 vale"]
+
+[tasks."lint:links"]
+# config in lychee.toml; needs the network, so it is not part of `mise run lint`
+run = "git ls-files -z '*.md' | xargs -0 lychee --no-progress"
 
 [tasks."lint:js"]
 run = "biome check"

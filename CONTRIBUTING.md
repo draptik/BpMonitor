@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - [.NET 11 SDK](https://dotnet.microsoft.com/download) (currently a release candidate) — version is pinned in `code/global.json`; Fantomas also needs the .NET 10 runtime
-- [mise](https://mise.jdx.dev/) — manages all non-dotnet tools (node, Biome, markdownlint-cli2, shellcheck, actionlint, zizmor, hadolint, typos, Vale, Trivy, TypeScript, Renovate)
+- [mise](https://mise.jdx.dev/) — manages all non-dotnet tools (node, Biome, markdownlint-cli2, shellcheck, actionlint, zizmor, hadolint, typos, Vale, lychee, Trivy, TypeScript, Renovate)
 
 ## Getting started
 
@@ -102,6 +102,7 @@ cd code && dotnet tool restore   # only needed once after cloning
 | Vale | `mise run lint:prose` | Prose style in Markdown: proselint + project terms like "Recent view" (`.vale.ini`) |
 | shellcheck | `mise exec -- shellcheck <file>.sh` | Shell scripts |
 | zizmor | `mise run lint:actions-security` | GitHub Actions security (`.github/zizmor.yml`) |
+| lychee | `mise run lint:links` | Broken links in Markdown (`lychee.toml`; network, weekly in CI, not part of `lint`) |
 | hadolint | `mise exec -- hadolint code/BpMonitor.Web/Containerfile` | Containerfile best practices |
 
 Run all non-dotnet linters at once:
@@ -118,6 +119,7 @@ mise run lint:actions  # actionlint only
 mise run lint:actions-security  # zizmor only
 mise run lint:container  # hadolint only
 mise run lint:renovate  # renovate.json validation only
+mise run lint:links  # lychee link check (network; not part of `lint`)
 ```
 
 Auto-fix where supported:

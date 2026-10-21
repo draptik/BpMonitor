@@ -12,7 +12,7 @@
 ## TODO Research improvements
 <!-- vale proselint.Annotations = YES -->
 
-Results from [ScienceOS (2026-08-16)](scienceos.ai):
+Results from [ScienceOS (2026-08-16)](https://scienceos.ai):
 
 ```markdown
 ### 1. Categorical and Threshold-Based Visualizations

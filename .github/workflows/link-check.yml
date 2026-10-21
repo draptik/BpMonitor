@@ -1,0 +1,63 @@
+name: Link Check
+
+# External links (papers, docs) break without any commit here, so this runs on a
+# schedule instead of per PR, and tracks breakage in a single open issue.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lychee:
+    name: Check Markdown links
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: lychee
+
+      - name: Check links
+        id: lychee
+        env:
+          # avoids GitHub's anonymous rate limit for github.com links
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if mise run lint:links -- --format markdown --output lychee-report.md; then
+            echo "broken=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "broken=true" >> "$GITHUB_OUTPUT"
+            [ -s lychee-report.md ] || echo "lychee failed without a report; see the run log." > lychee-report.md
+          fi
+
+      - name: Open, update or close the broken-links issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BROKEN: ${{ steps.lychee.outputs.broken }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Broken links in docs"
+          issue=$(gh issue list --state open --search "in:title \"$title\"" --json number,title \
+            --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)
+          if [ "$BROKEN" = "true" ]; then
+            { printf 'Found by the [weekly link check](%s).\n\n' "$RUN_URL"; cat lychee-report.md; } > issue-body.md
+            if [ -n "$issue" ]; then
+              gh issue edit "$issue" --body-file issue-body.md
+            else
+              gh issue create --title "$title" --body-file issue-body.md
+            fi
+            exit 1
+          elif [ -n "$issue" ]; then
+            gh issue close "$issue" --comment "All links resolve again ([run]($RUN_URL))."
+          fi
