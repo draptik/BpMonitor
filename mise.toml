@@ -5,6 +5,7 @@ markdownlint-cli2 = "0.23.3"
 shellcheck = "0.11.0"
 actionlint = "1.7.12"
 hadolint = "2.15.1"
+trivy = "0.76.0"
 "npm:typescript" = "7.0.2"
 # @yarnpkg/libzip 3.2.2 was hand-published by Yarn's maintainer without provenance (3.2.0/3.2.1 had it)
 "npm:renovate" = { version = "44.131.0", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
@@ -29,6 +30,10 @@ run = "actionlint"
 
 [tasks."lint:container"]
 run = "hadolint code/BpMonitor.Web/Containerfile"
+
+[tasks."scan:image"]
+description = "Fails on fixable CRITICAL/HIGH CVEs in a built image; pass the image ref, e.g. `mise run scan:image -- bpmonitor-web:local`"
+run = "trivy image --exit-code 1 --severity CRITICAL,HIGH --ignore-unfixed --ignorefile .trivyignore.yaml --skip-version-check"
 
 [tasks."lint:renovate"]
 env = { RENOVATE_X_IGNORE_RE2 = "true" }  # re2 native build is skipped by mise; RegExp fallback is fine
