@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0-rc1] - 2026-10-21
+
 ### Changed
 
 - **Deployment:** the container now runs as an unprivileged user (UID 1654) instead of root. Existing data must be handed to that user once before upgrading, or the app can no longer save readings. Podman users can add `:U` to the volume; Docker users run `chown` once. See docs/example-deploy/README.md.
+- **Deployment:** no database migration is needed.
 
 ### Security
 
@@ -558,7 +561,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.15.1...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.16.0-rc1...HEAD
+[1.16.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.15.1...v1.16.0-rc1
 [1.15.1]: https://github.com/draptik/BpMonitor/compare/v1.15.0...v1.15.1
 [1.15.0]: https://github.com/draptik/BpMonitor/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/draptik/BpMonitor/compare/v1.13.2...v1.14.0
