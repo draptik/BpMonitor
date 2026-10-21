@@ -54,6 +54,9 @@ jobs:
       - name: Run actionlint
         run: mise run lint:actions
 
+      - name: Run hadolint
+        run: mise run lint:container
+
   lint-renovate:
     name: Lint Renovate config
     runs-on: ubuntu-latest

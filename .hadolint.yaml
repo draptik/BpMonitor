@@ -1,0 +1,3 @@
+failure-threshold: warning
+ignored:
+  - DL3008 # apt pins break once Debian drops the version under the floating .NET base image tag

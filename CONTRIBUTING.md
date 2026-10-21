@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - [.NET 11 SDK](https://dotnet.microsoft.com/download) (currently a release candidate) — version is pinned in `code/global.json`; Fantomas also needs the .NET 10 runtime
-- [mise](https://mise.jdx.dev/) — manages all non-dotnet tools (node, Biome, markdownlint-cli2, shellcheck, actionlint, TypeScript, Renovate)
+- [mise](https://mise.jdx.dev/) — manages all non-dotnet tools (node, Biome, markdownlint-cli2, shellcheck, actionlint, hadolint, TypeScript, Renovate)
 
 ## Getting started
 
@@ -99,16 +99,18 @@ cd code && dotnet tool restore   # only needed once after cloning
 | TypeScript | `mise exec -- tsc -p tsconfig.json` | JSDoc type-checking of hand-written `wwwroot/` JS (no build step) |
 | markdownlint | `mise exec -- markdownlint-cli2 "**/*.md"` | Markdown style |
 | shellcheck | `mise exec -- shellcheck <file>.sh` | Shell scripts |
+| hadolint | `mise exec -- hadolint code/BpMonitor.Web/Containerfile` | Containerfile best practices |
 
 Run all non-dotnet linters at once:
 
 ```bash
-mise run lint        # markdownlint + biome + tsc + shellcheck + actionlint + renovate
+mise run lint        # markdownlint + biome + tsc + shellcheck + actionlint + hadolint + renovate
 mise run lint:md     # markdownlint only
 mise run lint:js     # biome only
 mise run lint:ts     # tsc checkJs only
 mise run lint:shell  # shellcheck only
 mise run lint:actions  # actionlint only
+mise run lint:container  # hadolint only
 mise run lint:renovate  # renovate.json validation only
 ```
 

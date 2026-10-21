@@ -154,7 +154,8 @@ All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also ho
 - `biome.json` — Biome JS linter config (scoped to the hand-written `wwwroot/` files: `theme.js`, `theme-label.js`, `plot-ready.js`, `chart-hover.js`, `recent-scrubber.js`, `trends-scroll.js`, `recent-zoom.js`, `medications-sync.js`, `details-memory.js`)
 - `tsconfig.json` + `typings/globals.d.ts` — zero-build TypeScript checking of the same `wwwroot/` JS via JSDoc (`tsc --checkJs`); the JS ships as-is, no bundler
 - `.markdownlint-cli2.yaml` — markdownlint config
-- Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:shell` / `lint:actions` / `lint:renovate` individually
+- `.hadolint.yaml` — hadolint config for `code/BpMonitor.Web/Containerfile`
+- Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:shell` / `lint:actions` / `lint:container` / `lint:renovate` individually
 - Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium and Firefox)
 - Run `mise exec -- biome check --write` to auto-fix JS issues
 - Run `mise run bench` for the BenchmarkDotNet suite (`BpMonitor.Benchmarks`, a few minutes); `mise run bench -- --job short` for a quick check
