@@ -443,7 +443,7 @@ module ReadingHandlers =
       submit ctx s m (fun _ -> ReadingViews.addPage s) ((repo ctx).Add m.Id))
 
   let editReading: HttpContext -> Task =
-    withOwnedRecord "editReading" (fun ctx -> (repo ctx).GetAll) _.Id (fun m r ctx ->
+    withOwnedRecord "editReading" (fun ctx -> (repo ctx).TryGet) (fun m r ctx ->
       let s = stringsForMember m
 
       let returnTo =
@@ -454,7 +454,7 @@ module ReadingHandlers =
       htmlResponse (ReadingViews.readingForm s m (ReadingViews.editPage s r.Id returnTo) [] (Binding.ofReading r)) ctx)
 
   let updateReading: HttpContext -> Task =
-    withOwnedRecord "updateReading" (fun ctx -> (repo ctx).GetAll) _.Id (fun m existing ctx ->
+    withOwnedRecord "updateReading" (fun ctx -> (repo ctx).TryGet) (fun m existing ctx ->
       let s = stringsForMember m
       let now = (timeProvider ctx).GetUtcNow()
 

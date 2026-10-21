@@ -115,3 +115,31 @@ let ``Update of a non-existent reading is a no-op`` (impl: string) =
   let stored = seed repo 1 (reading 120 80 70)
   repo.Update({ stored with Id = 999; Systolic = 135 })
   test <@ repo.GetAll(1) = [ stored ] @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
+let ``TryGet returns the member's reading with that Id`` (impl: string) =
+  let repo, scope = RepositoryImplementations.readingRepo impl
+  use _ = scope
+  seed repo 1 (reading 120 80 70) |> ignore
+  let stored = seed repo 1 (reading 130 85 72)
+  test <@ repo.TryGet 1 stored.Id = Some stored @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
+let ``TryGet returns None for another member's reading`` (impl: string) =
+  let repo, scope = RepositoryImplementations.readingRepo impl
+  use _ = scope
+  let stored = seed repo 2 (reading 120 80 70)
+  test <@ repo.TryGet 1 stored.Id = None @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
+let ``TryGet returns None for an unknown Id`` (impl: string) =
+  let repo, scope = RepositoryImplementations.readingRepo impl
+  use _ = scope
+  seed repo 1 (reading 120 80 70) |> ignore
+  test <@ repo.TryGet 1 999 = None @>

@@ -113,15 +113,14 @@ module AuthHandlers =
     withMember (fun m ctx -> (withRouteId handlerName (fun id ctx -> handler m id ctx)) ctx)
 
   /// Like `withMemberAndRouteId`, but also finds the member's own record with that id
-  /// (`getAll` is member-scoped); logs and returns 404 when there is none.
+  /// (`tryGet ctx memberId id` is member-scoped); logs and returns 404 when there is none.
   let withOwnedRecord
     (handlerName: string)
-    (getAll: HttpContext -> int -> 'T list)
-    (idOf: 'T -> int)
+    (tryGet: HttpContext -> int -> int -> 'T option)
     (handler: FamilyMember -> 'T -> HttpContext -> Task)
     : HttpContext -> Task =
     withMemberAndRouteId handlerName (fun m id ctx ->
-      match getAll ctx m.Id |> List.tryFind (fun x -> idOf x = id) with
+      match tryGet ctx m.Id id with
       | Some record -> handler m record ctx
       | None ->
         (logger ctx).LogWarning("{Handler}: record {Id} not found for member {MemberId}", handlerName, id, m.Id)

@@ -121,7 +121,7 @@ module MedicationHandlers =
       :> Task)
 
   let edit: HttpContext -> Task =
-    withOwnedRecord "editMedication" (fun ctx -> (medicationRepo ctx).GetAll) _.Id (fun m med ctx ->
+    withOwnedRecord "editMedication" (fun ctx -> (medicationRepo ctx).TryGet) (fun m med ctx ->
       htmlResponse (MedicationViews.medicationForm (stringsForMember m) m med.Id [] (Binding.ofMedication med)) ctx)
 
   let private renderEditErrors
@@ -136,7 +136,7 @@ module MedicationHandlers =
     htmlResponse (MedicationViews.medicationForm s m id errors f) ctx
 
   let update: HttpContext -> Task =
-    withOwnedRecord "updateMedication" (fun ctx -> (medicationRepo ctx).GetAll) _.Id (fun m existing ctx ->
+    withOwnedRecord "updateMedication" (fun ctx -> (medicationRepo ctx).TryGet) (fun m existing ctx ->
       task {
         let s = stringsForMember m
         let! form = readForm ctx

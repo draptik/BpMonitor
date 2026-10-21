@@ -17,6 +17,9 @@ type InMemoryMedicationRepository(initialMedications: Medication list option) =
     member _.GetAll(memberId) =
       medications |> Seq.filter (fun m -> m.MemberId = memberId) |> Seq.toList
 
+    member _.TryGet memberId id =
+      medications |> Seq.tryFind (fun m -> m.MemberId = memberId && m.Id = id)
+
     member _.Add memberId medication =
       medications.Add(
         { medication with

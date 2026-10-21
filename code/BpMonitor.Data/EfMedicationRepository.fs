@@ -49,6 +49,15 @@ type EfMedicationRepository(ctx: BpMonitorDbContext, timeProvider: System.TimePr
       |> Seq.map MedicationMapping.toDomain
       |> Seq.toList
 
+    member _.TryGet memberId id =
+      query {
+        for m in ctx.Medications.AsNoTracking() do
+          where (m.MemberId = memberId && m.Id = id)
+          select m
+      }
+      |> Seq.tryHead
+      |> Option.map MedicationMapping.toDomain
+
     member _.Add memberId medication =
       let now = timeProvider.GetUtcNow()
 

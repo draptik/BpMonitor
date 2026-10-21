@@ -68,6 +68,9 @@ type InMemoryReadingRepository(initialReadings: BloodPressureReading list option
     member _.GetAll(memberId) =
       readings |> Seq.filter (fun r -> r.MemberId = memberId) |> Seq.toList
 
+    member _.TryGet memberId id =
+      readings |> Seq.tryFind (fun r -> r.MemberId = memberId && r.Id = id)
+
     member _.Add memberId reading =
       readings.Add(
         { reading with
