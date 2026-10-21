@@ -32,7 +32,7 @@ let ``recent readings section lists heart rate, comment and an edit link per rea
   let body = TestHost.readBody ctx
   test <@ body.Contains "71" @>
   test <@ body.Contains "after walk" @>
-  test <@ body.Contains(Routes.readingEdit r.Id) @>
+  test <@ body.Contains(Routes.readingEdit r.Id Routes.recent) @>
 
 [<Fact>]
 let ``recent readings section tags each row with the reading's chart x-label`` () =

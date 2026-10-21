@@ -10,6 +10,7 @@ module FormFields =
   let heartRate = "HeartRate"
   let timestamp = "Timestamp"
   let comments = "Comments"
+  let returnTo = "ReturnTo"
   // Member form
   let name = "Name"
   let isAdmin = "IsAdmin"
