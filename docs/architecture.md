@@ -211,7 +211,7 @@ graph TD
 | Vale | Prose: proselint + a project `BpMonitor` style for terms like "Recent view" (`.vale.ini`); released CHANGELOG sections sit under `<!-- vale off -->` |
 | shellcheck | Shell scripts |
 | actionlint | GitHub Actions workflows, including `run:` scripts |
-| zizmor | GitHub Actions security (`.github/zizmor.yml`); tag-pinned actions allowed until Renovate pins SHAs |
+| zizmor | GitHub Actions security (`.github/zizmor.yml`); actions must be SHA-pinned, Renovate keeps the digests current |
 | hadolint | Containerfile (`.hadolint.yaml`) |
 | lychee | Markdown links (`lychee.toml`); needs the network, so weekly rather than per PR |
 | Trivy | Container CVE gate for releases (exceptions in `.trivyignore.yaml`) |
