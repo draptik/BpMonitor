@@ -17,6 +17,10 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends curl \
  && rm -rf /var/lib/apt/lists/*
 
+# Non-root `app` user; root-owned data from older images needs a one-time chown (docs/example-deploy/README.md).
+RUN mkdir /data && chown "$APP_UID:$APP_UID" /data
+USER $APP_UID
+
 # Links the published GHCR package to its source repository.
 LABEL org.opencontainers.image.source="https://github.com/draptik/BpMonitor"
 

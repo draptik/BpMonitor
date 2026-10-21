@@ -5,6 +5,11 @@
 # Pulls the prebuilt image from GitHub Container Registry and serves the UI on
 # http://localhost:5000. The SQLite database is kept in ./data so it survives
 # container recreation. Pin a version by replacing :latest with a release tag.
+#
+# The app runs as UID 1654, so ./data must be writable by it. Before the first
+# start (or when upgrading from an image that ran as root):
+#
+#   mkdir -p data && sudo chown -R 1654:1654 data
 
 services:
   bpmonitor-web:

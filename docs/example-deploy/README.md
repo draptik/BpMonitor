@@ -30,11 +30,26 @@ Then use `localhost/bpmonitor-web:latest` instead of the GHCR image below.
 ```sh
 podman run -d --name bpmonitor-web \
   -p 5000:5000 \
-  -v bpmonitor-data:/data \
+  -v bpmonitor-data:/data:U \
   ghcr.io/draptik/bpmonitor-web:latest
 ```
 
 Then open `http://<vm-ip>:5000`.
+
+The container runs as the unprivileged `app` user (UID 1654), not root. The
+`:U` volume option makes Podman hand `/data` to that user.
+
+## Upgrading from an image that ran as root
+
+Images before this change ran as root, so an existing database and `keys/`
+directory are owned by root, and the app can read them but no longer save
+readings. `/health` still reports healthy in that state, so fix the
+ownership once before starting the new image:
+
+- **Podman / Quadlet:** nothing to do if you use the `:U` volume option shown above.
+- **Docker Compose (bind mount `./data`):** `sudo chown -R 1654:1654 data`
+- **Docker named volume:**
+  `docker run --rm --user root --entrypoint chown -v <volume>:/data ghcr.io/draptik/bpmonitor-web:latest -R 1654:1654 /data`
 
 ## Run as a systemd service (Quadlet)
 
