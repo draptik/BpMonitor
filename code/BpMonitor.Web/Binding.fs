@@ -39,7 +39,26 @@ module Binding =
       DiaMax: string
     }
 
-  let ofReading (r: BloodPressureReading) =
+  /// Raw (unvalidated) medication edit-form fields.
+  type MedicationFormModel =
+    {
+      Name: string
+      FullName: string
+      Comment: string
+      StartDate: string
+      EndDate: string
+    }
+
+  let ofMedication (med: Medication) =
+    {
+      Name = med.Name
+      FullName = med.FullName |> Option.defaultValue ""
+      Comment = med.Comment |> Option.defaultValue ""
+      StartDate = Formats.formatDateEuropean med.StartDate
+      EndDate = med.EndDate |> Option.map Formats.formatDateEuropean |> Option.defaultValue ""
+    }
+
+  let ofReading (r: BloodPressureReading) : FormModel =
     {
       Systolic = string r.Systolic
       Diastolic = string r.Diastolic

@@ -437,41 +437,28 @@ module ReadingHandlers =
       submit ctx s m (fun _ -> ReadingViews.addPage s) ((repo ctx).Add m.Id))
 
   let editReading: HttpContext -> Task =
-    withMemberAndRouteId "editReading" (fun m id ctx ->
+    withOwnedRecord "editReading" (fun ctx -> (repo ctx).GetAll) _.Id (fun m r ctx ->
       let s = stringsForMember m
 
-      match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
-      | Some r ->
-        let returnTo =
-          queryStr ctx FormFields.returnTo
-          |> Option.defaultValue ""
-          |> returnTarget ((timeProvider ctx).GetUtcNow())
+      let returnTo =
+        queryStr ctx FormFields.returnTo
+        |> Option.defaultValue ""
+        |> returnTarget ((timeProvider ctx).GetUtcNow())
 
-        htmlResponse (ReadingViews.readingForm s m (ReadingViews.editPage s id returnTo) [] (Binding.ofReading r)) ctx
-      | None ->
-        let log = logger ctx
-        log.LogWarning("editReading: reading {Id} not found for member {MemberId}", id, m.Id)
-        notFound ctx)
+      htmlResponse (ReadingViews.readingForm s m (ReadingViews.editPage s r.Id returnTo) [] (Binding.ofReading r)) ctx)
 
   let updateReading: HttpContext -> Task =
-    withMemberAndRouteId "updateReading" (fun m id ctx ->
+    withOwnedRecord "updateReading" (fun ctx -> (repo ctx).GetAll) _.Id (fun m existing ctx ->
       let s = stringsForMember m
+      let now = (timeProvider ctx).GetUtcNow()
 
-      match (repo ctx).GetAll(m.Id) |> List.tryFind (fun r -> r.Id = id) with
-      | None ->
-        let log = logger ctx
-        log.LogWarning("updateReading: reading {Id} not found for member {MemberId}", id, m.Id)
-        notFound ctx
-      | Some existing ->
-        let now = (timeProvider ctx).GetUtcNow()
-
-        submit ctx s m (_.ReturnTo >> returnTarget now >> ReadingViews.editPage s id) (fun r ->
-          (repo ctx).Update
-            { r with
-                Id = id
-                MemberId = m.Id
-                CreatedAt = existing.CreatedAt
-            }))
+      submit ctx s m (_.ReturnTo >> returnTarget now >> ReadingViews.editPage s existing.Id) (fun r ->
+        (repo ctx).Update
+          { r with
+              Id = existing.Id
+              MemberId = m.Id
+              CreatedAt = existing.CreatedAt
+          }))
 
   // ── Export ──
 

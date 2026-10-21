@@ -72,16 +72,16 @@ let ``medicationForm encodes quotes in a field's value attribute`` () =
     renderHtml (
       MedicationViews.medicationForm
         s
-        "Me"
-        true
-        "Edit medication"
-        (Routes.medicationUpdate 5)
+        defaultMember
+        5
         []
-        "HCTZ"
-        "x\" onmouseover=\"alert(1)"
-        ""
-        "01.01.2026"
-        ""
+        {
+          Name = "HCTZ"
+          FullName = "x\" onmouseover=\"alert(1)"
+          Comment = ""
+          StartDate = "01.01.2026"
+          EndDate = ""
+        }
     )
 
   test <@ html.Contains "value=\"x&quot; onmouseover=&quot;alert(1)\"" @>
