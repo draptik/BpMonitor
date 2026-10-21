@@ -19,6 +19,21 @@
          "staged": true
       },
       {
+         "name": "vale",
+         "group": "pre-commit",
+         "command": "sh",
+         "args": ["-c", "[ -d .vale/styles/proselint ] || mise exec -- vale sync; mise exec -- vale \"$@\"", "vale", "${staged}"],
+         "include": ["**/*.md"],
+         "staged": true
+      },
+      {
+         "name": "typos",
+         "group": "pre-commit",
+         "command": "mise",
+         "args": ["exec", "--", "typos", "--force-exclude", "${staged}"],
+         "staged": true
+      },
+      {
          "name": "fantomas-check",
          "group": "pre-commit",
          "command": "dotnet",

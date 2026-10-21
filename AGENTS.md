@@ -100,7 +100,7 @@ Never start work on `main`. Creating the branch is the first step, not an aftert
 
 `.claude/hooks/` mechanically enforces the branch-first, no-attribution, PR-preflight
 (CHANGELOG/docs sync reminders), and `/verify-frontend` rules described here and in
-`.claude/skills/verify-frontend/SKILL.md`; `.husky/` handles formatting checks, blocks
+`.claude/skills/verify-frontend/SKILL.md`; `.husky/` handles formatting, spelling (typos) and prose (Vale) checks on staged files, blocks
 commits on `main`, and rejects a commit message whose gitmoji doesn't match its
 conventional-commit type (see the table in `.claude/skills/git-workflow/SKILL.md`).
 
