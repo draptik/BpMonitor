@@ -32,6 +32,8 @@ EXPOSE 5000
 
 # --start-period covers SchemaMigrations running synchronously before the app
 # starts serving requests.
+# Shell form maps curl's exit 22 to 1, the only failure code Docker documents.
+# hadolint ignore=DL3025
 HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
   CMD curl -fsS http://127.0.0.1:5000/health || exit 1
 

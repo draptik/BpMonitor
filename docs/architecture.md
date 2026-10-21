@@ -219,6 +219,7 @@ graph TD
 | markdownlint-cli2 | `mise.toml` | Markdown style linter |
 | shellcheck | `mise.toml` | Shell script linter |
 | actionlint | `mise.toml` | GitHub Actions workflow linter; also shellchecks `run:` scripts |
+| hadolint | `mise.toml` | Containerfile linter (config in `.hadolint.yaml`; ignores DL3008 since apt pins break under the floating .NET base image tag) |
 | Renovate | `mise.toml` (npm backend) | `renovate-config-validator --strict` on `renovate.json`; one trust-policy exemption for `@yarnpkg/libzip@3.2.2` (hand-published without provenance) |
 
 **Local usage:**
@@ -231,11 +232,12 @@ mise run lint:js      # biome only
 mise run lint:ts      # tsc checkJs only
 mise run lint:shell   # shellcheck only
 mise run lint:actions # actionlint only
+mise run lint:container # hadolint only
 mise run lint:renovate # renovate.json validation only
 mise exec -- biome check --write  # auto-fix safe JS issues
 ```
 
-**CI:** the `lint-markdown`, `lint-js` (Biome + `tsc` checkJs), `lint-shell` (shellcheck + actionlint), and `lint-renovate` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
+**CI:** the `lint-markdown`, `lint-js` (Biome + `tsc` checkJs), `lint-shell` (shellcheck + actionlint + hadolint), and `lint-renovate` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
 
 **Release notes:** `.github/workflows/release.yml` builds the GitHub release body from the pushed tag's annotation followed by categorized notes from `scripts/release-notes.sh <tag>`, which groups commits since the previous tag by conventional-commit type into the same Added/Changed/Fixed/Security/Maintenance headings as `CHANGELOG.md`, collapsing routine dependency bumps into a `<details>` block.
 
