@@ -8,6 +8,9 @@ open BpMonitor.Core
 open BpMonitor.Web
 open HandlerTestHelpers
 
+// Trends return targets must fall inside the period strip, so pin "now" (ISO week 24 of 2026).
+let private returnNow = Timestamp.utc 2026 6 9 12 0 0
+
 [<Fact>]
 let ``landing renders links to add and history`` () =
   let repo = repoWith []
@@ -191,7 +194,8 @@ let ``editReading prefills the form for an existing reading`` () =
 [<InlineData("/trends?gran=monthly&key=2026-05\"", "/trends")>]
 let ``editReading hands an allowlisted return target to the form`` (requested: string, expected: string) =
   let repo = repoWith [ sample ]
-  let ctx = TestHost.context repo
+  let tp = FakeTimeProvider(returnNow)
+  let ctx = TestHost.contextWithProvider repo tp
   TestHost.setRouteId ctx 1
   ctx.Request.QueryString <- Microsoft.AspNetCore.Http.QueryString.Create(FormFields.returnTo, requested)
   TestHost.run ReadingHandlers.editReading ctx
@@ -242,7 +246,8 @@ let ``updateReading saves changes and redirects`` () =
 
 let private updateReturningTo (returnTo: string) =
   let repo = repoWith [ sample ]
-  let ctx = TestHost.context repo
+  let tp = FakeTimeProvider(returnNow)
+  let ctx = TestHost.contextWithProvider repo tp
   TestHost.setRouteId ctx 1
 
   TestHost.setForm
@@ -293,12 +298,13 @@ let ``updateReading returns to the canonical URL of the Trends period the page w
 [<InlineData("/trends?gran=x\"><script>alert(1)</script>")>]
 [<InlineData("/trends?gran=weekly&key=2026-W5")>]
 [<InlineData("/trends?gran=monthly")>]
+[<InlineData("/trends?gran=weekly&key=2020-W10")>]
 let ``updateReading falls back to plain Trends for a query that selects no valid period`` (returnTo: string) =
   test <@ updateReturningTo returnTo = Routes.trends @>
 
 [<Fact>]
 let ``updateReading keeps the reading's original CreatedAt`` () =
-  let createdAt = System.DateTimeOffset(2026, 5, 1, 9, 5, 0, System.TimeSpan.Zero)
+  let createdAt = Timestamp.utc 2026 5 1 9 5 0
   let repo = repoWith [ { sample with CreatedAt = createdAt } ]
   let ctx = TestHost.context repo
   TestHost.setRouteId ctx 1
