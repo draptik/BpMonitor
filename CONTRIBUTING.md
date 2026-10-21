@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - [.NET 11 SDK](https://dotnet.microsoft.com/download) (currently a release candidate) — version is pinned in `code/global.json`; Fantomas also needs the .NET 10 runtime
-- [mise](https://mise.jdx.dev/) — manages all non-dotnet tools (node, Biome, markdownlint-cli2, shellcheck, actionlint, hadolint, typos, Trivy, TypeScript, Renovate)
+- [mise](https://mise.jdx.dev/) — manages all non-dotnet tools (node, Biome, markdownlint-cli2, shellcheck, actionlint, hadolint, typos, Vale, Trivy, TypeScript, Renovate)
 
 ## Getting started
 
@@ -99,15 +99,17 @@ cd code && dotnet tool restore   # only needed once after cloning
 | TypeScript | `mise exec -- tsc -p tsconfig.json` | JSDoc type-checking of hand-written `wwwroot/` JS (no build step) |
 | markdownlint | `mise exec -- markdownlint-cli2 "**/*.md"` | Markdown style |
 | typos | `mise exec -- typos` | Spelling in code and docs, American spelling enforced (`_typos.toml`) |
+| Vale | `mise run lint:prose` | Prose style in Markdown: proselint + project terms like "Recent view" (`.vale.ini`) |
 | shellcheck | `mise exec -- shellcheck <file>.sh` | Shell scripts |
 | hadolint | `mise exec -- hadolint code/BpMonitor.Web/Containerfile` | Containerfile best practices |
 
 Run all non-dotnet linters at once:
 
 ```bash
-mise run lint        # markdownlint + typos + biome + tsc + shellcheck + actionlint + hadolint + renovate
+mise run lint        # markdownlint + typos + vale + biome + tsc + shellcheck + actionlint + hadolint + renovate
 mise run lint:md     # markdownlint only
 mise run lint:spelling  # typos only
+mise run lint:prose  # vale only
 mise run lint:js     # biome only
 mise run lint:ts     # tsc checkJs only
 mise run lint:shell  # shellcheck only

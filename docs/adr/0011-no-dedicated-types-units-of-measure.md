@@ -46,7 +46,7 @@ Neither payoff materializes here:
   (de)serialization in `BpMonitor.Export`, Plotly.NET series construction in `BpMonitor.Charts`,
   range validation and arithmetic (averages, LOWESS smoothing in `Lowess.fs`) in `Core`, and
   every Verify snapshot that currently renders these as plain numbers. Units of measure in
-  particular don't survive serialization boundaries for free — every EF/JSON/CSV crossing would
+  particular don't survive serialization boundaries automatically — every EF/JSON/CSV crossing would
   need an explicit strip/reapply, for a codebase where the field name already carries the
   meaning.
 

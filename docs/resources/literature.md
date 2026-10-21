@@ -8,7 +8,9 @@
   - [local copy](./ocac129.pdf)
   - this is a follow-up paper by the same research group: it focuses on patient's graph literacy
 
+<!-- vale proselint.Annotations = NO -->
 ## TODO Research improvements
+<!-- vale proselint.Annotations = YES -->
 
 Results from [ScienceOS (2026-08-16)](scienceos.ai):
 

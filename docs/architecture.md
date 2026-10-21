@@ -221,6 +221,7 @@ graph TD
 | actionlint | `mise.toml` | GitHub Actions workflow linter; also shellchecks `run:` scripts |
 | hadolint | `mise.toml` | Containerfile linter (config in `.hadolint.yaml`; ignores DL3008 since apt pins break under the floating .NET base image tag) |
 | typos | `mise.toml` | Spell checker for code and docs (config in `_typos.toml`; `en-us` locale, so British spellings fail; skips vendored `*.min.js` and the German strings in `LocalizedStrings.fs`) |
+| Vale | `mise.toml` | Prose linter for all tracked Markdown (config in `.vale.ini`): Vale core + the pinned proselint package (fetched by `vale sync`, gitignored) + a committed `BpMonitor` style in `.vale/styles/` enforcing `Recent view` over bare `Recent`; released CHANGELOG sections are skipped via `<!-- vale off -->`, so only new entries are checked |
 | Trivy | `mise.toml` | Container image CVE scanner; `mise run scan:image -- <image>` gates the release push on fixable CRITICAL/HIGH findings (path-scoped, expiring exceptions in `.trivyignore.yaml`) |
 | Renovate | `mise.toml` (npm backend) | `renovate-config-validator --strict` on `renovate.json`; one trust-policy exemption for `@yarnpkg/libzip@3.2.2` (hand-published without provenance) |
 
@@ -231,6 +232,7 @@ mise install          # install all pinned tools
 mise run lint         # run all non-dotnet linters
 mise run lint:md      # markdownlint only
 mise run lint:spelling # typos only
+mise run lint:prose   # Vale only
 mise run lint:js      # biome only
 mise run lint:ts      # tsc checkJs only
 mise run lint:shell   # shellcheck only
@@ -240,7 +242,7 @@ mise run lint:renovate # renovate.json validation only
 mise exec -- biome check --write  # auto-fix safe JS issues
 ```
 
-**CI:** the `lint-markdown` (markdownlint + typos), `lint-js` (Biome + `tsc` checkJs), `lint-shell` (shellcheck + actionlint + hadolint), and `lint-renovate` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
+**CI:** the `lint-markdown` (markdownlint + typos + Vale), `lint-js` (Biome + `tsc` checkJs), `lint-shell` (shellcheck + actionlint + hadolint), and `lint-renovate` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
 
 **Image scanning:** `release.yml` builds the image into the runner's Docker daemon, runs `mise run scan:image` on it, and only then pushes to GHCR (the GitHub release job waits for it), so a release with a fixable CRITICAL/HIGH CVE never reaches `:latest`. Trivy is installed via mise rather than `aquasecurity/trivy-action`, whose tags were hijacked in a March 2026 supply-chain attack. `.github/workflows/image-scan.yml` rescans the published `:latest` weekly (and on demand) and uploads SARIF to the Security tab, without the gate's exceptions, because base-image CVEs appear after a release; a fixed one needs a new release, since the rebuild picks up the patched base image.
 

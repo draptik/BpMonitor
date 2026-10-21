@@ -1,0 +1,3 @@
+# packages fetched by `vale sync`; only the project style is committed
+styles/*
+!styles/BpMonitor/

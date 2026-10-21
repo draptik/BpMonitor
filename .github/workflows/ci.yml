@@ -27,6 +27,9 @@ jobs:
       - name: Run typos
         run: mise run lint:spelling
 
+      - name: Run Vale
+        run: mise run lint:prose
+
   lint-js:
     name: Lint JS
     runs-on: ubuntu-latest
