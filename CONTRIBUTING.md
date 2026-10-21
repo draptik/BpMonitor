@@ -158,7 +158,7 @@ the "F# Style Conventions" section of [AGENTS.md](AGENTS.md).
 
 ## Git workflow
 
-- Branch prefixes: `feat/`, `fix/`, `chore/`
+- Branch prefixes: `feat/`, `fix/`, `chore/` (the Husky pre-commit hook and `/ship` reject others)
 - Commit format: gitmoji + conventional commits (e.g. `✨ feat: add reading form`)
 - Merge strategy: squash-merge via PR — one clean commit per PR on `main`
 - `main` requires all six CI checks to pass (repository ruleset); `/ship` queues the

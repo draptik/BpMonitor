@@ -2,10 +2,17 @@
 . "$(dirname "$0")/_/husky.sh"
 
 branch=$(git rev-parse --abbrev-ref HEAD)
-if [ "$branch" = "main" ]; then
-  echo "ERROR: direct commits to 'main' are not allowed. Create a feat/fix/chore branch first."
-  exit 1
-fi
+case "$branch" in
+  main)
+    echo "ERROR: direct commits to 'main' are not allowed. Create a feat/fix/chore branch first."
+    exit 1
+    ;;
+  feat/* | fix/* | chore/* | HEAD) ;; # HEAD: detached, e.g. mid-rebase
+  *)
+    echo "ERROR: branch '$branch' needs a feat/, fix/ or chore/ prefix (git branch -m <new-name>)."
+    exit 1
+    ;;
+esac
 
 ## husky task runner examples -------------------
 ## Note : for local installation use 'dotnet' prefix. e.g. 'dotnet husky'
