@@ -220,6 +220,7 @@ graph TD
 | shellcheck | `mise.toml` | Shell script linter |
 | actionlint | `mise.toml` | GitHub Actions workflow linter; also shellchecks `run:` scripts |
 | zizmor | `mise.toml` | GitHub Actions security linter (config in `.github/zizmor.yml`): token permissions, credential persistence, cache poisoning, template injection, unpinned actions; tag refs are allowed until Renovate's `helpers:pinGitHubActionDigests` pins them to SHAs |
+| lychee | `mise.toml` | Link checker for all tracked Markdown (config in `lychee.toml`; publishers that 403 bots are excluded); needs the network, so it runs weekly via `link-check.yml` and on demand via `mise run lint:links`, not per PR |
 | hadolint | `mise.toml` | Containerfile linter (config in `.hadolint.yaml`; ignores DL3008 since apt pins break under the floating .NET base image tag) |
 | typos | `mise.toml` | Spell checker for code and docs (config in `_typos.toml`; `en-us` locale, so British spellings fail; skips vendored `*.min.js` and the German strings in `LocalizedStrings.fs`) |
 | Vale | `mise.toml` | Prose linter for all tracked Markdown (config in `.vale.ini`): Vale core + the pinned proselint package (fetched by `vale sync`, gitignored; Renovate bumps its release URL via a regex custom manager in `renovate.json`) + a committed `BpMonitor` style in `.vale/styles/` enforcing `Recent view` over bare `Recent`; released CHANGELOG sections are skipped via `<!-- vale off -->`, so only new entries are checked |
@@ -241,12 +242,15 @@ mise run lint:actions # actionlint only
 mise run lint:actions-security # zizmor only
 mise run lint:container # hadolint only
 mise run lint:renovate # renovate.json validation only
+mise run lint:links   # lychee link check (network; not part of `lint`)
 mise exec -- biome check --write  # auto-fix safe JS issues
 ```
 
 **CI:** the `lint-markdown` (markdownlint + typos + Vale), `lint-js` (Biome + `tsc` checkJs), `lint-shell` (shellcheck + actionlint + zizmor + hadolint), and `lint-renovate` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
 
 **Image scanning:** `release.yml` builds the image into the runner's Docker daemon, runs `mise run scan:image` on it, and only then pushes to GHCR (the GitHub release job waits for it), so a release with a fixable CRITICAL/HIGH CVE never reaches `:latest`. Trivy is installed via mise rather than `aquasecurity/trivy-action`, whose tags were hijacked in a March 2026 supply-chain attack. `.github/workflows/image-scan.yml` rescans the published `:latest` weekly (and on demand) and uploads SARIF to the Security tab, without the gate's exceptions, because base-image CVEs appear after a release; a fixed one needs a new release, since the rebuild picks up the patched base image.
+
+**Link checking:** `.github/workflows/link-check.yml` runs `mise run lint:links` weekly (and on demand). External links break without a commit here, so it is not a PR check; instead it keeps a single open "Broken links in docs" issue up to date with the lychee report, and closes it once all links resolve again.
 
 **Release notes:** `.github/workflows/release.yml` builds the GitHub release body from the pushed tag's annotation followed by categorized notes from `scripts/release-notes.sh <tag>`, which groups commits since the previous tag (for a stable release, the previous stable one, skipping RCs) by conventional-commit type into the same Added/Changed/Fixed/Security/Maintenance headings as `CHANGELOG.md`, collapsing routine dependency bumps into a `<details>` block.
 

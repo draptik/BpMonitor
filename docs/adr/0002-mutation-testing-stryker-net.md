@@ -9,7 +9,7 @@ Rejected
 We wanted to raise confidence in the test suite beyond line coverage by adding mutation
 testing. Mutation testing deliberately introduces small faults ("mutants") into the code and
 checks whether the tests catch them, which exposes weak or assertion-free tests that line
-coverage alone cannot detect. [Stryker.NET](https://stryker-mutator.io/docs/stryker-net/) is
+coverage alone cannot detect. [Stryker.NET](https://stryker-mutator.io/docs/stryker-net/introduction/) is
 the de-facto mutation testing tool in the .NET ecosystem, so it was the natural candidate.
 
 ## Finding
@@ -20,8 +20,8 @@ Roslyn C# compiler. F# support exists upstream solely as incomplete groundwork t
 official documentation describes as work "added to secure F# support in the future"; it is
 not wired into the published tool and is not production-ready.
 
-See the official current-state page:
-<https://stryker-mutator.io/docs/stryker-net/technical-reference/fsharp/current-state/>
+See the official current-state page (removed from the Stryker docs in September 2026; last published version):
+<https://github.com/stryker-mutator/stryker-net/blob/757e1e621c581530f95446d75ca5312cfceab970/docs/technical-reference/fsharp/current-state.md>
 
 There is also no mature alternative mutation-testing tool for F# (e.g. Fettle is C#-only and
 inactive).

@@ -157,9 +157,10 @@ All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also ho
 - `_typos.toml` — typos spell-check config (`en-us` locale enforces the American-spelling rule; add real words it flags to `[default.extend-words]`)
 - `.vale.ini` + `.vale/styles/BpMonitor/` — Vale prose-lint config (proselint package fetched by `vale sync`, gitignored) and project rules such as "Recent view" naming; add a rule file there for new house-style terms
 - `.github/zizmor.yml` — zizmor GitHub Actions security-lint config (allows tag-pinned actions until Renovate pins them to SHAs)
+- `lychee.toml` — lychee link-check config; `link-check.yml` runs it weekly and keeps one "Broken links in docs" issue up to date
 - `.hadolint.yaml` — hadolint config for `code/BpMonitor.Web/Containerfile`
 - `.trivyignore.yaml` — path-scoped, expiring CVE exceptions for the release image gate (`mise run scan:image -- <image>`, run by `release.yml` before pushing); `image-scan.yml` rescans `:latest` weekly into the Security tab
-- Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:spelling` / `lint:prose` / `lint:shell` / `lint:actions` / `lint:actions-security` / `lint:container` / `lint:renovate` individually
+- Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:spelling` / `lint:prose` / `lint:shell` / `lint:actions` / `lint:actions-security` / `lint:container` / `lint:renovate` individually; `mise run lint:links` checks Markdown links (network, so not part of `lint`)
 - Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium and Firefox)
 - Run `mise exec -- biome check --write` to auto-fix JS issues
 - Run `mise run bench` for the BenchmarkDotNet suite (`BpMonitor.Benchmarks`, a few minutes); `mise run bench -- --job short` for a quick check

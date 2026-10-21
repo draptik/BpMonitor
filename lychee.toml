@@ -1,0 +1,10 @@
+# Link check for tracked Markdown (`mise run lint:links`; weekly via link-check.yml)
+max_concurrency = 8
+timeout = 20
+max_retries = 2
+
+exclude = [
+  # publishers that answer bots with 403; the links work in a browser
+  '^https://doi\.org/10\.1093/',
+  '^https://academic\.oup\.com/',
+]
