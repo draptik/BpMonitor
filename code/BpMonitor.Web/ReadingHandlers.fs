@@ -31,7 +31,7 @@ module ReadingHandlers =
     htmlResponse (ReadingViews.readingForm s active memberName isAdmin title action returnTo errors model) ctx
 
   /// Allowlists where a reading edit may return to, so the param can't redirect off-site.
-  /// A Trends period must rebuild to the exact same URL, since the form's Cancel href is written unencoded.
+  /// A Trends period must rebuild to the exact same URL, so only canonical period links pass.
   let private returnTarget (now: System.DateTimeOffset) (page: string) =
     if List.contains page Routes.readingReturnTargets then
       page
@@ -45,10 +45,10 @@ module ReadingHandlers =
         | _ -> None
 
       let rebuilt =
-        param "gran"
+        param Routes.trendsGranParam
         |> Option.bind TrendPeriod.parseGranularity
         |> Option.bind (fun gran ->
-          param "key"
+          param Routes.trendsKeyParam
           |> Option.bind (fun key -> TrendPeriod.ofKey gran key now)
           |> Option.map (fun p -> Routes.trendsPeriod gran p.Key))
 
@@ -304,11 +304,11 @@ module ReadingHandlers =
       let allReadings = (repo ctx).GetAll(m.Id)
 
       let gran =
-        queryStr ctx "gran"
+        queryStr ctx Routes.trendsGranParam
         |> Option.bind TrendPeriod.parseGranularity
         |> Option.defaultValue Weekly
 
-      let period = periodFor gran (queryStr ctx "key") now
+      let period = periodFor gran (queryStr ctx Routes.trendsKeyParam) now
 
       let summary, periods, periodsWithData, tableReadings, chartHtml =
         renderTrendsData s gran period now m allReadings

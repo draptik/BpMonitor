@@ -256,7 +256,7 @@ module ViewLayout =
       [ Attr.class' "actions" ]
       [
         Elem.button [ Attr.type' "submit" ] [ Text.raw s.Shell.Save ]
-        Elem.a [ Attr.href cancelHref; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw s.Shell.Cancel ]
+        Elem.a [ encAttr "href" cancelHref; Attr.role "button"; Attr.class' "secondary" ] [ Text.raw s.Shell.Cancel ]
       ]
 
   /// A single labeled form field: `<div class="field"><label/><input/></div>`.
