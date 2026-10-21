@@ -8,6 +8,7 @@ hadolint = "2.15.1"
 trivy = "0.76.0"
 typos = "1.51.1"
 vale = "3.24.0"
+zizmor = "1.31.1"
 "npm:typescript" = "7.0.2"
 # @yarnpkg/libzip 3.2.2 was hand-published by Yarn's maintainer without provenance (3.2.0/3.2.1 had it)
 "npm:renovate" = { version = "44.131.0", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
@@ -38,6 +39,10 @@ run = 'find . -name "*.sh" -not -path "./.husky/_/*" | xargs -r shellcheck'
 # also shellchecks workflow run: scripts via the pinned shellcheck
 run = "actionlint"
 
+[tasks."lint:actions-security"]
+# config in .github/zizmor.yml; --offline skips the audits that query the GitHub API
+run = "zizmor --offline .github/workflows"
+
 [tasks."lint:container"]
 run = "hadolint code/BpMonitor.Web/Containerfile"
 
@@ -50,7 +55,7 @@ env = { RENOVATE_X_IGNORE_RE2 = "true" }  # re2 native build is skipped by mise;
 run = "renovate-config-validator --strict"
 
 [tasks.lint]
-depends = ["lint:md", "lint:spelling", "lint:prose", "lint:js", "lint:ts", "lint:shell", "lint:actions", "lint:container", "lint:renovate"]
+depends = ["lint:md", "lint:spelling", "lint:prose", "lint:js", "lint:ts", "lint:shell", "lint:actions", "lint:actions-security", "lint:container", "lint:renovate"]
 
 [tasks.bench]
 description = "Runs the BenchmarkDotNet suite (BpMonitor.Benchmarks); pass `-- --job short` for a quick run"

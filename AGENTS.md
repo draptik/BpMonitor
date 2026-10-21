@@ -100,7 +100,7 @@ Never start work on `main`. Creating the branch is the first step, not an aftert
 
 `.claude/hooks/` mechanically enforces the branch-first, no-attribution, PR-preflight
 (CHANGELOG/docs sync reminders), and `/verify-frontend` rules described here and in
-`.claude/skills/verify-frontend/SKILL.md`; `.husky/` handles formatting, spelling (typos) and prose (Vale) checks on staged files, blocks
+`.claude/skills/verify-frontend/SKILL.md`; `.husky/` handles formatting, spelling (typos), prose (Vale) and workflow-security (zizmor) checks on staged files, blocks
 commits on `main`, and rejects a commit message whose gitmoji doesn't match its
 conventional-commit type (see the table in `.claude/skills/git-workflow/SKILL.md`).
 
@@ -156,9 +156,10 @@ All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also ho
 - `.markdownlint-cli2.yaml` — markdownlint config
 - `_typos.toml` — typos spell-check config (`en-us` locale enforces the American-spelling rule; add real words it flags to `[default.extend-words]`)
 - `.vale.ini` + `.vale/styles/BpMonitor/` — Vale prose-lint config (proselint package fetched by `vale sync`, gitignored) and project rules such as "Recent view" naming; add a rule file there for new house-style terms
+- `.github/zizmor.yml` — zizmor GitHub Actions security-lint config (allows tag-pinned actions until Renovate pins them to SHAs)
 - `.hadolint.yaml` — hadolint config for `code/BpMonitor.Web/Containerfile`
 - `.trivyignore.yaml` — path-scoped, expiring CVE exceptions for the release image gate (`mise run scan:image -- <image>`, run by `release.yml` before pushing); `image-scan.yml` rescans `:latest` weekly into the Security tab
-- Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:spelling` / `lint:prose` / `lint:shell` / `lint:actions` / `lint:container` / `lint:renovate` individually
+- Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:spelling` / `lint:prose` / `lint:shell` / `lint:actions` / `lint:actions-security` / `lint:container` / `lint:renovate` individually
 - Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium and Firefox)
 - Run `mise exec -- biome check --write` to auto-fix JS issues
 - Run `mise run bench` for the BenchmarkDotNet suite (`BpMonitor.Benchmarks`, a few minutes); `mise run bench -- --job short` for a quick check

@@ -11,6 +11,14 @@
          "staged": true
       },
       {
+         "name": "zizmor",
+         "group": "pre-commit",
+         "command": "mise",
+         "args": ["exec", "--", "zizmor", "--offline", "${staged}"],
+         "include": [".github/workflows/*.yml"],
+         "staged": true
+      },
+      {
          "name": "markdownlint",
          "group": "pre-commit",
          "command": "mise",

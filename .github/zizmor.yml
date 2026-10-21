@@ -1,0 +1,10 @@
+# GitHub Actions security lint (`mise run lint:actions-security`)
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        # tags allowed until Renovate's digest-pinning PR lands; then drop this to require SHAs
+        "*": ref-pin
+  superfluous-actions:
+    # action-gh-release also uploads the asset and sets the prerelease flag; gh release would be taste, not safety
+    disable: true
