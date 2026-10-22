@@ -70,6 +70,23 @@ bump() {
   echo "v${major}.${minor}.${patch}"
 }
 
+# Newest tag first; versionsort.suffix sorts v1.2.0-rc1 before v1.2.0 (git's default puts it after).
+tags_newest_first() {
+  git -c versionsort.suffix=- tag --sort=-v:refname
+}
+
+latest_stable_tag() {
+  tags_newest_first | grep -v -- - | head -1
+}
+
+# A stable release compares against the previous stable one (like release-notes.sh), an rc against any tag.
+compare_base() {
+  case "$1" in
+    *-*) tags_newest_first | head -1 ;;
+    *) latest_stable_tag ;;
+  esac
+}
+
 choose_version() {
   local last_tag=$1 preselect=${2:-}
   local p m j
@@ -142,12 +159,12 @@ edit_summary() {
 # Insert a new version section right after ## [Unreleased] (clearing its body),
 # and update the [Unreleased]/[X.Y.Z] compare links at the bottom of the file.
 update_changelog() {
-  local changelog=$1 v=$2 today=$3 prev_tag=$4 new_tag=$5 body=$6
+  local changelog=$1 v=$2 today=$3 unreleased_base=$4 prev_tag=$5 new_tag=$6 body=$7
   local body_file
   body_file=$(mktemp)
   printf '%s\n' "$body" >"$body_file"
 
-  local old_link="[Unreleased]: https://github.com/${REPO}/compare/${prev_tag}...HEAD"
+  local old_link="[Unreleased]: https://github.com/${REPO}/compare/${unreleased_base}...HEAD"
   if ! grep -qF "$old_link" "$changelog"; then
     echo "Error: could not find expected link line in CHANGELOG.md:" >&2
     echo "  $old_link" >&2
@@ -192,15 +209,16 @@ cmd_prepare() {
   local preselect=${1:-}
   preflight
 
-  local last_tag
-  last_tag=$(git tag --sort=-v:refname | head -1)
+  local latest_tag last_tag
+  latest_tag=$(tags_newest_first | head -1)
   echo "Recent tags:"
-  git tag --sort=-v:refname | head -5
+  tags_newest_first | head -5
   echo ""
 
   local version
-  version=$(choose_version "$last_tag" "$preselect")
+  version=$(choose_version "$(latest_stable_tag)" "$preselect")
   [ -n "$version" ] || { echo "Error: no version chosen" >&2; exit 1; }
+  last_tag=$(compare_base "$version")
 
   echo ""
   echo "== Changes since ${last_tag} =="
@@ -233,7 +251,7 @@ cmd_prepare() {
   local today
   today=$(date +%Y-%m-%d)
 
-  update_changelog "$changelog" "$v" "$today" "$last_tag" "$version" "$summary"
+  update_changelog "$changelog" "$v" "$today" "$latest_tag" "$last_tag" "$version" "$summary"
 
   echo ""
   echo "== CHANGELOG.md diff =="

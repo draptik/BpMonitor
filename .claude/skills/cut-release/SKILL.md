@@ -32,10 +32,12 @@ Inform the user of any failures before proceeding.
 ## Step 2 — Determine version
 
 ```bash
-git tag --sort=-v:refname | head -5    # inspect recent tags
+# versionsort.suffix sorts v1.2.0-rc1 before v1.2.0; git's default puts it after
+git -c versionsort.suffix=- tag --sort=-v:refname | head -5               # recent tags
+git -c versionsort.suffix=- tag --sort=-v:refname | grep -v -- - | head -1 # latest stable
 ```
 
-Calculate the three candidate versions from the latest tag, then **ask the user
+Calculate the three candidate versions from the latest **stable** tag, then **ask the user
 which version to use** — even if `$ARGUMENTS` already contains one (treat it as
 a default pre-selection, not a skip). Present the options like this:
 
@@ -59,8 +61,13 @@ Pre-release suffix `-rcN` is allowed — the workflow automatically marks
 
 ## Step 3 — Gather changes
 
+`LAST_TAG` is the previous **stable** tag for a stable release, or the latest tag
+of any kind for a pre-release, matching how `scripts/release-notes.sh` picks the
+range:
+
 ```bash
-LAST_TAG=$(git tag --sort=-v:refname | head -1)
+LAST_TAG=$(git -c versionsort.suffix=- tag --sort=-v:refname | grep -v -- - | head -1)  # stable release
+# LAST_TAG=$(git -c versionsort.suffix=- tag --sort=-v:refname | head -1)              # pre-release
 git log "${LAST_TAG}..HEAD" --oneline
 ```
 
@@ -155,10 +162,12 @@ Edit `CHANGELOG.md`:
    ```
 
 3. Update the link-reference block at the bottom of the file:
-   - Change `[Unreleased]` to compare the new tag to `HEAD`:
+   - Change `[Unreleased]` (which currently compares the latest tag of any kind to
+     `HEAD`) to compare the new tag to `HEAD`:
      `[Unreleased]: https://github.com/draptik/BpMonitor/compare/vX.Y.Z...HEAD`
    - Add a new compare line for the new version above the previous latest:
-     `[X.Y.Z]: https://github.com/draptik/BpMonitor/compare/vPREV...vX.Y.Z`
+     `[X.Y.Z]: https://github.com/draptik/BpMonitor/compare/vPREV...vX.Y.Z`, where `vPREV`
+     is the `LAST_TAG` from Step 3
 
 Regenerate the marketing screenshots on the same branch and review the diff —
 they only need to change when the UI has:
