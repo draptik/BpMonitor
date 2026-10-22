@@ -1,5 +1,6 @@
 namespace BpMonitor.Web
 
+open System
 open Falco.Markup
 open BpMonitor.Core
 open BpMonitor.Charts
@@ -77,8 +78,7 @@ module ReadingViews =
 
   /// A reading older than `windowStart` is tagged `out-of-range` (app.css hides it) until
   /// pan/zoom (recent-scrubber.js) or the value strip's own toggling brings it into view.
-  let private isOutOfRange (windowStart: System.DateTimeOffset) (timestamp: System.DateTimeOffset) =
-    timestamp < windowStart
+  let private isOutOfRange (windowStart: DateTimeOffset) (timestamp: DateTimeOffset) = timestamp < windowStart
 
   /// The swappable chart container: zoom/load-full buttons, value strip, chart, citation.
   let recentChartContainer
@@ -86,8 +86,8 @@ module ReadingViews =
     (activeMember: FamilyMember)
     (chartHtml: string)
     (allReadings: BloodPressureReading list)
-    (windowStart: System.DateTimeOffset)
-    (now: System.DateTimeOffset)
+    (windowStart: DateTimeOffset)
+    (now: DateTimeOffset)
     (zoomShortcutDays: (string * float) list)
     (showLoadFull: bool)
     (medicationsPanel: XmlNode)
@@ -222,8 +222,8 @@ module ReadingViews =
     (activeMember: FamilyMember)
     (chartHtml: string)
     (allReadings: BloodPressureReading list)
-    (windowStart: System.DateTimeOffset)
-    (now: System.DateTimeOffset)
+    (windowStart: DateTimeOffset)
+    (now: DateTimeOffset)
     (zoomShortcutDays: (string * float) list)
     (showLoadFull: bool)
     (medicationsPanel: XmlNode)

@@ -1,5 +1,8 @@
 namespace BpMonitor.Web
 
+open System
+open BpMonitor.Core
+
 /// Navigation targets used in redirects and links — single source of truth.
 module Routes =
   let home = "/"
@@ -25,7 +28,7 @@ module Routes =
   // Parametric URL builders for id-scoped resources.
   /// `returnTo` is the page that save/cancel lead back to.
   let readingEdit (id: int) (returnTo: string) =
-    $"/readings/{id}/edit?{FormFields.returnTo}={System.Uri.EscapeDataString returnTo}"
+    $"/readings/{id}/edit?{FormFields.returnTo}={Uri.EscapeDataString returnTo}"
 
   let readingUpdate (id: int) = $"/readings/{id}"
   let memberEdit (id: int) = $"/members/{id}/edit"
@@ -43,5 +46,5 @@ module Routes =
   let trendsKeyParam = "key"
 
   /// The full Trends page opened on one period (the `/trends/{gran}/{key}` routes are fragments).
-  let trendsPeriod (gran: BpMonitor.Core.Granularity) (key: string) =
+  let trendsPeriod (gran: Granularity) (key: string) =
     $"{trends}?{trendsGranParam}={BpMonitor.Core.TrendPeriod.slug gran}&{trendsKeyParam}={System.Uri.EscapeDataString key}"

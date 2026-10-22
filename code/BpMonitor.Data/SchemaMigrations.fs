@@ -1,12 +1,15 @@
 namespace BpMonitor.Data
 
+open System
+open System.Data
+open System.Globalization
 open Microsoft.EntityFrameworkCore
 open BpMonitor.Core
 
 module SchemaMigrations =
-  let private withConn (ctx: BpMonitorDbContext) (f: System.Data.IDbConnection -> 'a) : 'a =
+  let private withConn (ctx: BpMonitorDbContext) (f: IDbConnection -> 'a) : 'a =
     let conn = ctx.Database.GetDbConnection()
-    let wasOpen = conn.State = System.Data.ConnectionState.Open
+    let wasOpen = conn.State = ConnectionState.Open
 
     if not wasOpen then
       conn.Open()
@@ -17,7 +20,7 @@ module SchemaMigrations =
       if not wasOpen then
         conn.Close()
 
-  let private scalarInt64 (conn: System.Data.IDbConnection) (sql: string) : int64 =
+  let private scalarInt64 (conn: IDbConnection) (sql: string) : int64 =
     use cmd = conn.CreateCommand()
     cmd.CommandText <- sql
     cmd.ExecuteScalar() :?> int64
@@ -75,10 +78,7 @@ module SchemaMigrations =
 
     if count = 0L then
       let now =
-        System.DateTimeOffset.UtcNow.ToString(
-          "yyyy-MM-dd HH:mm:ss zzz",
-          System.Globalization.CultureInfo.InvariantCulture
-        )
+        DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss zzz", CultureInfo.InvariantCulture)
 
       let goal = GoalRange.defaults
 

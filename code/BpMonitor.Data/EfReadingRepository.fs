@@ -1,5 +1,6 @@
 namespace BpMonitor.Data
 
+open System
 open Microsoft.EntityFrameworkCore
 open BpMonitor.Core
 
@@ -17,13 +18,13 @@ module private Mapping =
       ModifiedAt = r.ModifiedAt
     }
 
-  let withTimestamps (now: System.DateTimeOffset) (r: BloodPressureReading) =
+  let withTimestamps (now: DateTimeOffset) (r: BloodPressureReading) =
     { r with
         CreatedAt = now
         ModifiedAt = now
     }
 
-  let withModifiedAt (now: System.DateTimeOffset) (r: BloodPressureReading) = { r with ModifiedAt = now }
+  let withModifiedAt (now: DateTimeOffset) (r: BloodPressureReading) = { r with ModifiedAt = now }
 
   let toEntity (r: BloodPressureReading) : ReadingRecord =
     {
@@ -38,7 +39,7 @@ module private Mapping =
       ModifiedAt = r.ModifiedAt
     }
 
-type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvider) =
+type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: TimeProvider) =
   interface IReadingRepository with
     member _.GetAll(memberId) =
       query {

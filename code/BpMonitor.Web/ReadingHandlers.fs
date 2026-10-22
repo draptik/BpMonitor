@@ -1,8 +1,12 @@
 namespace BpMonitor.Web
 
+open System
+open System.Globalization
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.WebUtilities
 open Microsoft.Extensions.Logging
+open Falco.Markup
 open FsToolkit.ErrorHandling
 open BpMonitor.Core
 open BpMonitor.Charts
@@ -25,7 +29,7 @@ module ReadingHandlers =
 
   /// What a full-Trends query selects (`param` looks up one query parameter): its
   /// granularity (default Weekly) and, if its key is valid, the period.
-  let private trendsSelection (param: string -> string option) (now: System.DateTimeOffset) =
+  let private trendsSelection (param: string -> string option) (now: DateTimeOffset) =
     let gran =
       param Routes.trendsGranParam
       |> Option.bind TrendPeriod.parseGranularity
@@ -37,12 +41,11 @@ module ReadingHandlers =
 
   /// Allowlists where a reading edit may return to, so the param can't redirect off-site.
   /// A Trends query returns to the canonical URL of the period that page would show.
-  let private returnTarget (now: System.DateTimeOffset) (page: string) =
+  let private returnTarget (now: DateTimeOffset) (page: string) =
     if List.contains page Routes.readingReturnTargets then
       page
-    elif page.StartsWith(Routes.trends + "?", System.StringComparison.Ordinal) then
-      let query =
-        Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(page.Substring Routes.trends.Length)
+    elif page.StartsWith(Routes.trends + "?", StringComparison.Ordinal) then
+      let query = QueryHelpers.ParseQuery(page.Substring Routes.trends.Length)
 
       let param (key: string) =
         match query.TryGetValue key with
@@ -103,8 +106,8 @@ module ReadingHandlers =
 
   // ── Medications Timeline (Wegier et al. 2021 Fig. 5): shared by /history and /recent ──
 
-  let private toLocalDateOnly (ts: System.DateTimeOffset) : System.DateOnly =
-    System.DateOnly.FromDateTime(ts.ToLocalTime().Date)
+  let private toLocalDateOnly (ts: DateTimeOffset) : DateOnly =
+    DateOnly.FromDateTime(ts.ToLocalTime().Date)
 
   /// Renders the Medications Timeline panel, opening on `rangeLow`–`rangeHigh`. The caller
   /// picks `medications` to match the BP chart's loaded data, which can reach beyond that
@@ -113,9 +116,9 @@ module ReadingHandlers =
     (s: LocalizedStrings)
     (medications: Medication list)
     (showScrubber: bool)
-    (rangeLow: System.DateTimeOffset)
-    (rangeHigh: System.DateTimeOffset)
-    : Falco.Markup.XmlNode =
+    (rangeLow: DateTimeOffset)
+    (rangeHigh: DateTimeOffset)
+    : XmlNode =
     let chartHtml =
       BpChart.toHtmlMedications
         s.Charts
@@ -130,15 +133,15 @@ module ReadingHandlers =
   /// own span. Readings count with their actual time, medication dates as local midnight
   /// (with that date's own UTC offset), and an ongoing medication (EndDate = None) as now.
   let private medicationsSpan
-    (tp: System.TimeProvider)
+    (tp: TimeProvider)
     (readings: BloodPressureReading list)
     (medications: Medication list)
-    : System.DateTimeOffset * System.DateTimeOffset =
+    : DateTimeOffset * DateTimeOffset =
     let now = tp.GetUtcNow()
 
-    let localMidnight (d: System.DateOnly) =
-      let local = d.ToDateTime(System.TimeOnly.MinValue)
-      System.DateTimeOffset(local, System.TimeZoneInfo.Local.GetUtcOffset local)
+    let localMidnight (d: DateOnly) =
+      let local = d.ToDateTime(TimeOnly.MinValue)
+      DateTimeOffset(local, TimeZoneInfo.Local.GetUtcOffset local)
 
     let points =
       (readings |> List.map _.Timestamp)
@@ -178,7 +181,7 @@ module ReadingHandlers =
   let private renderRecentChart
     (s: LocalizedStrings)
     (m: FamilyMember)
-    (now: System.DateTimeOffset)
+    (now: DateTimeOffset)
     (readings: BloodPressureReading list)
     =
     let windowStart = now.AddDays(-float recentChartWindowDays)
@@ -239,7 +242,7 @@ module ReadingHandlers =
 
       let medications =
         (medicationRepo ctx).GetAll(m.Id)
-        |> Medication.overlapping System.DateOnly.MinValue (toLocalDateOnly now)
+        |> Medication.overlapping DateOnly.MinValue (toLocalDateOnly now)
 
       let panel =
         medicationsPanel s medications true windowStart (BpChart.recentAxisEnd windowStart now)
@@ -261,7 +264,7 @@ module ReadingHandlers =
     (s: LocalizedStrings)
     (gran: Granularity)
     (period: TrendPeriod)
-    (now: System.DateTimeOffset)
+    (now: DateTimeOffset)
     (m: FamilyMember)
     (allReadings: BloodPressureReading list)
     =
@@ -287,7 +290,7 @@ module ReadingHandlers =
     summary, periods, periodsWithData, tableReadings, chartHtml
 
   /// The period `key` names, or the current one when it's missing or outside the strip.
-  let private periodFor (gran: Granularity) (key: string option) (now: System.DateTimeOffset) =
+  let private periodFor (gran: Granularity) (key: string option) (now: DateTimeOffset) =
     key
     |> Option.bind (fun k -> visiblePeriod gran k now)
     |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
@@ -429,9 +432,7 @@ module ReadingHandlers =
       let prefill =
         { Binding.empty with
             Binding.Timestamp =
-              (timeProvider ctx)
-                .GetLocalNow()
-                .ToString(Formats.timestamp, System.Globalization.CultureInfo.InvariantCulture)
+              (timeProvider ctx).GetLocalNow().ToString(Formats.timestamp, CultureInfo.InvariantCulture)
         }
 
       htmlResponse (ReadingViews.readingForm s m (ReadingViews.addPage s) [] prefill) ctx)

@@ -1,5 +1,7 @@
 namespace BpMonitor.Core
 
+open System
+
 /// A year DateTime can represent (1..9999).
 type CalendarYear = private CalendarYear of int
 
@@ -54,12 +56,11 @@ type TrendPeriod =
     Granularity: Granularity
     Key: string // URL-safe: "2026-W24" | "2026-06" | "2026"
     Label: PeriodLabel
-    Start: System.DateTimeOffset // inclusive, local midnight
-    EndExclusive: System.DateTimeOffset
+    Start: DateTimeOffset // inclusive, local midnight
+    EndExclusive: DateTimeOffset
   }
 
 module IsoWeek =
-  open System
   open System.Globalization
 
   let tryCreate (year: CalendarYear) (week: int) : IsoWeek option =
@@ -79,8 +80,6 @@ module IsoWeek =
     ISOWeek.ToDateTime(CalendarYear.value w.Year, w.Week, DayOfWeek.Monday)
 
 module YearMonth =
-  open System
-
   let tryCreate (year: CalendarYear) (month: int) : YearMonth option =
     if month >= 1 && month <= 12 then
       Some { Year = year; Month = month }
@@ -97,7 +96,6 @@ module YearMonth =
     DateTime(CalendarYear.value ym.Year, ym.Month, 1)
 
 module TrendPeriod =
-  open System
   // ── private helpers ─────────────────────────────────────────────────────────
 
   let private localMidnight (date: DateTime) : DateTimeOffset =

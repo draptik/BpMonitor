@@ -1,11 +1,14 @@
 namespace BpMonitor.Core
 
+open System
+open System.Globalization
+
 type BloodPressureReadingUnvalidated =
   {
     Systolic: int
     Diastolic: int
     HeartRate: int
-    Timestamp: System.DateTimeOffset
+    Timestamp: DateTimeOffset
     Comments: string option
   }
 
@@ -16,10 +19,10 @@ type BloodPressureReading =
     Systolic: int
     Diastolic: int
     HeartRate: int
-    Timestamp: System.DateTimeOffset
+    Timestamp: DateTimeOffset
     Comments: string option
-    CreatedAt: System.DateTimeOffset
-    ModifiedAt: System.DateTimeOffset
+    CreatedAt: DateTimeOffset
+    ModifiedAt: DateTimeOffset
   }
 
 type ValidationError =
@@ -39,29 +42,29 @@ type ReadingRanges =
 
 module Timestamp =
   let utc year month day hour minute second =
-    System.DateTimeOffset(year, month, day, hour, minute, second, System.TimeSpan.Zero)
+    DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.Zero)
 
   let local year month day hour minute second =
     let offset =
-      System.TimeZoneInfo.Local.GetUtcOffset(System.DateTime(year, month, day, hour, minute, second))
+      TimeZoneInfo.Local.GetUtcOffset(DateTime(year, month, day, hour, minute, second))
 
-    System.DateTimeOffset(year, month, day, hour, minute, second, offset)
+    DateTimeOffset(year, month, day, hour, minute, second, offset)
 
 module Formats =
   let timestamp = "yyyy-MM-dd HH:mm"
 
-  let formatLocal (ts: System.DateTimeOffset) =
-    ts.ToLocalTime().ToString(timestamp, System.Globalization.CultureInfo.InvariantCulture)
+  let formatLocal (ts: DateTimeOffset) =
+    ts.ToLocalTime().ToString(timestamp, CultureInfo.InvariantCulture)
 
   let date = "yyyy-MM-dd"
 
-  let formatDate (d: System.DateOnly) =
-    d.ToString(date, System.Globalization.CultureInfo.InvariantCulture)
+  let formatDate (d: DateOnly) =
+    d.ToString(date, CultureInfo.InvariantCulture)
 
   let dateEuropean = "dd.MM.yyyy"
 
-  let formatDateEuropean (d: System.DateOnly) =
-    d.ToString(dateEuropean, System.Globalization.CultureInfo.InvariantCulture)
+  let formatDateEuropean (d: DateOnly) =
+    d.ToString(dateEuropean, CultureInfo.InvariantCulture)
 
 module ReadingRanges =
   let defaults =
@@ -114,7 +117,7 @@ module BloodPressureReading =
           HeartRate = hr
           Timestamp = input.Timestamp
           Comments = input.Comments
-          CreatedAt = System.DateTimeOffset.MinValue
-          ModifiedAt = System.DateTimeOffset.MinValue
+          CreatedAt = DateTimeOffset.MinValue
+          ModifiedAt = DateTimeOffset.MinValue
         }
     }

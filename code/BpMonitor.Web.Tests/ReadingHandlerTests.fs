@@ -1,10 +1,13 @@
 module ReadingHandlerTests
 
+open System.Globalization
 open System.Text.RegularExpressions
 open Xunit
 open Swensen.Unquote
+open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
+open BpMonitor.TestSupport
 open BpMonitor.Web
 open HandlerTestHelpers
 
@@ -65,10 +68,10 @@ let ``newReading prefills the timestamp in the Gregorian calendar, whatever the 
   let tp = FakeTimeProvider(Timestamp.utc 2026 6 9 8 0 0)
   let ctx = TestHost.contextWithProvider (repoWith []) tp
 
-  BpMonitor.TestSupport.CultureScope.withCulture "th-TH" (fun () -> TestHost.run ReadingHandlers.newReading ctx)
+  CultureScope.withCulture "th-TH" (fun () -> TestHost.run ReadingHandlers.newReading ctx)
 
   let expected =
-    tp.GetLocalNow().ToString(Formats.timestamp, System.Globalization.CultureInfo.InvariantCulture)
+    tp.GetLocalNow().ToString(Formats.timestamp, CultureInfo.InvariantCulture)
 
   test <@ (TestHost.readBody ctx).Contains $"value=\"{expected}\"" @>
 
@@ -197,7 +200,7 @@ let ``editReading hands an allowlisted return target to the form`` (requested: s
   let tp = FakeTimeProvider(returnNow)
   let ctx = TestHost.contextWithProvider repo tp
   TestHost.setRouteId ctx 1
-  ctx.Request.QueryString <- Microsoft.AspNetCore.Http.QueryString.Create(FormFields.returnTo, requested)
+  ctx.Request.QueryString <- QueryString.Create(FormFields.returnTo, requested)
   TestHost.run ReadingHandlers.editReading ctx
 
   test <@ (TestHost.readBody ctx).Contains $"name=\"{FormFields.returnTo}\" value=\"{expected}\"" @>

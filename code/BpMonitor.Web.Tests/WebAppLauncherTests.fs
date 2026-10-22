@@ -1,5 +1,6 @@
 module WebAppLauncherTests
 
+open System
 open BpMonitor.Web.E2E
 open Xunit
 
@@ -29,7 +30,6 @@ type WebAppLauncherTests() =
   [<Fact>]
   member _.``fails clearly when the output directory doesn't look like a bin/config/tfm path``() =
     let ex =
-      Assert.Throws<System.Exception>(fun () ->
-        WebAppLauncher.resolveAppDll "/repo/code" "/somewhere/unexpected" |> ignore)
+      Assert.Throws<Exception>(fun () -> WebAppLauncher.resolveAppDll "/repo/code" "/somewhere/unexpected" |> ignore)
 
     Assert.Contains("Could not resolve", ex.Message)

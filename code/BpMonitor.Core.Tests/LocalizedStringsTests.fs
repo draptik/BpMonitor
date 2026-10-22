@@ -1,6 +1,8 @@
 module LocalizedStringsTests
 
 open System
+open System.Globalization
+open System.Threading
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
@@ -98,14 +100,14 @@ let ``de differs from en on every field not in the shared-vocabulary allowlist``
 
 [<Fact>]
 let ``en Trend.MonthOfYear formats with English month names regardless of the ambient thread culture`` () =
-  let original = System.Threading.Thread.CurrentThread.CurrentCulture
+  let original = Thread.CurrentThread.CurrentCulture
 
   try
-    System.Threading.Thread.CurrentThread.CurrentCulture <- System.Globalization.CultureInfo("de-DE")
+    Thread.CurrentThread.CurrentCulture <- CultureInfo("de-DE")
     let label = LocalizedStrings.en.Trend.MonthOfYear 3 2026
     test <@ label = "Mar 2026" @>
   finally
-    System.Threading.Thread.CurrentThread.CurrentCulture <- original
+    Thread.CurrentThread.CurrentCulture <- original
 
 // ShortWeekdays is a `string list`, invisible to the reflection-based introspection above.
 [<Fact>]

@@ -1,5 +1,8 @@
 namespace BpMonitor.Core
 
+open System
+open System.Globalization
+
 /// Shell chrome: nav links, topbar, page shell primitives shared by every page.
 type ShellStrings =
   {
@@ -173,8 +176,8 @@ type ChartStrings =
     Ongoing: string
     AxisTitle: string
     CalendarWeekTick: int -> string
-    DayMonthTick: System.DateTime -> string
-    MonthTick: System.DateTime -> string
+    DayMonthTick: DateTime -> string
+    MonthTick: DateTime -> string
     /// Sunday-first abbreviated weekday names, for Plotly's locale mechanism (see Charts.fs).
     ShortWeekdays: string list
   }
@@ -336,9 +339,7 @@ module LocalizedStrings =
           CalendarWeekOfYear = fun week year -> $"CW {week}/{year}"
           ThisMonth = "This Month"
           LastMonth = "Last Month"
-          MonthOfYear =
-            fun month year ->
-              System.DateTime(year, month, 1).ToString("MMM yyyy", System.Globalization.CultureInfo("en-US"))
+          MonthOfYear = fun month year -> DateTime(year, month, 1).ToString("MMM yyyy", CultureInfo("en-US"))
           ThisYear = "This Year"
           LastYear = "Last Year"
           Year = fun year -> string year
@@ -367,11 +368,9 @@ module LocalizedStrings =
           Ongoing = "ongoing"
           AxisTitle = "blood pressure [mmHg]"
           CalendarWeekTick = fun week -> $"W{week}"
-          DayMonthTick = fun date -> date.ToString("d MMM", System.Globalization.CultureInfo("en-US"))
-          MonthTick = fun date -> date.ToString("MMM", System.Globalization.CultureInfo("en-US"))
-          ShortWeekdays =
-            System.Globalization.CultureInfo("en-US").DateTimeFormat.AbbreviatedDayNames
-            |> Array.toList
+          DayMonthTick = fun date -> date.ToString("d MMM", CultureInfo("en-US"))
+          MonthTick = fun date -> date.ToString("MMM", CultureInfo("en-US"))
+          ShortWeekdays = CultureInfo("en-US").DateTimeFormat.AbbreviatedDayNames |> Array.toList
         }
     }
 
@@ -515,9 +514,7 @@ module LocalizedStrings =
           CalendarWeekOfYear = fun week year -> $"KW {week}/{year}"
           ThisMonth = "Dieser Monat"
           LastMonth = "Letzter Monat"
-          MonthOfYear =
-            fun month year ->
-              System.DateTime(year, month, 1).ToString("MMM yyyy", System.Globalization.CultureInfo("de-DE"))
+          MonthOfYear = fun month year -> DateTime(year, month, 1).ToString("MMM yyyy", CultureInfo("de-DE"))
           ThisYear = "Dieses Jahr"
           LastYear = "Letztes Jahr"
           Year = fun year -> string year
@@ -548,11 +545,9 @@ module LocalizedStrings =
           Ongoing = "laufend"
           AxisTitle = "Blutdruck [mmHg]"
           CalendarWeekTick = fun week -> $"KW{week}"
-          DayMonthTick = fun date -> date.ToString("d. MMM", System.Globalization.CultureInfo("de-DE"))
-          MonthTick = fun date -> date.ToString("MMM", System.Globalization.CultureInfo("de-DE"))
-          ShortWeekdays =
-            System.Globalization.CultureInfo("de-DE").DateTimeFormat.AbbreviatedDayNames
-            |> Array.toList
+          DayMonthTick = fun date -> date.ToString("d. MMM", CultureInfo("de-DE"))
+          MonthTick = fun date -> date.ToString("MMM", CultureInfo("de-DE"))
+          ShortWeekdays = CultureInfo("de-DE").DateTimeFormat.AbbreviatedDayNames |> Array.toList
         }
     }
 

@@ -1,5 +1,6 @@
 module EfTestContext
 
+open System
 open Xunit
 open Microsoft.Data.Sqlite
 open Microsoft.EntityFrameworkCore
@@ -23,7 +24,7 @@ let createContextWithLog (log: ResizeArray<string>) =
   let options =
     DbContextOptionsBuilder<BpMonitorDbContext>()
       .UseSqlite(connection)
-      .LogTo(System.Action<string>(fun s -> log.Add(s)))
+      .LogTo(Action<string>(fun s -> log.Add(s)))
       .Options
 
   let ctx = new BpMonitorDbContext(options)

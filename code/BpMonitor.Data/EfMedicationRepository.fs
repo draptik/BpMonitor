@@ -1,5 +1,6 @@
 namespace BpMonitor.Data
 
+open System
 open Microsoft.EntityFrameworkCore
 open BpMonitor.Core
 
@@ -17,13 +18,13 @@ module private MedicationMapping =
       ModifiedAt = r.ModifiedAt
     }
 
-  let withTimestamps (now: System.DateTimeOffset) (m: Medication) =
+  let withTimestamps (now: DateTimeOffset) (m: Medication) =
     { m with
         CreatedAt = now
         ModifiedAt = now
     }
 
-  let withModifiedAt (now: System.DateTimeOffset) (m: Medication) = { m with ModifiedAt = now }
+  let withModifiedAt (now: DateTimeOffset) (m: Medication) = { m with ModifiedAt = now }
 
   let toEntity (m: Medication) : MedicationRecord =
     {
@@ -38,7 +39,7 @@ module private MedicationMapping =
       ModifiedAt = m.ModifiedAt
     }
 
-type EfMedicationRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvider) =
+type EfMedicationRepository(ctx: BpMonitorDbContext, timeProvider: TimeProvider) =
   interface IMedicationRepository with
     member _.GetAll(memberId) =
       query {

@@ -1,5 +1,6 @@
 module PasswordHashingTests
 
+open System
 open Xunit
 open Swensen.Unquote
 open FsCheck
@@ -51,8 +52,8 @@ let ``verify returns false when the hash segment is empty`` () =
 [<Fact>]
 let ``verify returns false when the hash segment is shorter than 32 bytes`` () =
   let parts = (PasswordHashing.hash "secret").Split('.')
-  let firstByte = System.Convert.FromBase64String(parts[2])[..0]
-  let truncated = $"{parts[0]}.{parts[1]}.{System.Convert.ToBase64String firstByte}"
+  let firstByte = Convert.FromBase64String(parts[2])[..0]
+  let truncated = $"{parts[0]}.{parts[1]}.{Convert.ToBase64String firstByte}"
   test <@ not (PasswordHashing.verify "secret" truncated) @>
 
 [<Fact>]
@@ -90,7 +91,7 @@ let private passwordGen: Gen<string> =
       Gen.elements [ '!' .. '~' ] // printable ASCII excluding space
       |> Gen.listOfLength len
 
-    return System.String(List.toArray chars)
+    return String(List.toArray chars)
   }
 
 [<Property>]

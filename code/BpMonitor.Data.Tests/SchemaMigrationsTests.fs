@@ -1,10 +1,13 @@
 module SchemaMigrationsTests
 
+open System
+open System.Data
 open Xunit
 open Swensen.Unquote
 open Microsoft.Data.Sqlite
 open Microsoft.EntityFrameworkCore
 open BpMonitor.Data
+open BpMonitor.TestSupport
 
 /// Creates a fresh in-memory connection + context WITHOUT calling EnsureCreated,
 /// so SchemaMigrations.apply can drive the full setup from scratch.
@@ -17,7 +20,7 @@ let private createRawContext () =
 
   new BpMonitorDbContext(options)
 
-let private scalarInt64 (conn: System.Data.IDbConnection) (sql: string) : int64 =
+let private scalarInt64 (conn: IDbConnection) (sql: string) : int64 =
   use cmd = conn.CreateCommand()
   cmd.CommandText <- sql
   cmd.ExecuteScalar() :?> int64
@@ -48,10 +51,10 @@ let ``apply seeds a default member named Me with admin rights`` () =
 [<Fact>]
 let ``apply stamps the default member in the Gregorian calendar, whatever the server culture`` () =
   use ctx = createRawContext ()
-  BpMonitor.TestSupport.CultureScope.withCulture "th-TH" (fun () -> SchemaMigrations.apply ctx)
+  CultureScope.withCulture "th-TH" (fun () -> SchemaMigrations.apply ctx)
 
   let m = ctx.Members |> Seq.exactlyOne
-  test <@ m.CreatedAt.Year = System.DateTimeOffset.UtcNow.Year @>
+  test <@ m.CreatedAt.Year = DateTimeOffset.UtcNow.Year @>
 
 [<Fact>]
 let ``apply seeds the default member with English as the language`` () =

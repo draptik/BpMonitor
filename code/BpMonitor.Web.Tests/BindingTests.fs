@@ -4,6 +4,7 @@ open Xunit
 open FsCheck.Xunit
 open Swensen.Unquote
 open BpMonitor.Core
+open BpMonitor.TestSupport
 open BpMonitor.Web
 
 let private form sys dia hr ts comments : Binding.FormModel =
@@ -61,7 +62,7 @@ let ``toUnvalidated accepts a date-only timestamp with no time component`` () =
 [<Fact>]
 let ``toUnvalidated reads the timestamp in the Gregorian calendar, whatever the server culture`` () =
   let result =
-    BpMonitor.TestSupport.CultureScope.withCulture "th-TH" (fun () ->
+    CultureScope.withCulture "th-TH" (fun () ->
       Binding.toUnvalidated LocalizedStrings.en (form "120" "80" "66" "2026-05-01 09:00" ""))
 
   match result with

@@ -1,15 +1,16 @@
 module Program
 
 open System
+open System.IO
 open Falco
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.DataProtection
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.HttpOverrides
+open Microsoft.EntityFrameworkCore
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
-open Microsoft.EntityFrameworkCore
 open Serilog
 open Serilog.Events
 open BpMonitor.Core
@@ -86,7 +87,7 @@ let main args =
       builder.Services.AddDataProtection().SetApplicationName("BpMonitor")
 
     if not (String.IsNullOrWhiteSpace dataProtectionKeyPath) then
-      dataProtection.PersistKeysToFileSystem(System.IO.DirectoryInfo(dataProtectionKeyPath))
+      dataProtection.PersistKeysToFileSystem(DirectoryInfo(dataProtectionKeyPath))
       |> ignore
 
     builder.Services.Configure<ForwardedHeadersOptions>(fun (opts: ForwardedHeadersOptions) ->

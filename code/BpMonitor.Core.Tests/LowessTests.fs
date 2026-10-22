@@ -1,5 +1,6 @@
 module LowessTests
 
+open System
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
@@ -87,8 +88,4 @@ let ``smooth never returns NaN, even when a cluster of duplicate x-values contai
 
   let result = Lowess.smooth 0.3 xs ys
 
-  test
-    <@
-      result
-      |> List.forall (fun y -> not (System.Double.IsNaN y || System.Double.IsInfinity y))
-    @>
+  test <@ result |> List.forall (fun y -> not (Double.IsNaN y || Double.IsInfinity y)) @>

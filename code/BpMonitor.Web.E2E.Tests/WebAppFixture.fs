@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.Diagnostics
 open System.IO
+open System.Net
 open System.Net.Http
 open System.Net.Sockets
 open System.Text.RegularExpressions
@@ -145,9 +146,9 @@ type AppFixture() =
 
   /// Releasing port 0 leaves a bind race; StartAppAsync retries on it below.
   let reserveFreePort () =
-    let listener = new TcpListener(System.Net.IPAddress.Loopback, 0)
+    let listener = new TcpListener(IPAddress.Loopback, 0)
     listener.Start()
-    let p = (listener.LocalEndpoint :?> System.Net.IPEndPoint).Port
+    let p = (listener.LocalEndpoint :?> IPEndPoint).Port
     listener.Stop()
     p
 
