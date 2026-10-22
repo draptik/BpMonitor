@@ -4,12 +4,13 @@ open System
 open System.Collections.Generic
 open System.IO
 open System.Security.Claims
+open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Http
+open Microsoft.EntityFrameworkCore
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Primitives
-open Microsoft.EntityFrameworkCore
 open BpMonitor.Core
 open BpMonitor.Data
 open BpMonitor.Web
@@ -191,5 +192,4 @@ let setRouteId (ctx: HttpContext) (id: int) =
   ctx.Request.RouteValues["id"] <- box (string id)
 
 /// Runs a handler (HttpContext -> Task) to completion.
-let run (handler: HttpContext -> System.Threading.Tasks.Task) (ctx: HttpContext) =
-  (handler ctx).GetAwaiter().GetResult()
+let run (handler: HttpContext -> Task) (ctx: HttpContext) = (handler ctx).GetAwaiter().GetResult()

@@ -1,5 +1,6 @@
 namespace BpMonitor.Web
 
+open System.Net
 open Falco.Markup
 open BpMonitor.Core
 
@@ -8,7 +9,7 @@ module ViewLayout =
   /// An attribute whose value is HTML-encoded. Falco.Markup writes `Attr.value` and
   /// `Attr.create` verbatim, so every user-supplied attribute value must go through this.
   let encAttr (name: string) (value: string) : XmlAttribute =
-    Attr.create name (System.Net.WebUtility.HtmlEncode value)
+    Attr.create name (WebUtility.HtmlEncode value)
 
   /// A single nav link, marked `aria-current="page"` (which Pico styles as active)
   /// when its href matches the page's `active` route.

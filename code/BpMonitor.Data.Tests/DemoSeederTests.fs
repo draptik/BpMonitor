@@ -1,6 +1,7 @@
 module DemoSeederTests
 
 open System
+open Microsoft.Extensions.Time.Testing
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
@@ -9,8 +10,7 @@ open BpMonitor.Data
 let private ranges = ReadingRanges.defaults
 let private now = DateTimeOffset(2026, 6, 14, 12, 0, 0, TimeSpan.Zero)
 
-let private tp =
-  new Microsoft.Extensions.Time.Testing.FakeTimeProvider(now) :> TimeProvider
+let private tp = new FakeTimeProvider(now) :> TimeProvider
 
 let private emptyStore () =
   InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository,

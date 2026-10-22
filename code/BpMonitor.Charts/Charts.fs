@@ -1,6 +1,10 @@
 namespace BpMonitor.Charts
 
+open System
+open System.Collections.Generic
 open System.Globalization
+open System.Net
+open System.Text
 open Plotly.NET
 open Plotly.NET.LayoutObjects
 open BpMonitor.Core
@@ -356,7 +360,7 @@ module BpChart =
       Chart.Line(x = timestamps, y = diastolic, Name = s.Diastolic, ShowMarkers = true)
       |> Chart.withLineStyle (Color = diastolicColor)
       |> hoverXY
-      yield! commentTraces s System.Net.WebUtility.HtmlEncode readings
+      yield! commentTraces s WebUtility.HtmlEncode readings
     ]
     |> Chart.combine
     |> Chart.withShapes (goalBands goal)
@@ -570,15 +574,15 @@ module BpChart =
       ]
 
   /// /recent's x-axis right edge: 2% of the window past its end, so the newest reading isn't drawn on the plot's edge.
-  let recentAxisEnd (windowStart: System.DateTimeOffset) (windowEnd: System.DateTimeOffset) =
+  let recentAxisEnd (windowStart: DateTimeOffset) (windowEnd: DateTimeOffset) =
     windowEnd + (windowEnd - windowStart) * 0.02
 
   let private renderRecent
     (s: ChartStrings)
     (goal: GoalRange)
     (windowDays: int)
-    (windowStart: System.DateTimeOffset)
-    (windowEnd: System.DateTimeOffset)
+    (windowStart: DateTimeOffset)
+    (windowEnd: DateTimeOffset)
     (readings: BloodPressureReading list)
     : string =
     let readings, timestamps, systolic, diastolic = seriesOf readings
@@ -607,8 +611,8 @@ module BpChart =
     (s: ChartStrings)
     (goal: GoalRange)
     (windowDays: int)
-    (windowStart: System.DateTimeOffset)
-    (windowEnd: System.DateTimeOffset)
+    (windowStart: DateTimeOffset)
+    (windowEnd: DateTimeOffset)
     =
     renderRecent s goal windowDays windowStart windowEnd
 
@@ -635,7 +639,7 @@ module BpChart =
   let private fnv1a (s: string) : uint32 =
     let mutable hash = 2166136261u
 
-    for b in System.Text.Encoding.UTF8.GetBytes s do
+    for b in Encoding.UTF8.GetBytes s do
       hash <- (hash ^^^ uint32 b) * 16777619u
 
     hash
@@ -647,8 +651,8 @@ module BpChart =
   // earlier name — a restarted medication (same name, two rows) keeps a single color.
   // Once every slot is taken, colors repeat rather than probing forever.
   let private assignSlots (names: string list) : int list =
-    let taken = System.Collections.Generic.HashSet<int>()
-    let assigned = System.Collections.Generic.Dictionary<string, int>()
+    let taken = HashSet<int>()
+    let assigned = Dictionary<string, int>()
 
     for name in List.distinct names do
       let mutable slot = medicationSlot name
@@ -666,13 +670,12 @@ module BpChart =
   // in the same "yyyy-MM-dd HH:mm" shape so Plotly's date auto-detection treats them
   // identically (a bare "yyyy-MM-dd" string would still parse, but mixing shapes on the
   // same axis type is asking for a subtle date-parsing mismatch).
-  let private toAxisDate (d: System.DateOnly) = Formats.formatDate d + " 00:00"
+  let private toAxisDate (d: DateOnly) = Formats.formatDate d + " 00:00"
 
   /// Hover text: full name when given (else the short row label), the date span, then
   /// the comment on its own line — mirrors the paper's medication timeline tooltip.
   let private medicationTooltip (s: ChartStrings) (m: Medication) : string =
-    let namePart =
-      m.FullName |> Option.defaultValue m.Name |> System.Net.WebUtility.HtmlEncode
+    let namePart = m.FullName |> Option.defaultValue m.Name |> WebUtility.HtmlEncode
 
     let dateRange =
       match m.EndDate with
@@ -681,7 +684,7 @@ module BpChart =
 
     let commentPart =
       m.Comment
-      |> Option.map (fun c -> $"<br>{System.Net.WebUtility.HtmlEncode c}")
+      |> Option.map (fun c -> $"<br>{WebUtility.HtmlEncode c}")
       |> Option.defaultValue ""
 
     $"{namePart}<br>{dateRange}{commentPart}"
@@ -793,8 +796,7 @@ module BpChart =
     let n = names.Length
     // Plotly renders tick text with `white-space: pre`, so plain trailing spaces (not
     // non-breaking ones) survive to nudge the right-anchored label away from the axis edge.
-    let tickText =
-      names |> List.map (fun name -> System.Net.WebUtility.HtmlEncode name + "  ")
+    let tickText = names |> List.map (fun name -> WebUtility.HtmlEncode name + "  ")
 
     LinearAxis.init (
       ShowGrid = false,

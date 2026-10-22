@@ -1,12 +1,13 @@
 module MedicationRepositoryContractTests
 
+open System
 open Xunit
 open Swensen.Unquote
 open BpMonitor.Core
 open BpMonitor.TestSupport.TestBuilders
 
 let private medication name =
-  mkMedication 0 0 name (System.DateOnly(2026, 1, 1))
+  mkMedication 0 0 name (DateOnly(2026, 1, 1))
 
 /// Adds `m` for `memberId` and returns it as stored, with its assigned Id.
 let private seed (repo: IMedicationRepository) memberId m =

@@ -2,6 +2,7 @@ namespace BpMonitor.Core
 
 open System
 open System.Security.Cryptography
+open System.Text
 
 /// Pure password hashing using PBKDF2-SHA256 (BCL only, no external packages).
 /// Encoded format: "<iterations>.<base64-salt>.<base64-hash>"
@@ -21,13 +22,7 @@ module PasswordHashing =
     let salt = RandomNumberGenerator.GetBytes(SaltBytes)
 
     let derived =
-      Rfc2898DeriveBytes.Pbkdf2(
-        System.Text.Encoding.UTF8.GetBytes(password),
-        salt,
-        Iterations,
-        HashAlgorithmName.SHA256,
-        HashBytes
-      )
+      Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(password), salt, Iterations, HashAlgorithmName.SHA256, HashBytes)
 
     $"{Iterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(derived)}"
 
@@ -52,7 +47,7 @@ module PasswordHashing =
           else
             let actual =
               Rfc2898DeriveBytes.Pbkdf2(
-                System.Text.Encoding.UTF8.GetBytes(password),
+                Encoding.UTF8.GetBytes(password),
                 salt,
                 iterations,
                 HashAlgorithmName.SHA256,

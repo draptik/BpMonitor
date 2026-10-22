@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.Globalization
 open System.Net.Http
+open System.Text.Json
 open System.Threading.Tasks
 open BpMonitor.Web.E2E
 open Microsoft.Playwright
@@ -224,7 +225,7 @@ type RecentChartHoverFormatTests(fixture: ChromiumFixture) =
           "el => { const r = el.getBoundingClientRect(); return JSON.stringify({x: r.x + r.width/2, y: r.y + r.height/2}); }"
         )
 
-      let rect = System.Text.Json.JsonDocument.Parse(rectJson).RootElement
+      let rect = JsonDocument.Parse(rectJson).RootElement
       let px = rect.GetProperty("x").GetSingle()
       let py = rect.GetProperty("y").GetSingle()
       do! page.Mouse.MoveAsync(px, py)

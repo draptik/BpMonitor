@@ -1,5 +1,6 @@
 module RecentValueStripTests
 
+open System.Text.RegularExpressions
 open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing
@@ -42,7 +43,7 @@ let ``recent loads a reading older than 30 days but marks its value-strip cell o
   let strip = body.Substring(stripStart, stripEnd - stripStart)
 
   let cells =
-    System.Text.RegularExpressions.Regex.Matches(strip, "<td class=\"([^\"]*)\"[^>]*>(\\d+)</td>")
+    Regex.Matches(strip, "<td class=\"([^\"]*)\"[^>]*>(\\d+)</td>")
     |> Seq.map (fun m -> m.Groups[2].Value, m.Groups[1].Value)
     |> Map.ofSeq
 
@@ -87,7 +88,7 @@ let ``recent value strip uses a table so each reading's sys/dias values align in
   let strip = body.Substring(stripStart, stripEnd - stripStart)
 
   let cellValues =
-    System.Text.RegularExpressions.Regex.Matches(strip, "<td[^>]*>(\\d+)</td>")
+    Regex.Matches(strip, "<td[^>]*>(\\d+)</td>")
     |> Seq.map _.Groups[1].Value
     |> List.ofSeq
 

@@ -1,6 +1,8 @@
 namespace BpMonitor.Core
 
 open System
+open System.Security.Cryptography
+open System.Text
 
 /// How a member signs in (see ADR 0012).
 type Credential =
@@ -66,8 +68,7 @@ module FamilyMember =
       | PendingSetup hash -> $"setup:{hash}"
       | NoCredential -> "none"
 
-    let digest =
-      System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes source)
+    let digest = SHA256.HashData(Encoding.UTF8.GetBytes source)
 
     Convert.ToBase64String(digest, 0, 16)
 

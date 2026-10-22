@@ -1,5 +1,6 @@
 namespace BpMonitor.Data
 
+open System
 open System.Linq
 open Microsoft.EntityFrameworkCore
 open BpMonitor.Core
@@ -13,9 +14,9 @@ module private MemberMapping =
       IsActive = r.IsActive
       // A password wins over a leftover setup code.
       Credential =
-        if not (System.String.IsNullOrEmpty r.PasswordHash) then
+        if not (String.IsNullOrEmpty r.PasswordHash) then
           Password r.PasswordHash
-        elif not (System.String.IsNullOrEmpty r.SetupCodeHash) then
+        elif not (String.IsNullOrEmpty r.SetupCodeHash) then
           PendingSetup r.SetupCodeHash
         else
           NoCredential
@@ -31,7 +32,7 @@ module private MemberMapping =
       ModifiedAt = r.ModifiedAt
     }
 
-  let toEntity (createdAt: System.DateTimeOffset) (modifiedAt: System.DateTimeOffset) (m: FamilyMember) : MemberRecord =
+  let toEntity (createdAt: DateTimeOffset) (modifiedAt: DateTimeOffset) (m: FamilyMember) : MemberRecord =
     {
       Id = m.Id
       Name = m.Name
@@ -56,7 +57,7 @@ module private MemberMapping =
       ModifiedAt = modifiedAt
     }
 
-type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: System.TimeProvider) =
+type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: TimeProvider) =
   interface IFamilyMemberRepository with
     member _.GetAll() =
       ctx.Members.AsNoTracking() |> Seq.map MemberMapping.toDomain |> Seq.toList

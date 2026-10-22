@@ -1,5 +1,6 @@
 module ConfigTests
 
+open System.Collections.Generic
 open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.Configuration
@@ -7,9 +8,7 @@ open BpMonitor.Core
 open BpMonitor.Web
 
 let private configWith (pairs: (string * string) list) : IConfiguration =
-  ConfigurationBuilder()
-    .AddInMemoryCollection(pairs |> List.map (fun (k, v) -> System.Collections.Generic.KeyValuePair(k, v)))
-    .Build()
+  ConfigurationBuilder().AddInMemoryCollection(pairs |> List.map (fun (k, v) -> KeyValuePair(k, v))).Build()
 
 [<Fact>]
 let ``readRememberMeDays defaults to 30 when unset`` () =

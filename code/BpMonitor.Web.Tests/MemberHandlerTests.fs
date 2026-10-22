@@ -4,6 +4,7 @@ open System
 open System.Text.RegularExpressions
 open Xunit
 open Swensen.Unquote
+open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open BpMonitor.Core
 open BpMonitor.Web
@@ -26,7 +27,7 @@ let private adminMember (id: int) (name: string) : FamilyMember =
 let private shownSetupCode (body: string) =
   Regex.Match(body, "class=\"setup-code\">([^<]+)<").Groups[1].Value
 
-let private storedSetupCodeHash (ctx: Microsoft.AspNetCore.Http.HttpContext) (name: string) =
+let private storedSetupCodeHash (ctx: HttpContext) (name: string) =
   let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
 
   match (memberRepo.GetAll() |> List.find (fun m -> m.Name = name)).Credential with
