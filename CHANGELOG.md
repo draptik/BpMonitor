@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-10-22
+
 ### Changed
 
-- **Deployment:** the container image is now based on Microsoft's chiseled Ubuntu image (no shell, package manager or curl), which removes most base-image vulnerabilities. If your Quadlet or Compose file has its own health check calling `curl`, replace it with `dotnet BpMonitor.Web.dll --healthcheck` in exec/JSON form as shown in docs/example-deploy, or the container reports as unhealthy.
+- The container image is now based on Microsoft's chiseled Ubuntu image (no shell, package manager or curl), which removes most base-image vulnerabilities.
+- **Deployment:** if your Quadlet or Compose file defines its own health check calling `curl`, replace it with `["dotnet", "BpMonitor.Web.dll", "--healthcheck"]` in exec/JSON form (see docs/example-deploy), or the container reports as unhealthy.
+- **Deployment:** no database migration is needed.
 
 ## [1.16.1] - 2026-10-22
 
@@ -599,7 +603,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.16.1...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.17.0...HEAD
+[1.17.0]: https://github.com/draptik/BpMonitor/compare/v1.16.1...v1.17.0
 [1.16.1]: https://github.com/draptik/BpMonitor/compare/v1.16.0...v1.16.1
 [1.16.0]: https://github.com/draptik/BpMonitor/compare/v1.15.1...v1.16.0
 [1.16.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.15.1...v1.16.0-rc1
