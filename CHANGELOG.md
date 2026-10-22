@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.1] - 2026-10-22
+
 ### Fixed
 
 - Readings: saving or canceling an edit returns to the page it was started from (History, Recent view or Trends, where the same week, month or year stays open); previously it always went to History.
@@ -593,7 +595,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.16.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.16.1...HEAD
+[1.16.1]: https://github.com/draptik/BpMonitor/compare/v1.16.0...v1.16.1
 [1.16.0]: https://github.com/draptik/BpMonitor/compare/v1.15.1...v1.16.0
 [1.16.0-rc1]: https://github.com/draptik/BpMonitor/compare/v1.15.1...v1.16.0-rc1
 [1.15.1]: https://github.com/draptik/BpMonitor/compare/v1.15.0...v1.15.1
