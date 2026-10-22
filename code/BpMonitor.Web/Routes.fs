@@ -47,4 +47,4 @@ module Routes =
 
   /// The full Trends page opened on one period (the `/trends/{gran}/{key}` routes are fragments).
   let trendsPeriod (gran: Granularity) (key: string) =
-    $"{trends}?{trendsGranParam}={BpMonitor.Core.TrendPeriod.slug gran}&{trendsKeyParam}={System.Uri.EscapeDataString key}"
+    $"{trends}?{trendsGranParam}={TrendPeriod.slug gran}&{trendsKeyParam}={Uri.EscapeDataString key}"
