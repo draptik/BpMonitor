@@ -1,3 +1,1 @@
 failure-threshold: warning
-ignored:
-  - DL3008 # apt pins break once Ubuntu drops the version under the floating .NET base image tag

@@ -19,6 +19,7 @@
     <Compile Include="TrendViews.fs" />
     <Compile Include="HandlerHelpers.fs" />
     <Compile Include="HealthHandlers.fs" />
+    <Compile Include="HealthProbe.fs" />
     <Compile Include="AuthHandlers.fs" />
     <Compile Include="ReadingHandlers.fs" />
     <Compile Include="MemberHandlers.fs" />

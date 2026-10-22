@@ -41,6 +41,7 @@
     <Compile Include="MedicationHandlerTests.fs" />
     <Compile Include="MedicationsTimelineHandlerTests.fs" />
     <Compile Include="HealthHandlerTests.fs" />
+    <Compile Include="HealthProbeTests.fs" />
     <Compile Include="PlotlyVendoringTests.fs" />
     <Compile Include="GermanRenderingTests.fs" />
   </ItemGroup>

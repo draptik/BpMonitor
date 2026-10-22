@@ -19,6 +19,10 @@ open BpMonitor.Web
 
 [<EntryPoint>]
 let main args =
+  if Array.contains "--healthcheck" args then
+    use client = new Net.Http.HttpClient(Timeout = TimeSpan.FromSeconds 3.0)
+    exit (HealthProbe.run client "http://127.0.0.1:5000/health")
+
   // Bootstrap logger captures startup failures before the host is built.
   Log.Logger <- LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger()
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Deployment:** the container image is now based on Microsoft's chiseled Ubuntu image (no shell, package manager or curl), which removes most base-image vulnerabilities. If your Quadlet or Compose file has its own health check calling `curl`, replace it with `dotnet BpMonitor.Web.dll --healthcheck` in exec/JSON form as shown in docs/example-deploy, or the container reports as unhealthy.
+
 ## [1.16.1] - 2026-10-22
 
 ### Fixed

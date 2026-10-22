@@ -23,7 +23,7 @@ services:
       # - BpMonitor__RememberMeDays=30  # "remember me" login duration, days (1-400)
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:5000/health"]
+      test: ["CMD", "dotnet", "BpMonitor.Web.dll", "--healthcheck"]
       interval: 30s
       timeout: 3s
       start_period: 15s
