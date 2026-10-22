@@ -7,19 +7,18 @@ WORKDIR /src
 COPY . .
 # Must be valid SemVer: -p:Version also sets the NuGet package version that restore validates.
 ARG VERSION=0.0.0-dev
-RUN dotnet publish BpMonitor.Web/BpMonitor.Web.fsproj -c Release -p:Version=$VERSION -o /app
+RUN dotnet publish BpMonitor.Web/BpMonitor.Web.fsproj -c Release -p:Version=$VERSION -o /app \
+ && mkdir /data-mount
 
-FROM mcr.microsoft.com/dotnet/aspnet:11.0 AS runtime
+# Chiseled: no shell or package manager, so far fewer base-image CVEs.
+# -extra adds the ICU culture data the German UI formatting needs.
+FROM mcr.microsoft.com/dotnet/aspnet:11.0-resolute-chiseled-extra AS runtime
 WORKDIR /app
 COPY --from=build /app .
 
-# curl is needed for the HEALTHCHECK below — the base image ships neither curl nor wget.
-RUN apt-get update \
- && apt-get install -y --no-install-recommends curl \
- && rm -rf /var/lib/apt/lists/*
-
-# Non-root `app` user; root-owned data from older images needs a one-time chown (docs/example-deploy/README.md).
-RUN mkdir /data && chown "$APP_UID:$APP_UID" /data
+# No shell for `mkdir`, so the volume mount point is copied in pre-owned by the non-root `app` user.
+# Root-owned data from older images needs a one-time chown (docs/example-deploy/README.md).
+COPY --from=build --chown=$APP_UID:$APP_UID /data-mount /data
 USER $APP_UID
 
 # Links the published GHCR package to its source repository.
@@ -37,9 +36,8 @@ EXPOSE 5000
 
 # --start-period covers SchemaMigrations running synchronously before the app
 # starts serving requests.
-# Shell form maps curl's exit 22 to 1, the only failure code Docker documents.
-# hadolint ignore=DL3025
+# The app probes its own /health (exit 0/1) since there's no curl.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
-  CMD curl -fsS http://127.0.0.1:5000/health || exit 1
+  CMD ["dotnet", "BpMonitor.Web.dll", "--healthcheck"]
 
 ENTRYPOINT ["dotnet", "BpMonitor.Web.dll"]

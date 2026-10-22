@@ -69,8 +69,11 @@ systemctl start bpmonitor-web
 `GET /health` is an anonymous endpoint that checks whether the SQLite database is
 reachable — useful for catching a missing or unwritable `/data` volume. It returns
 `200` with `{"status":"healthy","version":"…","database":"connected"}` when the
-database can be opened, or `503` with `"status":"unhealthy"` otherwise. Both the
-Containerfile's `HEALTHCHECK` and the Quadlet unit above poll it.
+database can be opened, or `503` with `"status":"unhealthy"` otherwise. The
+Containerfile's `HEALTHCHECK`, the Quadlet unit and the Compose file poll it with
+`dotnet BpMonitor.Web.dll --healthcheck`, which exits `0` when healthy and `1`
+otherwise. The image has no shell or curl, so a health check must use this exec
+form; an older `curl …` health check reports the container as unhealthy.
 
 ## Configuration
 
