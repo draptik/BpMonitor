@@ -3,6 +3,8 @@ module SetupCodeTests
 open System.Text.RegularExpressions
 open Xunit
 open Swensen.Unquote
+open FsCheck.FSharp
+open FsCheck.Xunit
 open BpMonitor.Core
 open BpMonitor.TestSupport.TestBuilders
 
@@ -25,6 +27,36 @@ let ``verify accepts the code typed in lower case with a space instead of the da
 let ``verify rejects a different code`` () =
   let hash = SetupCode.hash "K7QX-M2PA"
   test <@ not (SetupCode.verify "K7QX-M2PB" hash) @>
+
+// A code from the setup-code alphabet and how it was typed: random case, dashes and spaces anywhere.
+let private typedCodeGen =
+  gen {
+    let! chars = Gen.elements "ABCDEFGHJKMNPQRSTVWXYZ23456789" |> Gen.arrayOfLength 8
+    let code = System.String chars
+
+    let! typed =
+      chars
+      |> Gen.collectToArray (fun c ->
+        gen {
+          let! lower = Gen.elements [ true; false ]
+          let! sep = Gen.elements [ ""; ""; "-"; " " ]
+
+          return
+            sep
+            + (if lower then
+                 string (System.Char.ToLowerInvariant c)
+               else
+                 string c)
+        })
+
+    let! trailing = Gen.elements [ ""; "-"; " " ]
+    return code, String.concat "" typed + trailing
+  }
+
+// Each case runs PBKDF2 twice, so keep the run short.
+[<Property(MaxTest = 20)>]
+let ``verify accepts any code typed in any case with dashes or spaces anywhere`` () =
+  Prop.forAll (Arb.fromGen typedCodeGen) (fun (code, typed) -> SetupCode.verify typed (SetupCode.hash code))
 
 [<Fact>]
 let ``issueMissing issues codes only to members without a credential`` () =
