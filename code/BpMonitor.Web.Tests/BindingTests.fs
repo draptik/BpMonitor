@@ -1,6 +1,8 @@
 module BindingTests
 
+open System
 open Xunit
+open FsCheck.FSharp
 open FsCheck.Xunit
 open Swensen.Unquote
 open BpMonitor.Core
@@ -88,3 +90,35 @@ let ``well-formed numeric strings round-trip to their ints`` (sys: int) (dia: in
   match Binding.toUnvalidated LocalizedStrings.en m with
   | Ok u -> u.Systolic = sys && u.Diastolic = dia && u.HeartRate = hr
   | Error _ -> false
+
+// A minute-precision local time and how it was typed, padded with spaces or tabs.
+let private typedTimestampGen =
+  gen {
+    let! year = Gen.choose (2000, 2099)
+    let! month = Gen.choose (1, 12)
+    let! day = Gen.choose (1, DateTime.DaysInMonth(year, month))
+    let! hour = Gen.choose (0, 23)
+    let! minute = Gen.choose (0, 59)
+    let dt = DateTime(year, month, day, hour, minute, 0)
+
+    let padding =
+      Gen.elements [ ' '; '\t' ] |> Gen.listOf |> Gen.map (List.toArray >> String)
+
+    let! before = padding
+    let! after = padding
+
+    return
+      dt,
+      before
+      + dt.ToString(Formats.timestamp, Globalization.CultureInfo.InvariantCulture)
+      + after
+  }
+
+[<Property>]
+let ``toUnvalidated reads any well-formed timestamp as that wall-clock time in the server's offset`` () =
+  Prop.forAll (Arb.fromGen typedTimestampGen) (fun (dt, typed) ->
+    match Binding.toUnvalidated LocalizedStrings.en (form "120" "80" "66" typed "") with
+    | Ok u ->
+      u.Timestamp.DateTime = dt
+      && u.Timestamp.Offset = TimeZoneInfo.Local.GetUtcOffset dt
+    | Error _ -> false)
