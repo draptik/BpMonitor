@@ -579,6 +579,17 @@ let ``toHtmlRecent's scrubber hover registers English weekday abbreviations too,
   test <@ html.Contains("\"shortDays\":[\"Sun\",\"Mon\",\"Tue\",\"Wed\",\"Thu\",\"Fri\",\"Sat\"]") @>
 
 [<Fact>]
+let ``toHtmlRecent matches snapshot`` () : Task =
+  // Days 12–16 missing: a dashed run between two solid ones.
+  let withGap =
+    readings |> List.filter (fun r -> r.Timestamp.Day < 12 || r.Timestamp.Day > 16)
+
+  let html: string =
+    BpChart.toHtmlRecent LocalizedStrings.en.Charts GoalRange.defaults 30 windowStart30 now withGap
+
+  verifyHtml html
+
+[<Fact>]
 let ``toHtml (history) does not register a Plotly locale, since it has no %a hover format to translate`` () =
   let html = BpChart.toHtml LocalizedStrings.de.Charts GoalRange.defaults readings
   test <@ not (html.Contains("\"locale\"")) @>
