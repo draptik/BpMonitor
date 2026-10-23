@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Trends: the chart tooltip shows the number of readings in German for German members ("3 Messungen" instead of "3 readings").
+
 ## [1.17.0] - 2026-10-22
 
 ### Changed

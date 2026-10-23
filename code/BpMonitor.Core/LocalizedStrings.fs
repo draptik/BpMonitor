@@ -176,6 +176,7 @@ type ChartStrings =
     Ongoing: string
     AxisTitle: string
     CalendarWeekTick: int -> string
+    ReadingCount: int -> string
     DayMonthTick: DateTime -> string
     MonthTick: DateTime -> string
     /// Sunday-first abbreviated weekday names, for Plotly's locale mechanism (see Charts.fs).
@@ -368,6 +369,7 @@ module LocalizedStrings =
           Ongoing = "ongoing"
           AxisTitle = "blood pressure [mmHg]"
           CalendarWeekTick = fun week -> $"W{week}"
+          ReadingCount = fun n -> if n = 1 then "1 reading" else $"{n} readings"
           DayMonthTick = fun date -> date.ToString("d MMM", CultureInfo("en-US"))
           MonthTick = fun date -> date.ToString("MMM", CultureInfo("en-US"))
           ShortWeekdays = CultureInfo("en-US").DateTimeFormat.AbbreviatedDayNames |> Array.toList
@@ -545,6 +547,7 @@ module LocalizedStrings =
           Ongoing = "laufend"
           AxisTitle = "Blutdruck [mmHg]"
           CalendarWeekTick = fun week -> $"KW{week}"
+          ReadingCount = fun n -> if n = 1 then "1 Messung" else $"{n} Messungen"
           DayMonthTick = fun date -> date.ToString("d. MMM", CultureInfo("de-DE"))
           MonthTick = fun date -> date.ToString("MMM", CultureInfo("de-DE"))
           ShortWeekdays = CultureInfo("de-DE").DateTimeFormat.AbbreviatedDayNames |> Array.toList
