@@ -146,6 +146,7 @@ create_pr() {
     echo "PR #$existing already open for $branch." >&2
     # A given body replaces the existing one, so a re-run can correct it.
     if [ -n "$body_file" ]; then
+      "$(dirname "$0")/check-pr-body.sh" <"$body_file"
       gh pr edit "$existing" --body-file "$body_file" >&2
     fi
     echo "$existing"
@@ -159,6 +160,7 @@ create_pr() {
     echo "Error: PR body is empty — aborting" >&2
     exit 1
   fi
+  printf '%s' "$body" | "$(dirname "$0")/check-pr-body.sh"
 
   gh pr create --title "$title" --body "$body" >&2
   pr_number_for_branch
