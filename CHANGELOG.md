@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Trends: the chart tooltip shows the number of readings in German for German members ("3 Messungen" instead of "3 readings").
+- Medications timeline: a medication's bar now includes its end date, so readings taken that day line up inside it; a medication taken on a single day now shows a bar instead of nothing.
 
 ## [1.17.0] - 2026-10-22
 

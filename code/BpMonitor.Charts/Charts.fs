@@ -672,6 +672,12 @@ module BpChart =
   // same axis type is asking for a subtle date-parsing mismatch).
   let private toAxisDate (d: DateOnly) = Formats.formatDate d + " 00:00"
 
+  // EndDate is inclusive, so the bar runs to the following midnight; ongoing ones run to rangeHigh.
+  let private barEnd (rangeHigh: string) (m: Medication) =
+    m.EndDate
+    |> Option.map (fun e -> toAxisDate (e.AddDays 1))
+    |> Option.defaultValue rangeHigh
+
   /// Hover text: full name when given (else the short row label), the date span, then
   /// the comment on its own line — mirrors the paper's medication timeline tooltip.
   let private medicationTooltip (s: ChartStrings) (m: Medication) : string =
@@ -702,7 +708,7 @@ module BpChart =
     (m: Medication)
     : GenericChart =
     let xStart = toAxisDate m.StartDate
-    let xEnd = m.EndDate |> Option.map toAxisDate |> Option.defaultValue rangeHigh
+    let xEnd = barEnd rangeHigh m
     let tooltip = medicationTooltip s m
     let yTop = float rowIdx - hoverTargetHalfHeight
     let yBottom = float rowIdx + hoverTargetHalfHeight
@@ -739,7 +745,7 @@ module BpChart =
     (m: Medication)
     : GenericChart =
     let xStart = toAxisDate m.StartDate
-    let xEnd = m.EndDate |> Option.map toAxisDate |> Option.defaultValue rangeHigh
+    let xEnd = barEnd rangeHigh m
     let lightHex, darkHex = medicationPalette[slot]
     let meta = $"{lightHex}|{darkHex}"
 
