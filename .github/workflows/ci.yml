@@ -67,6 +67,9 @@ jobs:
       - name: Run shellcheck
         run: mise run lint:shell
 
+      - name: Run script tests
+        run: mise run test:scripts
+
       - name: Run actionlint
         run: mise run lint:actions
 
