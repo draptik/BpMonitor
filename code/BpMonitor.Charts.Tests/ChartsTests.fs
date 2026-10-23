@@ -730,6 +730,28 @@ let ``toHtmlDashed Weekly: x-axis labels use German date format for German membe
   test <@ html.Contains("Mai") @>
 
 [<Fact>]
+let ``toHtmlDashed hover counts readings in German for German members`` () =
+  let single = asAggregated [ readings[0] ]
+
+  let pair =
+    [
+      {
+        Reading = readings[1] // Systolic=135, Diastolic=88
+        Count = 2
+        MinSystolic = 125
+        MaxSystolic = 145
+        MinDiastolic = 82
+        MaxDiastolic = 94
+      }
+    ]
+
+  let html =
+    BpChart.toHtmlDashed LocalizedStrings.de.Charts GoalRange.defaults Weekly (single @ pair)
+
+  test <@ html.Contains("\"1 Messung\"") @>
+  test <@ html.Contains("\"2 Messungen · ") @>
+
+[<Fact>]
 let ``toHtmlDashed Monthly: x-axis labels use ISO week format`` () =
   // Jan 8, 2026 is a Thursday in ISO week 2
   let aggregated = asAggregated [ reading 1 120 80 70 8 9 None ]

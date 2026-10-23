@@ -395,9 +395,9 @@ module BpChart =
 
     let toSysHover (a: AggregatedReading) =
       if a.Count = 1 then
-        "1 reading"
+        s.ReadingCount 1
       else
-        $"{a.Count} readings · {a.MinSystolic}–{a.Reading.Systolic}–{a.MaxSystolic}"
+        $"{s.ReadingCount a.Count} · {a.MinSystolic}–{a.Reading.Systolic}–{a.MaxSystolic}"
 
     let toDiaHover (a: AggregatedReading) =
       if a.Count = 1 then
