@@ -18,8 +18,8 @@ and launches real headless Chromium/Firefox browsers; reuse it (via
    once if needed.
 2. **Add a throwaway `[<Fact>]`** to `code/BpMonitor.Web.E2E.Tests/SmokeTests.fs`
    (or a scratch file in the same project), inside a type that implements
-   `IClassFixture<ChromiumFixture>`. Reuse `TestAccount.claimAndLogin fixture.BaseUrl
-   fixture.MemberName page` to get an authenticated session, then navigate to
+   `IClassFixture<ChromiumFixture>`. Reuse `TestAccount.claimAndLogin fixture.BaseUrl fixture.MemberName
+   fixture.MemberSetupCode page` to get an authenticated session, then navigate to
    the page the change touched and assert on the specific thing that should
    now be true (text content, an element existing, a redirect happening).
 3. **Run only that test:**

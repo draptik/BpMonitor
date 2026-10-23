@@ -24,7 +24,7 @@ git branch --show-current               # must be main
 git status --short                      # must be empty (clean tree)
 git fetch origin main
 git log HEAD..origin/main --oneline     # must be empty (up to date)
-gh run list --branch main --limit 3    # latest CI run must show ✓ completed/success
+gh run list --branch main --workflow ci.yml --limit 3  # latest CI run must show ✓ completed/success
 ```
 
 Inform the user of any failures before proceeding.
@@ -50,7 +50,7 @@ a default pre-selection, not a skip). Present the options like this:
 > | patch | vX.Y.(Z+1) | bug fixes only |
 > | minor | vX.(Y+1).0 | new user-facing features |
 > | major | v(X+1).0.0 | breaking changes |
-> | pre-release | vX.Y.Z-rc1 | release candidate (won't become `/releases/latest`) |
+> | pre-release | vX.(Y+1).0-rc1 | release candidate (won't become `/releases/latest`) |
 >
 > Recommendation: **minor** ← (or whichever fits the changes; justify briefly)
 >
