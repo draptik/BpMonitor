@@ -4,37 +4,17 @@
 
 A personal health tracking tool to log and visualize blood pressure data over time, with the ability to annotate readings and spot patterns or anomalies.
 
-## Data Model
+## Users
 
-- Systolic (mmHg)
-- Diastolic (mmHg)
-- Heart rate (bpm)
-- Timestamp
-- Comments (for correlating readings with events)
+- Family / household members, each with their own readings, goal range, and language
+- Logging is sporadic: several times a day, or gaps of several days
+- Any browser, phone or desktop
 
 ## Features
 
-### Input
-
-- Simple, low-friction manual entry form
-
-### Visualization
-
-- Default overview charts (trends over time)
-- Interactive charts for exploratory analysis (spot anomalies, correlate with comments/events)
-
-### Import / Export
-
-- JSON export on close / manual trigger (implemented)
-- JSON import on open — merges readings not yet in the local database (implemented)
-- Markdown import — bulk import from legacy log files (implemented)
-- CSV export (nice-to-have)
-
-## Usage
-
-- Users: family / household members, each with their own readings
-- Logging frequency: sporadic (multiple times/day or gaps of several days)
-- Devices: any browser (phone or desktop)
+- **Input:** a simple, low-friction entry form — systolic, diastolic, heart rate, timestamp, and an optional comment for correlating readings with events
+- **Visualization:** overview charts of trends over time, plus interactive charts for spotting anomalies and correlating them with comments and medication changes
+- **Export:** JSON and CSV, so the data never gets locked in
 
 ## Hosting
 

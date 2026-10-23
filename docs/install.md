@@ -52,11 +52,17 @@ setup code in the log on the first start after the upgrade.
 
 ## Configuration
 
-- **Database** — defaults to `Data Source=<install-dir>/bpmonitor.db`; override with `ConnectionStrings__DefaultConnection`.
-- **Bind address / port** — defaults to `http://0.0.0.0:5000`; configured via `appsettings.json` (takes precedence over `ASPNETCORE_URLS`).
-- **Health check** — `GET /health` reports database reachability (`200`/`503`); see [docs/example-deploy/README.md](example-deploy/README.md#health-check) for details.
-- **"Remember me" duration** — `BpMonitor__RememberMeDays` (default `30`, clamped to 1–400) controls how long a "remember me" login stays signed in.
-- **Data Protection key persistence** — `BpMonitor__DataProtectionKeyPath` points at a directory to store the keys that encrypt the auth cookie. Unset (the manual-install default), keys live under the user's home directory and survive fine across restarts of the same install. The container image sets this to `/data/keys` on the same volume as the database, so keys — and any "remember me" sessions — survive a container recreation; if you're running an older container image, upgrading will invalidate existing sessions once (a one-time logout) as keys move to the persisted location.
+All settings live in `appsettings.json`; override any of them with environment variables
+(`:` becomes `__`).
+
+- **Database** — `ConnectionStrings__DefaultConnection`; defaults to `Data Source=<install-dir>/bpmonitor.db` (container: `/data/bpmonitor.db`).
+- **Bind address / port** — `Urls` key, default `http://0.0.0.0:5000` (takes precedence over `ASPNETCORE_URLS`).
+- **Validation ranges** — override individual bounds with `ReadingRanges__*`.
+- **Default language** — `BpMonitor__DefaultLanguage` (`en` or `de`, default `en`) for visitors whose member setting, cookie and browser don't pick one.
+- **Secure cookies** — set `BpMonitor__SecureCookies=true` when serving over HTTPS (e.g. behind a TLS reverse proxy) so the auth cookie is only sent over TLS.
+- **"Remember me" duration** — `BpMonitor__RememberMeDays` (default `30`, clamped to 1–400).
+- **Data Protection keys** — `BpMonitor__DataProtectionKeyPath` sets where the keys that encrypt the auth cookie live. Unset, they go under the user's home directory, which is fine for a manual install. The container image sets `/data/keys`, next to the database, so "remember me" sessions survive a container recreation.
+- **Health check** — `GET /health` reports database reachability (`200`/`503`); see [Health check](example-deploy/README.md#health-check).
 
 ## Docker Compose
 
