@@ -28,7 +28,8 @@ to, and aborts on uncommitted changes.
    --show-current)" --state open` already shows a PR; if not, read `git log
    origin/main..HEAD` (full messages) and the full `git diff
    origin/main...HEAD`, then write a `## Summary` section of bullets — and
-   nothing else, no other headings (a hook rejects them). Accuracy rules:
+   nothing else, no other headings (no hook checks this body — it goes
+   straight into the squash commit). Accuracy rules:
    - Describe only what the diff shows; name the files/settings it touches.
    - Claim a reason or "before" behavior only if a commit message or the
      diff's removed lines state it — never infer one.
@@ -36,7 +37,8 @@ to, and aborts on uncommitted changes.
      haven't checked.
 2. **Write the body and run the script in one Bash command** (if you
    skipped step 1, run `scripts/ship-pr.sh --yes` without `--body-file`), in the
-   foreground, exactly once (a temp path doesn't survive between commands):
+   foreground, exactly once (a temp path doesn't survive between commands).
+   Strip the list indentation — an indented closing `BODY` never ends the heredoc:
 
    ```bash
    f=$(mktemp)

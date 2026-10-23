@@ -47,10 +47,10 @@ preflight() {
   fi
 
   echo "Latest CI runs on main:"
-  gh run list --branch main --limit 3
+  gh run list --branch main --workflow ci.yml --limit 3
 
   local status
-  status=$(gh run list --branch main --limit 1 --json conclusion --jq '.[0].conclusion')
+  status=$(gh run list --branch main --workflow ci.yml --limit 1 --json conclusion --jq '.[0].conclusion')
   if [ "$status" != "success" ]; then
     echo "Error: latest CI run on main did not succeed (conclusion: $status)" >&2
     exit 1

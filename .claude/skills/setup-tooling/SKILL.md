@@ -12,7 +12,7 @@ Establish and maintain the project's code quality infrastructure. Standards are 
 - `.editorconfig` — indentation, line endings, charset, trailing whitespace, final newline
 - `.gitattributes` — line ending normalization, binary file markers
 - `.gitignore` — build artifacts, IDE files, secrets
-- `Fantomas` — the F# code formatter; configured via `.fantomas-config.json` or `fantomas` section in `Directory.Build.props`
+- `Fantomas` — the F# code formatter; configured via `fsharp_*` keys in `code/.editorconfig` (defaults when absent)
 - `markdownlint-cli2` — markdown linting; configured via `.markdownlint-cli2.yaml`
 - `Directory.Build.props` — solution-wide MSBuild properties (treat warnings as errors, analyzer severity)
 - `Directory.Packages.props` — centralized NuGet package version management

@@ -24,7 +24,7 @@ git branch --show-current               # must be main
 git status --short                      # must be empty (clean tree)
 git fetch origin main
 git log HEAD..origin/main --oneline     # must be empty (up to date)
-gh run list --branch main --limit 3    # latest CI run must show ✓ completed/success
+gh run list --branch main --workflow ci.yml --limit 3  # latest CI run must show ✓ completed/success
 ```
 
 Inform the user of any failures before proceeding.
@@ -50,7 +50,7 @@ a default pre-selection, not a skip). Present the options like this:
 > | patch | vX.Y.(Z+1) | bug fixes only |
 > | minor | vX.(Y+1).0 | new user-facing features |
 > | major | v(X+1).0.0 | breaking changes |
-> | pre-release | vX.Y.Z-rc1 | release candidate (won't become `/releases/latest`) |
+> | pre-release | vX.(Y+1).0-rc1 | release candidate (won't become `/releases/latest`) |
 >
 > Recommendation: **minor** ← (or whichever fits the changes; justify briefly)
 >
@@ -177,15 +177,13 @@ mise run screenshots
 git status --short docs/screenshots/
 ```
 
-Commit, push, open a PR, and **merge it to `main`** before proceeding:
+Show the user the commit message and **wait for approval**, then commit and
+**merge it to `main`** via the `ship` skill (PR body: a single `## Summary`
+section; it merges only once CI is green) before proceeding:
 
 ```bash
 git add "$(git rev-parse --show-toplevel)/CHANGELOG.md" docs/screenshots/
 git commit -m "📝 docs: update changelog for vX.Y.Z"
-git push -u origin chore/changelog-vX.Y.Z
-gh pr create --title "📝 docs: update changelog for vX.Y.Z" --body "Changelog entry for the upcoming vX.Y.Z release."
-# wait for CI to pass, then merge
-gh pr merge --squash
 ```
 
 After the PR is merged, pull `main` so the tag lands on the changelog commit:
