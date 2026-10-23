@@ -152,9 +152,30 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-firefox-${{ runner.os }}-${{ hashFiles('code/Directory.Packages.props') }}
 
+      # Runner env vars aren't in the `env` context, so expose the image version for the cache key.
+      - name: Read runner image version
+        id: runner-image
+        run: echo "version=$ImageVersion" >> "$GITHUB_OUTPUT"
+
+      # The Azure Ubuntu mirror sometimes serves .debs at ~50 kB/s, turning this 57 MB install into 20+ minutes.
+      - name: Cache Playwright OS dependency packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        id: apt-cache
+        with:
+          path: ~/apt-archives
+          key: playwright-apt-${{ runner.os }}-${{ steps.runner-image.outputs.version }}-${{ hashFiles('code/Directory.Packages.props') }}
+
+      - name: Restore cached packages into apt's archive
+        if: steps.apt-cache.outputs.cache-hit == 'true'
+        run: sudo find ~/apt-archives -name '*.deb' -exec cp -t /var/cache/apt/archives/ {} +
+
       - name: Install Playwright OS dependencies
         run: pwsh bin/Release/net11.0/playwright.ps1 install-deps chromium firefox
         working-directory: code/BpMonitor.Web.E2E.Tests
+
+      - name: Collect downloaded packages for the cache
+        if: steps.apt-cache.outputs.cache-hit != 'true'
+        run: mkdir -p ~/apt-archives && find /var/cache/apt/archives -maxdepth 1 -name '*.deb' -exec cp -t ~/apt-archives/ {} +
 
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
