@@ -84,7 +84,7 @@ let ``toHtmlMedications hover uses the localized ongoing text for a medication w
   test <@ html.Contains("ongoing") |> not @>
 
 [<Fact>]
-let ``toHtmlMedications ends a completed medication's bar at its EndDate`` () =
+let ``toHtmlMedications ends a completed medication's bar after its EndDate, since EndDate is inclusive`` () =
   let meds =
     [
       medication 1 "HCTZ" None None (DateOnly(2026, 1, 5)) (Some(DateOnly(2026, 1, 20)))
@@ -93,7 +93,19 @@ let ``toHtmlMedications ends a completed medication's bar at its EndDate`` () =
   let html =
     BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
 
-  test <@ html.Contains("2026-01-20 00:00") @>
+  test <@ html.Contains("\"x\":[\"2026-01-05 00:00\",\"2026-01-21 00:00\"]") @>
+
+[<Fact>]
+let ``toHtmlMedications draws a one-day medication as a full-day bar, not a zero-length one`` () =
+  let meds =
+    [
+      medication 1 "HCTZ" None None (DateOnly(2026, 1, 10)) (Some(DateOnly(2026, 1, 10)))
+    ]
+
+  let html =
+    BpChart.toHtmlMedications LocalizedStrings.en.Charts false rangeLow rangeHigh meds
+
+  test <@ html.Contains("\"x\":[\"2026-01-10 00:00\",\"2026-01-11 00:00\"]") @>
 
 [<Fact>]
 let ``toHtmlMedications keeps a medication's true start date even when it predates rangeLow`` () =
