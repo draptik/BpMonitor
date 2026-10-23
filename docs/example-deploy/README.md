@@ -77,12 +77,8 @@ form; an older `curl …` health check reports the container as unhealthy.
 
 ## Configuration
 
-- **Bind address / port** — defaults to `http://0.0.0.0:5000`; configured via
-  `appsettings.json` `Urls` key (takes precedence over `ASPNETCORE_URLS`).
-- **Database location** — defaults to `Data Source=/data/bpmonitor.db`; override
-  with `ConnectionStrings__DefaultConnection`.
-- **Validation ranges** — read from `appsettings.json`; override individual
-  bounds with `ReadingRanges__*` environment variables.
+See [Configuration](../install.md#configuration) for all settings and their
+environment-variable overrides.
 
 > **Security:** access is protected by per-member cookie authentication (each
 > family member claims their account with a one-time setup code and sets a password —

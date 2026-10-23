@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - [.NET 11 SDK](https://dotnet.microsoft.com/download) (currently a release candidate) — version is pinned in `code/global.json`; Fantomas also needs the .NET 10 runtime
-- [mise](https://mise.jdx.dev/) — manages all non-dotnet tools (node, Biome, markdownlint-cli2, shellcheck, actionlint, zizmor, hadolint, typos, Vale, lychee, Trivy, TypeScript, Renovate)
+- [mise](https://mise.jdx.dev/) — manages all non-dotnet tools (linters, Trivy; see `mise.toml`)
 
 ## Getting started
 
@@ -85,41 +85,25 @@ vendored file ever drifts from the package's embedded resource.
 
 ## Linting and formatting
 
-These mirror the jobs in `.github/workflows/ci.yml`. [Husky](https://alirezanet.github.io/Husky.Net/)
-pre-commit hooks run them automatically — restore tools once to activate:
+These mirror the CI jobs, and [Husky](https://alirezanet.github.io/Husky.Net/) pre-commit
+hooks run them on staged files once `cd code && dotnet tool restore` has run. See
+[docs/architecture.md](docs/architecture.md#development-tooling) for what each tool checks.
 
 ```bash
-cd code && dotnet tool restore   # only needed once after cloning
-```
-
-| Tool | Command | What it checks |
-| ---- | ------- | -------------- |
-| Fantomas | `cd code && dotnet fantomas --check .` | F# formatting |
-| Biome | `mise exec -- biome check` | JS linting |
-| TypeScript | `mise exec -- tsc -p tsconfig.json` | JSDoc type-checking of hand-written `wwwroot/` JS (no build step) |
-| markdownlint | `mise exec -- markdownlint-cli2 "**/*.md"` | Markdown style |
-| typos | `mise exec -- typos` | Spelling in code and docs, American spelling enforced (`_typos.toml`) |
-| Vale | `mise run lint:prose` | Prose style in Markdown: proselint + project terms like "Recent view" (`.vale.ini`) |
-| shellcheck | `mise exec -- shellcheck <file>.sh` | Shell scripts |
-| zizmor | `mise run lint:actions-security` | GitHub Actions security (`.github/zizmor.yml`) |
-| lychee | `mise run lint:links` | Broken links in Markdown (`lychee.toml`; network, weekly in CI, not part of `lint`) |
-| hadolint | `mise exec -- hadolint code/BpMonitor.Web/Containerfile` | Containerfile best practices |
-
-Run all non-dotnet linters at once:
-
-```bash
-mise run lint        # markdownlint + typos + vale + biome + tsc + shellcheck + actionlint + zizmor + hadolint + renovate
-mise run lint:md     # markdownlint only
-mise run lint:spelling  # typos only
-mise run lint:prose  # vale only
-mise run lint:js     # biome only
-mise run lint:ts     # tsc checkJs only
-mise run lint:shell  # shellcheck only
-mise run lint:actions  # actionlint only
-mise run lint:actions-security  # zizmor only
-mise run lint:container  # hadolint only
-mise run lint:renovate  # renovate.json validation only
-mise run lint:links  # lychee link check (network; not part of `lint`)
+cd code && dotnet fantomas --check .  # F# formatting
+mise run lint                   # all non-dotnet linters below
+mise run lint:md                # markdownlint
+mise run lint:spelling          # typos
+mise run lint:prose             # Vale
+mise run lint:js                # Biome
+mise run lint:ts                # tsc checkJs
+mise run lint:shell             # shellcheck
+mise run lint:actions           # actionlint
+mise run lint:actions-security  # zizmor
+mise run lint:container         # hadolint
+mise run lint:renovate          # renovate.json validation
+mise run lint:links             # lychee (network; not part of `lint`)
+mise run test:scripts           # tests for scripts/
 ```
 
 Auto-fix where supported:
@@ -131,12 +115,9 @@ mise exec -- biome check --write      # fix JS
 
 ## Testing
 
-```bash
-cd code && dotnet test
-```
-
-All code changes follow strict TDD (Red → Green → Refactor). See the "Working Rules"
-section in [AGENTS.md](AGENTS.md) for the full expectations.
+Run `dotnet test` from `code/`; [AGENTS.md](AGENTS.md#testing) covers running a single
+project or test. All code changes follow strict TDD (Red → Green → Refactor) — see
+"Working Rules" in [AGENTS.md](AGENTS.md).
 
 ### Benchmarks
 
@@ -180,56 +161,31 @@ sequence of PRs that got there ("the hover label is now localized", not "the
 hover label was broken, then fixed"). If a bug is introduced and fixed before
 either change ever ships, it has no user-facing history: fold the fix into the
 original `Added`/`Changed` bullet's description instead of adding a separate
-`Fixed` one. `/cut-release`'s Step 4 re-reviews the full `[Unreleased]` list
-for exactly this before a release ships, in case a PR misses it.
+`Fixed` one. `/cut-release` re-checks this before a release ships.
 
-When a release is cut (see below), `/cut-release` promotes the `[Unreleased]`
-entries into the new version section automatically.
+`/cut-release` promotes the `[Unreleased]` entries into the new version section.
 
 ## Creating a release
 
-Use the `/cut-release` skill, which walks through the full flow (preflight, change
-summary, confirmation, tag, push). The quickest path is:
+Run `/cut-release v1.2.3` inside Claude Code (or `scripts/cut-release.sh` without it). It
+walks through preflight, change summary, changelog PR and tag, and pauses for confirmation
+before pushing anything. The annotated tag's message becomes the end-user summary at the top
+of the GitHub release.
 
-```bash
-# inside Claude Code
-/cut-release v1.2.3
-```
-
-The skill creates an **annotated** tag whose message becomes the end-user summary
-displayed above the auto-generated changelog on the GitHub release page. It pauses
-for confirmation before pushing anything.
-
-If you prefer to tag manually, create an annotated tag — the message will appear
-as the release summary. `--cleanup=verbatim` is required, otherwise git strips
-the `###` heading as a comment:
-
-```bash
-git tag -a v1.2.3 --cleanup=verbatim -m "$(cat <<'EOF'
-### What's new
-
-- <new feature>
-- **Deployment:** <anything the operator must know — omit if nothing actionable>
-EOF
-)"
-git push origin v1.2.3
-```
+Tagging by hand works too, but the tag must be annotated and created with
+`--cleanup=verbatim`, otherwise git strips the summary's `###` heading as a comment.
 
 `release.yml` builds the self-contained tarball (`bpmonitor-web-linux-x64.tar.gz`)
 and publishes a container image to `ghcr.io/draptik/bpmonitor-web`, but only after
-Trivy finds no fixable CRITICAL/HIGH CVEs in it; the GitHub release is only created
-after that. If the scan blocks a release on a base-image CVE that only Microsoft can
-fix, add a path-scoped, expiring entry to `.trivyignore.yaml` via a PR and tag a new
-patch version. Re-running the failed job won't help, because it uses the tagged
-commit's ignore file. Tags containing
-`-` (e.g. `v1.2.3-rc1`) are automatically flagged as GitHub pre-releases, keeping
-`/releases/latest` on the stable release.
+Trivy finds no fixable CRITICAL/HIGH CVEs in it. If the scan blocks on a base-image CVE
+only Microsoft can fix, add a path-scoped, expiring entry to `.trivyignore.yaml` via a PR
+and tag a new patch version — re-running the job uses the tagged commit's ignore file. Tags
+containing `-` (e.g. `v1.2.3-rc1`) become pre-releases, so `/releases/latest` stays stable.
 
 The GitHub release body is the tag annotation (the end-user summary) followed by
-categorized release notes generated by `scripts/release-notes.sh` from the commits
-since the previous tag (for a stable release, the previous stable one) — grouped by conventional-commit type into the same
-Added/Changed/Fixed/Security/Maintenance headings as `CHANGELOG.md`, with routine
-dependency bumps collapsed into a `<details>` block.
+notes from `scripts/release-notes.sh`: commits since the previous tag (the previous stable
+one, for a stable release) grouped under the `CHANGELOG.md` headings, with dependency bumps
+collapsed into a `<details>` block.
 
 ## License
 

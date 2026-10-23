@@ -98,11 +98,10 @@ git checkout -b feat/<short-description>
 
 Never start work on `main`. Creating the branch is the first step, not an afterthought.
 
-`.claude/hooks/` mechanically enforces the branch-first, no-attribution, PR-preflight
-(CHANGELOG/docs sync reminders), and `/verify-frontend` rules described here and in
-`.claude/skills/verify-frontend/SKILL.md`; `.husky/` handles formatting, spelling (typos), prose (Vale) and workflow-security (zizmor) checks on staged files, blocks
-commits on `main` or on branches without a `feat/`/`fix/`/`chore/` prefix, and rejects a commit message whose gitmoji doesn't match its
-conventional-commit type (see the table in `.claude/skills/git-workflow/SKILL.md`).
+`.claude/hooks/` enforces branch-first, no-attribution, PR preflight (CHANGELOG/docs sync
+reminders) and `/verify-frontend`. `.husky/` runs formatting, typos, Vale and zizmor on staged
+files, blocks commits on `main` or without a `feat/`/`fix/`/`chore/` branch prefix, and rejects
+a gitmoji that doesn't match its conventional-commit type.
 
 ## F# Style Conventions
 
@@ -120,7 +119,7 @@ conventional-commit type (see the table in `.claude/skills/git-workflow/SKILL.md
 - `docs/install.md` — end-user install guide (Web app)
 - `CONTRIBUTING.md` — developer setup, linting, testing, changelog convention, release process
 - `CHANGELOG.md` — version history in Keep a Changelog format; add `[Unreleased]` bullets in each PR for user-facing changes
-- `.claude/skills/` — skill definitions (git-workflow, review-tests, setup-tooling, model-advisor, status-bar)
+- `.claude/skills/` — skill definitions (see Skills above)
 
 ## Testing
 
@@ -145,24 +144,17 @@ dotnet test BpMonitor.Web.Tests -- --filter-method "*SomeTestName*"
 
 `BpMonitor.Arch.Tests` uses `DoNotResideInNamespaceMatching("Microsoft\\.CodeCoverage.*")` in its type filters to exclude coverage-injected tracker types from ArchUnitNET dependency checks.
 
-`BpMonitor.Web.E2E.Tests` boots one `BpMonitor.Web` instance out-of-process (`dotnet exec`, fresh temp SQLite file, demo seeding off) for the whole assembly, shared by all test classes — each gets its own family member (every repository query is member-scoped) rather than its own app, since booting one per class was the CI-only flakiness source (`ChromiumFixture`/`FirefoxFixture`, `AppFixture` in `WebAppFixture.fs`). Firefox regressions are things Chromium tolerates silently but Firefox enforces per-spec (e.g. non-finite `MouseEventInit` fields). First run needs both browsers installed locally — run `mise run test:e2e-setup` (builds the test project, then installs them via `playwright.ps1` if `pwsh` is available, otherwise via `dotnet fsi` calling `Microsoft.Playwright.Program.Main([| "install"; "chromium"; "firefox" |])`).
+`BpMonitor.Web.E2E.Tests` boots one out-of-process `BpMonitor.Web` (fresh temp SQLite, no demo data) shared by the whole assembly; each test class gets its own family member, not its own app — one app per class was the CI flakiness source (`AppFixture`, `ChromiumFixture`/`FirefoxFixture` in `WebAppFixture.fs`). Firefox catches spec violations Chromium tolerates (e.g. non-finite `MouseEventInit` fields). Run `mise run test:e2e-setup` once to install both browsers.
 
 ## Dev Tooling
 
-All non-dotnet linter versions are pinned in `mise.toml` (repo root); it also hosts one-time dev setup tasks like the Playwright browser install. Run `mise install` once after cloning.
+All non-dotnet tools are pinned in `mise.toml` (run `mise install` once after cloning); see
+`docs/architecture.md` (Development Tooling) for what each one checks and where its config lives.
 
-- `biome.json` — Biome JS linter config (scoped to the hand-written `wwwroot/` files: `theme.js`, `theme-label.js`, `plot-ready.js`, `chart-hover.js`, `recent-scrubber.js`, `trends-scroll.js`, `recent-zoom.js`, `medications-sync.js`, `details-memory.js`)
-- `tsconfig.json` + `typings/globals.d.ts` — zero-build TypeScript checking of the same `wwwroot/` JS via JSDoc (`tsc --checkJs`); the JS ships as-is, no bundler
-- `.markdownlint-cli2.yaml` — markdownlint config
-- `_typos.toml` — typos spell-check config (`en-us` locale enforces the American-spelling rule; add real words it flags to `[default.extend-words]`)
-- `.vale.ini` + `.vale/styles/BpMonitor/` — Vale prose-lint config (proselint package fetched by `vale sync`, gitignored) and project rules such as "Recent view" naming; add a rule file there for new house-style terms
-- `.github/zizmor.yml` — zizmor GitHub Actions security-lint config (allows tag-pinned actions until Renovate pins them to SHAs)
-- `lychee.toml` — lychee link-check config; `link-check.yml` runs it weekly and keeps one "Broken links in docs" issue up to date
-- `.hadolint.yaml` — hadolint config for `code/BpMonitor.Web/Containerfile`
-- `.trivyignore.yaml` — path-scoped, expiring CVE exceptions for the release image gate (`mise run scan:image -- <image>`, run by `release.yml` before pushing); `image-scan.yml` rescans `:latest` weekly into the Security tab
-- Run `mise run lint` to run all non-dotnet linters; `mise run lint:js` / `lint:ts` / `lint:md` / `lint:spelling` / `lint:prose` / `lint:shell` / `lint:actions` / `lint:actions-security` / `lint:container` / `lint:renovate` individually; `mise run lint:links` checks Markdown links (network, so not part of `lint`)
-- Run `mise run test:scripts` for the dev-tooling script tests (`scripts/check-pr-body.sh`, the PR-body rules shared by the attribution hook and `scripts/ship-pr.sh`)
-- Run `mise run test:e2e-setup` once locally before the first `BpMonitor.Web.E2E.Tests` run (installs Playwright's Chromium and Firefox)
-- Run `mise exec -- biome check --write` to auto-fix JS issues
-- Run `mise run bench` for the BenchmarkDotNet suite (`BpMonitor.Benchmarks`, a few minutes); `mise run bench -- --job short` for a quick check
-- Run `mise run screenshots` to regenerate `docs/screenshots/*.png` from a fresh self-seeded demo instance (`scripts/generate-screenshots.fsx`, logged in as Ned Flanders for his outlier-rich narrative) — part of the `cut-release` skill's changelog step, otherwise only needed after a UI change worth reflecting in the README
+- `mise run lint` runs all non-dotnet linters; `CONTRIBUTING.md` lists the individual `lint:*` tasks. `lint:links` needs the network and isn't part of `lint`
+- `mise exec -- biome check --write` auto-fixes JS; `cd code && dotnet fantomas .` reformats F#
+- Hand-written `wwwroot/*.js` is linted by Biome and type-checked via JSDoc (`tsc --checkJs`); it ships as-is, no bundler
+- Real words that typos flags go in `_typos.toml` `[default.extend-words]`; new house-style terms get a Vale rule in `.vale/styles/BpMonitor/`
+- `mise run test:scripts` tests `scripts/` (e.g. `check-pr-body.sh`, shared by the attribution hook and `ship-pr.sh`)
+- `mise run bench` runs BenchmarkDotNet (a few minutes; `-- --job short` for a quick check)
+- `mise run screenshots` regenerates `docs/screenshots/*.png` from a self-seeded demo instance — part of `cut-release`, otherwise only after a UI change worth showing in the README

@@ -13,7 +13,7 @@ code/
 ├── BpMonitor.Charts.Tests   # Snapshot tests for Charts
 ├── BpMonitor.Export         # JSON and CSV serialization and file write
 ├── BpMonitor.Export.Tests   # Tests for Export
-├── BpMonitor.Web            # Falco web app (dashboard, add, history pages)
+├── BpMonitor.Web            # Falco web app (server-rendered pages, auth, export, health)
 ├── BpMonitor.Web.Tests      # Tests for Web layer
 ├── BpMonitor.Web.E2E.Tests  # Playwright .NET browser smoke tests (real out-of-process app + Chromium/Firefox)
 ├── BpMonitor.Arch.Tests     # ArchUnit tests enforcing Clean Architecture rules
@@ -29,18 +29,17 @@ code/
 | Language / Runtime | F# on .NET 11 |
 | Web Framework | Falco 5 + Falco.Markup (server-rendered F# HTML) |
 | Web interactivity | htmx (vendored, no build step) |
-| Logging | Serilog.AspNetCore — structured CLEF JSON to stdout; `UseSerilogRequestLogging` for per-request lines; configured via `appsettings.json` `Serilog` section; captured by `docker logs` / `podman logs` / journald |
+| Logging | Serilog.AspNetCore — structured logs to stdout (configured in `appsettings.json`), captured by `podman logs` / journald |
 | Database | SQLite + EF Core |
 | Charting | Plotly.NET — generates interactive HTML; plotly.js vendored locally (extracted from Plotly.NET's embedded resource via `scripts/extract-plotly-js.fsx`, no CDN) |
 | Validation | `FsToolkit.ErrorHandling` — applicative validation with `Validation<'ok, 'err>` |
 | Architecture | Clean Architecture (Core has zero dependencies on other projects) |
 | Architecture tests | ArchUnit (via `BpMonitor.Arch.Tests`) |
 | E2E tests | Playwright .NET (via `BpMonitor.Web.E2E.Tests`) — one shared out-of-process `BpMonitor.Web` instance and one Chromium + one Firefox browser for the whole assembly; each test class gets its own family member for isolation, not its own app |
-| Verifying frontend changes | `verify-frontend` skill — adds a throwaway xunit test against `ChromiumFixture`, runs it, then deletes it; avoids ad-hoc browser automation |
 | Test runner | xUnit v3 on Microsoft.Testing.Platform (MTP) — all 7 test projects run in parallel via `dotnet test` (default `--max-parallel-test-modules` = CPU count) |
-| Test coverage | `Microsoft.Testing.Extensions.CodeCoverage` (18.11.2); run with `dotnet test -- --coverage --coverage-output-format cobertura`; outputs one GUID-named `.cobertura.xml` per project into `TestResults/` |
-| Benchmarks | BenchmarkDotNet 0.16 (preview: the first version that supports .NET 11) in `BpMonitor.Benchmarks`, a console app run locally with `mise run bench` — not part of `dotnet test` or CI. `Lowess.Reference` (the original O(n² log n) LOWESS) is the baseline for `Lowess.smooth` |
-| Snapshot testing | `Verify.XunitV3` — its build-time SponsorCheck is silenced via `Verify_SponsorshipExemption`/`Verify_SponsorshipExemptionUntil` in `code/Directory.Build.props` under the maintainer's free open-source exemption (no cost to us); the `...Until` date is a self-imposed re-attestation deadline the maintainer's tooling enforces, currently **2027-09** — bump it forward (or drop the exemption if the project stops qualifying) when it's reached, otherwise SponsorCheck warnings return |
+| Test coverage | `Microsoft.Testing.Extensions.CodeCoverage` — Cobertura output, one file per test project |
+| Benchmarks | BenchmarkDotNet in `BpMonitor.Benchmarks`, run locally with `mise run bench` (not in CI); `Lowess.Reference` is the baseline for `Lowess.smooth` |
+| Snapshot testing | `Verify.XunitV3` — SponsorCheck is silenced via the maintainer's free open-source exemption in `code/Directory.Build.props`; re-attest by bumping `Verify_SponsorshipExemptionUntil` (currently **2027-09**) when it's reached |
 
 ## Data Model
 
@@ -128,9 +127,6 @@ graph TD
     Web --> Export
 ```
 
-> **Note:** `Export` depends only on `Core` and is wired into `Web` to serve the `/export`
-> (JSON) and `/export.csv` endpoints.
-
 ## Project Responsibilities
 
 ### BpMonitor.Core
@@ -162,37 +158,32 @@ graph TD
 
 ### BpMonitor.Charts
 
-- Plotly.NET chart generation — `BpChart.toHtml chartStrings goal readings` (history line chart) and `BpChart.toHtmlDashed chartStrings goal gran aggregated` (trends dashed chart); `toHtml`/`toHtmlDashed`/`toHtmlRecent` take a `ChartStrings` (trace names, axis title) so legend/axis text is localized — `toHtmlMedications` needs none, since medication names are user data, not fixed labels
-- `BpChart.toHtmlMedications showScrubber rangeLow rangeHigh medications` — the Medications Timeline (Wegier et al. 2021 Fig. 5): one thick horizontal bar per medication spanning `StartDate`→`EndDate` (ongoing medications reach `rangeHigh`) on a date axis sized to match the BP chart's margins; `showScrubber` adds the same green spike line as `/recent`'s BP chart (`SpikeSnap = Cursor`, not `Data`, so it tracks the cursor rather than snapping to a medication's own start/end date); returns `""` for an empty medication list so callers skip rendering the panel
-- Each medication bar gets its own color: `medicationSlot`/`assignSlots` hash the medication's name (FNV-1a, stable across restarts) into an 8-slot categorical palette, linear-probing past collisions — same medication, same color across `/recent`/`/history`. Each trace carries both its light and dark hex as `meta = "light|dark"`; `wwwroot/theme.js`'s `restyleMedicationColors` swaps the visible half on theme toggle instead of duplicating the palette in JS
-- Returns a chart HTML fragment embedded directly into the page by the calling handler (`ReadingHandlers.fs`)
-- `goal: GoalRange` renders a translucent horizontal background band per series (systolic mint `#008471`, diastolic cocoa `#9C652B`) behind the data, matching each series' line color — the "like-with-like" goal-range design from Wegier et al. 2021 (`docs/resources/12911_2021_Article_1598.pdf`, Fig. 3)
+- Plotly.NET chart generation — `BpChart.toHtml` (history), `toHtmlRecent` (Recent view), `toHtmlDashed` (trends); each takes a `ChartStrings` so legend/axis text is localized
+- `BpChart.toHtmlMedications` — the Medications Timeline (Wegier et al. 2021 Fig. 5): one bar per medication on a date axis aligned with the BP chart; returns `""` for no medications
+- Medication colors come from a stable hash of the name into an 8-slot palette, so a medication keeps its color across pages; each trace carries its light and dark color for `theme.js` to swap
+- Returns HTML fragments embedded by the Web handlers
+- `GoalRange` renders a translucent band per series in that series' color — the "like-with-like" design from Wegier et al. 2021, Fig. 3
 - Depends on Core only
 
 ### BpMonitor.Export
 
-- JSON serialization of `BloodPressureReading` lists (`JsonExport.serialize`, `JsonExport.tryWriteToFile`)
-- CSV serialization of `BloodPressureReading` lists (`CsvExport.serialize`, `CsvExport.tryWriteToFile`)
-- Referenced by `BpMonitor.Web` to serve the `/export` (JSON) and `/export.csv` endpoints
+- JSON and CSV serialization of readings (`JsonExport`, `CsvExport`), served by Web at `/export` and `/export.csv`
 - Depends on Core only
 
 ### BpMonitor.Web
 
-- Falco web application on `0.0.0.0:5000`; references Core + Data + Charts + Export
-- **Auth:** ASP.NET Core cookie auth; per-member PBKDF2-SHA256 password; unclaimed members claim their account with a one-time setup code (logged at startup for `NoCredential` members, shown once to the admin on create/reset) and then set a password — see ADR 0012; cookie carries `NameIdentifier`/`Name` claims plus a credential stamp (`FamilyMember.credentialStamp`, a SHA-256 fingerprint of the credential); every request re-reads the member and rejects a mismatched stamp, so deactivation, admin rights (`IsAdmin`) and password resets or changes take effect immediately
-- **Cookie policy:** `SameSite=Lax` (not `Strict`) so the cookie still rides along on a top-level navigation from outside the site (e.g. tapping a link in another app) — safe because there's no antiforgery token to leak via cross-site GET, and `Lax` still withholds the cookie on cross-site POSTs. A "Remember me" checkbox on login sets `IsPersistent` on the auth ticket; duration is `BpMonitor:RememberMeDays` (default 30, clamped to 1–400 — 400 is the hard cap Firefox/Chrome place on cookie lifetime), sliding on each request. Unchecked, sign-in produces an ordinary session cookie. Data Protection keys (which encrypt/validate the cookie) are persisted outside the container via `BpMonitor:DataProtectionKeyPath` — unset, they live in the container's ephemeral home dir and a "remember me" cookie stops validating on every redeploy
+- Falco web application on `0.0.0.0:5000`; server-rendered HTML via `Falco.Markup`, htmx for partial updates, scoped `DbContext` per request
+- **Auth:** ASP.NET Core cookie auth with per-member PBKDF2-SHA256 passwords; unclaimed members claim their account with a one-time setup code (ADR 0012). The cookie carries a credential stamp that is re-checked on every request, so deactivation, admin changes and password resets take effect immediately. `protect` / `protectAdmin` combinators guard routes
+- **Cookie policy:** `SameSite=Lax` (not `Strict`) so links opened from other apps keep the session. "Remember me" makes the cookie persistent for `BpMonitor:RememberMeDays`, sliding. Data Protection keys persist under `BpMonitor:DataProtectionKeyPath`, otherwise every container redeploy invalidates the cookie
 - **Isolation:** each member sees only their own readings; admins manage members via `/members` but not their readings
-- **Routes:** `/` hub, `/add`, `/history`, `/recent`, `/recent/full`, `/trends`, `/settings`, `/settings/language`, `/medications`, `/medications/{id}/edit`, `/medications/{id}`, `/medications/{id}/delete`, `/members`, `/members/{id}/edit`, `/members/{id}/reset-password`, `/login`, `/login/{id}`, `POST /logout`, `GET /health` (anonymous)
-- **Language:** `LocalizedStrings` (Core) is resolved per request via `HandlerHelpers.strings`/`AuthHandlers.authenticatedStrings` in this order — the authenticated member's `Language` → a `bpmonitor_lang` cookie (covers `/login`, which has no member yet) → `Accept-Language` → `BpMonitor:DefaultLanguage` config key → `English`. No `RequestLocalizationMiddleware` — resolution is an explicit function call, matching the rest of the app. `LocalizedStrings` is passed as the first parameter to every view/handler that needs it (see ADR 0008). `/settings` has a language picker (`MemberViews.languageSection`, `POST /settings/language`) that persists the choice on `FamilyMember.Language` and refreshes the cookie
-- **`/health`:** anonymous liveness + SQLite-reachability probe (`HealthHandlers.fs`); `200` with `{status, version, database}` JSON when `DbContext.Database.CanConnect()` succeeds, `503` otherwise; polled by the Containerfile `HEALTHCHECK` and the example Podman/Compose deploys via `dotnet BpMonitor.Web.dll --healthcheck` (`HealthProbe.fs`: exits `0`/`1`; the chiseled runtime image has no shell or curl), and by `BpMonitor.Web.E2E.Tests`' readiness wait — successful polls are logged at `Verbose` (dropped) to avoid flooding stdout
-- **`/settings`:** two self-service sections under one page shell (`SettingsViews.settings`), each a collapsible `<details data-persist-key>` (open by default, state remembered via `wwwroot/details-memory.js`): a Goal Range form (`MemberViews.goalRangeSection`) where the logged-in member edits their own chart goal range (`GoalRange`, validated via `GoalRange.create`, min < max per pair), and a Medications section (`MedicationViews.medicationsSection`) — a table of the member's medications (required/optional fields labeled on the add/edit forms) plus an add form, backed by `/medications*` CRUD routes (`MedicationHandlers.fs`). Delete is styled destructive (`.button-danger` in `app.css`, specificity-matched to override pico.min.css's own `.outline` rule) and gated by `ViewLayout.inlineDangerPostButton`'s `hx-confirm` — note `hx-confirm` must sit on the `<form>`, not an inner button, since htmx's boost resolves a submit's triggering element to the form and only walks up from there
-- **Medications Timeline:** a collapsible panel (`MedicationViews.timelinePanel`, `<details data-persist-key>`) rendered below the BP chart on `/recent` and `/history` — Wegier et al. 2021 Fig. 5's medication timeline. Collapsed by default; open/closed state is remembered per-panel across page loads via `wwwroot/details-memory.js` (`localStorage`). Not shown on `/trends`, whose x-axis is categorical period labels rather than dates. `wwwroot/medications-sync.js` keeps the timeline's x-axis in sync with the BP chart above it (pan/zoom, including the Last 7/30 days buttons) and mirrors the scrubber spike between the two charts in both directions, reusing `recent-scrubber.js`'s `d2l`/`l2p` pixel-geometry technique; `wwwroot/plot-ready.js`'s `whenPlotReady` takes an `index` parameter (0 = BP chart, 1 = timeline) since the page now has two Plotly divs
-- **`/recent`:** raw readings loaded for the last 365 days (`recentLoadWindowDays`), chart and value strip focused on the last 30 days (`recentChartWindowDays`) — panning the chart left reveals the rest of the loaded window. Above the chart, a Fig. 5-style (Wegier et al. 2021) "value strip" table lists every Systolic/Diastolic value in the loaded window in chronological order, sized to match the chart's rendered width with no horizontal scrolling; cells outside the 30-day focus start hidden and un-hide as the chart pans. Each value is color-coded against the member's `GoalRange` (`GoalRange.classifySystolic`/`classifyDiastolic`): above the goal max renders orange, below the goal min renders blue, in-range stays neutral. When readings older than the 365-day load window exist, a "Load full history" button htmx-swaps the chart container (`GET /recent/full`, `ReadingHandlers.recentFull`) for one rendered from the member's entire history, lifting the cap for that page view
-- **`/trends`:** granularity selector (Weekly/Monthly/Yearly) + htmx-swapped period fragments; stats from `ReadingStats` (Core); `TimeProvider` injected for testability
-- `protect` / `protectAdmin` combinators; active member resolved from `ClaimsPrincipal`
-- Server-rendered HTML via `Falco.Markup`; htmx for partial updates; scoped `DbContext` per request
-- Structured logging via Serilog (stdout → container/journal)
-- **Version footer:** `Version.current` reads `AssemblyInformationalVersion`; shows `dev` for the SDK default `1.0.0+<sha>`, `v1.2.3` for stamped releases (the SDK's `+<sha>` build metadata is stripped so the release link resolves)
+- **Routes:** `/` hub, `/add`, `/readings*`, `/history`, `/recent` (+ `/recent/full`), `/trends*`, `/settings` (+ `/settings/language`), `/medications*`, `/members*`, `/export`, `/export.csv`, `/login*`, `POST /logout`, anonymous `GET /health`
+- **Language:** `LocalizedStrings` is resolved per request from the member's `Language` → `bpmonitor_lang` cookie → `Accept-Language` → `BpMonitor:DefaultLanguage` → English, as an explicit function call rather than `RequestLocalizationMiddleware` (ADR 0008)
+- **`/health`:** `200`/`503` depending on `Database.CanConnect()`; the container health check runs `dotnet BpMonitor.Web.dll --healthcheck` (`HealthProbe.fs`) because the chiseled image has no shell or curl
+- **`/settings`:** the member's own goal range and medications (CRUD in `MedicationHandlers.fs`), as collapsible sections whose open state `details-memory.js` remembers
+- **Medications Timeline:** a collapsible panel below the BP chart on `/recent` and `/history` (not `/trends`, whose x-axis isn't dates); `medications-sync.js` keeps its x-axis and scrubber in sync with the BP chart
+- **`/recent`:** loads the last 365 days and focuses the chart on the last 30; a Fig. 5-style value strip above the chart color-codes each value against the member's `GoalRange`. "Load full history" swaps in a chart of the entire history (`/recent/full`)
+- **`/trends`:** Weekly/Monthly/Yearly periods with stats from `ReadingStats`; `TimeProvider` injected for testability
+- **Version footer:** `Version.current` reads `AssemblyInformationalVersion` — `dev` for local builds, `v1.2.3` for releases
 
 ### BpMonitor.Arch.Tests
 
@@ -209,51 +200,28 @@ graph TD
 
 ## Development Tooling
 
-[mise](https://mise.jdx.dev/) manages all non-dotnet linting tools for this project. The `mise.toml` at the repo root pins all tool versions; run `mise install` once after cloning to set up the local environment.
+[mise](https://mise.jdx.dev/) pins every non-dotnet tool in `mise.toml`; run `mise install` once after cloning.
 
-| Tool | Version source | Purpose |
-| --- | --- | --- |
-| node | `mise.toml` | Runtime for npm-based tools (markdownlint-cli2) |
-| Biome | `mise.toml` | JS linter (`biome check`) for files in `wwwroot/` |
-| TypeScript | `mise.toml` (npm backend) | Type-checks the hand-written `wwwroot/` JS via JSDoc (`tsc --checkJs`, config in `tsconfig.json` + `typings/globals.d.ts`) — no build step, the JS ships as-is |
-| markdownlint-cli2 | `mise.toml` | Markdown style linter |
-| shellcheck | `mise.toml` | Shell script linter |
-| actionlint | `mise.toml` | GitHub Actions workflow linter; also shellchecks `run:` scripts |
-| zizmor | `mise.toml` | GitHub Actions security linter (config in `.github/zizmor.yml`): token permissions, credential persistence, cache poisoning, template injection, unpinned actions; tag refs are allowed until Renovate's `helpers:pinGitHubActionDigests` pins them to SHAs |
-| lychee | `mise.toml` | Link checker for all tracked Markdown (config in `lychee.toml`; publishers that 403 bots are excluded); needs the network, so it runs weekly via `link-check.yml` and on demand via `mise run lint:links`, not per PR |
-| hadolint | `mise.toml` | Containerfile linter (config in `.hadolint.yaml`) |
-| typos | `mise.toml` | Spell checker for code and docs (config in `_typos.toml`; `en-us` locale, so British spellings fail; skips vendored `*.min.js` and the German strings in `LocalizedStrings.fs`) |
-| Vale | `mise.toml` | Prose linter for all tracked Markdown (config in `.vale.ini`): Vale core + the pinned proselint package (fetched by `vale sync`, gitignored; Renovate bumps its release URL via a regex custom manager in `renovate.json`) + a committed `BpMonitor` style in `.vale/styles/` enforcing `Recent view` over bare `Recent`; released CHANGELOG sections are skipped via `<!-- vale off -->`, so only new entries are checked |
-| Trivy | `mise.toml` | Container image CVE scanner; `mise run scan:image -- <image>` gates the release push on fixable CRITICAL/HIGH findings (path-scoped, expiring exceptions in `.trivyignore.yaml`) |
-| Renovate | `mise.toml` (npm backend) | `renovate-config-validator --strict` on `renovate.json`; one trust-policy exemption for `@yarnpkg/libzip@3.2.2` (hand-published without provenance) |
+| Tool | Purpose (config) |
+| --- | --- |
+| Biome | JS linter for `wwwroot/` |
+| TypeScript | JSDoc type-check of the hand-written `wwwroot/` JS (`tsconfig.json`, `typings/globals.d.ts`); no build step, the JS ships as-is |
+| markdownlint-cli2 | Markdown style (`.markdownlint-cli2.yaml`) |
+| typos | Spelling, `en-us` locale so British spellings fail (`_typos.toml`) |
+| Vale | Prose: proselint + a project `BpMonitor` style for terms like "Recent view" (`.vale.ini`); released CHANGELOG sections sit under `<!-- vale off -->` |
+| shellcheck | Shell scripts |
+| actionlint | GitHub Actions workflows, including `run:` scripts |
+| zizmor | GitHub Actions security (`.github/zizmor.yml`); tag-pinned actions allowed until Renovate pins SHAs |
+| hadolint | Containerfile (`.hadolint.yaml`) |
+| lychee | Markdown links (`lychee.toml`); needs the network, so weekly rather than per PR |
+| Trivy | Container CVE gate for releases (exceptions in `.trivyignore.yaml`) |
+| Renovate | `renovate-config-validator --strict` on `renovate.json` |
 
-**Local usage:**
+See [CONTRIBUTING.md](../CONTRIBUTING.md#linting-and-formatting) for the commands. CI runs the same `mise run lint:*` tasks via `jdx/mise-action`.
 
-```bash
-mise install          # install all pinned tools
-mise run lint         # run all non-dotnet linters
-mise run lint:md      # markdownlint only
-mise run lint:spelling # typos only
-mise run lint:prose   # Vale only
-mise run lint:js      # biome only
-mise run lint:ts      # tsc checkJs only
-mise run lint:shell   # shellcheck only
-mise run lint:actions # actionlint only
-mise run lint:actions-security # zizmor only
-mise run lint:container # hadolint only
-mise run lint:renovate # renovate.json validation only
-mise run lint:links   # lychee link check (network; not part of `lint`)
-mise run test:scripts # tests for scripts/ (PR-body rules shared by the attribution hook and ship-pr.sh)
-mise exec -- biome check --write  # auto-fix safe JS issues
-```
+**Image scanning:** `release.yml` builds the image into the runner's Docker daemon, runs `mise run scan:image` on it, and only then pushes to GHCR (the GitHub release job waits for it), so a release with a fixable CRITICAL/HIGH CVE never reaches `:latest`. Trivy comes from mise, not `aquasecurity/trivy-action` (its tags were hijacked in March 2026). `image-scan.yml` rescans `:latest` weekly into the Security tab, since base-image CVEs appear after a release; fixing one needs a new release.
 
-**CI:** the `lint-markdown` (markdownlint + typos + Vale), `lint-js` (Biome + `tsc` checkJs), `lint-shell` (shellcheck + `test:scripts` + actionlint + zizmor + hadolint), and `lint-renovate` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
-
-**Image scanning:** `release.yml` builds the image into the runner's Docker daemon, runs `mise run scan:image` on it, and only then pushes to GHCR (the GitHub release job waits for it), so a release with a fixable CRITICAL/HIGH CVE never reaches `:latest`. Trivy is installed via mise rather than `aquasecurity/trivy-action`, whose tags were hijacked in a March 2026 supply-chain attack. `.github/workflows/image-scan.yml` rescans the published `:latest` weekly (and on demand) and uploads SARIF to the Security tab, without the gate's exceptions, because base-image CVEs appear after a release; a fixed one needs a new release, since the rebuild picks up the patched base image.
-
-**Link checking:** `.github/workflows/link-check.yml` runs `mise run lint:links` weekly (and on demand). External links break without a commit here, so it is not a PR check; instead it keeps a single open "Broken links in docs" issue up to date with the lychee report, and closes it once all links resolve again.
-
-**Release notes:** `.github/workflows/release.yml` builds the GitHub release body from the pushed tag's annotation followed by categorized notes from `scripts/release-notes.sh <tag>`, which groups commits since the previous tag (for a stable release, the previous stable one, skipping RCs) by conventional-commit type into the same Added/Changed/Fixed/Security/Maintenance headings as `CHANGELOG.md`, collapsing routine dependency bumps into a `<details>` block.
+**Link checking:** `link-check.yml` runs lychee weekly rather than per PR (external links break without a commit here) and keeps one "Broken links in docs" issue up to date.
 
 ## Architecture Decision Records
 
