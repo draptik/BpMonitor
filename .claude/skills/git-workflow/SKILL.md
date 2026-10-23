@@ -14,9 +14,10 @@ with `git add`, then run `scripts/ship-pr.sh "<gitmoji + conventional title>"`.
 It opens `$EDITOR` for the PR summary, watches CI, and only merges after
 explicit confirmation. Keep it in sync with this skill when the process changes.
 
-Inside Claude, the `ship` skill (`/ship`) runs the same flow end-to-end —
-commit, push, PR, CI wait, squash-merge, cleanup — without per-step
-confirmation, auto-merging once CI is green.
+Inside Claude, the `ship` skill (`/ship`) runs the rest of the flow
+end-to-end — push, PR, CI wait, squash-merge, cleanup — without per-step
+confirmation, auto-merging once CI is green. It never commits: commit first
+(with the message approved), since it aborts on uncommitted changes.
 
 ## Branching Strategy
 
@@ -41,9 +42,9 @@ Format:
 ```
 
 This is a strict whitelist, mechanically enforced by `.husky/commit-msg` —
-each row is the *only* legal pairing for that emoji, and each type has
-exactly one emoji (fix's two rows are the one deliberate exception: 🔒 is a
-security-flavored `fix`, always still typed `fix`). No emoji outside this
+each row is the *only* legal pairing for that emoji. A type may have several
+emojis (`fix`: 🐛/🔒, `chore`: 🔧/🗑️/⬆️/🎉/🚀), but each emoji belongs to
+exactly one type. No emoji outside this
 table is permitted, and an emoji may never appear next to a different type
 than the one listed here — mixing them (e.g. `💄 chore`, `♻️ test`, `🔧
 refactor`) is exactly the drift this table exists to prevent.

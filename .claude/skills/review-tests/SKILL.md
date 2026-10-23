@@ -10,7 +10,8 @@ agent: general-purpose
 # Review Tests
 
 Review the implemented code in $ARGUMENTS and identify test gaps. Assume the code is wrong until proven otherwise.
-If no target is given, review what the current branch changes (`git diff origin/main...HEAD`).
+If no target is given, review what the current branch changes, including uncommitted
+work: run `git fetch origin main`, then `git diff origin/main...HEAD` plus `git diff HEAD`.
 
 You run as a forked subagent with no conversation history and must not edit files: your
 final message is the deliverable. Make it a prioritized list of missing tests — scenario,
@@ -43,7 +44,7 @@ one through the TDD loop.
 - Prioritize tests that catch real bugs over tests that inflate coverage
 - Readable test names over short ones (e.g., `Returns_Error_When_Systolic_Is_Negative`)
 - One assertion per test where practical
-- Tests are written after implementation (classical approach)
+- Gaps found here are closed test-first: each missing test goes through Red → Green → Refactor
 
 ## Style
 

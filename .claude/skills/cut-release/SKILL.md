@@ -177,15 +177,13 @@ mise run screenshots
 git status --short docs/screenshots/
 ```
 
-Commit, push, open a PR, and **merge it to `main`** before proceeding:
+Show the user the commit message and **wait for approval**, then commit and
+**merge it to `main`** via the `ship` skill (PR body: a single `## Summary`
+section; it merges only once CI is green) before proceeding:
 
 ```bash
 git add "$(git rev-parse --show-toplevel)/CHANGELOG.md" docs/screenshots/
 git commit -m "📝 docs: update changelog for vX.Y.Z"
-git push -u origin chore/changelog-vX.Y.Z
-gh pr create --title "📝 docs: update changelog for vX.Y.Z" --body "Changelog entry for the upcoming vX.Y.Z release."
-# wait for CI to pass, then merge
-gh pr merge --squash
 ```
 
 After the PR is merged, pull `main` so the tag lands on the changelog commit:
