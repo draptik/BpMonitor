@@ -243,6 +243,7 @@ mise run lint:actions-security # zizmor only
 mise run lint:container # hadolint only
 mise run lint:renovate # renovate.json validation only
 mise run lint:links   # lychee link check (network; not part of `lint`)
+mise run test:scripts # tests for scripts/ (PR-body rules shared by the attribution hook and ship-pr.sh; not run in CI)
 mise exec -- biome check --write  # auto-fix safe JS issues
 ```
 

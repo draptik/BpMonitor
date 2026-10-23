@@ -29,13 +29,8 @@ case "$cmd" in
     fi
     combined="$cmd
 $body"
-    if printf '%s' "$combined" | grep -qiE "generated with claude code|🤖|## Test plan|claude-session|claude\.ai/code/session"; then
-      deny "git-workflow skill: PR body is a Summary section only — no Test plan section, no Generated-with-Claude-Code footer/emoji, no Claude-Session link."
-    fi
-    # any heading other than "## Summary" (line-start, or first thing after --body)
-    extra=$(printf '%s' "$combined" | grep -oP -- '(?:^|--body[= ]["\x27]?)\K#{1,6}\s+\S.*' | grep -vxP '## Summary\s*["\x27]?' || true)
-    if [ -n "$extra" ]; then
-      deny "git-workflow skill: PR body has exactly one section, ## Summary — remove: $(printf '%s' "$extra" | head -1)"
+    if ! reason=$(printf '%s' "$combined" | "$(dirname "$0")/../../scripts/check-pr-body.sh" 2>&1); then
+      deny "git-workflow skill: $reason"
     fi
     ;;
 esac
