@@ -76,20 +76,21 @@ let private hasNamelessHover (html: string) (name: string) =
 
 [<Fact>]
 let ``toHtml renders a goal-range band shaped rectangle for systolic and diastolic bounds`` () =
+  // Deliberately not GoalRange.defaults, so the bands must come from the passed goal.
   let goal: GoalRange =
     {
-      SystolicMin = 90
-      SystolicMax = 140
-      DiastolicMin = 60
-      DiastolicMax = 90
+      SystolicMin = 100
+      SystolicMax = 135
+      DiastolicMin = 65
+      DiastolicMax = 88
     }
 
   let html = BpChart.toHtml LocalizedStrings.en.Charts goal readings
   test <@ html.Contains("\"type\":\"rect\"") @>
-  test <@ html.Contains("\"y0\":90") @>
-  test <@ html.Contains("\"y1\":140") @>
-  test <@ html.Contains("\"y0\":60") @>
-  test <@ html.Contains("\"y1\":90") @>
+  test <@ html.Contains("\"y0\":100") @>
+  test <@ html.Contains("\"y1\":135") @>
+  test <@ html.Contains("\"y0\":65") @>
+  test <@ html.Contains("\"y1\":88") @>
 
 [<Fact>]
 let ``toHtml sets a denser y-axis tick interval than plotly's default`` () =
