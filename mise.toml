@@ -80,7 +80,7 @@ dotnet fsi scripts/generate-screenshots.fsx
 
 [tasks."test:scripts"]
 description = "Tests for the dev tooling shell scripts in scripts/"
-run = "scripts/check-pr-body.test.sh"
+run = ["scripts/check-pr-body.test.sh", "scripts/ship-pr.test.sh"]
 
 [tasks."test:e2e-setup"]
 description = "One-time local setup: installs the Playwright Chromium and Firefox browsers used by BpMonitor.Web.E2E.Tests"

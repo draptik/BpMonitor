@@ -2,6 +2,8 @@
 # Push, open a PR, queue a squash auto-merge, wait for CI, merge, clean up (run with --help).
 
 set -euo pipefail
+# Keep set -e inside $(...) too, e.g. pr=$(create_pr) must stop on a rejected body.
+shopt -s inherit_errexit
 
 usage() {
   cat <<'EOF'
