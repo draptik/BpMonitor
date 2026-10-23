@@ -10,6 +10,8 @@
 # then run "tag" with the same version to finish the release.
 
 set -euo pipefail
+# Keep set -e inside $(...) too, e.g. summary=$(edit_summary ...) must stop when the editor fails.
+shopt -s inherit_errexit
 
 REPO="draptik/BpMonitor"
 
@@ -152,7 +154,7 @@ edit_summary() {
   } >"$guide"
 
   "${EDITOR:-vi}" "$guide" >/dev/tty </dev/tty
-  grep -v '^#' "$guide" | sed -e '/./,$!d' -e '$ { /^$/d }'
+  { grep -v '^#' "$guide" || true; } | sed -e '/./,$!d' -e '$ { /^$/d }'
   rm -f "$guide"
 }
 
