@@ -169,8 +169,16 @@ jobs:
         if: steps.apt-cache.outputs.cache-hit == 'true'
         run: sudo find ~/apt-archives -name '*.deb' -exec cp -t /var/cache/apt/archives/ {} +
 
+      # apt only fails over on a stalled transfer, not a trickling one, so cap the Azure attempt and retry without it.
       - name: Install Playwright OS dependencies
-        run: pwsh bin/Release/net11.0/playwright.ps1 install-deps chromium firefox
+        timeout-minutes: 15
+        run: |
+          if ! timeout --kill-after=10s 3m pwsh bin/Release/net11.0/playwright.ps1 install-deps chromium firefox; then
+            echo "::warning::Playwright OS dependency install timed out on the Azure mirror; retrying via archive.ubuntu.com"
+            sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+            sudo dpkg --configure -a
+            pwsh bin/Release/net11.0/playwright.ps1 install-deps chromium firefox
+          fi
         working-directory: code/BpMonitor.Web.E2E.Tests
 
       - name: Collect downloaded packages for the cache
