@@ -243,11 +243,11 @@ mise run lint:actions-security # zizmor only
 mise run lint:container # hadolint only
 mise run lint:renovate # renovate.json validation only
 mise run lint:links   # lychee link check (network; not part of `lint`)
-mise run test:scripts # tests for scripts/ (PR-body rules shared by the attribution hook and ship-pr.sh; not run in CI)
+mise run test:scripts # tests for scripts/ (PR-body rules shared by the attribution hook and ship-pr.sh)
 mise exec -- biome check --write  # auto-fix safe JS issues
 ```
 
-**CI:** the `lint-markdown` (markdownlint + typos + Vale), `lint-js` (Biome + `tsc` checkJs), `lint-shell` (shellcheck + actionlint + zizmor + hadolint), and `lint-renovate` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
+**CI:** the `lint-markdown` (markdownlint + typos + Vale), `lint-js` (Biome + `tsc` checkJs), `lint-shell` (shellcheck + `test:scripts` + actionlint + zizmor + hadolint), and `lint-renovate` jobs in `.github/workflows/ci.yml` each install tools via `jdx/mise-action` and invoke the corresponding `mise run lint:*` task — the same command as local dev.
 
 **Image scanning:** `release.yml` builds the image into the runner's Docker daemon, runs `mise run scan:image` on it, and only then pushes to GHCR (the GitHub release job waits for it), so a release with a fixable CRITICAL/HIGH CVE never reaches `:latest`. Trivy is installed via mise rather than `aquasecurity/trivy-action`, whose tags were hijacked in a March 2026 supply-chain attack. `.github/workflows/image-scan.yml` rescans the published `:latest` weekly (and on demand) and uploads SARIF to the Security tab, without the gate's exceptions, because base-image CVEs appear after a release; a fixed one needs a new release, since the rebuild picks up the patched base image.
 
