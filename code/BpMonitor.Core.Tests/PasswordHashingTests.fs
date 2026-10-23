@@ -82,16 +82,20 @@ let ``hashing the same password twice produces different encodings (distinct sal
 // Property-based tests
 // ---------------------------------------------------------------------------
 
-/// Non-empty non-null printable-ASCII strings — covers common password characters.
+/// Non-empty strings of printable ASCII plus umlauts, accents and an emoji (a surrogate pair).
 let private passwordGen: Gen<string> =
   gen {
     let! len = Gen.choose (1, 64)
 
-    let! chars =
-      Gen.elements [ '!' .. '~' ] // printable ASCII excluding space
+    let! parts =
+      Gen.frequency
+        [
+          4, Gen.elements [ '!' .. '~' ] |> Gen.map string // printable ASCII excluding space
+          1, Gen.elements [ "ä"; "ö"; "ü"; "ß"; "é"; "€"; "😀" ]
+        ]
       |> Gen.listOfLength len
 
-    return String(List.toArray chars)
+    return String.concat "" parts
   }
 
 [<Property>]
@@ -102,4 +106,24 @@ let ``verify accepts the correct password for any non-empty password`` () =
 [<Property>]
 let ``verify rejects a different password for any non-empty password pair`` () =
   Prop.forAll (Arb.fromGen (Gen.two passwordGen |> Gen.filter (fun (a, b) -> a <> b))) (fun (p1, p2) ->
+    not (PasswordHashing.verify p2 (PasswordHashing.hash p1)))
+
+/// Two passwords that differ only in one non-ASCII character, e.g. "pässwort" vs. "pösswort".
+let private nonAsciiNeighborsGen: Gen<string * string> =
+  gen {
+    let! prefix = passwordGen
+    let! suffix = passwordGen
+
+    let! c1, c2 =
+      Gen.elements [ "ä"; "ö"; "ü"; "ß"; "é"; "€"; "😀" ]
+      |> Gen.two
+      |> Gen.filter (fun (a, b) -> a <> b)
+
+    return prefix + c1 + suffix, prefix + c2 + suffix
+  }
+
+// Each case runs PBKDF2 twice, so keep the run short.
+[<Property(MaxTest = 20)>]
+let ``verify rejects a password that differs only in one non-ASCII character`` () =
+  Prop.forAll (Arb.fromGen nonAsciiNeighborsGen) (fun (p1, p2) ->
     not (PasswordHashing.verify p2 (PasswordHashing.hash p1)))
