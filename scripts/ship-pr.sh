@@ -136,7 +136,7 @@ read_body() {
 -
 EOF
   "${EDITOR:-vi}" "$tmp" >/dev/tty </dev/tty
-  grep -v '^# ' "$tmp" | grep -v '^#$' | sed -e '/./,$!d' -e '$ { /^$/d }'
+  { grep -v '^# ' "$tmp" || true; } | { grep -v '^#$' || true; } | sed -e '/./,$!d' -e '$ { /^$/d }'
   rm -f "$tmp"
 }
 
