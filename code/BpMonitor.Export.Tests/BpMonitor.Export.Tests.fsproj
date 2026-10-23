@@ -8,10 +8,12 @@
     <Compile Include="FileHelpersTests.fs" />
     <Compile Include="JsonExportTests.fs" />
     <Compile Include="CsvExportTests.fs" />
+    <Compile Include="CsvExportPropertyTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="FsCheck.Xunit.v3" />
     <PackageReference Include="Unquote" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit.v3" />
