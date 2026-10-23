@@ -28,8 +28,8 @@ to, and aborts on uncommitted changes.
    --show-current)" --state open` already shows a PR; if not, read `git log
    origin/main..HEAD` (full messages) and the full `git diff
    origin/main...HEAD`, then write a `## Summary` section of bullets — and
-   nothing else, no other headings (no hook checks this body — it goes
-   straight into the squash commit). Accuracy rules:
+   nothing else, no other headings (`ship-pr.sh` rejects them). Accuracy
+   rules:
    - Describe only what the diff shows; name the files/settings it touches.
    - Claim a reason or "before" behavior only if a commit message or the
      diff's removed lines state it — never infer one.
@@ -52,15 +52,17 @@ to, and aborts on uncommitted changes.
 
    The script appears exactly once, on the line after `BODY` — don't also
    chain it onto the `cat` line, or it runs twice (the second run starts on
-   `main` after cleanup and fails the branch guard). For a branch with
-   several commits, append a gitmoji + conventional title as the last
-   argument (with one commit it defaults to its subject).
+   `main` after cleanup and fails the branch guard). **Title:** if the
+   invocation text above has a `Title:` line, append its text verbatim as the
+   last argument, quoted (`... --body-file "$f" "<title>"`). Otherwise, for a
+   branch with several commits, append a gitmoji + conventional title you
+   write; with one commit, omit it (the script uses the commit subject).
    Use a Bash timeout of 600000 ms; CI takes several minutes.
 
 ## Report
 
-Report the PR number, title and summary, and the script's outcome, quoting
-its last lines. The PR is merged only if the script printed `Merged and
+Report the PR number, title (as passed or defaulted) and summary, and the
+script's outcome, quoting its last lines. The PR is merged only if the script printed `Merged and
 cleaned up local branch`. If it exited non-zero, report its error verbatim.
 
 ## Rules
