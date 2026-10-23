@@ -1,7 +1,10 @@
 module LoginHandlerTests
 
+open System
 open Xunit
 open Swensen.Unquote
+open FsCheck.FSharp
+open FsCheck.Xunit
 open Microsoft.Extensions.DependencyInjection
 open BpMonitor.Core
 open BpMonitor.Web
@@ -111,6 +114,40 @@ let ``loginWithCredentials redirects to claim page for unclaimed member`` () =
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = Routes.loginMember 1 @>
+
+// A stored name and how it was typed: each letter in random case, padded with spaces or tabs.
+let private typedNameGen =
+  gen {
+    let! name =
+      Gen.elements [ 'a' .. 'z' ]
+      |> Gen.nonEmptyListOf
+      |> Gen.map (List.toArray >> String)
+
+    let! upper = Gen.listOfLength name.Length (Gen.elements [ true; false ])
+
+    let typed =
+      Seq.map2 (fun (c: char) up -> if up then Char.ToUpperInvariant c else c) name upper
+      |> Seq.toArray
+      |> String
+
+    let padding =
+      Gen.elements [ ' '; '\t' ] |> Gen.listOf |> Gen.map (List.toArray >> String)
+
+    let! before = padding
+    let! after = padding
+    return name, before + typed + after
+  }
+
+[<Property>]
+let ``loginWithCredentials finds the member regardless of case and surrounding whitespace`` () =
+  Prop.forAll (Arb.fromGen typedNameGen) (fun (name, typed) ->
+    let ctx =
+      TestHost.contextWithMembers (repoWith []) [ { unclaimedMember with Name = name } ]
+
+    TestHost.setForm ctx [ FormFields.username, typed; FormFields.password, "" ]
+    TestHost.run AuthHandlers.loginWithCredentials ctx
+
+    ctx.Response.Headers.Location.ToString() = Routes.loginMember 1)
 
 [<Fact>]
 let ``loginMember returns 200 for an existing active member`` () =
