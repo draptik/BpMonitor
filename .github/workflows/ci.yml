@@ -179,6 +179,9 @@ jobs:
           if ! timeout --kill-after=10s 3m pwsh bin/Release/net11.0/playwright.ps1 install-deps chromium firefox; then
             echo "::warning::Playwright OS dependency install timed out on the Azure mirror; retrying via archive.ubuntu.com"
             sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+            # timeout can't signal the root apt-get spawned via sudo, so it would keep holding the dpkg lock.
+            sudo pkill -x apt-get || true
+            while pgrep -x 'apt-get|dpkg' > /dev/null; do sleep 1; done
             sudo dpkg --configure -a
             pwsh bin/Release/net11.0/playwright.ps1 install-deps chromium firefox
           fi
