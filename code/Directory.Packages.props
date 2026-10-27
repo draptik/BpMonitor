@@ -38,7 +38,7 @@
   <ItemGroup Label="Test - PBT">
     <PackageVersion Include="BenchmarkDotNet" Version="0.16.0-preview.2" />
     <PackageVersion Include="FsCheck" Version="3.5.0" />
-    <PackageVersion Include="FsCheck.Xunit.v3" Version="3.5.0" />
+    <PackageVersion Include="FsCheck.Xunit.v3" Version="3.6.0" />
   </ItemGroup>
   <ItemGroup Label="Test - E2E">
     <PackageVersion Include="Microsoft.Playwright" Version="1.63.0" />
