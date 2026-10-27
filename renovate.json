@@ -44,7 +44,7 @@
       "description": "Renovate releases several times a day; only the config validator in mise.toml uses it."
     },
     {
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "pinDigest", "digest"],
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true
