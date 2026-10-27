@@ -176,7 +176,10 @@ type AppFixture() =
       let opts = BrowserNewContextOptions()
       viewport |> Option.iter (fun v -> opts.ViewportSize <- v)
       let! context = browser.NewContextAsync(opts)
-      do! context.Tracing.StartAsync(TracingStartOptions(Screenshots = true, Snapshots = true, Sources = true))
+      // TracedPage stops the trace with a path on dispose; the returned disposable isn't needed
+      let! _ =
+        context.Tracing.StartAsync(TracingStartOptions(Screenshots = true, Snapshots = true, Sources = true))
+
       let! page = context.NewPageAsync()
       let displayName = TestContext.Current.Test.TestDisplayName
       let tracePath = TraceArtifacts.pathFor (RepoLayout.tracesDir ()) displayName
