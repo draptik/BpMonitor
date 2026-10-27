@@ -105,7 +105,7 @@ jobs:
           build-args: |
             VERSION=${{ steps.meta.outputs.version }}
 
-      - uses: jdx/mise-action@v5
+      - uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5
         with:
           install_args: trivy
           # a release must not restore a cache other runs could have written

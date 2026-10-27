@@ -25,7 +25,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@v5
+      - uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5
 
       - name: Run markdownlint-cli2
         run: mise run lint:md
@@ -45,7 +45,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@v5
+      - uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5
 
       - name: Run Biome
         run: mise run lint:js
@@ -62,7 +62,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@v5
+      - uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5
 
       - name: Run shellcheck
         run: mise run lint:shell
@@ -88,7 +88,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@v5
+      - uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5
 
       - name: Run renovate-config-validator
         run: mise run lint:renovate
