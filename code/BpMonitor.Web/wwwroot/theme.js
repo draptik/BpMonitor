@@ -38,18 +38,32 @@ function restyleMedicationColors(plot, isDark) {
   Plotly.restyle(plot, { 'line.color': colors, 'hoverlabel.bgcolor': colors });
 }
 
+// Tooltip names the theme a click switches to; the icon itself is swapped by CSS.
+function syncThemeToggles() {
+  const t=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';
+  document.querySelectorAll('.theme-toggle').forEach((b) => {
+    const label=b.getAttribute(`data-tooltip-${t}`)||'';
+    b.setAttribute('title',label);
+    b.setAttribute('aria-label',label);
+  });
+}
+
 window.toggleTheme=()=> {
   const h=document.documentElement;
   const n=h.getAttribute('data-theme')==='dark'?'light':'dark';
   h.setAttribute('data-theme',n);
   localStorage.setItem('theme',n);
-  document.querySelectorAll('.theme-toggle').forEach((b) => { b.textContent=n==='dark'?'☀️':'🌙'; });
+  syncThemeToggles();
   applyChartTheme(n);
 };
 
 document.addEventListener('DOMContentLoaded',() => {
+  syncThemeToggles();
   applyChartTheme(document.documentElement.getAttribute('data-theme')||'light');
 });
+// hx-boost swaps and Back/Forward restores bring toggles whose tooltip may not match the theme.
+document.addEventListener('htmx:afterSwap',syncThemeToggles);
+document.addEventListener('htmx:historyRestore',syncThemeToggles);
 document.addEventListener('htmx:afterSettle',() => {
   applyChartTheme(document.documentElement.getAttribute('data-theme')||'light');
 });

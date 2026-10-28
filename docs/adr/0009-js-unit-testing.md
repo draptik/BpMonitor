@@ -4,6 +4,10 @@
 
 Rejected
 
+**Note:** `theme-label.js` was folded into `theme.js` (2026-10-28), so `wwwroot/` now has
+8 hand-written JS files (~700 lines). The Context below lists the files as they were when this
+decision was made; the reasoning is unaffected.
+
 ## Context
 
 `wwwroot/` has ~620 lines of hand-written JS across 9 files (`theme.js`, `plot-ready.js`,

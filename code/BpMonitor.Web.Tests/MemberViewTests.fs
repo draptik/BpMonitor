@@ -75,10 +75,14 @@ let ``goalRangeSection wraps the section in a collapsible details element`` () =
   test <@ html.Contains "<summary>" @>
 
 [<Fact>]
-let ``members page renders Edit as a button, matching Reset password's style`` () =
+let ``members page renders Edit as an icon button with the label as tooltip`` () =
   let html = renderHtml (MemberViews.members s [ defaultMember ] defaultMember [])
 
-  test <@ html.Contains $"<a href=\"{Routes.memberEdit 1}\" role=\"button\" class=\"outline secondary\">Edit</a>" @>
+  test
+    <@
+      html.Contains
+        $"<a href=\"{Routes.memberEdit 1}\" role=\"button\" class=\"outline secondary edit-button\" title=\"Edit Me\" aria-label=\"Edit Me\"><svg"
+    @>
 
 [<Fact>]
 let ``members page shows claimed/unclaimed badge`` () =

@@ -15,6 +15,7 @@
     <Compile Include="SettingsSectionMemoryTests.fs" />
     <Compile Include="RecentCommentTooltipTests.fs" />
     <Compile Include="ChartThemeTests.fs" />
+    <Compile Include="ThemeToggleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

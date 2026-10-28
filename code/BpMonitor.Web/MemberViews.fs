@@ -50,13 +50,7 @@ module MemberViews =
             [
               if isCurrent then
                 Elem.span [ Attr.class' "current-member" ] [ Text.raw s.Member.You ]
-              Elem.a
-                [
-                  Attr.href (Routes.memberEdit m.Id)
-                  Attr.role "button"
-                  Attr.class' "outline secondary"
-                ]
-                [ Text.raw s.Shell.Edit ]
+              ViewLayout.editLink (s.Shell.EditNamed m.Name) (Routes.memberEdit m.Id)
               ViewLayout.inlinePostButton (Routes.memberResetPassword m.Id) s.Member.ResetPassword
             ]
         ]

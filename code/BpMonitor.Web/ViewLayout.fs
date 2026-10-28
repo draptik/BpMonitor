@@ -11,6 +11,49 @@ module ViewLayout =
   let encAttr (name: string) (value: string) : XmlAttribute =
     Attr.create name (WebUtility.HtmlEncode value)
 
+  /// Decorative line icon drawn in `currentColor`; `paths` are 24×24 SVG path data (Feather style).
+  let private svgIcon (extraClass: string) (paths: string list) : XmlNode =
+    let body = paths |> List.map (fun d -> $"<path d=\"{d}\"/>") |> String.concat ""
+    let cls = $"svg-icon {extraClass}".Trim()
+
+    Text.raw
+      $"<svg class=\"{cls}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">{body}</svg>"
+
+  let private logoutIcon =
+    svgIcon "" [ "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"; "M16 17l5-5-5-5"; "M21 12H9" ]
+
+  let private editIcon =
+    svgIcon "" [ "M12 20h9"; "M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" ]
+
+  let private deleteIcon =
+    svgIcon
+      ""
+      [
+        "M3 6h18"
+        "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+        "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+        "M10 11v6"
+        "M14 11v6"
+      ]
+
+  let private sunIcon =
+    svgIcon
+      "theme-icon-light"
+      [
+        "M16 12a4 4 0 1 1-8 0a4 4 0 1 1 8 0Z"
+        "M12 2v2"
+        "M12 20v2"
+        "m4.93 4.93 1.41 1.41"
+        "m17.66 17.66 1.41 1.41"
+        "M2 12h2"
+        "M20 12h2"
+        "m6.34 17.66-1.41 1.41"
+        "m19.07 4.93-1.41 1.41"
+      ]
+
+  let private moonIcon =
+    svgIcon "theme-icon-dark" [ "M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" ]
+
   /// A single nav link, marked `aria-current="page"` (which Pico styles as active)
   /// when its href matches the page's `active` route.
   let private versionFooter () : XmlNode list =
@@ -53,14 +96,20 @@ module ViewLayout =
         Elem.a [ Attr.href href; Attr.create "hx-boost" "false" ] (navIcon glyph label)
       ]
 
-  /// The dark/light mode toggle; `extraClass` lets the login page style itself standalone.
-  let private themeToggleButton (extraClass: string) : XmlNode =
+  /// The dark/light mode toggle showing the current theme's icon (via CSS); theme.js picks
+  /// the tooltip for the current theme. `extraClass` lets the login page style itself standalone.
+  let private themeToggleButton (s: LocalizedStrings) (extraClass: string) : XmlNode =
     Elem.button
       [
         Attr.class' ($"theme-toggle {extraClass}".Trim())
         Attr.create "onclick" "toggleTheme()"
+        // Light is the default theme; its tooltip stays as the fallback when JS doesn't run.
+        encAttr "title" s.Shell.SwitchToDarkTheme
+        encAttr "aria-label" s.Shell.SwitchToDarkTheme
+        encAttr "data-tooltip-light" s.Shell.SwitchToDarkTheme
+        encAttr "data-tooltip-dark" s.Shell.SwitchToLightTheme
       ]
-      []
+      [ sunIcon; moonIcon ]
 
   /// Shared <head> element. `extras` allows callers to append additional nodes
   /// (e.g., the htmx script that only the authenticated layout needs).
@@ -96,28 +145,56 @@ module ViewLayout =
        ]
        @ extras)
 
+  /// Inline POST form wrapping a single submit button with the given attributes and content.
+  let private inlinePostForm
+    (action: string)
+    (formAttrs: XmlAttribute list)
+    (buttonAttrs: XmlAttribute list)
+    (content: XmlNode list)
+    : XmlNode =
+    Elem.form
+      ([ Attr.method "post"; Attr.action action; Attr.class' "inline" ] @ formAttrs)
+      [ Elem.button (Attr.type' "submit" :: buttonAttrs) content ]
+
   /// Inline POST form containing a single secondary outline submit button — used
   /// wherever a destructive or secondary action needs no surrounding form.
   let inlinePostButton (action: string) (label: string) : XmlNode =
-    Elem.form
-      [ Attr.method "post"; Attr.action action; Attr.class' "inline" ]
-      [
-        Elem.button [ Attr.type' "submit"; Attr.class' "outline secondary" ] [ Text.raw label ]
-      ]
+    inlinePostForm action [] [ Attr.class' "outline secondary" ] [ Text.raw label ]
 
-  /// Like `inlinePostButton`, styled as destructive and gated by an `hx-confirm` prompt.
+  /// Icon-only logout button; the label becomes its tooltip and accessible name.
+  let private logoutButton (label: string) : XmlNode =
+    inlinePostForm
+      Routes.logout
+      []
+      [ Attr.class' "icon-button"; encAttr "title" label; encAttr "aria-label" label ]
+      [ logoutIcon ]
+
+  /// Icon-only Edit link styled as a compact button; `label` (naming the row) becomes its
+  /// tooltip and accessible name.
+  let editLink (label: string) (href: string) : XmlNode =
+    Elem.a
+      [
+        Attr.href href
+        Attr.role "button"
+        Attr.class' "outline secondary edit-button"
+        encAttr "title" label
+        encAttr "aria-label" label
+      ]
+      [ editIcon ]
+
+  /// Icon-only Delete button styled as destructive and gated by an `hx-confirm` prompt; `label`
+  /// (naming the row) becomes its tooltip and accessible name.
   /// `hx-confirm` must sit on the form: htmx's boost resolves a submit to the form as the triggering element and only walks up from there.
-  let inlineDangerPostButton (action: string) (label: string) (confirmMessage: string) : XmlNode =
-    Elem.form
+  let inlineDeleteButton (action: string) (label: string) (confirmMessage: string) : XmlNode =
+    inlinePostForm
+      action
+      [ encAttr "hx-confirm" confirmMessage ]
       [
-        Attr.method "post"
-        Attr.action action
-        Attr.class' "inline"
-        encAttr "hx-confirm" confirmMessage
+        Attr.class' "outline button-danger"
+        encAttr "title" label
+        encAttr "aria-label" label
       ]
-      [
-        Elem.button [ Attr.type' "submit"; Attr.class' "outline button-danger" ] [ Text.raw label ]
-      ]
+      [ deleteIcon ]
 
   /// Page shell for authenticated pages: shared <head>, nav bar with logged-in member
   /// name + logout, and hx-boosted body.
@@ -178,8 +255,8 @@ module ViewLayout =
                   [ Attr.class' "topbar-right" ]
                   [
                     Elem.span [ Attr.class' "nav-member-name" ] [ Text.enc memberName ]
-                    themeToggleButton ""
-                    inlinePostButton Routes.logout s.Shell.Logout
+                    themeToggleButton s ""
+                    logoutButton s.Shell.Logout
                   ]
               ]
             // Second label for same checkbox: acts as the backdrop — clicking it unchecks
@@ -212,8 +289,6 @@ module ViewLayout =
                 Elem.main [ Attr.class' "container" ] content
                 Elem.footer [ Attr.class' "container" ] [ Elem.small [] (versionFooter ()) ]
               ]
-            // Re-runs on every body render (initial + hx-boost swaps) to sync the button label.
-            Elem.script [ Attr.src "/theme-label.js" ] []
           ]
       ]
 
@@ -226,7 +301,7 @@ module ViewLayout =
         Elem.body
           [ Attr.create "hx-boost" "false" ]
           [
-            themeToggleButton "theme-toggle--standalone"
+            themeToggleButton s "theme-toggle--standalone"
             Elem.main
               [ Attr.class' "container login-container" ]
               ([
@@ -239,7 +314,6 @@ module ViewLayout =
                ]
                @ content)
             Elem.footer [ Attr.class' "container" ] [ Elem.small [] (versionFooter ()) ]
-            Elem.script [ Attr.src "/theme-label.js" ] []
           ]
       ]
 
@@ -308,13 +382,7 @@ module ViewLayout =
           Elem.td
             [ Attr.class' "reading-actions" ]
             [
-              Elem.a
-                [
-                  Attr.href (Routes.readingEdit r.Id returnTo)
-                  Attr.role "button"
-                  Attr.class' "outline secondary"
-                ]
-                [ Text.raw s.Shell.Edit ]
+              editLink (s.Table.EditReading(Formats.formatLocal r.Timestamp)) (Routes.readingEdit r.Id returnTo)
             ]
         ]
 
