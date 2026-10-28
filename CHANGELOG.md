@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The Logout button, the Edit buttons (readings tables in History, Recent view and Trends, Members, Medications) and the Delete button in Medications now show an icon instead of text. With a mouse, hovering shows a tooltip naming the row it acts on (e.g. "Delete Lisinopril"), which screen readers announce too. The Edit buttons are now highlighted on hover.
+- The theme toggle shows an icon of the current theme (sun for light, moon for dark). With a mouse, hovering shows a tooltip naming the theme a click switches to.
+
 ### Fixed
 
+- Medications: hovering over the Delete button highlights it in red as intended (it turned blue before).
+- Light theme: hovering over the menu button or a section header (such as "Blood Pressure Graph") no longer puts dark text on a dark background.
 - Trends: the chart tooltip shows the number of readings in German for German members ("3 Messungen" instead of "3 readings").
 - Medications timeline: a medication's bar now includes its end date, so readings taken that day line up inside it; a medication taken on a single day now shows a bar instead of nothing.
 

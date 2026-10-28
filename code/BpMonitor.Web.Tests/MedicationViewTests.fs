@@ -29,11 +29,15 @@ let ``medicationsSection center-aligns the Start and End columns`` () =
   test <@ html.Contains "class=\"text-center\"" @>
 
 [<Fact>]
-let ``medicationsSection renders Edit as an outline secondary button`` () =
+let ``medicationsSection renders Edit as an icon button with the label as tooltip`` () =
   let html =
     renderHtml (Elem.div [] (MedicationViews.medicationsSection s [ sampleMedication ] []))
 
-  test <@ html.Contains $"<a href=\"{Routes.medicationEdit 5}\" role=\"button\" class=\"outline secondary\">Edit</a>" @>
+  test
+    <@
+      html.Contains
+        $"<a href=\"{Routes.medicationEdit 5}\" role=\"button\" class=\"outline secondary edit-button\" title=\"Edit HCTZ\" aria-label=\"Edit HCTZ\"><svg"
+    @>
 
 [<Fact>]
 let ``medicationsSection renders Delete with a danger class, unlike Edit`` () =
@@ -41,6 +45,13 @@ let ``medicationsSection renders Delete with a danger class, unlike Edit`` () =
     renderHtml (Elem.div [] (MedicationViews.medicationsSection s [ sampleMedication ] []))
 
   test <@ html.Contains "class=\"outline button-danger\"" @>
+
+[<Fact>]
+let ``medicationsSection renders Delete as an icon button with the label as tooltip`` () =
+  let html =
+    renderHtml (Elem.div [] (MedicationViews.medicationsSection s [ sampleMedication ] []))
+
+  test <@ html.Contains "class=\"outline button-danger\" title=\"Delete HCTZ\" aria-label=\"Delete HCTZ\"><svg" @>
 
 [<Fact>]
 let ``medicationsSection wraps the section in a collapsible details element`` () =

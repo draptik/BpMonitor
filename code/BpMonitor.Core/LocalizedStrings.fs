@@ -8,6 +8,8 @@ type ShellStrings =
   {
     AppTagline: string
     Menu: string
+    SwitchToLightTheme: string
+    SwitchToDarkTheme: string
     Logout: string
     NavAdd: string
     NavRecent: string
@@ -20,8 +22,9 @@ type ShellStrings =
     Save: string
     Cancel: string
     Back: string
-    Edit: string
-    Delete: string
+    /// Row-specific Edit/Delete labels for icon-only buttons, e.g. "Edit HCTZ".
+    EditNamed: string -> string
+    DeleteNamed: string -> string
     Name: string
     Comment: string
   }
@@ -35,6 +38,8 @@ type ReadingTableStrings =
     HeartRate: string
     MmHg: string
     Bpm: string
+    /// Label for a reading's icon-only Edit button, given its formatted timestamp.
+    EditReading: string -> string
   }
 
 type LoginStrings =
@@ -207,6 +212,8 @@ module LocalizedStrings =
         {
           AppTagline = "Blood pressure tracker"
           Menu = "Menu"
+          SwitchToLightTheme = "Switch to light theme"
+          SwitchToDarkTheme = "Switch to dark theme"
           Logout = "Logout"
           NavAdd = "Add"
           NavRecent = "Recent"
@@ -219,8 +226,8 @@ module LocalizedStrings =
           Save = "Save"
           Cancel = "Cancel"
           Back = "Back"
-          Edit = "Edit"
-          Delete = "Delete"
+          EditNamed = fun name -> $"Edit {name}"
+          DeleteNamed = fun name -> $"Delete {name}"
           Name = "Name"
           Comment = "Comment"
         }
@@ -232,6 +239,7 @@ module LocalizedStrings =
           HeartRate = "Heart Rate"
           MmHg = "mmHg"
           Bpm = "bpm"
+          EditReading = fun timestamp -> $"Edit reading from {timestamp}"
         }
       Login =
         {
@@ -383,6 +391,8 @@ module LocalizedStrings =
         {
           AppTagline = "Blutdruck-Tracker"
           Menu = "Menü"
+          SwitchToLightTheme = "Zum hellen Design wechseln"
+          SwitchToDarkTheme = "Zum dunklen Design wechseln"
           Logout = "Abmelden"
           NavAdd = "Hinzufügen"
           NavRecent = "Aktuell"
@@ -395,8 +405,8 @@ module LocalizedStrings =
           Save = "Speichern"
           Cancel = "Abbrechen"
           Back = "Zurück"
-          Edit = "Bearbeiten"
-          Delete = "Löschen"
+          EditNamed = fun name -> $"{name} bearbeiten"
+          DeleteNamed = fun name -> $"{name} löschen"
           Name = "Name"
           Comment = "Kommentar"
         }
@@ -408,6 +418,7 @@ module LocalizedStrings =
           HeartRate = "Herzfrequenz"
           MmHg = "mmHg"
           Bpm = "bpm"
+          EditReading = fun timestamp -> $"Messung vom {timestamp} bearbeiten"
         }
       Login =
         {

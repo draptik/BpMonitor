@@ -123,3 +123,12 @@ let ``ShortWeekdays is Sunday-first, matching JS Date.getDay() and the recentXAx
   let tuesday = 2
   test <@ LocalizedStrings.en.Charts.ShortWeekdays.[tuesday] = "Tue" @>
   test <@ LocalizedStrings.de.Charts.ShortWeekdays.[tuesday] = "Di" @>
+
+[<Fact>]
+let ``row-specific Edit and Delete labels name the row in both languages`` () =
+  test <@ LocalizedStrings.en.Shell.EditNamed "HCTZ" = "Edit HCTZ" @>
+  test <@ LocalizedStrings.en.Shell.DeleteNamed "HCTZ" = "Delete HCTZ" @>
+  test <@ LocalizedStrings.en.Table.EditReading "2026-06-19 08:30" = "Edit reading from 2026-06-19 08:30" @>
+  test <@ LocalizedStrings.de.Shell.EditNamed "HCTZ" = "HCTZ bearbeiten" @>
+  test <@ LocalizedStrings.de.Shell.DeleteNamed "HCTZ" = "HCTZ löschen" @>
+  test <@ LocalizedStrings.de.Table.EditReading "2026-06-19 08:30" = "Messung vom 2026-06-19 08:30 bearbeiten" @>

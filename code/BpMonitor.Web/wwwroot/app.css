@@ -9,6 +9,21 @@
   /* Topbar height — referenced by nav.sidebar's top offset, .content's
      padding-top, and the mobile backdrop, so they stay in sync. */
   --topbar-height: 3rem;
+  /* Hover background for ghost controls (menu, theme toggle, icon buttons, section
+     headers). Light theme's secondary background is as dark as the icons and text
+     on it, so it gets a translucent tint instead. */
+  --ghost-hover-bg: var(--pico-secondary-focus);
+}
+
+[data-theme="dark"] {
+  --ghost-hover-bg: var(--pico-secondary-background);
+}
+
+/* Without JS no data-theme is set and Pico follows the OS preference. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --ghost-hover-bg: var(--pico-secondary-background);
+  }
 }
 
 body {
@@ -41,7 +56,7 @@ label.nav-burger {
 }
 
 label.nav-burger:hover {
-  background: var(--pico-secondary-background);
+  background: var(--ghost-hover-bg);
 }
 
 /* Backdrop overlay — hidden until drawer is open on mobile. Same specificity
@@ -80,11 +95,13 @@ label.nav-backdrop {
   margin-left: auto;
 }
 
-/* Borderless/ghost icon button shared by both theme-toggle instances
-   (topbar + sidebar) and the login page's standalone instance. */
-.theme-toggle {
+/* Borderless/ghost icon button shared by the topbar's theme toggle and logout
+   and the login page's standalone theme toggle. */
+.theme-toggle,
+.icon-button {
   background: transparent;
   border: none;
+  margin: 0;
   color: var(--pico-secondary);
   padding: 0.25rem 0.5rem;
   font-size: 1.25rem;
@@ -93,8 +110,10 @@ label.nav-backdrop {
   border-radius: var(--pico-border-radius);
 }
 
-.theme-toggle:hover {
-  background: var(--pico-secondary-background);
+.theme-toggle:hover,
+.icon-button:hover,
+.edit-button:hover {
+  background: var(--ghost-hover-bg);
 }
 
 /* `position: fixed` (not `sticky`) — sticky broke once the sidebar's own box
@@ -229,7 +248,7 @@ nav a[aria-current="page"] {
 }
 
 .collapsible > summary:hover {
-  background: var(--pico-secondary-background);
+  background: var(--ghost-hover-bg);
 }
 
 .collapsible > summary:focus {
@@ -307,7 +326,13 @@ g.errorbars path.yerror {
   --pico-border-color: var(--color-danger);
 }
 
-.outline.button-danger:is(:hover, :focus, :active) {
+/* Mirrors Pico's outline-hover selector, whose [aria-current] branch would otherwise outrank this. */
+:is(button, [type="submit"]).outline.button-danger:is(
+    [aria-current]:not([aria-current="false"]),
+    :hover,
+    :focus,
+    :active
+  ) {
   --pico-color: var(--pico-contrast-inverse, #fff);
   --pico-background-color: var(--color-danger-hover);
   --pico-border-color: var(--color-danger-hover);
@@ -682,6 +707,31 @@ td.col-center {
   margin-right: 0.4rem;
 }
 
+/* The theme toggle shows the current theme's icon; without data-theme (no JS), the OS one. */
+[data-theme="dark"] .theme-icon-light,
+[data-theme="light"] .theme-icon-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .theme-icon-light {
+    display: none;
+  }
+}
+
+@media not (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .theme-icon-dark {
+    display: none;
+  }
+}
+
+/* Inline SVG icons scale with the surrounding font size. */
+.svg-icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
+
 main h1 {
   font-size: 1.35rem;
   font-weight: 600;
@@ -734,7 +784,7 @@ form.inline {
   display: inline;
 }
 
-form.inline button,
+form.inline button:where(:not(.icon-button)),
 .member-actions a[role="button"],
 .reading-actions a[role="button"] {
   --pico-nav-link-spacing-vertical: 0.25rem;

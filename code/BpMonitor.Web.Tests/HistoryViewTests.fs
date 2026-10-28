@@ -3,6 +3,7 @@ module HistoryViewTests
 open Xunit
 open Swensen.Unquote
 open Falco.Markup
+open BpMonitor.Core
 open BpMonitor.Web
 open ViewTestHelpers
 
@@ -18,9 +19,17 @@ let ``history renders reading values, chart div and nav links`` () =
   test <@ html.Contains(Routes.readingEdit 7 Routes.history) @>
   // Edit renders as a Pico button sized like the members page's Edit action
   test <@ html.Contains "class=\"reading-actions\"" @>
-  test <@ html.Contains "role=\"button\" class=\"outline secondary\"" @>
+  test <@ html.Contains "role=\"button\" class=\"outline secondary edit-button\"" @>
   // the History nav link is marked active on the history page
   test <@ html.Contains $"href=\"{Routes.history}\" aria-current=\"page\"" @>
+
+[<Fact>]
+let ``reading edit button shows an icon with the label as tooltip`` () =
+  let html =
+    renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
+
+  let label = $"Edit reading from {Formats.formatLocal sample.Timestamp}"
+  test <@ html.Contains $"class=\"outline secondary edit-button\" title=\"{label}\" aria-label=\"{label}\"><svg" @>
 
 [<Fact>]
 let ``history chart section is a collapsible that persists its open state`` () =

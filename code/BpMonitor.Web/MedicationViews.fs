@@ -65,16 +65,10 @@ module MedicationViews =
         Elem.td
           [ Attr.class' "member-actions" ]
           [
-            Elem.a
-              [
-                Attr.href (Routes.medicationEdit m.Id)
-                Attr.role "button"
-                Attr.class' "outline secondary"
-              ]
-              [ Text.raw s.Shell.Edit ]
-            ViewLayout.inlineDangerPostButton
+            ViewLayout.editLink (s.Shell.EditNamed m.Name) (Routes.medicationEdit m.Id)
+            ViewLayout.inlineDeleteButton
               (Routes.medicationDelete m.Id)
-              s.Shell.Delete
+              (s.Shell.DeleteNamed m.Name)
               (s.Medication.DeleteConfirm m.Name)
           ]
       ]

@@ -18,6 +18,22 @@ let ``layout renders a topbar with menu button, title and theme toggle`` () =
   test <@ not (html.Contains "id=\"theme-toggle\"") @>
 
 [<Fact>]
+let ``theme toggle renders a sun and a moon icon with localized tooltips per theme`` () =
+  let pages =
+    [
+      renderHtml (ReadingViews.landing s defaultMember)
+      renderHtml (LoginViews.loginMember s defaultMember [])
+    ]
+
+  for html in pages do
+    // light is the default theme, so its tooltip is the server-side fallback for when JS doesn't run
+    test <@ html.Contains "title=\"Switch to dark theme\" aria-label=\"Switch to dark theme\"" @>
+    test <@ html.Contains "data-tooltip-light=\"Switch to dark theme\"" @>
+    test <@ html.Contains "data-tooltip-dark=\"Switch to light theme\"" @>
+    test <@ html.Contains "<svg class=\"svg-icon theme-icon-light\"" @>
+    test <@ html.Contains "<svg class=\"svg-icon theme-icon-dark\"" @>
+
+[<Fact>]
 let ``admin sees Members nav link`` () =
   let admin = { defaultMember with IsAdmin = true }
   let html = renderHtml (ReadingViews.landing s admin)
@@ -77,6 +93,36 @@ let ``every authenticated page shows the logout button`` () =
   for html in pages do
     test <@ html.Contains $"action=\"{Routes.logout}\"" @>
     test <@ html.Contains "Logout" @>
+
+[<Fact>]
+let ``logout button shows an icon with the label as tooltip`` () =
+  let html = renderHtml (ReadingViews.landing s defaultMember)
+
+  test <@ html.Contains "<button type=\"submit\" class=\"icon-button\" title=\"Logout\" aria-label=\"Logout\"><svg" @>
+
+[<Fact>]
+let ``icon button labels are HTML-encoded in attributes`` () =
+  let quoted =
+    { s with
+        Shell =
+          { s.Shell with
+              Logout = "Log \"out\" & go"
+              SwitchToDarkTheme = "Go \"dark\" & go"
+              SwitchToLightTheme = "Go \"light\" & go"
+          }
+        Table =
+          { s.Table with
+              EditReading = fun _ -> "Edit \"it\" & go"
+          }
+    }
+
+  let html =
+    renderHtml (ReadingViews.history quoted defaultMember "" [ sample ] (Text.raw ""))
+
+  test <@ html.Contains "title=\"Log &quot;out&quot; &amp; go\" aria-label=\"Log &quot;out&quot; &amp; go\"" @>
+  test <@ html.Contains "title=\"Edit &quot;it&quot; &amp; go\" aria-label=\"Edit &quot;it&quot; &amp; go\"" @>
+  test <@ html.Contains "title=\"Go &quot;dark&quot; &amp; go\" aria-label=\"Go &quot;dark&quot; &amp; go\"" @>
+  test <@ html.Contains "data-tooltip-dark=\"Go &quot;light&quot; &amp; go\"" @>
 
 [<Fact>]
 let ``every authenticated page shows the member name`` () =
