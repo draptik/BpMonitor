@@ -12,7 +12,7 @@ zizmor = "1.31.1"
 lychee = "0.24.2"
 "npm:typescript" = "7.0.2"
 # @yarnpkg/libzip 3.2.2 was hand-published by Yarn's maintainer without provenance (3.2.0/3.2.1 had it)
-"npm:renovate" = { version = "44.131.0", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
+"npm:renovate" = { version = "44.186.4", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
 
 [tasks."lint:md"]
 run = 'markdownlint-cli2 "**/*.md"'
