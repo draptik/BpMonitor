@@ -7,9 +7,9 @@ case "$branch" in
     echo "ERROR: direct commits to 'main' are not allowed. Create a feat/fix/chore branch first."
     exit 1
     ;;
-  feat/* | fix/* | chore/* | HEAD) ;; # HEAD: detached, e.g. mid-rebase
+  feat/* | fix/* | chore/* | renovate/* | HEAD) ;; # HEAD: detached, e.g. mid-rebase
   *)
-    echo "ERROR: branch '$branch' needs a feat/, fix/ or chore/ prefix (git branch -m <new-name>)."
+    echo "ERROR: branch '$branch' needs a feat/, fix/, chore/ or renovate/ prefix (git branch -m <new-name>)."
     exit 1
     ;;
 esac

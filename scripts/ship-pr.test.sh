@@ -39,5 +39,13 @@ if grep -q "^gh pr create" "$GH_LOG" 2>/dev/null; then
   failures=$((failures + 1))
 fi
 
+# Renovate branches pass the prefix check (and fail later on the rejected body).
+git checkout -q -b renovate/x
+out=$(PATH="$work/bin:$PATH" "$ship" --yes --body-file "$work/body.md" 2>&1)
+if grep -q "prefix" <<<"$out"; then
+  echo "FAIL: renovate/ branch rejected by the prefix check"
+  failures=$((failures + 1))
+fi
+
 [ "$failures" -eq 0 ] && echo "All tests passed"
 exit "$failures"
