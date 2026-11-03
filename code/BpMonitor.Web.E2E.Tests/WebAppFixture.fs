@@ -171,10 +171,11 @@ type AppFixture() =
 
   /// Opens an isolated, traced browser context and page on `browser`; disposing the
   /// result flushes the trace zip regardless of whether the test passed or failed.
-  member _.NewTracedPageAsync(browser: IBrowser, ?viewport: ViewportSize) : Task<TracedPage> =
+  member _.NewTracedPageAsync(browser: IBrowser, ?viewport: ViewportSize, ?timezoneId: string) : Task<TracedPage> =
     task {
       let opts = BrowserNewContextOptions()
       viewport |> Option.iter (fun v -> opts.ViewportSize <- v)
+      timezoneId |> Option.iter (fun tz -> opts.TimezoneId <- tz)
       let! context = browser.NewContextAsync(opts)
       // TracedPage stops the trace with a path on dispose; the returned disposable isn't needed
       let! _ =
@@ -427,8 +428,8 @@ type MemberFixture(app: AppFixture) =
   member _.MemberName = memberName
   member _.MemberSetupCode = memberSetupCode
 
-  member this.NewTracedPageAsync(?viewport: ViewportSize) : Task<TracedPage> =
-    app.NewTracedPageAsync(this.Browser, ?viewport = viewport)
+  member this.NewTracedPageAsync(?viewport: ViewportSize, ?timezoneId: string) : Task<TracedPage> =
+    app.NewTracedPageAsync(this.Browser, ?viewport = viewport, ?timezoneId = timezoneId)
 
   interface IAsyncLifetime with
     member _.InitializeAsync() : ValueTask =

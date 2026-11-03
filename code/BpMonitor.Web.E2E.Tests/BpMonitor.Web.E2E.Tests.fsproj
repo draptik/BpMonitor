@@ -16,6 +16,9 @@
     <Compile Include="RecentCommentTooltipTests.fs" />
     <Compile Include="ChartThemeTests.fs" />
     <Compile Include="ThemeToggleTests.fs" />
+    <Compile Include="HistoryChartResizeTests.fs" />
+    <Compile Include="RecentRangeFilterTests.fs" />
+    <Compile Include="MedicationsHoverLoopTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

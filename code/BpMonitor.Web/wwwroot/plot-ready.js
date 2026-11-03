@@ -38,7 +38,6 @@ function whenPlotReady(fn, index = 0) {
 
 // Resolves a plot's axis converters and drag-layer rect for data-x → pixel conversion; shared by recent-scrubber.js and medications-sync.js.
 /** @param {PlotlyChartElement} d */
-// biome-ignore lint/correctness/noUnusedVariables: shared global, called by the other wwwroot chart scripts
 function chartGeometry(d) {
   const xaxis = d._fullLayout?.xaxis;
   const yaxis = d._fullLayout?.yaxis;
@@ -46,4 +45,41 @@ function chartGeometry(d) {
   const dragRect = d.querySelector(".draglayer .xy > rect");
   if (!dragRect) return null;
   return { xaxis, yaxis, dragRect, br: dragRect.getBoundingClientRect() };
+}
+
+// Fires Plotly's own hover at data `x` (and `y`, in y-axis units) via a synthetic mousemove on
+// the drag layer; false when the chart isn't laid out. Shared by recent-scrubber.js and medications-sync.js.
+/** @param {PlotlyChartElement} d @param {string} x @param {number} y @returns {boolean} */
+// biome-ignore lint/correctness/noUnusedVariables: shared global, called by the other wwwroot chart scripts
+function dispatchHoverAt(d, x, y) {
+  const geo = chartGeometry(d);
+  if (!geo) return false;
+  const { xaxis, yaxis, dragRect, br } = geo;
+  const xPx = xaxis.l2p(xaxis.d2l(x));
+  const yPx = yaxis?.l2p?.(y) ?? br.height / 2;
+  // A collapsed target chart is zero-width, so l2p yields NaN — Firefox throws on that.
+  if (!Number.isFinite(xPx) || !Number.isFinite(yPx)) return false;
+  // Resets Plotly's own hover state first — back-to-back mousemove dispatches without
+  // this made Plotly's internal throttle emit every other one with an empty points array.
+  dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+  dragRect.dispatchEvent(
+    new MouseEvent("mousemove", {
+      bubbles: true,
+      cancelable: true,
+      clientX: br.left + xPx,
+      clientY: br.top + yPx,
+    }),
+  );
+  return true;
+}
+
+// The x-axis range after a plotly_relayout that touched it, else null. Read from the plot,
+// not the event: a reset sends only `xaxis.autorange`, and a one-ended update only one bound.
+/** @param {Record<string, unknown>} e @param {PlotlyChartElement} d @returns {[string, string] | null} */
+// biome-ignore lint/correctness/noUnusedVariables: shared global, called by the other wwwroot chart scripts
+function relayoutXRange(e, d) {
+  const touchesX = Object.keys(e).some((k) => k.startsWith("xaxis.range") || k === "xaxis.autorange");
+  if (!touchesX) return null;
+  const range = d._fullLayout?.xaxis?.range;
+  return Array.isArray(range) && range.length === 2 ? [range[0], range[1]] : null;
 }
