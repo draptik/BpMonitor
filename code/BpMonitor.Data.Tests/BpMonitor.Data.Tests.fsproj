@@ -12,6 +12,7 @@
     <Compile Include="RepositoryImplementations.fs" />
     <Compile Include="ReadingRepositoryContractTests.fs" />
     <Compile Include="MedicationRepositoryContractTests.fs" />
+    <Compile Include="MemberRepositoryContractTests.fs" />
     <Compile Include="EfReadingRepositoryTests.fs" />
     <Compile Include="EfFamilyMemberRepositoryTests.fs" />
     <Compile Include="EfMedicationRepositoryTests.fs" />

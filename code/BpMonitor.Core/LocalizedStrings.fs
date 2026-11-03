@@ -350,7 +350,8 @@ module LocalizedStrings =
           CalendarWeekOfYear = fun week year -> $"CW {week}/{year}"
           ThisMonth = "This Month"
           LastMonth = "Last Month"
-          MonthOfYear = fun month year -> DateTime(year, month, 1).ToString("MMM yyyy", CultureInfo("en-US"))
+          MonthOfYear =
+            fun month year -> DateTime(year, month, 1).ToString("MMM yyyy", CultureInfo.GetCultureInfo("en-US"))
           ThisYear = "This Year"
           LastYear = "Last Year"
           Year = string
@@ -380,9 +381,11 @@ module LocalizedStrings =
           AxisTitle = "blood pressure [mmHg]"
           CalendarWeekTick = fun week -> $"W{week}"
           ReadingCount = fun n -> if n = 1 then "1 reading" else $"{n} readings"
-          DayMonthTick = _.ToString("d MMM", CultureInfo("en-US"))
-          MonthTick = _.ToString("MMM", CultureInfo("en-US"))
-          ShortWeekdays = CultureInfo("en-US").DateTimeFormat.AbbreviatedDayNames |> Array.toList
+          DayMonthTick = _.ToString("d MMM", CultureInfo.GetCultureInfo("en-US"))
+          MonthTick = _.ToString("MMM", CultureInfo.GetCultureInfo("en-US"))
+          ShortWeekdays =
+            CultureInfo.GetCultureInfo("en-US").DateTimeFormat.AbbreviatedDayNames
+            |> Array.toList
         }
     }
 
@@ -530,7 +533,8 @@ module LocalizedStrings =
           CalendarWeekOfYear = fun week year -> $"KW {week}/{year}"
           ThisMonth = "Dieser Monat"
           LastMonth = "Letzter Monat"
-          MonthOfYear = fun month year -> DateTime(year, month, 1).ToString("MMM yyyy", CultureInfo("de-DE"))
+          MonthOfYear =
+            fun month year -> DateTime(year, month, 1).ToString("MMM yyyy", CultureInfo.GetCultureInfo("de-DE"))
           ThisYear = "Dieses Jahr"
           LastYear = "Letztes Jahr"
           Year = string
@@ -562,9 +566,11 @@ module LocalizedStrings =
           AxisTitle = "Blutdruck [mmHg]"
           CalendarWeekTick = fun week -> $"KW{week}"
           ReadingCount = fun n -> if n = 1 then "1 Messung" else $"{n} Messungen"
-          DayMonthTick = _.ToString("d. MMM", CultureInfo("de-DE"))
-          MonthTick = _.ToString("MMM", CultureInfo("de-DE"))
-          ShortWeekdays = CultureInfo("de-DE").DateTimeFormat.AbbreviatedDayNames |> Array.toList
+          DayMonthTick = _.ToString("d. MMM", CultureInfo.GetCultureInfo("de-DE"))
+          MonthTick = _.ToString("MMM", CultureInfo.GetCultureInfo("de-DE"))
+          ShortWeekdays =
+            CultureInfo.GetCultureInfo("de-DE").DateTimeFormat.AbbreviatedDayNames
+            |> Array.toList
         }
     }
 

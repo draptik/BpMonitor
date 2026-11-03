@@ -153,6 +153,7 @@ graph TD
 - `IReadingRepository`: `EfReadingRepository` (filters by `MemberId`), `InMemoryReadingRepository`
 - `IFamilyMemberRepository`: `EfFamilyMemberRepository`, `InMemoryFamilyMemberRepository`
 - `IMedicationRepository`: `EfMedicationRepository` (filters by `MemberId`), `InMemoryMedicationRepository`
+- Tests: behavior shared by both implementations of an interface lives in `BpMonitor.Data.Tests/*RepositoryContractTests.fs` and runs against each (`RepositoryImplementations.fs`); `Ef*`/`InMemory*RepositoryTests.fs` hold only implementation-specific behavior (e.g. EF's `ModifiedAt` stamping — the in-memory repositories have no clock)
 - `SchemaMigrations.apply` — manual migrations (EF Core migrations don't support F#); `ensureActiveAdmin` promotes lowest-Id member when no active admin exists; creates the `Medications` table on legacy databases
 - `DemoSeeder.seedIfEmpty` — seeds Simpson-family data (from `DemoData` in Core) when `BpMonitor:SeedDemoData=true` and the store is empty; idempotent; Ned Flanders additionally gets a demo medication timeline (an ongoing HCTZ + a completed lisinopril course)
 

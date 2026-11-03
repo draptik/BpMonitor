@@ -149,6 +149,8 @@ dotnet test --configuration Release --max-parallel-test-modules 2
 dotnet test BpMonitor.Web.Tests -- --filter-method "*SomeTestName*"
 ```
 
+Behavior every `I*Repository` implementation shares goes in `BpMonitor.Data.Tests/*RepositoryContractTests.fs`, run per implementation via `[<InlineData("InMemory")>]`/`[<InlineData("Ef")>]` (`RepositoryImplementations.fs`); only implementation-specific behavior stays in `Ef*`/`InMemory*RepositoryTests.fs`.
+
 `BpMonitor.Arch.Tests` uses `DoNotResideInNamespaceMatching("Microsoft\\.CodeCoverage.*")` in its type filters to exclude coverage-injected tracker types from ArchUnitNET dependency checks.
 
 `BpMonitor.Web.E2E.Tests` boots one out-of-process `BpMonitor.Web` (fresh temp SQLite, no demo data) shared by the whole assembly; each test class gets its own family member, not its own app — one app per class was the CI flakiness source (`AppFixture`, `ChromiumFixture`/`FirefoxFixture` in `WebAppFixture.fs`). Firefox catches spec violations Chromium tolerates (e.g. non-finite `MouseEventInit` fields). Run `mise run test:e2e-setup` once to install both browsers.
