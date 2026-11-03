@@ -141,7 +141,7 @@ module ViewLayout =
         // Vendored from Plotly.NET's embedded resource (see scripts/extract-plotly-js.fsx) —
         // must be blocking (no defer/async) so chart render scripts in the body can call
         // Plotly.newPlot synchronously when parsed.
-        Elem.script [ Attr.src "/plotly-2.27.1.min.js"; Attr.charset "utf-8" ] []
+        Elem.script [ Attr.src "/plotly-2.28.0.min.js"; Attr.charset "utf-8" ] []
        ]
        @ extras)
 
