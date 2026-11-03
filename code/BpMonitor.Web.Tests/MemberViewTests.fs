@@ -8,26 +8,33 @@ open BpMonitor.Core
 open BpMonitor.Web
 open ViewTestHelpers
 
-[<Fact>]
-let ``members page renders Admin and Active columns and Edit link`` () =
-  let otherMember =
-    {
-      Id = 2
-      Name = "Alice"
-      IsAdmin = false
-      IsActive = true
-      Credential = NoCredential
-      Goal = GoalRange.defaults
-      Language = English
-      CreatedAt = DateTimeOffset.MinValue
-      ModifiedAt = DateTimeOffset.MinValue
-    }
+let private otherMember =
+  {
+    Id = 2
+    Name = "Alice"
+    IsAdmin = false
+    IsActive = true
+    Credential = NoCredential
+    Goal = GoalRange.defaults
+    Language = English
+    CreatedAt = DateTimeOffset.MinValue
+    ModifiedAt = DateTimeOffset.MinValue
+  }
 
-  let html =
-    renderHtml (MemberViews.members s [ defaultMember; otherMember ] defaultMember [])
+let private membersHtml () =
+  renderHtml (MemberViews.members s [ defaultMember; otherMember ] defaultMember [])
+
+[<Fact>]
+let ``members page renders Admin and Active columns`` () =
+  let html = membersHtml ()
 
   test <@ html.Contains "Admin" @>
   test <@ html.Contains "Active" @>
+
+[<Fact>]
+let ``members page links each member row to its edit page`` () =
+  let html = membersHtml ()
+
   test <@ html.Contains $"href=\"{Routes.memberEdit 1}\"" @>
   test <@ html.Contains $"href=\"{Routes.memberEdit 2}\"" @>
 

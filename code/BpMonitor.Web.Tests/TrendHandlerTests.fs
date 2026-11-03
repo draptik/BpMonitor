@@ -19,37 +19,54 @@ let private setRouteGranKey (ctx: HttpContext) (gran: string) (key: string) =
   ctx.Request.RouteValues["gran"] <- box gran
   ctx.Request.RouteValues["key"] <- box key
 
-[<Fact>]
-let ``trends renders 200 with granularity buttons and current Weekly panel`` () =
-  let tp = FakeTimeProvider(trendsNow)
+/// A stats-table cell; avoids matching the same number inside the Plotly payload.
+let private statCell avg mn mx =
+  $"<td>{LocalizedStrings.en.Trend.StatValue avg mn mx}</td>"
 
-  let r =
-    { sample with
-        // reading in current week (W24 starts 2026-06-08)
-        Timestamp = trendsNow.AddDays(-1.0)
-        Systolic = 130
-        Diastolic = 85
-        HeartRate = 70
-    }
+/// In the current ISO week (W24 starts 2026-06-08), so it lands on the default Weekly panel.
+let private thisWeeksReading =
+  { sample with
+      Timestamp = trendsNow.AddDays(-1.0)
+      Systolic = 130
+      Diastolic = 85
+      HeartRate = 70
+  }
 
-  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+/// The full /trends page over `readings`.
+let private trendsPage readings =
+  let ctx =
+    TestHost.contextWithProvider (repoWith readings) (FakeTimeProvider(trendsNow))
+
   TestHost.run ReadingHandlers.trends ctx
+  ctx
+
+/// The htmx Weekly panel fragment over `readings`.
+let private weeklyPanel readings =
+  let ctx =
+    TestHost.contextWithProvider (repoWith readings) (FakeTimeProvider(trendsNow))
+
+  setRouteGran ctx (TrendPeriod.slug Weekly)
+  TestHost.run ReadingHandlers.trendsPanel ctx
+  ctx
+
+[<Fact>]
+let ``trends renders 200 with granularity buttons and Weekly active`` () =
+  let ctx = trendsPage []
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
-  // Granularity buttons
   let weeklyGran = Routes.trendsGran (TrendPeriod.slug Weekly)
   let monthlyGran = Routes.trendsGran (TrendPeriod.slug Monthly)
   let yearlyGran = Routes.trendsGran (TrendPeriod.slug Yearly)
-  test <@ body.Contains $"href=\"{weeklyGran}\"" @>
   test <@ body.Contains $"href=\"{monthlyGran}\"" @>
   test <@ body.Contains $"href=\"{yearlyGran}\"" @>
-  // Weekly is active
-  test <@ body.Contains "aria-current=\"page\"" @>
-  // Inline chart rendered
-  test <@ body.Contains "Plotly.newPlot" @>
-  // Edit links return to the current period
-  test <@ body.Contains(Routes.readingEdit r.Id (Routes.trendsPeriod Weekly "2026-W24")) @>
+  // Scoped to the Weekly pill; a bare aria-current would also match the sidebar's Trends link.
+  test <@ Regex.IsMatch(body, $"href=\"{Regex.Escape weeklyGran}\"[^>]*aria-current=\"page\"") @>
+
+[<Fact>]
+let ``trends page edit links return to the current period`` () =
+  let body = TestHost.readBody (trendsPage [ thisWeeksReading ])
+  test <@ body.Contains(Routes.readingEdit thisWeeksReading.Id (Routes.trendsPeriod Weekly "2026-W24")) @>
 
 [<Fact>]
 let ``trends renders the chart with the authenticated member's goal range`` () =
@@ -105,34 +122,25 @@ let ``trendsPanel renders the chart with the authenticated member's goal range``
   assertGoalBands goal (TestHost.readBody ctx)
 
 [<Fact>]
-let ``trendsPanel with gran=weekly returns fragment with sub-period buttons and stats`` () =
-  let tp = FakeTimeProvider(trendsNow)
-
-  let r =
-    { sample with
-        Timestamp = trendsNow.AddDays(-1.0)
-        Systolic = 130
-        Diastolic = 85
-        HeartRate = 70
-    }
-
-  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
-  setRouteGran ctx (TrendPeriod.slug Weekly)
-  TestHost.run ReadingHandlers.trendsPanel ctx
+let ``trendsPanel with gran=weekly returns weekly sub-period buttons`` () =
+  let ctx = weeklyPanel []
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
-  // Averages rendered
-  test <@ body.Contains "130" @>
-  test <@ body.Contains "85" @>
-  test <@ body.Contains "70" @>
-  // Sub-period buttons present (This Week, Last Week)
   test <@ body.Contains "This Week" @>
   test <@ body.Contains "Last Week" @>
-  // Inline chart rendered
-  test <@ body.Contains "Plotly.newPlot" @>
-  // Edit links return to the current period
-  test <@ body.Contains(Routes.readingEdit r.Id (Routes.trendsPeriod Weekly "2026-W24")) @>
+
+[<Fact>]
+let ``trendsPanel with gran=weekly shows the current week's stats`` () =
+  let body = TestHost.readBody (weeklyPanel [ thisWeeksReading ])
+  test <@ body.Contains(statCell 130 130 130) @>
+  test <@ body.Contains(statCell 85 85 85) @>
+  test <@ body.Contains(statCell 70 70 70) @>
+
+[<Fact>]
+let ``trendsPanel edit links return to the current period`` () =
+  let body = TestHost.readBody (weeklyPanel [ thisWeeksReading ])
+  test <@ body.Contains(Routes.readingEdit thisWeeksReading.Id (Routes.trendsPeriod Weekly "2026-W24")) @>
 
 [<Fact>]
 let ``trendsPanel with gran=monthly returns monthly sub-period buttons`` () =
@@ -166,10 +174,8 @@ let ``trendsPanel with gran + key uses that specific sub-period`` () =
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
   // Stats for the W23 reading
-  test <@ body.Contains "118" @>
-  test <@ body.Contains "77" @>
-  // Inline chart rendered
-  test <@ body.Contains "Plotly.newPlot" @>
+  test <@ body.Contains(statCell 118 118 118) @>
+  test <@ body.Contains(statCell 77 77 77) @>
   // Edit links return to this period
   test <@ body.Contains(Routes.readingEdit r.Id (Routes.trendsPeriod Weekly "2026-W23")) @>
 

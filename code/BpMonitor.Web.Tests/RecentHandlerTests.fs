@@ -170,14 +170,22 @@ let ``recentFull includes a reading older than the load window`` () =
   let body = TestHost.readBody ctx
   test <@ body.Contains ">199<" @>
 
-[<Fact>]
-let ``recentFull returns the chart fragment without the page shell, and omits the load-full button`` () =
-  let tp = FakeTimeProvider(now)
-  let ctx = TestHost.contextWithProvider (repoWith [ reading 400 1 ]) tp
-  TestHost.run ReadingHandlers.recentFull ctx
+/// GET /recent/full over a reading beyond the load window.
+let private recentFullBody () =
+  let ctx =
+    TestHost.contextWithProvider (repoWith [ reading 400 1 ]) (FakeTimeProvider(now))
 
-  let body = TestHost.readBody ctx
+  TestHost.run ReadingHandlers.recentFull ctx
+  TestHost.readBody ctx
+
+[<Fact>]
+let ``recentFull returns the chart fragment without the page shell`` () =
+  let body = recentFullBody ()
   test <@ body.Contains "id=\"recent-chart\"" @>
   test <@ not (body.Contains "<h1>Recent</h1>") @>
   test <@ not (body.Contains "<nav") @>
+
+[<Fact>]
+let ``recentFull omits the load-full button`` () =
+  let body = recentFullBody ()
   test <@ not (body.Contains "Load full history") @>

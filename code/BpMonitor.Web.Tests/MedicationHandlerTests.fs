@@ -206,19 +206,26 @@ let ``create rejects a non-parseable date with 422`` () =
 
   test <@ ctx.Response.StatusCode = 422 @>
 
+/// GET the edit form for `sampleMedication`.
+let private editSampleMedication () =
+  let ctx = TestHost.contextWithMedications (repoWith []) [ sampleMedication ]
+  TestHost.setRouteId ctx sampleMedication.Id
+  TestHost.run MedicationHandlers.edit ctx
+  ctx
+
 [<Fact>]
 let ``edit prefills the form from the existing medication`` () =
-  let repo = repoWith []
-  let ctx = TestHost.contextWithMedications repo [ sampleMedication ]
-  TestHost.setRouteId ctx sampleMedication.Id
-
-  TestHost.run MedicationHandlers.edit ctx
+  let ctx = editSampleMedication ()
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
   test <@ body.Contains "value=\"HCTZ\"" @>
   test <@ body.Contains "value=\"hydrochlorothiazide\"" @>
   test <@ body.Contains "value=\"01.04.2026\"" @>
+
+[<Fact>]
+let ``edit renders the medication date fields with a dd.mm.yyyy hint`` () =
+  let body = TestHost.readBody (editSampleMedication ())
   test <@ body.Contains "dd.mm.yyyy" @>
   test <@ not (body.Contains "type=\"date\"") @>
 
