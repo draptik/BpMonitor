@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - After an update, browsers (notably Firefox on Android) load the new styles and scripts right away instead of showing a stale cached version until the cache is cleared by hand.
-- Settings and Members on phones: the Medications and Members tables now scroll sideways instead of widening the page, which pushed the right end of the top bar (theme toggle, Logout) off-screen.
+- Settings, Members and Recent view on phones: the Medications, Members and Recent view readings tables now scroll sideways instead of widening the page, which pushed the right end of the top bar (theme toggle, Logout) off-screen.
 - Menu on phones: the bottom entries (Export, Settings, Members) are visible without scrolling, instead of hiding behind the browser's toolbar.
 
 ## [1.18.0] - 2026-11-03

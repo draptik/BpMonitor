@@ -642,16 +642,6 @@ input#DiastolicGoalMax {
   text-align: center;
 }
 
-/* Wide tables (readings, Members, Medications) scroll sideways instead of
-   overflowing the page horizontally on narrow mobile viewports. Without this,
-   the page scrolls horizontally, which corrupts position:fixed elements (the topbar)
-   on some mobile browsers — right:0 resolves against the scrollable width instead of
-   the viewport, pushing the topbar off-screen. */
-#readings,
-.table-scroll {
-  overflow-x: auto;
-}
-
 #readings,
 .recent-readings-table,
 form {

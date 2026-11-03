@@ -113,7 +113,7 @@ module ViewLayout =
 
   /// Scrolls a wide table sideways on phones instead of widening the page (which breaks the fixed topbar).
   let tableScroll (table: XmlNode) : XmlNode =
-    Elem.div [ Attr.class' "table-scroll" ] [ table ]
+    Elem.div [ Attr.class' "overflow-auto" ] [ table ]
 
   /// Versioned so browsers refetch static files after a deploy instead of serving stale cache.
   let private asset (path: string) : string = $"{path}?v={Version.current}"
@@ -398,7 +398,11 @@ module ViewLayout =
             ]
         ]
 
-    Elem.div containerAttrs [ Elem.table [] [ header; Elem.tbody [] (readings |> List.map row) ] ]
+    Elem.div
+      containerAttrs
+      [
+        tableScroll (Elem.table [] [ header; Elem.tbody [] (readings |> List.map row) ])
+      ]
 
   /// The readings' table; wrapped in an id'd container so it can be targeted for
   /// partial swaps later.
