@@ -7,11 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-11-03
+
 ### Changed
 
-- The Logout button, the Edit buttons (readings tables in History, Recent view and Trends, Members, Medications) and the Delete button in Medications now show an icon instead of text. With a mouse, hovering shows a tooltip naming the row it acts on (e.g. "Delete Lisinopril"), which screen readers announce too. The Edit buttons are now highlighted on hover.
+- The Logout button, the Edit buttons (readings tables in History, Recent view and Trends, Members, Medications) and the Delete button in Medications now show an icon instead of text. With a mouse, hovering shows a tooltip naming the row it acts on (e.g. "Delete Lisinopril"), which screen readers announce too. The Edit buttons are highlighted on hover.
 - History and Trends: the readings table is now a collapsible "Readings" section, like the one in the Recent view. It starts collapsed, and each page remembers whether you left it open.
 - The theme toggle shows an icon of the current theme (sun for light, moon for dark). With a mouse, hovering shows a tooltip naming the theme a click switches to.
+- **Deployment:** no database migration is needed.
 
 ### Fixed
 
@@ -618,7 +621,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.17.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.18.0...HEAD
+[1.18.0]: https://github.com/draptik/BpMonitor/compare/v1.17.0...v1.18.0
 [1.17.0]: https://github.com/draptik/BpMonitor/compare/v1.16.1...v1.17.0
 [1.16.1]: https://github.com/draptik/BpMonitor/compare/v1.16.0...v1.16.1
 [1.16.0]: https://github.com/draptik/BpMonitor/compare/v1.15.1...v1.16.0
