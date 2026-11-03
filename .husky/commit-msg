@@ -2,21 +2,50 @@
 . "$(dirname "$0")/_/husky.sh"
 
 # Rejects a commit whose gitmoji doesn't match its type — keep in sync with .claude/skills/git-workflow/SKILL.md
-# Single source of truth for allowed pairs: both the check below and its help text read from this list.
+# Single source of truth for allowed pairs, compared byte-for-byte (so ♻️ ⚡️ 🗑️ need their U+FE0F).
 allowed_pairs="✨ feat
+🚸 feat
+🌐 feat
+♿️ feat
+💥 feat
 🐛 fix
 🔒 fix
+🩹 fix
+🚑️ fix
+♿️ fix
+🌐 fix
 ♻️ refactor
+🎨 refactor
+🚚 refactor
+🔥 refactor
 ✅ test
+🧪 test
+🤡 test
+♻️ test
 📝 docs
-🔧 chore
-🗑️ chore
-⬆️ chore
-🎉 chore
+💡 docs
+📄 docs
 💄 style
+🎨 style
+🚨 style
 👷 ci
+💚 ci
 ⚡️ perf
-🚀 chore"
+📦️ build
+🔧 chore
+🔨 chore
+⬆️ chore
+⬇️ chore
+📌 chore
+➕ chore
+➖ chore
+🗑️ chore
+🔥 chore
+🙈 chore
+🚚 chore
+🔖 chore
+🚀 chore
+🎉 chore"
 
 msg_file="$1"
 first_line=$(head -n1 "$msg_file")
@@ -32,6 +61,10 @@ if printf '%s\n' "$allowed_pairs" | grep -qxF "$pair"; then
 fi
 
 echo "ERROR: commit message emoji/type mismatch: '$pair'"
+variation_selector=$(printf '\357\270\217')
+if printf '%s\n' "$allowed_pairs" | grep -qxF "$emoji$variation_selector $type"; then
+  echo "The emoji is missing its variation selector (U+FE0F) — use '$emoji$variation_selector'."
+fi
 echo "Allowed pairs (see .claude/skills/git-workflow/SKILL.md):"
 printf '%s\n' "$allowed_pairs" | sed 's/^/  /'
 exit 1
