@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- History (Firefox): opening the collapsed Blood Pressure Graph now fits the chart to the page for members without medications; before, it could appear at the wrong width and be cut off.
 - Medications: hovering over the Delete button highlights it in red as intended (it turned blue before).
 - Light theme: hovering over the menu button or a section header (such as "Blood Pressure Graph") no longer puts dark text on a dark background.
 - Trends: the chart tooltip shows the number of readings in German for German members ("3 Messungen" instead of "3 readings").

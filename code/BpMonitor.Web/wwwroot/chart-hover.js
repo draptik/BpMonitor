@@ -24,6 +24,13 @@ function setupChartHover() {
     // a resize event that may never fire.
     Plotly.Plots.resize(d);
 
+    // /history's chart starts in a collapsed <details>, where Firefox lays it out at
+    // Plotly's default size; refit once opened (with or without a Medications Timeline).
+    const details = d.closest("details");
+    details?.addEventListener("toggle", () => {
+      if (details.open) Plotly.Plots.resize(d);
+    });
+
     d.on("plotly_hover", (e) => {
       // A relayout-driven hover replay (e.g. theme.js's applyChartTheme) can fire with no points.
       const p = e.points?.[0];
