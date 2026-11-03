@@ -11,7 +11,7 @@ interface PlotlyChartElement extends HTMLElement {
   _fullLayout?: any;
 }
 
-// Vendored plotly-2.27.1.min.js global. `any` on purpose: typing the full
+// Vendored plotly-2.28.0.min.js global. `any` on purpose: typing the full
 // Plotly surface is not worth it for the handful of calls we make.
 declare const Plotly: any;
 

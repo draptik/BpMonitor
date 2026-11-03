@@ -59,5 +59,5 @@ translating around it.
 - `Members` gained a `Language TEXT NOT NULL DEFAULT 'en'` column, backfilled via
   `SchemaMigrations.addColumnIfMissing` for existing databases.
 - Plotly's own built-in locale strings (e.g. the x-axis spike's default date format) stay
-  English until the locale bundles are vendored alongside `plotly-2.27.1.min.js` — out of scope
+  English until the locale bundles are vendored alongside `plotly-2.28.0.min.js` — out of scope
   here.
