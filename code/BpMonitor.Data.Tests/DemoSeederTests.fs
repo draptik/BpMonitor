@@ -10,7 +10,7 @@ open BpMonitor.Data
 let private ranges = ReadingRanges.defaults
 let private now = DateTimeOffset(2026, 6, 14, 12, 0, 0, TimeSpan.Zero)
 
-let private tp = new FakeTimeProvider(now) :> TimeProvider
+let private tp = FakeTimeProvider(now) :> TimeProvider
 
 let private emptyStore () =
   InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository,

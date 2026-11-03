@@ -110,7 +110,7 @@ module AuthHandlers =
     (handlerName: string)
     (handler: FamilyMember -> int -> HttpContext -> Task)
     : HttpContext -> Task =
-    withMember (fun m ctx -> (withRouteId handlerName (fun id ctx -> handler m id ctx)) ctx)
+    withMember (fun m -> withRouteId handlerName (handler m))
 
   /// Like `withMemberAndRouteId`, but also finds the member's own record with that id
   /// (`tryGet ctx memberId id` is member-scoped); logs and returns 404 when there is none.

@@ -50,10 +50,10 @@ let ``serialize emits an array entry per reading in input order`` () =
   let root = JsonDocument.Parse(json).RootElement
 
   let length = root.GetArrayLength()
-  let firstId = root.[0].GetProperty("id").GetInt32()
-  let firstSystolic = root.[0].GetProperty("systolic").GetInt32()
-  let secondId = root.[1].GetProperty("id").GetInt32()
-  let secondSystolic = root.[1].GetProperty("systolic").GetInt32()
+  let firstId = root[0].GetProperty("id").GetInt32()
+  let firstSystolic = root[0].GetProperty("systolic").GetInt32()
+  let secondId = root[1].GetProperty("id").GetInt32()
+  let secondSystolic = root[1].GetProperty("systolic").GetInt32()
 
   test <@ length = 2 @>
   test <@ firstId = 1 @>
@@ -68,7 +68,7 @@ let ``serialize emits an array entry per reading in input order`` () =
 let ``serialize round-trips special characters in comments`` (comment: string) =
   let json = serialize [ { reading with Comments = Some comment } ]
   let root = JsonDocument.Parse(json).RootElement
-  let roundTripped = root.[0].GetProperty("comments").GetString()
+  let roundTripped = root[0].GetProperty("comments").GetString()
 
   test <@ roundTripped = comment @>
 

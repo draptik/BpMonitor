@@ -107,7 +107,7 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: TimeProvide
       ctx.Members
         .Where(fun r -> r.Id = id)
         .ExecuteUpdate(fun setters ->
-          setters.SetProperty((fun r -> r.Language), Language.code language).SetProperty((fun r -> r.ModifiedAt), now)
+          setters.SetProperty(_.Language, Language.code language).SetProperty(_.ModifiedAt, now)
           |> ignore)
       |> ignore
 
@@ -118,10 +118,10 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: TimeProvide
         .Where(fun r -> r.Id = id)
         .ExecuteUpdate(fun setters ->
           setters
-            .SetProperty((fun r -> r.SystolicGoalMin), goal.SystolicMin)
-            .SetProperty((fun r -> r.SystolicGoalMax), goal.SystolicMax)
-            .SetProperty((fun r -> r.DiastolicGoalMin), goal.DiastolicMin)
-            .SetProperty((fun r -> r.DiastolicGoalMax), goal.DiastolicMax)
-            .SetProperty((fun r -> r.ModifiedAt), now)
+            .SetProperty(_.SystolicGoalMin, goal.SystolicMin)
+            .SetProperty(_.SystolicGoalMax, goal.SystolicMax)
+            .SetProperty(_.DiastolicGoalMin, goal.DiastolicMin)
+            .SetProperty(_.DiastolicGoalMax, goal.DiastolicMax)
+            .SetProperty(_.ModifiedAt, now)
           |> ignore)
       |> ignore

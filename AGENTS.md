@@ -69,7 +69,7 @@ code/
 ├── BpMonitor.Web               # Falco web app (login + per-member auth, landing, add, history, recent, trends, settings, members, health pages); Serilog structured stdout logging
 ├── BpMonitor.Web.Tests
 ├── BpMonitor.Web.E2E.Tests     # Playwright .NET browser smoke tests against a real out-of-process BpMonitor.Web instance
-├── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules
+├── BpMonitor.Arch.Tests        # ArchUnit Clean Architecture rules + project hygiene (every .fs compiled)
 ├── BpMonitor.Benchmarks        # BenchmarkDotNet suite (LOWESS reference vs. sliding window); run with `mise run bench`, not part of `dotnet test`
 └── BpMonitor.TestSupport       # Shared test infrastructure (Verify snapshot settings, domain record builders, E2E process-readiness polling) for *.Tests projects
 docs/                           # Product vision, architecture, ADRs
@@ -108,9 +108,16 @@ a gitmoji that doesn't match its conventional-commit type.
 - Use shorthand lambda syntax where the argument is only used for a single member access chain: `_.Property` instead of `fun x -> x.Property`
   - Covers property/method/indexer chains rooted at the parameter, e.g. `_.Timestamp.ToLocalTime().Date`, `_.Contains("x")`, `_.Groups[1].Value`
   - Does not apply if the parameter is used more than once (e.g. `fun r -> r.Id = r.OtherId`) or if the chain result is piped into another function (e.g. `fun a -> a.GetValue() |> Option.ofObj` — `_.GetValue() |> Option.ofObj` type-checks against the wrong thing, since `|>` binds to the whole lambda, not its result)
+  - Also works for EF Core expression-tree arguments, e.g. `.SetProperty(_.ModifiedAt, now)`
+- Don't wrap a call in a lambda that only forwards its arguments: `string` not `fun y -> string y`, `List.map3 (medicationTrace s high)` not `fun i slot m -> medicationTrace s high i slot m`, `Action<string>(log.Add)` not `Action<string>(fun s -> log.Add(s))`
+  - Handlers: drop a trailing `ctx` that is only passed through — `withMember (fun m -> htmlResponse (...))`, not `withMember (fun m ctx -> htmlResponse (...) ctx)`
+- Use nested record copy-and-update for nested fields: `{ s with Shell.Logout = "..." }`, not `{ s with Shell = { s.Shell with Logout = "..." } }`
+- Prefer interpolated strings over `sprintf`, including `%A`: `$"%A{verb}"`
 - Do not use `.[n]` indexer syntax outside of Unquote quotation expressions (`<@ ... @>`); use `[n]` instead
 - Inside Unquote quotation expressions, `[n]` only works on simple local variables — use `.[n]` when indexing the result of a method call (e.g. `repo.GetAll().[0]`)
-- `new` is required for any type implementing `IDisposable` — the compiler enforces this via FS0760
+- `new` is required for any type implementing `IDisposable` — the compiler enforces this via FS0760 — and omitted for everything else (e.g. `FakeTimeProvider(now)`)
+- Every new `.fs` file needs a `<Compile Include>` in its `.fsproj` — otherwise it is silently never compiled and its tests never run (`ProjectHygieneTests` in `BpMonitor.Arch.Tests` fails on orphans)
+- If Rider is running (JetBrains MCP reachable), run its `lint_files` (`rootFolder` = `code/`) over changed `.fs` files and fix its warnings and weak warnings; if Rider isn't running, skip it — it is opportunistic, not a gate
 
 ## Docs
 
@@ -141,6 +148,8 @@ dotnet test --configuration Release --max-parallel-test-modules 2
 # Target one project directly and pass the filter after `--`:
 dotnet test BpMonitor.Web.Tests -- --filter-method "*SomeTestName*"
 ```
+
+Behavior every `I*Repository` implementation shares goes in `BpMonitor.Data.Tests/*RepositoryContractTests.fs`, run per implementation via `[<InlineData("InMemory")>]`/`[<InlineData("Ef")>]` (`RepositoryImplementations.fs`); only implementation-specific behavior stays in `Ef*`/`InMemory*RepositoryTests.fs`.
 
 `BpMonitor.Arch.Tests` uses `DoNotResideInNamespaceMatching("Microsoft\\.CodeCoverage.*")` in its type filters to exclude coverage-injected tracker types from ArchUnitNET dependency checks.
 

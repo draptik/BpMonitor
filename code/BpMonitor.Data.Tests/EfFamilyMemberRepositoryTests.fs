@@ -5,6 +5,7 @@ open Xunit
 open Swensen.Unquote
 open Microsoft.Extensions.Time.Testing
 open BpMonitor.Core
+open BpMonitor.TestSupport.TestBuilders
 open BpMonitor.Data
 open Microsoft.EntityFrameworkCore
 
@@ -14,52 +15,13 @@ let private createContextWithLog = EfTestContext.createContextWithLog
 let private createRepo (ctx: BpMonitorDbContext) : IFamilyMemberRepository =
   EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository
 
-let private newMember name isAdmin =
-  FamilyMember.create name isAdmin
-  |> Result.defaultWith (fun _ -> failwith "invalid member")
-
-[<Fact>]
-let ``GetAll returns empty list when database is empty`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  test <@ repo.GetAll() = [] @>
-
-[<Fact>]
-let ``GetAll returns all members`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  repo.Add(newMember "Alice" true) |> ignore
-  repo.Add(newMember "Bob" false) |> ignore
-  test <@ repo.GetAll().Length = 2 @>
-
-[<Fact>]
-let ``GetById returns Some when member exists`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  let added = repo.Add(newMember "Alice" true)
-  test <@ repo.GetById(added.Id) = Some added @>
-
-[<Fact>]
-let ``GetById returns None when member does not exist`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  test <@ repo.GetById(999) = None @>
-
 [<Fact>]
 let ``Add persists a member and assigns a non-zero Id`` () =
   use ctx = createContext ()
 
   let repo = createRepo ctx
 
-  let added = repo.Add(newMember "Alice" true)
+  let added = repo.Add(mkMember 0 "Alice" true true)
   test <@ added.Id > 0 @>
   test <@ repo.GetAll().Length = 1 @>
 
@@ -69,7 +31,7 @@ let ``Add maps empty PasswordHash to NoCredential`` () =
 
   let repo = createRepo ctx
 
-  let added = repo.Add(newMember "Alice" true)
+  let added = repo.Add(mkMember 0 "Alice" true true)
   test <@ added.Credential = NoCredential @>
 
 [<Fact>]
@@ -79,7 +41,7 @@ let ``Add maps non-empty PasswordHash to Password`` () =
   let repo = createRepo ctx
 
   let m =
-    { newMember "Alice" true with
+    { mkMember 0 "Alice" true true with
         Credential = Password "hashed"
     }
 
@@ -93,7 +55,7 @@ let ``Add maps a setup code hash to PendingSetup`` () =
   let repo = createRepo ctx
 
   let m =
-    { newMember "Alice" true with
+    { mkMember 0 "Alice" true true with
         Credential = PendingSetup "codehash"
     }
 
@@ -105,7 +67,7 @@ let ``Add maps a setup code hash to PendingSetup`` () =
 let ``GetById maps a row with both a password hash and a setup code hash to Password`` () =
   use ctx = createContext ()
   let repo = createRepo ctx
-  let added = repo.Add(newMember "Alice" true)
+  let added = repo.Add(mkMember 0 "Alice" true true)
 
   ctx.Database.ExecuteSqlRaw("UPDATE \"Members\" SET \"PasswordHash\" = 'hashed', \"SetupCodeHash\" = 'codehash'")
   |> ignore
@@ -116,7 +78,7 @@ let ``GetById maps a row with both a password hash and a setup code hash to Pass
 let ``GetById falls back to English for an unsupported stored language code`` () =
   use ctx = createContext ()
   let repo = createRepo ctx
-  let added = repo.Add(newMember "Alice" true)
+  let added = repo.Add(mkMember 0 "Alice" true true)
 
   ctx.Database.ExecuteSqlRaw("UPDATE \"Members\" SET \"Language\" = 'fr'")
   |> ignore
@@ -131,7 +93,7 @@ let ``Update to Password clears the stored setup code hash`` () =
 
   let added =
     repo.Add
-      { newMember "Alice" true with
+      { mkMember 0 "Alice" true true with
           Credential = PendingSetup "codehash"
       }
 
@@ -149,19 +111,9 @@ let ``Add sets CreatedAt and ModifiedAt to current time`` () =
   let timeProvider = FakeTimeProvider(now)
   use ctx = createContext ()
   let repo = EfFamilyMemberRepository(ctx, timeProvider) :> IFamilyMemberRepository
-  let added = repo.Add(newMember "Alice" true)
+  let added = repo.Add(mkMember 0 "Alice" true true)
   test <@ added.CreatedAt = now @>
   test <@ added.ModifiedAt = now @>
-
-[<Fact>]
-let ``Update modifies the stored member`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  let added = repo.Add(newMember "Alice" true)
-  repo.Update { added with Name = "Alicia" }
-  test <@ (repo.GetById added.Id).Value.Name = "Alicia" @>
 
 [<Fact>]
 let ``Update sets ModifiedAt to current time and preserves CreatedAt`` () =
@@ -170,7 +122,7 @@ let ``Update sets ModifiedAt to current time and preserves CreatedAt`` () =
   let timeProvider = FakeTimeProvider(createdAt)
   use ctx = createContext ()
   let repo = EfFamilyMemberRepository(ctx, timeProvider) :> IFamilyMemberRepository
-  let added = repo.Add(newMember "Alice" true)
+  let added = repo.Add(mkMember 0 "Alice" true true)
   timeProvider.SetUtcNow(updatedAt)
   repo.Update { added with Name = "Alicia" }
   let result = (repo.GetById added.Id).Value
@@ -178,73 +130,32 @@ let ``Update sets ModifiedAt to current time and preserves CreatedAt`` () =
   test <@ result.ModifiedAt = updatedAt @>
 
 [<Fact>]
-let ``UpdateLanguage changes only the language`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  let added = repo.Add(newMember "Alice" true)
-  // An admin's change that a full-record write from an older snapshot would undo.
-  repo.Update { added with IsActive = false }
+let ``UpdateLanguage sets ModifiedAt to current time`` () =
+  let updatedAt = DateTimeOffset(2026, 3, 11, 10, 0, 0, TimeSpan.Zero)
 
+  let timeProvider =
+    FakeTimeProvider(DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero))
+
+  use ctx = createContext ()
+  let repo = EfFamilyMemberRepository(ctx, timeProvider) :> IFamilyMemberRepository
+  let added = repo.Add(mkMember 0 "Alice" true true)
+  timeProvider.SetUtcNow(updatedAt)
   repo.UpdateLanguage added.Id German
-
-  let stored = (repo.GetById added.Id).Value
-  test <@ stored.Language = German && not stored.IsActive @>
+  test <@ (repo.GetById added.Id).Value.ModifiedAt = updatedAt @>
 
 [<Fact>]
-let ``UpdateGoal changes only the goal range`` () =
+let ``UpdateGoal sets ModifiedAt to current time`` () =
+  let updatedAt = DateTimeOffset(2026, 3, 11, 10, 0, 0, TimeSpan.Zero)
+
+  let timeProvider =
+    FakeTimeProvider(DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero))
+
   use ctx = createContext ()
-  let repo = createRepo ctx
-  let added = repo.Add(newMember "Alice" true)
-  repo.Update { added with IsActive = false }
-
-  let goal =
-    {
-      SystolicMin = 100
-      SystolicMax = 130
-      DiastolicMin = 65
-      DiastolicMax = 85
-    }
-
-  repo.UpdateGoal added.Id goal
-
-  let stored = (repo.GetById added.Id).Value
-  test <@ stored.Goal = goal && not stored.IsActive @>
-
-[<Fact>]
-let ``Update of a non-existent member is a no-op`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  let ghost = newMember "Ghost" false
-  let ghostWithId = { ghost with Id = 999 }
-  repo.Update(ghostWithId)
-  test <@ repo.GetAll() = [] @>
-
-[<Fact>]
-let ``UpdateLanguage of a non-existent member leaves every member unchanged`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  repo.Add(newMember "Alice" true) |> ignore
-  let before = repo.GetAll()
-
-  repo.UpdateLanguage 999 German
-
-  test <@ repo.GetAll() = before @>
-
-[<Fact>]
-let ``UpdateGoal of a non-existent member leaves every member unchanged`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  repo.Add(newMember "Alice" true) |> ignore
-  let before = repo.GetAll()
-
-  repo.UpdateGoal
-    999
-    (GoalRange.create 100 130 65 85
-     |> Result.defaultWith (fun _ -> failwith "invalid goal"))
-
-  test <@ repo.GetAll() = before @>
+  let repo = EfFamilyMemberRepository(ctx, timeProvider) :> IFamilyMemberRepository
+  let added = repo.Add(mkMember 0 "Alice" true true)
+  timeProvider.SetUtcNow(updatedAt)
+  repo.UpdateGoal added.Id GoalRange.defaults
+  test <@ (repo.GetById added.Id).Value.ModifiedAt = updatedAt @>
 
 [<Fact>]
 let ``Add persists a custom goal range and Update round-trips changes to it`` () =
@@ -252,30 +163,18 @@ let ``Add persists a custom goal range and Update round-trips changes to it`` ()
 
   let repo = createRepo ctx
 
-  let goal =
-    {
-      SystolicMin = 100
-      SystolicMax = 130
-      DiastolicMin = 65
-      DiastolicMax = 85
-    }
+  let goal = mkGoal 100 130 65 85
 
   let added =
     repo.Add
-      { newMember "Alice" true with
+      { mkMember 0 "Alice" true true with
           Goal = goal
       }
 
   test <@ added.Goal = goal @>
   test <@ (repo.GetById added.Id).Value.Goal = goal @>
 
-  let newGoal =
-    {
-      SystolicMin = 95
-      SystolicMax = 135
-      DiastolicMin = 62
-      DiastolicMax = 88
-    }
+  let newGoal = mkGoal 95 135 62 88
 
   repo.Update { added with Goal = newGoal }
   test <@ (repo.GetById added.Id).Value.Goal = newGoal @>
@@ -288,7 +187,7 @@ let ``Add persists Language and Update round-trips a changed Language`` () =
 
   let added =
     repo.Add
-      { newMember "Alice" true with
+      { mkMember 0 "Alice" true true with
           Language = German
       }
 
@@ -303,7 +202,7 @@ let ``GetById translates Id filter to SQL WHERE clause`` () =
   let log = ResizeArray<string>()
   use ctx = createContextWithLog log
   let repo = createRepo ctx
-  let added = repo.Add(newMember "Alice" true)
+  let added = repo.Add(mkMember 0 "Alice" true true)
   log.Clear()
   repo.GetById(added.Id) |> ignore
 

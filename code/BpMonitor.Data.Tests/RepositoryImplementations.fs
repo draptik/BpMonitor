@@ -26,3 +26,11 @@ let medicationRepo (impl: string) : IMedicationRepository * IDisposable =
     let ctx = EfTestContext.createContext ()
     EfMedicationRepository(ctx, TimeProvider.System) :> IMedicationRepository, ctx :> IDisposable
   | other -> failwith $"Unknown medication repository implementation: {other}"
+
+let memberRepo (impl: string) : IFamilyMemberRepository * IDisposable =
+  match impl with
+  | "InMemory" -> InMemoryFamilyMemberRepository(Some []) :> IFamilyMemberRepository, noop
+  | "Ef" ->
+    let ctx = EfTestContext.createContext ()
+    EfFamilyMemberRepository(ctx, TimeProvider.System) :> IFamilyMemberRepository, ctx :> IDisposable
+  | other -> failwith $"Unknown member repository implementation: {other}"

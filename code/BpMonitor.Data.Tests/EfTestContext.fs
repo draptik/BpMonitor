@@ -22,10 +22,7 @@ let createContextWithLog (log: ResizeArray<string>) =
   connection.Open()
 
   let options =
-    DbContextOptionsBuilder<BpMonitorDbContext>()
-      .UseSqlite(connection)
-      .LogTo(Action<string>(fun s -> log.Add(s)))
-      .Options
+    DbContextOptionsBuilder<BpMonitorDbContext>().UseSqlite(connection).LogTo(Action<string>(log.Add)).Options
 
   let ctx = new BpMonitorDbContext(options)
   ctx.Database.EnsureCreated() |> ignore

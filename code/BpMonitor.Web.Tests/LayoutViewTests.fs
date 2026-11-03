@@ -109,16 +109,10 @@ let ``logout button shows an icon with the label as tooltip`` () =
 let ``icon button labels are HTML-encoded in attributes`` () =
   let quoted =
     { s with
-        Shell =
-          { s.Shell with
-              Logout = "Log \"out\" & go"
-              SwitchToDarkTheme = "Go \"dark\" & go"
-              SwitchToLightTheme = "Go \"light\" & go"
-          }
-        Table =
-          { s.Table with
-              EditReading = fun _ -> "Edit \"it\" & go"
-          }
+        Shell.Logout = "Log \"out\" & go"
+        Shell.SwitchToDarkTheme = "Go \"dark\" & go"
+        Shell.SwitchToLightTheme = "Go \"light\" & go"
+        Table.EditReading = fun _ -> "Edit \"it\" & go"
     }
 
   let html =

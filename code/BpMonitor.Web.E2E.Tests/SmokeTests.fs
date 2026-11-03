@@ -137,7 +137,7 @@ type RememberMeUncheckedCookieTests(fixture: ChromiumFixture) =
       // not a session token, so it is deliberately persistent regardless of remember-me.
       let authCookie =
         signInResp.Headers.GetValues("Set-Cookie")
-        |> Seq.find (fun c -> c.StartsWith(".AspNetCore.Cookies="))
+        |> Seq.find _.StartsWith(".AspNetCore.Cookies=")
         |> _.ToLower()
 
       Assert.DoesNotContain("expires=", authCookie)

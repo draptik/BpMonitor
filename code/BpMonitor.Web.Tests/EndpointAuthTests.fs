@@ -21,7 +21,7 @@ let private anonymousRoutes =
 let private routes =
   [
     for e in Endpoints.all do
-      for verb, handler in e.Handlers -> sprintf "%A" verb, e.Pattern, handler
+      for verb, handler in e.Handlers -> $"%A{verb}", e.Pattern, handler
   ]
 
 let private run handler (ctx: HttpContext) =

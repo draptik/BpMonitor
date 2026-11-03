@@ -41,3 +41,8 @@ let mkMember id name isAdmin isActive : FamilyMember =
     CreatedAt = DateTimeOffset.MinValue
     ModifiedAt = DateTimeOffset.MinValue
   }
+
+/// Goes through GoalRange.create, so a fixture can't bypass the range invariants.
+let mkGoal sysMin sysMax diaMin diaMax : GoalRange =
+  GoalRange.create sysMin sysMax diaMin diaMax
+  |> Result.defaultWith (fun e -> failwith $"invalid goal fixture: %A{e}")
