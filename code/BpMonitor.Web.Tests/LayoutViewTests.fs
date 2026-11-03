@@ -149,12 +149,13 @@ let ``page title HTML-encodes member name to prevent title injection`` () =
   test <@ html.Contains "&lt;/title&gt;" @>
 
 [<Fact>]
-let ``every script, stylesheet and favicon URL carries the app version so browsers refetch after a deploy`` () =
+let ``every script, stylesheet and favicon URL except the filename-versioned plotly carries the app version`` () =
   let html = renderHtml (ReadingViews.landing s defaultMember)
 
   let assetUrls =
     Regex.Matches(html, "(?:src|href)=\"(/[^\"]+\\.(?:js|css|svg)[^\"]*)\"")
     |> Seq.map _.Groups[1].Value
+    |> Seq.filter (fun url -> not (url.StartsWith "/plotly-"))
     |> List.ofSeq
 
   test <@ not assetUrls.IsEmpty @>

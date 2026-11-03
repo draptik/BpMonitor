@@ -113,7 +113,7 @@ module ViewLayout =
 
   /// Scrolls a wide table sideways on phones instead of widening the page (which breaks the fixed topbar).
   let tableScroll (table: XmlNode) : XmlNode =
-    Elem.div [ Attr.class' "table-scroll" ] [ table ]
+    Elem.div [ Attr.class' "overflow-auto" ] [ table ]
 
   /// Versioned so browsers refetch static files after a deploy instead of serving stale cache.
   let private asset (path: string) : string = $"{path}?v={Version.current}"
@@ -152,8 +152,9 @@ module ViewLayout =
         Elem.link [ Attr.rel "stylesheet"; Attr.href (asset "/app.css") ]
         // Vendored from Plotly.NET's embedded resource (see scripts/extract-plotly-js.fsx) —
         // must be blocking (no defer/async) so chart render scripts in the body can call
-        // Plotly.newPlot synchronously when parsed.
-        Elem.script [ Attr.src (asset "/plotly-2.28.0.min.js"); Attr.charset "utf-8" ] []
+        // Plotly.newPlot synchronously when parsed. No `asset` version: the filename is
+        // already versioned, so a release doesn't force a re-download of ~3.5 MB.
+        Elem.script [ Attr.src "/plotly-2.28.0.min.js"; Attr.charset "utf-8" ] []
        ]
        @ extras)
 
@@ -398,7 +399,11 @@ module ViewLayout =
             ]
         ]
 
-    Elem.div containerAttrs [ Elem.table [] [ header; Elem.tbody [] (readings |> List.map row) ] ]
+    Elem.div
+      containerAttrs
+      [
+        tableScroll (Elem.table [] [ header; Elem.tbody [] (readings |> List.map row) ])
+      ]
 
   /// The readings' table; wrapped in an id'd container so it can be targeted for
   /// partial swaps later.
