@@ -1,5 +1,6 @@
 module LayoutViewTests
 
+open System.Text.RegularExpressions
 open Xunit
 open Swensen.Unquote
 open Falco.Markup
@@ -146,3 +147,15 @@ let ``page title HTML-encodes member name to prevent title injection`` () =
   test <@ not (html.Contains "</title><script>") @>
   // The HTML-encoded form must appear instead
   test <@ html.Contains "&lt;/title&gt;" @>
+
+[<Fact>]
+let ``every script, stylesheet and favicon URL carries the app version so browsers refetch after a deploy`` () =
+  let html = renderHtml (ReadingViews.landing s defaultMember)
+
+  let assetUrls =
+    Regex.Matches(html, "(?:src|href)=\"(/[^\"]+\\.(?:js|css|svg)[^\"]*)\"")
+    |> Seq.map _.Groups[1].Value
+    |> List.ofSeq
+
+  test <@ not assetUrls.IsEmpty @>
+  test <@ assetUrls |> List.forall _.EndsWith($"?v={Version.current}") @>

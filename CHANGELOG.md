@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- After an update, browsers (notably Firefox on Android) load the new styles and scripts right away instead of showing a stale cached version until the cache is cleared by hand.
+
 ## [1.18.0] - 2026-11-03
 
 ### Changed
