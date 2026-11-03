@@ -37,6 +37,14 @@ breaks that symmetry for a rule that guards hygiene, not correctness — not wor
 > hadolint and renovate-config-validator now run in CI only, not as pre-commit hooks. The
 > ~7–9s cost still stands, but the "CI-only is unacceptable" argument is weaker — this
 > meets the revisit condition below.
+>
+> **Update (2026-11-03, revisited):** still rejected, for a new reason. A CI-only spike with
+> `fsharp-analyzers` 0.41.0 worked (whole solution in ~26s; it found three real unused opens,
+> since removed), but the CLI targets net10.0 and pins FCS 43.12.402 exactly. On this repo's
+> .NET 11 SDK it needs `DOTNET_ROLL_FORWARD=LatestMajor`, and the analyzer itself must target
+> net10.0 with an older FSharp.Core. Every SDK upgrade would depend on the CLI catching up.
+> It also exited 0 after crashing during project load, so a CI step could pass without
+> checking anything. Revisit when the CLI targets the repo's .NET version.
 
 ## Consequences
 
