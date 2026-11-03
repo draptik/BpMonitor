@@ -111,6 +111,9 @@ module ViewLayout =
       ]
       [ sunIcon; moonIcon ]
 
+  /// Versioned so browsers refetch static files after a deploy instead of serving stale cache.
+  let private asset (path: string) : string = $"{path}?v={Version.current}"
+
   /// Shared <head> element. `extras` allows callers to append additional nodes
   /// (e.g., the htmx script that only the authenticated layout needs).
   let private htmlHead (title: string) (extras: XmlNode list) : XmlNode =
@@ -120,28 +123,33 @@ module ViewLayout =
         Elem.meta [ Attr.charset "utf-8" ]
         Elem.meta [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]
         Elem.title [] [ Text.enc title ]
-        Elem.link [ Attr.rel "icon"; Attr.href "/favicon.svg"; Attr.type' "image/svg+xml" ]
+        Elem.link
+          [
+            Attr.rel "icon"
+            Attr.href (asset "/favicon.svg")
+            Attr.type' "image/svg+xml"
+          ]
         // Runs once on initial load; survives hx-boost navigations because it lives in <head>.
         // No defer/async — render-blocking prevents flash of the wrong theme (FOUC).
-        Elem.script [ Attr.src "/theme.js" ] []
+        Elem.script [ Attr.src (asset "/theme.js") ] []
         // Behavior-only (no FOUC concern); each self-guards on the page elements it
         // needs and re-runs on htmx:afterSettle to survive hx-boost swaps. Deferred so
         // they don't block HTML parsing — they only register DOMContentLoaded/htmx
         // listeners, and defer preserves document order, so plot-ready.js still
         // defines the whenPlotReady helper before the chart scripts below run.
-        Elem.script [ Attr.src "/plot-ready.js"; Attr.create "defer" "" ] []
-        Elem.script [ Attr.src "/chart-hover.js"; Attr.create "defer" "" ] []
-        Elem.script [ Attr.src "/recent-scrubber.js"; Attr.create "defer" "" ] []
-        Elem.script [ Attr.src "/recent-zoom.js"; Attr.create "defer" "" ] []
-        Elem.script [ Attr.src "/medications-sync.js"; Attr.create "defer" "" ] []
-        Elem.script [ Attr.src "/details-memory.js"; Attr.create "defer" "" ] []
-        Elem.script [ Attr.src "/trends-scroll.js"; Attr.create "defer" "" ] []
-        Elem.link [ Attr.rel "stylesheet"; Attr.href "/pico.min.css" ]
-        Elem.link [ Attr.rel "stylesheet"; Attr.href "/app.css" ]
+        Elem.script [ Attr.src (asset "/plot-ready.js"); Attr.create "defer" "" ] []
+        Elem.script [ Attr.src (asset "/chart-hover.js"); Attr.create "defer" "" ] []
+        Elem.script [ Attr.src (asset "/recent-scrubber.js"); Attr.create "defer" "" ] []
+        Elem.script [ Attr.src (asset "/recent-zoom.js"); Attr.create "defer" "" ] []
+        Elem.script [ Attr.src (asset "/medications-sync.js"); Attr.create "defer" "" ] []
+        Elem.script [ Attr.src (asset "/details-memory.js"); Attr.create "defer" "" ] []
+        Elem.script [ Attr.src (asset "/trends-scroll.js"); Attr.create "defer" "" ] []
+        Elem.link [ Attr.rel "stylesheet"; Attr.href (asset "/pico.min.css") ]
+        Elem.link [ Attr.rel "stylesheet"; Attr.href (asset "/app.css") ]
         // Vendored from Plotly.NET's embedded resource (see scripts/extract-plotly-js.fsx) —
         // must be blocking (no defer/async) so chart render scripts in the body can call
         // Plotly.newPlot synchronously when parsed.
-        Elem.script [ Attr.src "/plotly-2.28.0.min.js"; Attr.charset "utf-8" ] []
+        Elem.script [ Attr.src (asset "/plotly-2.28.0.min.js"); Attr.charset "utf-8" ] []
        ]
        @ extras)
 
@@ -225,7 +233,7 @@ module ViewLayout =
                     .Replace("\"", "&quot;")
                 )
               ]
-            Elem.script [ Attr.src "/htmx.min.js" ] []
+            Elem.script [ Attr.src (asset "/htmx.min.js") ] []
           ]
         Elem.body
           [ Attr.create "hx-boost" "true" ]
