@@ -28,6 +28,7 @@
 
 body {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Checkbox that drives the mobile off-canvas drawer — visually hidden */
@@ -132,6 +133,8 @@ nav.sidebar {
   top: var(--topbar-height);
   left: 0;
   height: calc(100vh - var(--topbar-height));
+  /* dvh tracks mobile browser toolbars; plain vh hides the sidebar bottom behind them. */
+  height: calc(100dvh - var(--topbar-height));
   z-index: 10;
   overflow-y: auto;
   border-right: 1px solid var(--pico-muted-border-color);
@@ -183,6 +186,7 @@ nav.sidebar li.nav-action-item {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
   padding-top: var(--topbar-height);
   padding-left: 1rem;
   padding-right: 1rem;
@@ -641,12 +645,13 @@ input#DiastolicGoalMax {
   text-align: center;
 }
 
-/* Prevents the wide readings table (fixed-width timestamp + several columns) from
+/* Wide tables (readings, Members, Medications) scroll sideways instead of
    overflowing the page horizontally on narrow mobile viewports. Without this,
    the page scrolls horizontally, which corrupts position:fixed elements (the topbar)
    on some mobile browsers — right:0 resolves against the scrollable width instead of
    the viewport, pushing the topbar off-screen. */
-#readings {
+#readings,
+.table-scroll {
   overflow-x: auto;
 }
 
