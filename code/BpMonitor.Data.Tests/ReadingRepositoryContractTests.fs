@@ -16,6 +16,48 @@ let private seed (repo: IReadingRepository) memberId r =
 [<Theory>]
 [<InlineData("InMemory")>]
 [<InlineData("Ef")>]
+let ``GetAll returns empty list for an empty store`` (impl: string) =
+  let repo, scope = RepositoryImplementations.readingRepo impl
+  use _ = scope
+  test <@ repo.GetAll(1) = [] @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
+let ``Add persists a reading`` (impl: string) =
+  let repo, scope = RepositoryImplementations.readingRepo impl
+  use _ = scope
+  repo.Add 1 (reading 120 80 70)
+  test <@ repo.GetAll(1).Length = 1 @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
+let ``Add assigns a non-zero Id`` (impl: string) =
+  let repo, scope = RepositoryImplementations.readingRepo impl
+  use _ = scope
+  let stored = seed repo 1 (reading 120 80 70)
+  test <@ stored.Id > 0 @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
+let ``AddMany persists all readings`` (impl: string) =
+  let repo, scope = RepositoryImplementations.readingRepo impl
+  use _ = scope
+  let first = reading 120 80 70
+
+  let second =
+    { first with
+        Timestamp = Timestamp.utc 2026 1 2 9 0 0
+    }
+
+  repo.AddMany 1 [ first; second ]
+  test <@ repo.GetAll(1).Length = 2 @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
 let ``Update replaces the reading with the matching Id`` (impl: string) =
   let repo, scope = RepositoryImplementations.readingRepo impl
   use _ = scope

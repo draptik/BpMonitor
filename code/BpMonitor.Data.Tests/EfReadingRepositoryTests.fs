@@ -29,32 +29,6 @@ let private createRepo (ctx: BpMonitorDbContext) : IReadingRepository =
   EfReadingRepository(ctx, TimeProvider.System) :> IReadingRepository
 
 [<Fact>]
-let ``GetAll returns empty list when database is empty`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  test <@ repo.GetAll(defaultMemberId) = [] @>
-
-[<Fact>]
-let ``Add persists a reading`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  repo.Add defaultMemberId sample
-  test <@ repo.GetAll(defaultMemberId).Length = 1 @>
-
-[<Fact>]
-let ``Add assigns a non-zero Id`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  repo.Add defaultMemberId sample
-  test <@ repo.GetAll(defaultMemberId).[0].Id > 0 @>
-
-[<Fact>]
 let ``Add preserves Comments when present`` () =
   use ctx = createContext ()
 
@@ -87,20 +61,6 @@ let ``Add sets CreatedAt and ModifiedAt to current time`` () =
   let result = repo.GetAll(defaultMemberId)[0]
   test <@ result.CreatedAt = now @>
   test <@ result.ModifiedAt = now @>
-
-[<Fact>]
-let ``AddMany persists all readings`` () =
-  use ctx = createContext ()
-
-  let repo = createRepo ctx
-
-  let second =
-    { sample with
-        Timestamp = Timestamp.utc 2026 1 2 9 0 0
-    }
-
-  repo.AddMany defaultMemberId [ sample; second ]
-  test <@ repo.GetAll(defaultMemberId).Length = 2 @>
 
 [<Fact>]
 let ``AddMany sets CreatedAt and ModifiedAt to current time`` () =
