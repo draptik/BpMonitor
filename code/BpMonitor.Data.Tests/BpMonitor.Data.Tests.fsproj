@@ -9,6 +9,7 @@
     <Compile Include="InMemoryReadingRepositoryTests.fs" />
     <Compile Include="InMemoryMedicationRepositoryTests.fs" />
     <Compile Include="EfTestContext.fs" />
+    <Compile Include="EfTestContextTests.fs" />
     <Compile Include="RepositoryImplementations.fs" />
     <Compile Include="ReadingRepositoryContractTests.fs" />
     <Compile Include="MedicationRepositoryContractTests.fs" />

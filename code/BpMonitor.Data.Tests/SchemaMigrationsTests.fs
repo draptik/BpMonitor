@@ -9,16 +9,7 @@ open Microsoft.EntityFrameworkCore
 open BpMonitor.Data
 open BpMonitor.TestSupport
 
-/// Creates a fresh in-memory connection + context WITHOUT calling EnsureCreated,
-/// so SchemaMigrations.apply can drive the full setup from scratch.
-let private createRawContext () =
-  let connection = new SqliteConnection("DataSource=:memory:")
-  connection.Open()
-
-  let options =
-    DbContextOptionsBuilder<BpMonitorDbContext>().UseSqlite(connection).Options
-
-  new BpMonitorDbContext(options)
+let private createRawContext () = EfTestContext.createRawContext id
 
 let private scalarInt64 (conn: IDbConnection) (sql: string) : int64 =
   use cmd = conn.CreateCommand()
@@ -66,7 +57,7 @@ let ``apply seeds the default member with English as the language`` () =
 
 [<Fact>]
 let ``apply adds the Language column with an English default to a legacy Members table`` () =
-  let connection = new SqliteConnection("DataSource=:memory:")
+  use connection = new SqliteConnection("DataSource=:memory:")
   connection.Open()
 
   // Simulate a legacy DB: Members table predating the Language column.
@@ -132,7 +123,7 @@ let ``apply seeds the default member with the paper's preset goal range`` () =
 
 [<Fact>]
 let ``apply adds goal-range columns with preset defaults to a legacy Members table`` () =
-  let connection = new SqliteConnection("DataSource=:memory:")
+  use connection = new SqliteConnection("DataSource=:memory:")
   connection.Open()
 
   // Simulate a legacy DB: Members table predating the goal-range columns.
@@ -188,7 +179,7 @@ let ``apply adds goal-range columns with preset defaults to a legacy Members tab
 
 [<Fact>]
 let ``apply adds an empty SetupCodeHash column to a legacy Members table`` () =
-  let connection = new SqliteConnection("DataSource=:memory:")
+  use connection = new SqliteConnection("DataSource=:memory:")
   connection.Open()
 
   // Simulate a legacy DB: Members table predating setup codes (ADR 0012).
@@ -237,7 +228,7 @@ let ``apply is idempotent - calling it twice does not create duplicate members``
 
 [<Fact>]
 let ``apply adds missing columns to an existing Readings table without MemberId`` () =
-  let connection = new SqliteConnection("DataSource=:memory:")
+  use connection = new SqliteConnection("DataSource=:memory:")
   connection.Open()
 
   // Simulate a legacy DB: Readings table without MemberId, CreatedAt, or ModifiedAt.

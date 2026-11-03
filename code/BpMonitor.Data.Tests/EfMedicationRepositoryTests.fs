@@ -29,26 +29,6 @@ let private createRepo (ctx: BpMonitorDbContext) : IMedicationRepository =
   EfMedicationRepository(ctx, TimeProvider.System) :> IMedicationRepository
 
 [<Fact>]
-let ``GetAll returns empty list when database is empty`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  test <@ repo.GetAll(defaultMemberId) = [] @>
-
-[<Fact>]
-let ``Add persists a medication`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  repo.Add defaultMemberId sample
-  test <@ repo.GetAll(defaultMemberId).Length = 1 @>
-
-[<Fact>]
-let ``Add assigns a non-zero Id`` () =
-  use ctx = createContext ()
-  let repo = createRepo ctx
-  repo.Add defaultMemberId sample
-  test <@ repo.GetAll(defaultMemberId).[0].Id > 0 @>
-
-[<Fact>]
 let ``Add preserves FullName when present`` () =
   use ctx = createContext ()
   let repo = createRepo ctx

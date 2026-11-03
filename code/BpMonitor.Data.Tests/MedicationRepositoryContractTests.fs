@@ -17,6 +17,32 @@ let private seed (repo: IMedicationRepository) memberId m =
 [<Theory>]
 [<InlineData("InMemory")>]
 [<InlineData("Ef")>]
+let ``GetAll returns empty list for an empty store`` (impl: string) =
+  let repo, scope = RepositoryImplementations.medicationRepo impl
+  use _ = scope
+  test <@ repo.GetAll(1) = [] @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
+let ``Add persists a medication`` (impl: string) =
+  let repo, scope = RepositoryImplementations.medicationRepo impl
+  use _ = scope
+  repo.Add 1 (medication "HCTZ")
+  test <@ repo.GetAll(1).Length = 1 @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
+let ``Add assigns a non-zero Id`` (impl: string) =
+  let repo, scope = RepositoryImplementations.medicationRepo impl
+  use _ = scope
+  let stored = seed repo 1 (medication "HCTZ")
+  test <@ stored.Id > 0 @>
+
+[<Theory>]
+[<InlineData("InMemory")>]
+[<InlineData("Ef")>]
 let ``GetAll returns only medications for the requested member`` (impl: string) =
   let repo, scope = RepositoryImplementations.medicationRepo impl
   use _ = scope
