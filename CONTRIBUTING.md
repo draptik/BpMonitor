@@ -103,7 +103,7 @@ mise run lint:actions-security  # zizmor
 mise run lint:container         # hadolint
 mise run lint:renovate          # renovate.json validation
 mise run lint:links             # lychee (network; not part of `lint`)
-mise run test:scripts           # tests for scripts/
+mise run test:scripts           # tests for scripts/ and .husky/commit-msg
 ```
 
 Auto-fix where supported:
