@@ -196,15 +196,19 @@ function setupRecentScrubber() {
         return;
       }
 
-      const loT = new Date(String(lo).replace(" ", "T")).getTime();
-      const hiT = new Date(String(hi).replace(" ", "T")).getTime();
-      if (Number.isNaN(loT) || Number.isNaN(hiT)) return;
+      // Plotly's own d2l, not `new Date`: a midnight bound arrives as a bare "yyyy-MM-dd",
+      // which `new Date` reads as UTC while reading the data-x keys as local time.
+      const xaxis = d._fullLayout?.xaxis;
+      if (!xaxis?.d2l) return;
+      const loT = xaxis.d2l(lo);
+      const hiT = xaxis.d2l(hi);
+      if (!Number.isFinite(loT) || !Number.isFinite(hiT)) return;
 
       elements.forEach((el) => {
         const elX = el.dataset.x;
         if (!elX) return;
-        const t = new Date(elX.replace(" ", "T")).getTime();
-        if (Number.isNaN(t)) return;
+        const t = xaxis.d2l(elX);
+        if (!Number.isFinite(t)) return;
         el.classList.toggle("out-of-range", t < loT || t > hiT);
       });
     });
