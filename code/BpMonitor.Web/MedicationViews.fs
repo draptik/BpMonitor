@@ -104,6 +104,7 @@ module MedicationViews =
                 ]
               Elem.tbody [] (medications |> List.sortBy _.StartDate |> List.map (medicationRow s))
             ]
+          |> ViewLayout.tableScroll
           Elem.h2 [] [ Text.raw s.Medication.AddMedicationTitle ]
           Elem.form
             [ Attr.method "post"; Attr.action Routes.medications; Attr.class' "stacked" ]

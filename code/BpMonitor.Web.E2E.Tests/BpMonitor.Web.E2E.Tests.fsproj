@@ -19,6 +19,7 @@
     <Compile Include="HistoryChartResizeTests.fs" />
     <Compile Include="RecentRangeFilterTests.fs" />
     <Compile Include="MedicationsHoverLoopTests.fs" />
+    <Compile Include="MobileOverflowTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

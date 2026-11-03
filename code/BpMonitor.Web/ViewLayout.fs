@@ -111,6 +111,10 @@ module ViewLayout =
       ]
       [ sunIcon; moonIcon ]
 
+  /// Scrolls a wide table sideways on phones instead of widening the page (which breaks the fixed topbar).
+  let tableScroll (table: XmlNode) : XmlNode =
+    Elem.div [ Attr.class' "table-scroll" ] [ table ]
+
   /// Versioned so browsers refetch static files after a deploy instead of serving stale cache.
   let private asset (path: string) : string = $"{path}?v={Version.current}"
 

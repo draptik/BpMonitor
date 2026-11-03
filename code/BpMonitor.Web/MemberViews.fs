@@ -76,6 +76,7 @@ module MemberViews =
               ]
             Elem.tbody [] (allMembers |> List.map memberRow)
           ]
+        |> ViewLayout.tableScroll
       yield Elem.h2 [] [ Text.raw s.Member.AddFamilyMember ]
       yield
         Elem.form
