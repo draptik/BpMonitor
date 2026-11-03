@@ -13,11 +13,13 @@ open ViewTestHelpers
 let private defaultMember = HandlerTestHelpers.sampleMember
 
 [<Fact>]
-let ``layout loads plotly.js from a local path, not the CDN`` () =
+let ``layout loads plotly.js from a local path, not the CDN, without a version query since its filename is versioned``
+  ()
+  =
   let html = renderHtml (ReadingViews.landing s defaultMember)
 
   test <@ not (html.Contains "cdn.plot.ly") @>
-  test <@ html.Contains "src=\"/plotly-2.28.0.min.js?" @>
+  test <@ html.Contains "src=\"/plotly-2.28.0.min.js\"" @>
 
 [<Fact>]
 let ``vendored plotly.js matches the resource embedded in the restored Plotly.NET package`` () =

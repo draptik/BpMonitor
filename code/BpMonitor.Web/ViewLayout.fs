@@ -152,8 +152,9 @@ module ViewLayout =
         Elem.link [ Attr.rel "stylesheet"; Attr.href (asset "/app.css") ]
         // Vendored from Plotly.NET's embedded resource (see scripts/extract-plotly-js.fsx) —
         // must be blocking (no defer/async) so chart render scripts in the body can call
-        // Plotly.newPlot synchronously when parsed.
-        Elem.script [ Attr.src (asset "/plotly-2.28.0.min.js"); Attr.charset "utf-8" ] []
+        // Plotly.newPlot synchronously when parsed. No `asset` version: the filename is
+        // already versioned, so a release doesn't force a re-download of ~3.5 MB.
+        Elem.script [ Attr.src "/plotly-2.28.0.min.js"; Attr.charset "utf-8" ] []
        ]
        @ extras)
 
