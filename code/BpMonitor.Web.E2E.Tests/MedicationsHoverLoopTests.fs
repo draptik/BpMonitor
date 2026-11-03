@@ -1,6 +1,5 @@
 module BpMonitor.Web.E2E.MedicationsHoverLoopTests
 
-open System
 open System.Threading.Tasks
 open BpMonitor.Web.E2E
 open Microsoft.Playwright

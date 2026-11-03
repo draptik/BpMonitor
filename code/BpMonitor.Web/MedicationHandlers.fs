@@ -4,7 +4,6 @@ open System
 open System.Globalization
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
-open Microsoft.Extensions.Logging
 open FsToolkit.ErrorHandling
 open BpMonitor.Core
 open HandlerHelpers

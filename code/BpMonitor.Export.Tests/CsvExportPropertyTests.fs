@@ -5,7 +5,6 @@ open FsCheck.FSharp
 open FsCheck.Xunit
 open BpMonitor.Core
 open BpMonitor.Export.CsvExport
-open BpMonitor.TestSupport
 
 let private ts = Timestamp.utc 2024 10 15 9 0 0
 
