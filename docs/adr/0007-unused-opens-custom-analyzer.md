@@ -33,6 +33,11 @@ out a pre-commit hook.
 both as a pre-commit hook and in CI. A check that can only ever run in CI, never locally,
 breaks that symmetry for a rule that guards hygiene, not correctness — not worth it.
 
+> **Update (2026-11-03):** that symmetry no longer holds. `tsc --checkJs`, actionlint,
+> hadolint and renovate-config-validator now run in CI only, not as pre-commit hooks. The
+> ~7–9s cost still stands, but the "CI-only is unacceptable" argument is weaker — this
+> meets the revisit condition below.
+
 ## Consequences
 
 - Unused opens continue to be caught only by IDE inspection, with no CI or pre-commit

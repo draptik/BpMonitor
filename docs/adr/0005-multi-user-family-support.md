@@ -55,3 +55,7 @@ WAL + `busy_timeout=5000` are now applied at startup (they were previously assum
 - `InMemoryFamilyMemberRepository` is used in tests; `EfFamilyMemberRepository` in production
 - Import/Export functions gained a `memberId` parameter
 - Login, per-member permissions, member delete/merge, and per-member chart colors are out of scope for this iteration
+
+> **Update (2026-11-03):** `BpMonitor.Import` was removed (#202), so only Export carries the
+> `memberId` parameter. `IReadingRepository` also gained a member-scoped `TryGet`. Members
+> still can't be deleted, but admins can deactivate them (`IsActive`).
