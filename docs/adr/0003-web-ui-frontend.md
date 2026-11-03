@@ -7,6 +7,15 @@ Accepted
 is now the sole interface. References to "alongside the TUI" and "Two UIs" in the
 Consequences section are historical; the current architecture has one UI only.
 
+> **Update (2026-11-03):** several details below no longer match the code:
+>
+> - Charts are an inline Plotly fragment, not an `<iframe>` (#221).
+> - `BpMonitor.Import` was removed (#202); the arch tests cover `Core`/`Data`/`Charts`/`Export`.
+> - `release.yml` publishes the image to `ghcr.io/draptik/bpmonitor-web`; building on the VM
+>   is optional. The deploy guide lives in `docs/example-deploy/README.md`.
+> - The app is no longer unauthenticated: see [ADR-0006](0006-per-member-authentication.md)
+>   and [ADR-0012](0012-member-setup-codes.md).
+
 ## Context
 
 BpMonitor's only interface was the Terminal.Gui TUI, which runs on one machine

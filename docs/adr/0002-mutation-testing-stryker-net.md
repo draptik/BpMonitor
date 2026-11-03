@@ -36,5 +36,9 @@ tooling, configuration, or CI changes were made.
 - Test-quality confidence continues to rely on the existing xUnit v3 test suite together
   with coverlet + ReportGenerator line-coverage reporting (the `build-and-test` job in
   `.github/workflows/ci.yml`).
+
+  > **Update (2026-11-03):** coverage now comes from
+  > `Microsoft.Testing.Extensions.CodeCoverage` on Microsoft.Testing.Platform, not coverlet;
+  > ReportGenerator still renders the report.
 - Revisit this decision if Stryker.NET ships production-ready F# support, or if a mature F#
   mutation-testing tool emerges.
