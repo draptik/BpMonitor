@@ -53,9 +53,9 @@ if [ "$branch" = "main" ]; then
 fi
 
 case "$branch" in
-  feat/* | fix/* | chore/*) ;;
+  feat/* | fix/* | chore/* | renovate/*) ;;
   *)
-    echo "Error: branch '$branch' needs a feat/, fix/ or chore/ prefix" >&2
+    echo "Error: branch '$branch' needs a feat/, fix/, chore/ or renovate/ prefix" >&2
     exit 1
     ;;
 esac

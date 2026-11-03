@@ -29,7 +29,7 @@ main          ← protected, always stable, squash-merged only
 ```
 
 - Branch off `main` for every change
-- Branch names: lowercase, hyphenated, prefixed by type (`feat/`, `fix/`, `chore/`; other prefixes are rejected by the pre-commit hook, so use `chore/` for refactor/docs/test/ci work)
+- Branch names: lowercase, hyphenated, prefixed by type (`feat/`, `fix/`, `chore/`; other prefixes are rejected by the pre-commit hook, so use `chore/` for refactor/docs/test/ci work). Renovate's `renovate/` branches are also accepted, so a failing Renovate PR can be fixed in place (add commits on top; `ship-pr.sh` does not force-push a rebased branch)
 - Delete branch after merge
 - **Before making any code changes**, always create a feature branch first — it is the first step, not an afterthought
 
