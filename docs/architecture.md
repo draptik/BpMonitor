@@ -16,7 +16,7 @@ code/
 ├── BpMonitor.Web            # Falco web app (server-rendered pages, auth, export, health)
 ├── BpMonitor.Web.Tests      # Tests for Web layer
 ├── BpMonitor.Web.E2E.Tests  # Playwright .NET browser smoke tests (real out-of-process app + Chromium/Firefox)
-├── BpMonitor.Arch.Tests     # ArchUnit tests enforcing Clean Architecture rules
+├── BpMonitor.Arch.Tests     # ArchUnit tests enforcing Clean Architecture rules + project hygiene
 ├── BpMonitor.Benchmarks     # BenchmarkDotNet suite (e.g. LOWESS reference vs. sliding window); local only
 └── BpMonitor.TestSupport    # Shared test infrastructure (Verify snapshot settings, domain record builders, E2E process-readiness polling) for *.Tests projects
 ```
@@ -191,6 +191,7 @@ graph TD
 - Plus a reflection-based check that Core's compiled assembly references no EF Core, ASP.NET Core, SQLite, or Falco package — project-to-project rules alone wouldn't catch a stray `dotnet add reference`
 - Web's `*Handlers` modules must not depend on `BpMonitorDbContext` directly (they go through Core's repository interfaces instead) — `HealthHandlers` is the one documented exception, for its `/health` `Database.CanConnect()` probe
 - Every `I*Repository` interface in Core has an `Ef*Repository` and an `InMemory*Repository` implementation in Data, checked by name against the documented convention
+- `ProjectHygieneTests`: every `.fs` file under a project directory is listed as `<Compile Include>` in its `.fsproj` — an orphaned file compiles to nothing, so its tests silently never run
 
 ## Design Principles
 

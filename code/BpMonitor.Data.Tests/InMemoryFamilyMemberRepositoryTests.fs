@@ -66,3 +66,57 @@ let ``Update of a non-existent member is a no-op`` () =
 
   repo.Update(ghost)
   test <@ repo.GetAll() = [] @>
+
+[<Fact>]
+let ``UpdateLanguage changes only the language`` () =
+  let repo = InMemoryFamilyMemberRepository(Some []) :> IFamilyMemberRepository
+  let added = repo.Add(newMember "Alice" true)
+  // An admin's change that a full-record write from an older snapshot would undo.
+  repo.Update { added with IsActive = false }
+
+  repo.UpdateLanguage added.Id German
+
+  let stored = (repo.GetById added.Id).Value
+  test <@ stored.Language = German && not stored.IsActive @>
+
+[<Fact>]
+let ``UpdateGoal changes only the goal range`` () =
+  let repo = InMemoryFamilyMemberRepository(Some []) :> IFamilyMemberRepository
+  let added = repo.Add(newMember "Alice" true)
+  repo.Update { added with IsActive = false }
+
+  let goal =
+    {
+      SystolicMin = 100
+      SystolicMax = 130
+      DiastolicMin = 65
+      DiastolicMax = 85
+    }
+
+  repo.UpdateGoal added.Id goal
+
+  let stored = (repo.GetById added.Id).Value
+  test <@ stored.Goal = goal && not stored.IsActive @>
+
+[<Fact>]
+let ``UpdateLanguage of a non-existent member leaves every member unchanged`` () =
+  let repo = InMemoryFamilyMemberRepository(Some []) :> IFamilyMemberRepository
+  repo.Add(newMember "Alice" true) |> ignore
+  let before = repo.GetAll()
+
+  repo.UpdateLanguage 999 German
+
+  test <@ repo.GetAll() = before @>
+
+[<Fact>]
+let ``UpdateGoal of a non-existent member leaves every member unchanged`` () =
+  let repo = InMemoryFamilyMemberRepository(Some []) :> IFamilyMemberRepository
+  repo.Add(newMember "Alice" true) |> ignore
+  let before = repo.GetAll()
+
+  repo.UpdateGoal
+    999
+    (GoalRange.create 100 130 65 85
+     |> Result.defaultWith (fun _ -> failwith "invalid goal"))
+
+  test <@ repo.GetAll() = before @>

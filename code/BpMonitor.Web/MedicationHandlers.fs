@@ -120,8 +120,8 @@ module MedicationHandlers =
       :> Task)
 
   let edit: HttpContext -> Task =
-    withOwnedRecord "editMedication" (fun ctx -> (medicationRepo ctx).TryGet) (fun m med ctx ->
-      htmlResponse (MedicationViews.medicationForm (stringsForMember m) m med.Id [] (Binding.ofMedication med)) ctx)
+    withOwnedRecord "editMedication" (fun ctx -> (medicationRepo ctx).TryGet) (fun m med ->
+      htmlResponse (MedicationViews.medicationForm (stringsForMember m) m med.Id [] (Binding.ofMedication med)))
 
   let private renderEditErrors
     (s: LocalizedStrings)

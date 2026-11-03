@@ -102,7 +102,7 @@ module ReadingHandlers =
   // ── App pages ──
 
   let landing: HttpContext -> Task =
-    withMember (fun m ctx -> htmlResponse (ReadingViews.landing (stringsForMember m) m) ctx)
+    withMember (fun m -> htmlResponse (ReadingViews.landing (stringsForMember m) m))
 
   // ── Medications Timeline (Wegier et al. 2021 Fig. 5): shared by /history and /recent ──
 

@@ -6,11 +6,13 @@
 
   <ItemGroup>
     <Compile Include="ArchitectureTests.fs" />
+    <Compile Include="ProjectHygieneTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FSharp.Core" />
     <PackageReference Include="TngTech.ArchUnitNET.xUnit" />
+    <PackageReference Include="Unquote" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />

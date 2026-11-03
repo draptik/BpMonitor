@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="InMemoryFamilyMemberRepositoryTests.fs" />
     <Compile Include="InMemoryReadingRepositoryTests.fs" />
     <Compile Include="InMemoryMedicationRepositoryTests.fs" />
     <Compile Include="EfTestContext.fs" />

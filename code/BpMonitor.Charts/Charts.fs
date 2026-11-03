@@ -833,7 +833,7 @@ module BpChart =
       let slots = assignSlots names
       let heightPx = 44 + 34 * sorted.Length
 
-      List.map3 (fun rowIdx slot m -> medicationTrace s rangeHigh rowIdx slot m) [ 0 .. sorted.Length - 1 ] slots sorted
+      List.map3 (medicationTrace s rangeHigh) [ 0 .. sorted.Length - 1 ] slots sorted
       |> Chart.combine
       |> Chart.withLayout (medicationsLayout heightPx)
       |> Chart.withXAxis (medicationsXAxis showScrubber rangeLow rangeHigh)
