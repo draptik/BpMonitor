@@ -27,7 +27,6 @@
 }
 
 body {
-  min-height: 100vh;
   min-height: 100dvh;
 }
 
@@ -132,7 +131,6 @@ nav.sidebar {
   position: fixed;
   top: var(--topbar-height);
   left: 0;
-  height: calc(100vh - var(--topbar-height));
   /* dvh tracks mobile browser toolbars; plain vh hides the sidebar bottom behind them. */
   height: calc(100dvh - var(--topbar-height));
   z-index: 10;
@@ -185,7 +183,6 @@ nav.sidebar li.nav-action-item {
   margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   min-height: 100dvh;
   padding-top: var(--topbar-height);
   padding-left: 1rem;
