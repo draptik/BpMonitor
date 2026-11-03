@@ -54,9 +54,12 @@ let ``settings renders the authenticated member's current goal range`` () =
 
   test <@ ctx.Response.StatusCode = 200 @>
   let body = TestHost.readBody ctx
-  test <@ body.Contains "value=\"90\"" @>
-  test <@ body.Contains "value=\"140\"" @>
-  test <@ body.Contains "value=\"60\"" @>
+  // Pinned to each field's name: the bare value "90" is both systolic min and diastolic max.
+  let field (name: string) (value: int) = $"name=\"{name}\" value=\"{value}\""
+  test <@ body.Contains(field FormFields.systolicGoalMin 90) @>
+  test <@ body.Contains(field FormFields.systolicGoalMax 140) @>
+  test <@ body.Contains(field FormFields.diastolicGoalMin 60) @>
+  test <@ body.Contains(field FormFields.diastolicGoalMax 90) @>
 
 [<Fact>]
 let ``settings wraps its content in the dense-page density scope`` () =

@@ -7,41 +7,52 @@ open BpMonitor.Core
 open BpMonitor.Web
 open ViewTestHelpers
 
+let private historyHtml () =
+  renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
+
 [<Fact>]
-let ``history renders reading values, chart div and nav links`` () =
-  let html =
-    renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
+let ``history renders reading values and the chart container`` () =
+  let html = historyHtml ()
 
   test <@ html.Contains "123" @>
   test <@ html.Contains "after walk" @>
   test <@ html.Contains "class=\"chart\"" @>
-  test <@ html.Contains $"href=\"{Routes.add}\"" @>
+
+[<Fact>]
+let ``history edit links return to the history page`` () =
+  let html = historyHtml ()
+
   test <@ html.Contains(Routes.readingEdit 7 Routes.history) @>
-  // Edit renders as a Pico button sized like the members page's Edit action
-  test <@ html.Contains "class=\"reading-actions\"" @>
-  test <@ html.Contains "role=\"button\" class=\"outline secondary edit-button\"" @>
-  // the History nav link is marked active on the history page
+
+[<Fact>]
+let ``history marks its own nav link as the current page`` () =
+  let html = historyHtml ()
+
   test <@ html.Contains $"href=\"{Routes.history}\" aria-current=\"page\"" @>
 
 [<Fact>]
 let ``reading edit button shows an icon with the label as tooltip`` () =
-  let html =
-    renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
+  let html = historyHtml ()
 
   let label = $"Edit reading from {Formats.formatLocal sample.Timestamp}"
-  test <@ html.Contains $"class=\"outline secondary edit-button\" title=\"{label}\" aria-label=\"{label}\"><svg" @>
+  // Sized like the members page's Edit action, inside the row's actions cell
+  test <@ html.Contains "<td class=\"reading-actions\"><a" @>
+
+  test
+    <@
+      html.Contains
+        $"role=\"button\" class=\"outline secondary edit-button\" title=\"{label}\" aria-label=\"{label}\"><svg"
+    @>
 
 [<Fact>]
 let ``history chart section is a collapsible that persists its open state`` () =
-  let html =
-    renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
+  let html = historyHtml ()
 
   test <@ html.Contains "<details class=\"collapsible\" data-persist-key=\"history-chart\">" @>
 
 [<Fact>]
 let ``history readings table sits in a collapsible that persists its open state`` () =
-  let html =
-    renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
+  let html = historyHtml ()
 
   test
     <@

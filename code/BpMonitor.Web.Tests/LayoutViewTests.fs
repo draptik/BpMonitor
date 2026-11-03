@@ -14,7 +14,11 @@ let ``layout renders a topbar with menu button, title and theme toggle`` () =
   test <@ html.Contains "for=\"nav-toggle\"" @>
   test <@ html.Contains "BpMonitor" @>
   test <@ html.Contains "class=\"theme-toggle\"" @>
-  // the old single floating id-based toggle is gone
+
+[<Fact>]
+let ``layout has no id-based theme toggle, since theme.js binds every toggle by class`` () =
+  let html = renderHtml (ReadingViews.landing s defaultMember)
+
   test <@ not (html.Contains "id=\"theme-toggle\"") @>
 
 [<Fact>]
