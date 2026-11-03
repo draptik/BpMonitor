@@ -76,6 +76,7 @@ type ReadingPageStrings =
     Last7Days: string
     Last30Days: string
     RecentReadingsSection: string
+    ReadingsSection: string
     AddReadingTitle: string
     EditReadingTitle: string
     TimestampHint: string
@@ -275,6 +276,7 @@ module LocalizedStrings =
           Last7Days = "Last 7 days"
           Last30Days = "Last 30 days"
           RecentReadingsSection = "Readings in view"
+          ReadingsSection = "Readings"
           AddReadingTitle = "Add reading"
           EditReadingTitle = "Edit reading"
           TimestampHint = "yyyy-MM-dd HH:mm"
@@ -454,6 +456,7 @@ module LocalizedStrings =
           Last7Days = "Letzte 7 Tage"
           Last30Days = "Letzte 30 Tage"
           RecentReadingsSection = "Angezeigte Messwerte"
+          ReadingsSection = "Messungen"
           AddReadingTitle = "Messung hinzufügen"
           EditReadingTitle = "Messung bearbeiten"
           TimestampHint = "yyyy-MM-dd HH:mm"

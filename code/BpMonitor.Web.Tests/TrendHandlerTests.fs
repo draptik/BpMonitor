@@ -193,6 +193,27 @@ let ``trendsPanel includes readings table with in-period readings`` () =
   test <@ body.Contains "130" @>
 
 [<Fact>]
+let ``trendsPanel readings table sits in a collapsible that persists its open state`` () =
+  let tp = FakeTimeProvider(trendsNow)
+
+  let r =
+    { sample with
+        Timestamp = trendsNow.AddDays(-1.0)
+    }
+
+  let ctx = TestHost.contextWithProvider (repoWith [ r ]) tp
+  setRouteGran ctx (TrendPeriod.slug Weekly)
+  TestHost.run ReadingHandlers.trendsPanel ctx
+
+  let body = TestHost.readBody ctx
+
+  test
+    <@
+      body.Contains
+        $"<details class=\"collapsible readings-section\" data-persist-key=\"trends-readings\"><summary>{LocalizedStrings.en.Reading.ReadingsSection}</summary><div id=\"readings\""
+    @>
+
+[<Fact>]
 let ``trendsPanel excludes readings outside the period from the table`` () =
   let tp = FakeTimeProvider(trendsNow)
 

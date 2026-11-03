@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The Logout button, the Edit buttons (readings tables in History, Recent view and Trends, Members, Medications) and the Delete button in Medications now show an icon instead of text. With a mouse, hovering shows a tooltip naming the row it acts on (e.g. "Delete Lisinopril"), which screen readers announce too. The Edit buttons are now highlighted on hover.
+- History and Trends: the readings table is now a collapsible "Readings" section, like the one in the Recent view. It starts collapsed, and each page remembers whether you left it open.
 - The theme toggle shows an icon of the current theme (sun for light, moon for dark). With a mouse, hovering shows a tooltip naming the theme a click switches to.
 
 ### Fixed

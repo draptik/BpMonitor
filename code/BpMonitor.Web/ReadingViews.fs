@@ -73,7 +73,7 @@ module ReadingViews =
             Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
           ]
         medicationsPanel
-        ViewLayout.readingsTable s Routes.history readings
+        ViewLayout.collapsibleReadingsTable s "history-readings" Routes.history readings
       ]
 
   /// A reading older than `windowStart` is tagged `out-of-range` (app.css hides it) until
@@ -178,25 +178,21 @@ module ReadingViews =
     // Collapsed by default; mirrors the value strip's data-x/out-of-range tagging so
     // recent-scrubber.js's plotly_relayout handler keeps both in sync with the x-axis.
     let readingsSection =
-      Elem.details
-        [
-          Attr.class' "collapsible recent-readings"
-          Attr.create "data-persist-key" "recent-readings"
-        ]
-        [
-          Elem.summary [] [ Text.raw s.Reading.RecentReadingsSection ]
-          ViewLayout.readingsTableWith
-            s
-            Routes.recent
-            [ Attr.class' "recent-readings-table" ]
-            (fun r ->
-              [
-                Attr.create "data-x" (Formats.formatLocal r.Timestamp)
-                if isOutOfRange windowStart r.Timestamp then
-                  Attr.class' "out-of-range"
-              ])
-            allReadings
-        ]
+      ViewLayout.collapsibleReadingsSection
+        "recent-readings"
+        [ "recent-readings" ]
+        s.Reading.RecentReadingsSection
+        (ViewLayout.readingsTableWith
+          s
+          Routes.recent
+          [ Attr.class' "recent-readings-table" ]
+          (fun r ->
+            [
+              Attr.create "data-x" (Formats.formatLocal r.Timestamp)
+              if isOutOfRange windowStart r.Timestamp then
+                Attr.class' "out-of-range"
+            ])
+          allReadings)
 
     // Fig. 5's scrubber bar: boxes the hovered column in sync with the chart's x-axis spike.
     Elem.div
