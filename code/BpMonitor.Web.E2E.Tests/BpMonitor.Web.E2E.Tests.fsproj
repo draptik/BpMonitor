@@ -17,7 +17,7 @@
     <Compile Include="ChartThemeTests.fs" />
     <Compile Include="ThemeToggleTests.fs" />
     <Compile Include="HistoryChartResizeTests.fs" />
-    <Compile Include="RecentMidnightRangeTests.fs" />
+    <Compile Include="RecentRangeFilterTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

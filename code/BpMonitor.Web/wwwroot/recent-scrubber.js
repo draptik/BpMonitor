@@ -136,24 +136,8 @@ function setupRecentScrubber() {
       const x = cell?.dataset.x;
       if (!x || x === lastX) return;
       lastX = x;
-      const geo = chartGeometry(d);
-      if (!geo) return;
-      const { xaxis, dragRect, br } = geo;
-      const xPx = xaxis.l2p(xaxis.d2l(x));
-      const yPx = geo.yaxis?.l2p?.(120) ?? br.height / 2;
-      // A collapsed target chart is zero-width, so l2p yields NaN — Firefox throws on that.
-      if (!Number.isFinite(xPx) || !Number.isFinite(yPx)) return;
-      // Resets Plotly's own hover state first — back-to-back mousemove dispatches without
-      // this made Plotly's internal throttle emit every other one with an empty points array.
-      dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-      dragRect.dispatchEvent(
-        new MouseEvent("mousemove", {
-          bubbles: true,
-          cancelable: true,
-          clientX: br.left + xPx,
-          clientY: br.top + yPx,
-        }),
-      );
+      // y = 120 mmHg sits mid-chart; the y-axis' 0 is its bottom edge, where a rounded pixel can miss.
+      dispatchHoverAt(d, x, 120);
     });
     strip.addEventListener("mouseleave", () => {
       lastX = null;
@@ -172,29 +156,9 @@ function setupRecentScrubber() {
       const elements = /** @type {NodeListOf<HTMLElement>} */ (
         document.querySelectorAll(".value-strip td[data-x], .recent-readings tr[data-x]")
       );
-      let lo = e["xaxis.range[0]"];
-      let hi = e["xaxis.range[1]"];
-
-      if (lo === undefined && Array.isArray(e["xaxis.range"])) {
-        lo = e["xaxis.range"][0];
-        hi = e["xaxis.range"][1];
-      }
-
-      if (lo === undefined && e["xaxis.autorange"] === undefined && d.layout?.xaxis) {
-        if (d.layout.xaxis.autorange) {
-          lo = undefined;
-        } else if (d.layout.xaxis.range) {
-          lo = d.layout.xaxis.range[0];
-          hi = d.layout.xaxis.range[1];
-        }
-      }
-
-      if (lo === undefined || hi === undefined) {
-        elements.forEach((el) => {
-          el.classList.remove("out-of-range");
-        });
-        return;
-      }
+      const range = relayoutXRange(e, d);
+      if (!range) return;
+      const [lo, hi] = range;
 
       // Plotly's own d2l, not `new Date`: a midnight bound arrives as a bare "yyyy-MM-dd",
       // which `new Date` reads as UTC while reading the data-x keys as local time.

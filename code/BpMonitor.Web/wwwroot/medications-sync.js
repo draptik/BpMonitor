@@ -15,28 +15,14 @@ function setupMedicationsSync() {
   // Set during a synthetic dispatch below, so the mirrored plotly_hover doesn't bounce back and recurse.
   let syncing = false;
 
-  /** @param {PlotlyChartElement} target @param {string} x */
-  function hoverAt(target, x) {
-    const geo = chartGeometry(target);
-    if (!geo) return;
-    const { xaxis, dragRect, br } = geo;
-    const xPx = xaxis.l2p(xaxis.d2l(x));
-    const yPx = geo.yaxis?.l2p?.(0) ?? br.height / 2;
-    // A collapsed target chart is zero-width, so l2p yields NaN — Firefox throws on that.
-    if (!Number.isFinite(xPx) || !Number.isFinite(yPx)) return;
+  /** @param {PlotlyChartElement} target @param {string} x @param {number} y */
+  function hoverAt(target, x, y) {
     syncing = true;
     try {
-      // Resets Plotly's own hover state first — back-to-back mousemove dispatches without
-      // this made Plotly's internal throttle emit every other one with an empty points array.
-      dragRect.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-      dragRect.dispatchEvent(
-        new MouseEvent("mousemove", {
-          bubbles: true,
-          cancelable: true,
-          clientX: br.left + xPx,
-          clientY: br.top + yPx,
-        }),
-      );
+      if (!dispatchHoverAt(target, x, y)) return;
+      const geo = chartGeometry(target);
+      if (!geo) return;
+      const { dragRect, br } = geo;
 
       // SpikeSnap.Data snaps to the nearest reading across all loaded data, not just the
       // visible range — a sparse spot near the edge can snap off-screen. Cancel that.
@@ -115,7 +101,8 @@ function setupMedicationsSync() {
       bpPlot.on("plotly_hover", (e) => {
         if (syncing) return;
         const x = e.points?.[0]?.x;
-        if (x !== undefined) hoverAt(timelinePlot, x);
+        // y = 0 is the timeline's first medication row (categorical y-axis).
+        if (x !== undefined) hoverAt(timelinePlot, x, 0);
       });
       bpPlot.on("plotly_unhover", () => {
         if (!syncing) unhover(timelinePlot);
@@ -138,7 +125,8 @@ function setupMedicationsSync() {
         rafScheduled = true;
         requestAnimationFrame(() => {
           rafScheduled = false;
-          if (pendingX !== undefined) hoverAt(bpPlot, pendingX);
+          // y = 120 mmHg sits mid-chart; the y-axis' 0 is its bottom edge, where a rounded pixel can miss.
+          if (pendingX !== undefined) hoverAt(bpPlot, pendingX, 120);
         });
       }
 
@@ -163,23 +151,8 @@ function setupMedicationsSync() {
       // Plotly.relayout call) — the timeline's x-axis is FixedRange (Charts.fs
       // medicationsXAxis), so it only ever follows the BP chart, never the reverse.
       bpPlot.on("plotly_relayout", (e) => {
-        let lo = e["xaxis.range[0]"];
-        let hi = e["xaxis.range[1]"];
-
-        if (lo === undefined && Array.isArray(e["xaxis.range"])) {
-          lo = e["xaxis.range"][0];
-          hi = e["xaxis.range"][1];
-        }
-
-        // Double-click reset emits `xaxis.autorange` instead of a range — fall back to
-        // the BP chart's now-current range so the timeline follows the reset too.
-        if (lo === undefined && e["xaxis.autorange"] && bpPlot._fullLayout?.xaxis?.range) {
-          [lo, hi] = bpPlot._fullLayout.xaxis.range;
-        }
-
-        if (lo === undefined || hi === undefined) return;
-
-        Plotly.relayout(timelinePlot, { "xaxis.range": [lo, hi] });
+        const range = relayoutXRange(e, bpPlot);
+        if (range) Plotly.relayout(timelinePlot, { "xaxis.range": range });
       });
 
       // Resize on open (Plotly renders at zero width while hidden) and re-sync, in
