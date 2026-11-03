@@ -135,7 +135,7 @@ module TrendViews =
                 ]
             ]
           Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
-          ViewLayout.readingsTable s (Routes.trendsPeriod gran summary.PeriodKey) readings
+          ViewLayout.collapsibleReadingsTable s "trends-readings" (Routes.trendsPeriod gran summary.PeriodKey) readings
         ]
 
     Elem.div

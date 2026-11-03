@@ -380,7 +380,7 @@ type MedicationsScrubberHistoryPageTests(fixture: ChromiumFixture) =
 
       // The BP chart's own <details> starts collapsed on /history — open it, exercising
       // medications-sync.js's bpDetails "toggle" resize+resync path.
-      do! page.ClickAsync("details.collapsible:not(.medications-timeline) > summary")
+      do! page.ClickAsync("details[data-persist-key='history-chart'] > summary")
       let! _ = page.WaitForSelectorAsync(".chart .plot-container")
       do! page.ClickAsync(".medications-timeline summary")
       let! _ = page.WaitForSelectorAsync(".medications-chart .plot-container")

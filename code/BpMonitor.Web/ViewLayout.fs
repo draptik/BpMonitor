@@ -392,3 +392,26 @@ module ViewLayout =
   /// partial swaps later.
   let readingsTable (s: LocalizedStrings) (returnTo: string) (readings: BloodPressureReading list) : XmlNode =
     readingsTableWith s returnTo [ Attr.id "readings" ] (fun _ -> []) readings
+
+  /// A collapsed-by-default readings `<details>`; `persistKey` remembers its open state.
+  let collapsibleReadingsSection
+    (persistKey: string)
+    (extraClasses: string list)
+    (summary: string)
+    (table: XmlNode)
+    : XmlNode =
+    Elem.details
+      [
+        Attr.class' (String.concat " " ("collapsible" :: "readings-section" :: extraClasses))
+        Attr.create "data-persist-key" persistKey
+      ]
+      [ Elem.summary [] [ Text.raw summary ]; table ]
+
+  /// `readingsTable` in a `collapsibleReadingsSection` titled "Readings".
+  let collapsibleReadingsTable
+    (s: LocalizedStrings)
+    (persistKey: string)
+    (returnTo: string)
+    (readings: BloodPressureReading list)
+    : XmlNode =
+    collapsibleReadingsSection persistKey [] s.Reading.ReadingsSection (readingsTable s returnTo readings)

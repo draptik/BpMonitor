@@ -210,7 +210,8 @@ nav a[aria-current="page"] {
 /* ── Collapsible sections ──────────────────────────────────────────────────
    Shared card treatment for every <details data-persist-key="..."> in the
    app (History's chart toggle, Settings sections, Medications Timeline,
-   Recent's readings list) — see wwwroot/details-memory.js for persistence.
+   the readings lists on Recent, History and Trends) — see
+   wwwroot/details-memory.js for persistence.
    Pico only styles the marker/chevron; without this the summary is just
    muted text with no visual sign it's clickable. */
 .collapsible {
@@ -999,9 +1000,10 @@ form.inline button:where(:not(.icon-button)),
 
 /* Collapsible readings list below the chart on /recent, filtered to the visible
    x-range by recent-scrubber.js's `plotly_relayout` handler (same data-x/out-of-range
-   mechanism as the value strip above). Collapsed by default, remembered via
-   wwwroot/details-memory.js. Header-bar styling itself is shared: see .collapsible above. */
-.recent-readings {
+   mechanism as the value strip above), and the plain equivalents on /history and
+   /trends. Collapsed by default, remembered via wwwroot/details-memory.js.
+   Header-bar styling itself is shared: see .collapsible above. */
+.readings-section {
   margin-top: 1rem;
 }
 

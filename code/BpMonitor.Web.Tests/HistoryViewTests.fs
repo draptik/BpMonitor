@@ -39,6 +39,17 @@ let ``history chart section is a collapsible that persists its open state`` () =
   test <@ html.Contains "<details class=\"collapsible\" data-persist-key=\"history-chart\">" @>
 
 [<Fact>]
+let ``history readings table sits in a collapsible that persists its open state`` () =
+  let html =
+    renderHtml (ReadingViews.history s defaultMember "" [ sample ] (Text.raw ""))
+
+  test
+    <@
+      html.Contains
+        $"<details class=\"collapsible readings-section\" data-persist-key=\"history-readings\"><summary>{s.Reading.ReadingsSection}</summary><div id=\"readings\""
+    @>
+
+[<Fact>]
 let ``edit form is prefilled from the reading`` () =
   let html =
     renderHtml (
