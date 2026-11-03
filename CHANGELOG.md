@@ -7,10 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.1] - 2026-11-03
+
+### Changed
+
+- **Deployment:** no database migration is needed. After upgrading, phones that still show stale styles need their site data cleared once (lock icon → Clear cookies and site data); later updates load without that.
+
 ### Fixed
 
 - After an update, browsers (notably Firefox on Android) load the new styles and scripts right away instead of showing a stale cached version until the cache is cleared by hand.
-- Settings, Members and Recent view on phones: the Medications, Members and Recent view readings tables now scroll sideways instead of widening the page, which pushed the right end of the top bar (theme toggle, Logout) off-screen.
+- Settings, Members and Recent view on phones: wide tables scroll sideways instead of widening the page, so the top bar's theme toggle and Logout stay on-screen.
 - Menu on phones: the bottom entries (Export, Settings, Members) are visible without scrolling, instead of hiding behind the browser's toolbar.
 
 ## [1.18.0] - 2026-11-03
@@ -627,7 +633,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.18.0...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.18.1...HEAD
+[1.18.1]: https://github.com/draptik/BpMonitor/compare/v1.18.0...v1.18.1
 [1.18.0]: https://github.com/draptik/BpMonitor/compare/v1.17.0...v1.18.0
 [1.17.0]: https://github.com/draptik/BpMonitor/compare/v1.16.1...v1.17.0
 [1.16.1]: https://github.com/draptik/BpMonitor/compare/v1.16.0...v1.16.1
