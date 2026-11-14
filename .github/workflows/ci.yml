@@ -21,11 +21,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
+      - uses: jdx/mise-action@v5.2.7
 
       - name: Run markdownlint-cli2
         run: mise run lint:md
@@ -41,11 +41,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
+      - uses: jdx/mise-action@v5.2.7
 
       - name: Run Biome
         run: mise run lint:js
@@ -58,11 +58,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
+      - uses: jdx/mise-action@v5.2.7
 
       - name: Run shellcheck
         run: mise run lint:shell
@@ -76,6 +76,14 @@ jobs:
       - name: Run zizmor
         run: mise run lint:actions-security
 
+      # Fails when actions.lock is out of sync with the workflows or a pin no longer verifies upstream
+      - name: Verify actions.lock
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh extension install github/gh-actions-lock --pin v0.4.1
+          gh actions-lock --verify
+
       - name: Run hadolint
         run: mise run lint:container
 
@@ -84,11 +92,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
+      - uses: jdx/mise-action@v5.2.7
 
       - name: Run renovate-config-validator
         run: mise run lint:renovate
@@ -98,12 +106,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
+        uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: code/global.json
           # Fantomas targets net10.0 and doesn't roll forward to the .NET 11 runtime.
@@ -127,12 +135,12 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
+        uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: code/global.json
           cache: true
@@ -149,7 +157,7 @@ jobs:
         working-directory: code
 
       - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        uses: actions/cache@v6.1.0
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -162,7 +170,7 @@ jobs:
 
       # The Azure Ubuntu mirror sometimes serves .debs at ~50 kB/s, turning this 57 MB install into 20+ minutes.
       - name: Cache Playwright OS dependency packages
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        uses: actions/cache@v6.1.0
         id: apt-cache
         with:
           path: ~/apt-archives
@@ -208,7 +216,7 @@ jobs:
         working-directory: code
 
       - name: Upload E2E failure diagnostics
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        uses: actions/upload-artifact@v7.0.2
         if: failure()
         with:
           name: e2e-diagnostics
@@ -217,7 +225,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Generate coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@861674232075b2c6bd1405a04c4bb9b150653e81 # 5
+        uses: danielpalme/ReportGenerator-GitHub-Action@v5.5.12
         with:
           reports: "code/TestResults/**/*.cobertura.xml"
           targetdir: "code/CoverageReport"
@@ -227,7 +235,7 @@ jobs:
         run: cat code/CoverageReport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Post coverage comment on PR
-        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        uses: marocchino/sticky-pull-request-comment@v3.0.5
         if: github.event_name == 'pull_request'
         with:
           path: code/CoverageReport/SummaryGithub.md

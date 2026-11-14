@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- CI pins GitHub Actions through a verified workflow lockfile (`actions.lock`) instead of inline commit SHAs, which also covers actions used by other actions. No user-facing changes.
+
 ## [1.18.1] - 2026-11-03
 
 ### Changed

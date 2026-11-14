@@ -106,6 +106,13 @@ mise run lint:links             # lychee (network; not part of `lint`)
 mise run test:scripts           # tests for scripts/ and .husky/commit-msg
 ```
 
+After adding a workflow or changing a `uses:` line, regenerate `.github/workflows/actions.lock` (CI's `--verify` fails otherwise):
+
+```bash
+gh extension install github/gh-actions-lock  # once
+gh actions-lock
+```
+
 Auto-fix where supported:
 
 ```bash

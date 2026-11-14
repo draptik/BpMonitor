@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "extends": ["config:recommended"],
   "minimumReleaseAge": "5 days",
   "commitMessagePrefix": "⬆️ chore(renovate):",
   "automergeStrategy": "squash",
@@ -14,6 +14,13 @@
         "https://github\\.com/(?<depName>[^/\\s]+/[^/\\s]+)/releases/download/(?<currentValue>[^/\\s]+)/"
       ],
       "matchStringsStrategy": "any",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "CI pins the gh-actions-lock extension that verifies .github/workflows/actions.lock.",
+      "managerFilePatterns": ["/^\\.github/workflows/ci\\.yml$/"],
+      "matchStrings": ["gh extension install (?<depName>github/gh-actions-lock) --pin (?<currentValue>v\\S+)"],
       "datasourceTemplate": "github-releases"
     }
   ],
