@@ -164,6 +164,7 @@ All non-dotnet tools are pinned in `mise.toml` (run `mise install` once after cl
 - `mise exec -- biome check --write` auto-fixes JS; `cd code && dotnet fantomas .` reformats F#
 - Hand-written `wwwroot/*.js` is linted by Biome and type-checked via JSDoc (`tsc --checkJs`); it ships as-is, no bundler
 - Real words that typos flags go in `_typos.toml` `[default.extend-words]`; new house-style terms get a Vale rule in `.vale/styles/BpMonitor/`
+- Workflows reference actions by version tag; `.github/workflows/actions.lock` pins the commits. Run `gh actions-lock` after any `uses:` change (CI verifies)
 - `mise run test:scripts` tests `scripts/` (e.g. `check-pr-body.sh`, shared by the attribution hook and `ship-pr.sh`) and the `.husky/commit-msg` gitmoji/type check
 - `mise run bench` runs BenchmarkDotNet (a few minutes; `-- --job short` for a quick check)
 - `mise run screenshots` regenerates `docs/screenshots/*.png` from a self-seeded demo instance — part of `cut-release`, otherwise only after a UI change worth showing in the README

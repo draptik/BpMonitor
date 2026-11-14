@@ -15,14 +15,14 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
           fetch-tags: true
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
+        uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: code/global.json
 
@@ -54,7 +54,7 @@ jobs:
           scripts/release-notes.sh "${GITHUB_REF_NAME}" >> release-body.md
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3
+        uses: softprops/action-gh-release@v3.0.4
         with:
           files: |
             code/bpmonitor-web-linux-x64.tar.gz
@@ -72,12 +72,12 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
       - name: Log in to GHCR
-        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
+        uses: docker/login-action@v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -85,7 +85,7 @@ jobs:
 
       - name: Compute image tags
         id: meta
-        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
+        uses: docker/metadata-action@v6.2.0
         with:
           images: ghcr.io/draptik/bpmonitor-web
           # {{version}} strips the leading "v"; latest=auto adds :latest only
@@ -95,7 +95,7 @@ jobs:
 
       # Build into the local daemon first so the scan gates the push.
       - name: Build image
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        uses: docker/build-push-action@v7.4.0
         with:
           context: code
           file: code/BpMonitor.Web/Containerfile
@@ -105,7 +105,7 @@ jobs:
           build-args: |
             VERSION=${{ steps.meta.outputs.version }}
 
-      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
+      - uses: jdx/mise-action@v5.2.7
         with:
           install_args: trivy
           # a release must not restore a cache other runs could have written

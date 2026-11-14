@@ -213,7 +213,8 @@ graph TD
 | Vale | Prose: proselint + a project `BpMonitor` style for terms like "Recent view" (`.vale.ini`); released CHANGELOG sections sit under `<!-- vale off -->` |
 | shellcheck | Shell scripts |
 | actionlint | GitHub Actions workflows, including `run:` scripts |
-| zizmor | GitHub Actions security (`.github/zizmor.yml`); actions must be SHA-pinned, Renovate keeps the digests current |
+| zizmor | GitHub Actions security (`.github/zizmor.yml`) |
+| gh-actions-lock | `gh` extension: workflows use version tags, `.github/workflows/actions.lock` pins each action (incl. transitive ones) to a commit the runner enforces; CI runs `gh actions-lock --verify`, Renovate regenerates the lockfile on updates |
 | hadolint | Containerfile (`.hadolint.yaml`) |
 | lychee | Markdown links (`lychee.toml`); needs the network, so weekly rather than per PR |
 | Trivy | Container CVE gate for releases (exceptions in `.trivyignore.yaml`) |
