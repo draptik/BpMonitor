@@ -225,7 +225,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Generate coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@v5.5.12
+        uses: danielpalme/ReportGenerator-GitHub-Action@v5.6.0
         with:
           reports: "code/TestResults/**/*.cobertura.xml"
           targetdir: "code/CoverageReport"
