@@ -30,7 +30,7 @@
   </ItemGroup>
   <ItemGroup Label="Test - Helpers">
     <PackageVersion Include="Unquote" Version="7.0.1" />
-    <PackageVersion Include="Verify.XunitV3" Version="33.3.4" />
+    <PackageVersion Include="Verify.XunitV3" Version="33.4.0" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="11.0.0" />
   </ItemGroup>
   <ItemGroup Label="Test - PBT">
