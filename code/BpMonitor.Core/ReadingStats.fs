@@ -100,38 +100,23 @@ module ReadingStats =
         MaxDiastolic = maxDia
       })
 
-  let private dailyAveragesWithCount =
-    buildAggregated _.Timestamp.ToLocalTime().Date id
+  let private byDay = buildAggregated _.Timestamp.ToLocalTime().Date id
 
-  /// Groups readings by local calendar date, sorted ascending.
-  /// The returned reading's Timestamp is midnight of that local date. Comments are dropped.
-  let dailyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
-    dailyAveragesWithCount readings |> List.map _.Reading
-
-  let private weeklyAveragesWithCount =
+  let private byIsoWeek =
     buildAggregated (fun r -> IsoWeek.ofDate (r.Timestamp.ToLocalTime().Date)) IsoWeek.monday
 
-  /// Groups readings by ISO week, sorted ascending.
-  /// The returned reading's Timestamp is Monday midnight of that week. Comments are dropped.
-  let weeklyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
-    weeklyAveragesWithCount readings |> List.map _.Reading
-
-  let private monthlyAveragesWithCount =
+  let private byMonth =
     buildAggregated (fun r -> YearMonth.ofDate (r.Timestamp.ToLocalTime().Date)) YearMonth.firstDay
 
-  /// Groups readings by calendar month, sorted ascending.
-  /// The returned reading's Timestamp is the 1st of that month midnight. Comments are dropped.
-  let monthlyAverages (readings: BloodPressureReading list) : BloodPressureReading list =
-    monthlyAveragesWithCount readings |> List.map _.Reading
-
-  /// Aggregates readings at the granularity appropriate for the given view:
-  /// Weekly → daily averages, Monthly → weekly averages, Yearly → monthly averages.
+  /// Aggregates readings at the granularity appropriate for the given view, sorted ascending:
+  /// Weekly → daily averages (local midnight), Monthly → weekly averages (Monday midnight),
+  /// Yearly → monthly averages (the 1st, midnight). Comments are dropped.
   /// Returns AggregatedReading so the caller can distinguish single vs. multi-reading periods.
   let aggregate (gran: Granularity) (readings: BloodPressureReading list) : AggregatedReading list =
     match gran with
-    | Weekly -> dailyAveragesWithCount readings
-    | Monthly -> weeklyAveragesWithCount readings
-    | Yearly -> monthlyAveragesWithCount readings
+    | Weekly -> byDay readings
+    | Monthly -> byIsoWeek readings
+    | Yearly -> byMonth readings
 
   // ── summary ──────────────────────────────────────────────────────────────────
 

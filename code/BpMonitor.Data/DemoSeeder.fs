@@ -6,12 +6,12 @@ open BpMonitor.Core
 /// Seeds the Simpson-family demo dataset into an empty store.
 ///
 /// Intended for developer onboarding and demo runs only. Call once at startup,
-/// gated behind the BpMonitor:SeedDemoData configuration flag (default: false).
+/// only when the BpMonitor:SeedDemoData configuration flag is set (default: false).
 module DemoSeeder =
 
   /// Returns true when the store is considered "empty":
   /// no readings exist for any of the currently known members.
-  let private isEmpty (members: IFamilyMemberRepository) (readings: IReadingRepository) =
+  let isEmpty (members: IFamilyMemberRepository) (readings: IReadingRepository) =
     members.GetAll() |> List.forall (fun m -> readings.GetAll(m.Id).IsEmpty)
 
   /// Ned Flanders' Fig. 5-style medication timeline (Wegier et al. 2021): an ongoing
@@ -37,7 +37,7 @@ module DemoSeeder =
       }
     ]
 
-  /// Seeds the Simpson family iff `enabled` is true and the store is empty.
+  /// Seeds the Simpson family iff the store is empty.
   ///
   /// The lone auto-seeded "Me" member (created by SchemaMigrations) is repurposed
   /// as Marge Simpson, so the final member count is exactly 6, not 7.
@@ -47,12 +47,9 @@ module DemoSeeder =
     (medications: IMedicationRepository)
     (ranges: ReadingRanges)
     (timeProvider: TimeProvider)
-    (enabled: bool)
     : unit =
 
-    if not enabled then
-      ()
-    elif not (isEmpty members readings) then
+    if not (isEmpty members readings) then
       ()
     else
       let now = timeProvider.GetUtcNow()
