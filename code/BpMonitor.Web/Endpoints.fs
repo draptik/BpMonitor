@@ -3,7 +3,7 @@ namespace BpMonitor.Web
 open Falco
 open Falco.Routing
 
-/// The app's route table, with each route's auth wrapper (protect / protectAdmin).
+/// The app's route table, with each route's auth wrapper (protect / withAdmin).
 module Endpoints =
   let all: HttpEndpoint list =
     [ // Anonymous: health probe
@@ -37,9 +37,9 @@ module Endpoints =
       post "/medications/{id:int}" (AuthHandlers.protect MedicationHandlers.update)
       post "/medications/{id:int}/delete" (AuthHandlers.protect MedicationHandlers.delete)
       // Admin-only: member management
-      get Routes.members (AuthHandlers.protectAdmin MemberHandlers.members)
-      post Routes.members (AuthHandlers.protectAdmin MemberHandlers.createMember)
-      get "/members/{id:int}/edit" (AuthHandlers.protectAdmin MemberHandlers.editMember)
-      post "/members/{id:int}" (AuthHandlers.protectAdmin MemberHandlers.updateMember)
-      post "/members/{id:int}/reset-password" (AuthHandlers.protectAdmin MemberHandlers.resetPassword)
+      get Routes.members (AuthHandlers.withAdmin MemberHandlers.members)
+      post Routes.members (AuthHandlers.withAdmin MemberHandlers.createMember)
+      get "/members/{id:int}/edit" (AuthHandlers.withAdmin MemberHandlers.editMember)
+      post "/members/{id:int}" (AuthHandlers.withAdmin MemberHandlers.updateMember)
+      post "/members/{id:int}/reset-password" (AuthHandlers.withAdmin MemberHandlers.resetPassword)
     ]

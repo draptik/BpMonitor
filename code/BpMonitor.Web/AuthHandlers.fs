@@ -35,20 +35,9 @@ module AuthHandlers =
         |> Option.filter (fun m -> m.IsActive && FamilyMember.credentialStamp m.Credential = stamp.Value)
       | _ -> None
 
-  /// Returns the authenticated member's name, or "" if unauthenticated.
-  let authenticatedMemberName (ctx: HttpContext) : string =
-    authenticatedMember ctx |> Option.map _.Name |> Option.defaultValue ""
-
   /// LocalizedStrings for an already-resolved member — avoids re-fetching from the
   /// repo when the caller already has the member in scope (e.g. inside withMember).
   let stringsForMember (m: FamilyMember) : LocalizedStrings = LocalizedStrings.forLanguage m.Language
-
-  /// LocalizedStrings in the authenticated member's language, falling back to `strings ctx`
-  /// (cookie/Accept-Language/config) if unauthenticated.
-  let authenticatedStrings (ctx: HttpContext) : LocalizedStrings =
-    match authenticatedMember ctx with
-    | Some m -> stringsForMember m
-    | None -> strings ctx
 
   /// Builds the auth claims principal for a member.
   let claimsPrincipal (m: FamilyMember) : ClaimsPrincipal =
@@ -66,6 +55,10 @@ module AuthHandlers =
 
   // ── Auth combinators ──
 
+  let private redirectToLogin (ctx: HttpContext) : Task =
+    ctx.Response.Redirect(Routes.login)
+    Task.CompletedTask
+
   /// Wraps a handler so it requires an authenticated user. Unauthenticated
   /// requests are redirected to /login.
   let protect (handler: HttpContext -> Task) : HttpContext -> Task =
@@ -73,24 +66,7 @@ module AuthHandlers =
       if ctx.User.Identity <> null && ctx.User.Identity.IsAuthenticated then
         handler ctx
       else
-        ctx.Response.Redirect(Routes.login)
-        Task.CompletedTask
-
-  /// Like `protect` but additionally requires the member to be an admin. Checks the
-  /// current IsAdmin flag, not the cookie's role claim, so a demotion takes effect at once.
-  /// Non-admin authenticated requests get a 403.
-  let protectAdmin (handler: HttpContext -> Task) : HttpContext -> Task =
-    fun ctx ->
-      if ctx.User.Identity = null || not ctx.User.Identity.IsAuthenticated then
-        ctx.Response.Redirect(Routes.login)
-        Task.CompletedTask
-      else
-        match authenticatedMember ctx with
-        | None ->
-          ctx.Response.Redirect(Routes.login)
-          Task.CompletedTask
-        | Some m when not m.IsAdmin -> forbidden ctx
-        | Some _ -> handler ctx
+        redirectToLogin ctx
 
   /// Resolves the authenticated member and passes it to `handler`. If the member
   /// cannot be resolved (e.g., stale principal after account removal), redirects to
@@ -98,10 +74,13 @@ module AuthHandlers =
   let withMember (handler: FamilyMember -> HttpContext -> Task) : HttpContext -> Task =
     fun ctx ->
       match authenticatedMember ctx with
-      | None ->
-        ctx.Response.Redirect(Routes.login)
-        Task.CompletedTask
+      | None -> redirectToLogin ctx
       | Some m -> handler m ctx
+
+  /// Like `withMember` but additionally requires the member to be an admin; others get a 403.
+  /// Checks the current IsAdmin flag, not the cookie, so a demotion takes effect at once.
+  let withAdmin (handler: FamilyMember -> HttpContext -> Task) : HttpContext -> Task =
+    withMember (fun m ctx -> if m.IsAdmin then handler m ctx else forbidden ctx)
 
   /// Resolves both the authenticated member and the "id" route segment, passing both to
   /// `handler`. Redirects to /login if the member cannot be resolved; returns 400 for a
@@ -131,6 +110,21 @@ module AuthHandlers =
   let loginPage: HttpContext -> Task =
     fun ctx -> htmlResponse (LoginViews.loginPage (strings ctx) []) ctx
 
+  /// Signs `m` in, remembers their language for the login page, and goes home.
+  let private signIn (m: FamilyMember) (rememberMe: bool) (ctx: HttpContext) : Task =
+    task {
+      setLanguageCookie ctx m.Language
+
+      do!
+        ctx.SignInAsync(
+          CookieAuthenticationDefaults.AuthenticationScheme,
+          claimsPrincipal m,
+          AuthenticationProperties(IsPersistent = rememberMe)
+        )
+
+      ctx.Response.Redirect Routes.home
+    }
+
   /// `onFailure` lets callers choose what to render on a bad password (loginPage vs. loginMember).
   let private claimedLogin
     (m: FamilyMember)
@@ -145,16 +139,7 @@ module AuthHandlers =
 
       if PasswordHashing.verify password hash then
         log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
-        setLanguageCookie ctx m.Language
-
-        do!
-          ctx.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            claimsPrincipal m,
-            AuthenticationProperties(IsPersistent = rememberMe)
-          )
-
-        ctx.Response.Redirect Routes.home
+        do! signIn m rememberMe ctx
       else
         log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
         ctx.Response.StatusCode <- 401
@@ -199,16 +184,7 @@ module AuthHandlers =
         let claimed = { m with Credential = Password hashed }
         (memberRepo ctx).Update(claimed)
         log.LogInformation("Member {Name} (Id={Id}) claimed their account", m.Name, m.Id)
-        setLanguageCookie ctx claimed.Language
-
-        do!
-          ctx.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            claimsPrincipal claimed,
-            AuthenticationProperties(IsPersistent = rememberMe)
-          )
-
-        ctx.Response.Redirect Routes.home
+        do! signIn claimed rememberMe ctx
     }
     :> Task
 

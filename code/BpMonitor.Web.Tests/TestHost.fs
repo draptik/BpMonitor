@@ -106,7 +106,7 @@ let contextWithMembersAndProvider
   let user = members |> List.tryHead |> Option.map buildPrincipal
   newCtx (buildServices repo memberRepo (emptyMedicationRepo ()) tp) user
 
-/// Variant of `context` with no signed-in user — for testing the `protect`/`protectAdmin`
+/// Variant of `context` with no signed-in user — for testing the `protect`/`withAdmin`
 /// auth combinators against an unauthenticated request.
 let contextUnauthenticated (repo: IReadingRepository) : HttpContext =
   let memberRepo = InMemoryFamilyMemberRepository(None) :> IFamilyMemberRepository
