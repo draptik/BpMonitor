@@ -216,13 +216,15 @@ module ReadingHandlers =
         (ReadingViews.recent
           s
           m
-          chartHtml
-          loadedReadings
-          windowStart
-          now
-          (recentZoomShortcutDays s)
-          hasOlderHistory
-          panel)
+          {
+            ChartHtml = chartHtml
+            Readings = loadedReadings
+            WindowStart = windowStart
+            Now = now
+            ZoomShortcutDays = recentZoomShortcutDays s
+            ShowLoadFull = hasOlderHistory
+            MedicationsPanel = panel
+          })
         ctx)
 
   // "Load full history" target: htmx fragment re-rendering the container with all history.
@@ -251,13 +253,15 @@ module ReadingHandlers =
         (ReadingViews.recentChartContainer
           s
           m
-          chartHtml
-          allReadings
-          windowStart
-          now
-          (recentZoomShortcutDays s)
-          false
-          panel)
+          {
+            ChartHtml = chartHtml
+            Readings = allReadings
+            WindowStart = windowStart
+            Now = now
+            ZoomShortcutDays = recentZoomShortcutDays s
+            ShowLoadFull = false
+            MedicationsPanel = panel
+          })
         ctx)
 
   let private trendsModel

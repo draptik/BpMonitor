@@ -80,18 +80,35 @@ module ReadingViews =
   /// pan/zoom (recent-scrubber.js) or the value strip's own toggling brings it into view.
   let private isOutOfRange (windowStart: DateTimeOffset) (timestamp: DateTimeOffset) = timestamp < windowStart
 
+  /// Everything the Recent view's chart container shows.
+  type RecentModel =
+    {
+      ChartHtml: string
+      /// The loaded readings, newest first; those before `WindowStart` start hidden.
+      Readings: BloodPressureReading list
+      /// Where the chart's visible window opens.
+      WindowStart: DateTimeOffset
+      Now: DateTimeOffset
+      /// Zoom shortcut buttons: label and days back from `Now`.
+      ZoomShortcutDays: (string * float) list
+      /// Offer "Load full history" (there are readings older than the loaded ones).
+      ShowLoadFull: bool
+      MedicationsPanel: XmlNode
+    }
+
   /// The swappable chart container: zoom/load-full buttons, value strip, chart, citation.
-  let recentChartContainer
-    (s: LocalizedStrings)
-    (activeMember: FamilyMember)
-    (chartHtml: string)
-    (allReadings: BloodPressureReading list)
-    (windowStart: DateTimeOffset)
-    (now: DateTimeOffset)
-    (zoomShortcutDays: (string * float) list)
-    (showLoadFull: bool)
-    (medicationsPanel: XmlNode)
-    : XmlNode =
+  let recentChartContainer (s: LocalizedStrings) (activeMember: FamilyMember) (model: RecentModel) : XmlNode =
+    let {
+          ChartHtml = chartHtml
+          Readings = allReadings
+          WindowStart = windowStart
+          Now = now
+          ZoomShortcutDays = zoomShortcutDays
+          ShowLoadFull = showLoadFull
+          MedicationsPanel = medicationsPanel
+        } =
+      model
+
     let valueStrip =
       // Lists every loaded reading; cells older than `windowStart` start hidden via `out-of-range`.
       let chronological = allReadings |> List.sortBy _.Timestamp
@@ -213,17 +230,7 @@ module ReadingViews =
        ])
 
   /// Recent: chart of all readings, focused on the last 30 days, with a sys/dias value strip.
-  let recent
-    (s: LocalizedStrings)
-    (activeMember: FamilyMember)
-    (chartHtml: string)
-    (allReadings: BloodPressureReading list)
-    (windowStart: DateTimeOffset)
-    (now: DateTimeOffset)
-    (zoomShortcutDays: (string * float) list)
-    (showLoadFull: bool)
-    (medicationsPanel: XmlNode)
-    : XmlNode =
+  let recent (s: LocalizedStrings) (activeMember: FamilyMember) (model: RecentModel) : XmlNode =
     ViewLayout.layout
       s
       Routes.recent
@@ -232,16 +239,7 @@ module ReadingViews =
       s.Reading.RecentTitle
       [
         Elem.h1 [] [ Text.raw s.Reading.RecentTitle ]
-        recentChartContainer
-          s
-          activeMember
-          chartHtml
-          allReadings
-          windowStart
-          now
-          zoomShortcutDays
-          showLoadFull
-          medicationsPanel
+        recentChartContainer s activeMember model
       ]
 
   /// The add or edit form: its nav entry, title, POST target and return target
