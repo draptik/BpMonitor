@@ -328,7 +328,7 @@ module ReadingHandlers =
       let s = stringsForMember m
       let medications = (medicationRepo ctx).GetAll(m.Id)
 
-      htmlResponse (SettingsViews.settings s m.Name m.IsAdmin m.Language [] (Binding.ofGoal m.Goal) medications []) ctx)
+      htmlResponse (SettingsViews.settings s m (SettingsViews.model m.Goal medications)) ctx)
 
   /// Persists the member's chosen UI language and refreshes the login-page cookie.
   let updateLanguage: HttpContext -> Task =
@@ -366,18 +366,17 @@ module ReadingHandlers =
           htmlResponse
             (SettingsViews.settings
               s
-              m.Name
-              m.IsAdmin
-              m.Language
-              errors
-              {
-                Binding.SysMin = sysMinRaw
-                Binding.SysMax = sysMaxRaw
-                Binding.DiaMin = diaMinRaw
-                Binding.DiaMax = diaMaxRaw
-              }
-              medications
-              [])
+              m
+              { SettingsViews.model m.Goal medications with
+                  GoalInput =
+                    {
+                      SysMin = sysMinRaw
+                      SysMax = sysMaxRaw
+                      DiaMin = diaMinRaw
+                      DiaMax = diaMaxRaw
+                    }
+                  GoalErrors = errors
+              })
             ctx
 
         // Parse-level errors accumulate across all four fields (Binding.tryInt is the
