@@ -78,27 +78,15 @@ type EfFamilyMemberRepository(ctx: BpMonitorDbContext, timeProvider: TimeProvide
       ctx.SaveChanges() |> ignore
       MemberMapping.toDomain entry.Entity
 
+    // Checking first avoids a DbUpdateConcurrencyException on a missing row.
     member _.Update(m) =
-      // Guard: only update if the member exists (prevents DbUpdateConcurrencyException on missing rows).
-      let exists =
-        query {
-          for r in ctx.Members.AsNoTracking() do
-            where (r.Id = m.Id)
-            select r
-        }
-        |> Seq.isEmpty
-        |> not
-
-      if exists then
-        let now = timeProvider.GetUtcNow()
-
-        // Detach any tracked entity with the same Id to avoid EF tracking conflicts.
-        ctx.ChangeTracker.Entries<MemberRecord>()
-        |> Seq.tryFind (fun e -> e.Entity.Id = m.Id)
-        |> Option.iter (fun e -> e.State <- EntityState.Detached)
-
-        ctx.Members.Update(MemberMapping.toEntity m.CreatedAt now m) |> ignore
-        ctx.SaveChanges() |> ignore
+      EfUpdate.ReplaceIfExists(
+        ctx,
+        ctx.Members,
+        (fun r -> r.Id = m.Id),
+        _.Id,
+        MemberMapping.toEntity m.CreatedAt (timeProvider.GetUtcNow()) m
+      )
 
     // ExecuteUpdate writes only these columns in one UPDATE, without reading the row first.
     member _.UpdateLanguage id language =

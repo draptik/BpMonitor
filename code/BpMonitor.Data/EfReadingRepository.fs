@@ -87,25 +87,12 @@ type EfReadingRepository(ctx: BpMonitorDbContext, timeProvider: TimeProvider) =
 
       ctx.SaveChanges() |> ignore
 
+    // Matching MemberId too prevents cross-member writes.
     member _.Update(reading) =
-      let now = timeProvider.GetUtcNow()
-
-      // Guard: only update if reading belongs to the expected member (prevents cross-member writes)
-      let existsForMember =
-        query {
-          for r in ctx.Readings.AsNoTracking() do
-            where (r.Id = reading.Id && r.MemberId = reading.MemberId)
-            select r
-        }
-        |> Seq.isEmpty
-        |> not
-
-      if existsForMember then
-        ctx.ChangeTracker.Entries<ReadingRecord>()
-        |> Seq.tryFind (fun e -> e.Entity.Id = reading.Id)
-        |> Option.iter (fun e -> e.State <- EntityState.Detached)
-
-        ctx.Readings.Update(reading |> Mapping.withModifiedAt now |> Mapping.toEntity)
-        |> ignore
-
-        ctx.SaveChanges() |> ignore
+      EfUpdate.ReplaceIfExists(
+        ctx,
+        ctx.Readings,
+        (fun r -> r.Id = reading.Id && r.MemberId = reading.MemberId),
+        _.Id,
+        reading |> Mapping.withModifiedAt (timeProvider.GetUtcNow()) |> Mapping.toEntity
+      )
