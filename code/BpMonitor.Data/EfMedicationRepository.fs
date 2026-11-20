@@ -72,27 +72,17 @@ type EfMedicationRepository(ctx: BpMonitorDbContext, timeProvider: TimeProvider)
 
       ctx.SaveChanges() |> ignore
 
+    // Matching MemberId too prevents cross-member writes.
     member _.Update(medication) =
-      let now = timeProvider.GetUtcNow()
-
-      let existsForMember =
-        query {
-          for m in ctx.Medications.AsNoTracking() do
-            where (m.Id = medication.Id && m.MemberId = medication.MemberId)
-            select m
-        }
-        |> Seq.isEmpty
-        |> not
-
-      if existsForMember then
-        ctx.ChangeTracker.Entries<MedicationRecord>()
-        |> Seq.tryFind (fun e -> e.Entity.Id = medication.Id)
-        |> Option.iter (fun e -> e.State <- EntityState.Detached)
-
-        ctx.Medications.Update(medication |> MedicationMapping.withModifiedAt now |> MedicationMapping.toEntity)
-        |> ignore
-
-        ctx.SaveChanges() |> ignore
+      EfUpdate.ReplaceIfExists(
+        ctx,
+        ctx.Medications,
+        (fun m -> m.Id = medication.Id && m.MemberId = medication.MemberId),
+        _.Id,
+        medication
+        |> MedicationMapping.withModifiedAt (timeProvider.GetUtcNow())
+        |> MedicationMapping.toEntity
+      )
 
     member _.Delete memberId id =
       let entity =
