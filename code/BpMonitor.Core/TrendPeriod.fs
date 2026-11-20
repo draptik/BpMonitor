@@ -182,6 +182,38 @@ module TrendPeriod =
     elif year = local.Year - 1 then LastYear
     else Year year
 
+  // Each period is half-open: [Start, EndExclusive), both at local midnight.
+  let private weekPeriod (w: IsoWeek) (label: PeriodLabel) : TrendPeriod =
+    let monday = IsoWeek.monday w
+
+    {
+      Granularity = Weekly
+      Key = isoWeekKey w
+      Label = label
+      Start = localMidnight monday
+      EndExclusive = localMidnight (monday.AddDays 7.0)
+    }
+
+  let private monthPeriod (ym: YearMonth) (label: PeriodLabel) : TrendPeriod =
+    let start = YearMonth.firstDay ym
+
+    {
+      Granularity = Monthly
+      Key = monthKey ym
+      Label = label
+      Start = localMidnight start
+      EndExclusive = localMidnight (start.AddMonths 1)
+    }
+
+  let private yearPeriod (year: int) (label: PeriodLabel) : TrendPeriod =
+    {
+      Granularity = Yearly
+      Key = string year
+      Label = label
+      Start = localMidnight (DateTime(year, 1, 1))
+      EndExclusive = localMidnight (DateTime(year + 1, 1, 1))
+    }
+
   // ── public API ──────────────────────────────────────────────────────────────
 
   let slug =
@@ -201,40 +233,9 @@ module TrendPeriod =
     let local = now.ToLocalTime()
 
     match gran with
-    | Weekly ->
-      let w = IsoWeek.ofDate local.Date
-      let monday = IsoWeek.monday w
-
-      {
-        Granularity = Weekly
-        Key = isoWeekKey w
-        Label = ThisWeek
-        Start = localMidnight monday
-        EndExclusive = localMidnight (monday.AddDays 7.0)
-      }
-
-    | Monthly ->
-      let ym = YearMonth.ofDate local.Date
-      let start = YearMonth.firstDay ym
-
-      {
-        Granularity = Monthly
-        Key = monthKey ym
-        Label = ThisMonth
-        Start = localMidnight start
-        EndExclusive = localMidnight (start.AddMonths 1)
-      }
-
-    | Yearly ->
-      let y = local.Year
-
-      {
-        Granularity = Yearly
-        Key = string y
-        Label = ThisYear
-        Start = localMidnight (DateTime(y, 1, 1))
-        EndExclusive = localMidnight (DateTime(y + 1, 1, 1))
-      }
+    | Weekly -> weekPeriod (IsoWeek.ofDate local.Date) ThisWeek
+    | Monthly -> monthPeriod (YearMonth.ofDate local.Date) ThisMonth
+    | Yearly -> yearPeriod local.Year ThisYear
 
   /// Only the canonical key (as `current` builds it) names a period; "2026-W5" or "+2026" don't.
   let ofKey (gran: Granularity) (key: string) (now: DateTimeOffset) : TrendPeriod option =
@@ -245,32 +246,13 @@ module TrendPeriod =
       parseIsoWeekKey key
       |> Option.filter (fun w -> isoWeekKey w = key)
       |> Option.filter (IsoWeek.monday >> fun d -> startFits d && endFits _.AddDays(-7.0) d)
-      |> Option.map (fun w ->
-        let monday = IsoWeek.monday w
-        let nowW = IsoWeek.ofDate local.Date
-
-        {
-          Granularity = Weekly
-          Key = key
-          Label = weekLabel w nowW
-          Start = localMidnight monday
-          EndExclusive = localMidnight (monday.AddDays 7.0)
-        })
+      |> Option.map (fun w -> weekPeriod w (weekLabel w (IsoWeek.ofDate local.Date)))
 
     | Monthly ->
       parseMonthKey key
       |> Option.filter (fun ym -> monthKey ym = key)
       |> Option.filter (YearMonth.firstDay >> fun d -> startFits d && endFits _.AddMonths(-1) d)
-      |> Option.map (fun ym ->
-        let start = YearMonth.firstDay ym
-
-        {
-          Granularity = Monthly
-          Key = key
-          Label = monthLabel ym now
-          Start = localMidnight start
-          EndExclusive = localMidnight (start.AddMonths 1)
-        })
+      |> Option.map (fun ym -> monthPeriod ym (monthLabel ym now))
 
     | Yearly ->
       parseYearKey key
@@ -278,16 +260,7 @@ module TrendPeriod =
       |> Option.filter (fun y ->
         let d = DateTime(CalendarYear.value y, 1, 1)
         startFits d && endFits _.AddYears(-1) d)
-      |> Option.map (fun calendarYear ->
-        let year = CalendarYear.value calendarYear
-
-        {
-          Granularity = Yearly
-          Key = key
-          Label = yearLabel calendarYear now
-          Start = localMidnight (DateTime(year, 1, 1))
-          EndExclusive = localMidnight (DateTime(year + 1, 1, 1))
-        })
+      |> Option.map (fun y -> yearPeriod (CalendarYear.value y) (yearLabel y now))
 
   /// Fixed-window list of periods ending at the current one, in chronological order
   /// (oldest first, newest/current last). Window sizes: Weekly = 12, Monthly = 12, Yearly = 5.
