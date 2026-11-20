@@ -14,11 +14,8 @@ module MedicationHandlers =
   let private readForm (ctx: HttpContext) : Task<Binding.MedicationFormModel> =
     task {
       let! form = ctx.Request.ReadFormAsync()
-
-      let get (k: string) =
-        match form.TryGetValue k with
-        | true, v -> v.ToString()
-        | _ -> ""
+      // A missing field reads as "".
+      let get (k: string) = form[k].ToString()
 
       let model: Binding.MedicationFormModel =
         {

@@ -6,17 +6,20 @@ open BpMonitor.Core
 
 /// Configuration helpers for the web host.
 module Config =
+  /// `key` as an int, or `fallback` when it's unset or not an int.
+  let private readInt (config: IConfiguration) (key: string) (fallback: int) : int =
+    match config[key] with
+    | null -> fallback
+    | v ->
+      match Int32.TryParse(v) with
+      | true, n -> n
+      | _ -> fallback
+
   let readRanges (config: IConfiguration) =
-    let s = config.GetSection("ReadingRanges")
     let d = ReadingRanges.defaults
 
     let getInt key fallback =
-      match s[key] with
-      | null -> fallback
-      | v ->
-        match Int32.TryParse(v) with
-        | true, n -> n
-        | _ -> fallback
+      readInt config $"ReadingRanges:{key}" fallback
 
     {
       SystolicMin = getInt "SystolicMin" d.SystolicMin
@@ -31,32 +34,12 @@ module Config =
   /// clamped to 1..400 — 400 is the hard cap Firefox and Chrome both enforce on
   /// cookie lifetime, so anything above it would be silently truncated by the browser.
   let readRememberMeDays (config: IConfiguration) : int =
-    let fallback = 30
-
-    let parsed =
-      match config["BpMonitor:RememberMeDays"] with
-      | null -> fallback
-      | v ->
-        match Int32.TryParse(v) with
-        | true, n -> n
-        | _ -> fallback
-
-    parsed |> max 1 |> min 400
+    readInt config "BpMonitor:RememberMeDays" 30 |> max 1 |> min 400
 
   /// Minimum length for a newly chosen password. Defaults to 8 (NIST SP 800-63B); never
   /// below 1, so a password can't be empty. appsettings.Development.json lowers it locally.
   let readMinPasswordLength (config: IConfiguration) : int =
-    let fallback = 8
-
-    let parsed =
-      match config["BpMonitor:MinPasswordLength"] with
-      | null -> fallback
-      | v ->
-        match Int32.TryParse(v) with
-        | true, n -> n
-        | _ -> fallback
-
-    max 1 parsed
+    readInt config "BpMonitor:MinPasswordLength" 8 |> max 1
 
   /// The deployment's fallback UI language when no member/cookie/browser preference
   /// resolves one. Defaults to English on an unset or unsupported config value.
