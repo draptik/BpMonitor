@@ -5,6 +5,19 @@ open BpMonitor.Core
 
 /// Server-rendered HTML views for the Trends pages.
 module TrendViews =
+  /// Everything one Trends panel shows for the selected period.
+  type TrendsModel =
+    {
+      Summary: WindowSummary
+      /// The sub-period strip, oldest first.
+      Periods: TrendPeriod list
+      /// Keys of the strip's periods that have readings.
+      PeriodsWithData: Set<string>
+      /// The period's readings, newest first.
+      Readings: BloodPressureReading list
+      ChartHtml: string
+    }
+
   /// Renders a `PeriodLabel` DU value through `LocalizedStrings.Trend`.
   let renderPeriodLabel (s: LocalizedStrings) (label: PeriodLabel) : string =
     match label with
@@ -21,14 +34,8 @@ module TrendViews =
 
   /// The swappable panel: granularity toggle + sub-period strip + inline chart + collapsible stats.
   /// Rendered as a fragment for htmx swaps and used directly by the full /trends page.
-  let trendsPanel
-    (s: LocalizedStrings)
-    (summary: WindowSummary)
-    (periods: TrendPeriod list)
-    (periodsWithData: Set<string>)
-    (readings: BloodPressureReading list)
-    (chartHtml: string)
-    : XmlNode =
+  let trendsPanel (s: LocalizedStrings) (model: TrendsModel) : XmlNode =
+    let summary = model.Summary
     let gran = summary.Granularity
     let granSlug = TrendPeriod.slug gran
 
@@ -62,7 +69,7 @@ module TrendViews =
     // ── Level 2: sub-period pills ────────────────────────────────────────────
     let periodButton (p: TrendPeriod) =
       let isActive = p.Key = summary.PeriodKey
-      let hasData = periodsWithData |> Set.contains p.Key
+      let hasData = model.PeriodsWithData |> Set.contains p.Key
       let label = renderPeriodLabel s p.Label
 
       if not hasData && not isActive then
@@ -136,14 +143,18 @@ module TrendViews =
             ]
 
         [
-          Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
+          Elem.div [ Attr.class' "chart" ] [ Text.raw model.ChartHtml ]
           Elem.details
             [
               Attr.class' "collapsible trends-stats-section"
               Attr.create "data-persist-key" "trends-stats"
             ]
             [ Elem.summary [] [ Text.raw s.Trend.Statistics ]; statsTable ]
-          ViewLayout.collapsibleReadingsTable s "trends-readings" (Routes.trendsPeriod gran summary.PeriodKey) readings
+          ViewLayout.collapsibleReadingsTable
+            s
+            "trends-readings"
+            (Routes.trendsPeriod gran summary.PeriodKey)
+            model.Readings
         ]
 
     Elem.div
@@ -154,28 +165,17 @@ module TrendViews =
         Elem.div
           [ Attr.class' "trends-subperiod-scroller" ]
           [
-            Elem.div [ Attr.class' "trends-subperiod-buttons" ] (periods |> List.map periodButton)
+            Elem.div [ Attr.class' "trends-subperiod-buttons" ] (model.Periods |> List.map periodButton)
           ]
         yield! content
       ]
 
   /// The /trends full page around the panel for the requested period (default Weekly/current).
-  let trends
-    (s: LocalizedStrings)
-    (m: FamilyMember)
-    (summary: WindowSummary)
-    (periods: TrendPeriod list)
-    (periodsWithData: Set<string>)
-    (readings: BloodPressureReading list)
-    (chartHtml: string)
-    : XmlNode =
+  let trends (s: LocalizedStrings) (m: FamilyMember) (model: TrendsModel) : XmlNode =
     ViewLayout.layout
       s
       Routes.trends
       m.Name
       m.IsAdmin
       s.Trend.TrendsTitle
-      [
-        Elem.h1 [] [ Text.raw s.Trend.TrendsTitle ]
-        trendsPanel s summary periods periodsWithData readings chartHtml
-      ]
+      [ Elem.h1 [] [ Text.raw s.Trend.TrendsTitle ]; trendsPanel s model ]

@@ -86,20 +86,7 @@ module MedicationHandlers =
     let medications = (medicationRepo ctx).GetAll(m.Id)
 
     htmlResponse
-      (SettingsViews.settings
-        s
-        m.Name
-        m.IsAdmin
-        m.Language
-        []
-        {
-          Binding.SysMin = string m.Goal.SystolicMin
-          Binding.SysMax = string m.Goal.SystolicMax
-          Binding.DiaMin = string m.Goal.DiastolicMin
-          Binding.DiaMax = string m.Goal.DiastolicMax
-        }
-        medications
-        errors)
+      (SettingsViews.settings s m.Name m.IsAdmin m.Language [] (Binding.ofGoal m.Goal) medications errors)
       ctx
 
   let create: HttpContext -> Task =
