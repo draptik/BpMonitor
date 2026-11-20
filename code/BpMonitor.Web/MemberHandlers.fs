@@ -30,114 +30,81 @@ module MemberHandlers =
     task {
       let s = stringsForMember active
       let! form = ctx.Request.ReadFormAsync()
-      let name = form[FormFields.name].ToString()
-      let isAdmin = form.ContainsKey(FormFields.isAdmin)
+      let allMembers = (memberRepo ctx).GetAll()
 
-      match FamilyMember.create name isAdmin with
-      | Error NameIsEmpty ->
-        let allMembers = (memberRepo ctx).GetAll()
+      let renderError error =
         ctx.Response.StatusCode <- 422
-        do! htmlResponse (MemberViews.members s allMembers active [ s.Errors.NameIsEmpty ]) ctx
-      | Ok m when FamilyMember.nameTaken ((memberRepo ctx).GetAll()) m ->
-        let allMembers = (memberRepo ctx).GetAll()
-        ctx.Response.StatusCode <- 422
-        do! htmlResponse (MemberViews.members s allMembers active [ s.Errors.NameAlreadyTaken ]) ctx
+        htmlResponse (MemberViews.members s allMembers active [ error ]) ctx
+
+      match FamilyMember.create (form[FormFields.name].ToString()) (form.ContainsKey(FormFields.isAdmin)) with
+      | Error NameIsEmpty -> do! renderError s.Errors.NameIsEmpty
+      | Ok m when FamilyMember.nameTaken allMembers m -> do! renderError s.Errors.NameAlreadyTaken
       | Ok m ->
         let added = (memberRepo ctx).Add m
         do! issueSetupCode active added ctx
     }
     :> Task
 
-  let editMember (admin: FamilyMember) : HttpContext -> Task =
-    withRouteMember "editMember" (fun m ctx ->
-      let s = stringsForMember admin
-
-      htmlResponse
-        (MemberViews.memberForm
-          s
-          Routes.members
-          admin.Name
-          true
-          s.Member.EditMemberTitle
-          (Routes.memberUpdate m.Id)
-          []
-          m)
-        ctx)
-
-  let private renderMemberEditError
-    (s: LocalizedStrings)
-    (id: int)
-    (adminName: string)
-    (errors: string list)
-    (m: FamilyMember)
-    (ctx: HttpContext)
-    : Task =
-    ctx.Response.StatusCode <- 422
+  let private renderMemberForm (admin: FamilyMember) (errors: string list) (m: FamilyMember) (ctx: HttpContext) =
+    let s = stringsForMember admin
 
     htmlResponse
-      (MemberViews.memberForm s Routes.members adminName true s.Member.EditMemberTitle (Routes.memberUpdate id) errors m)
+      (MemberViews.memberForm
+        s
+        Routes.members
+        admin.Name
+        true
+        s.Member.EditMemberTitle
+        (Routes.memberUpdate m.Id)
+        errors
+        m)
       ctx
 
-  let private applyMemberEdit
-    (s: LocalizedStrings)
-    (id: int)
-    (adminName: string)
-    (existing: FamilyMember)
-    (name: string)
-    (isAdmin: bool)
-    (isActive: bool)
-    (ctx: HttpContext)
-    : Task =
-    task {
-      match FamilyMember.create name isAdmin with
-      | Error NameIsEmpty ->
-        let m =
-          { existing with
-              Name = ""
-              IsAdmin = isAdmin
-              IsActive = isActive
-          }
-
-        do! renderMemberEditError s id adminName [ s.Errors.NameIsEmpty ] m ctx
-      | Ok _ ->
-        let updated =
-          { existing with
-              Name = name.Trim()
-              IsAdmin = isAdmin
-              IsActive = isActive
-          }
-
-        let allMembers = (memberRepo ctx).GetAll()
-        // Compute what the member list would look like after the edit.
-        let postEditList =
-          allMembers |> List.map (fun m -> if m.Id = id then updated else m)
-
-        if FamilyMember.nameTaken allMembers updated then
-          do! renderMemberEditError s id adminName [ s.Errors.NameAlreadyTaken ] updated ctx
-        elif not (FamilyMember.hasActiveAdmin postEditList) then
-          do! renderMemberEditError s id adminName [ s.Errors.AtLeastOneActiveAdmin ] updated ctx
-        else
-          (memberRepo ctx).Update(updated)
-          ctx.Response.Redirect Routes.members
-    }
-    :> Task
+  let editMember (admin: FamilyMember) : HttpContext -> Task =
+    withRouteMember "editMember" (renderMemberForm admin [])
 
   let updateMember (admin: FamilyMember) : HttpContext -> Task =
     withRouteMember "updateMember" (fun existing ctx ->
       task {
         let s = stringsForMember admin
         let! form = ctx.Request.ReadFormAsync()
+        let isAdmin = form.ContainsKey(FormFields.isAdmin)
+        let isActive = form.ContainsKey(FormFields.isActive)
 
-        do!
-          applyMemberEdit
-            s
-            existing.Id
-            admin.Name
-            existing
-            (form[FormFields.name].ToString())
-            (form.ContainsKey(FormFields.isAdmin))
-            (form.ContainsKey(FormFields.isActive))
-            ctx
+        let renderError error edited =
+          ctx.Response.StatusCode <- 422
+          renderMemberForm admin [ error ] edited ctx
+
+        match FamilyMember.create (form[FormFields.name].ToString()) isAdmin with
+        | Error NameIsEmpty ->
+          do!
+            renderError
+              s.Errors.NameIsEmpty
+              { existing with
+                  Name = ""
+                  IsAdmin = isAdmin
+                  IsActive = isActive
+              }
+        | Ok valid ->
+          let updated =
+            { existing with
+                Name = valid.Name
+                IsAdmin = isAdmin
+                IsActive = isActive
+            }
+
+          let allMembers = (memberRepo ctx).GetAll()
+
+          let afterEdit =
+            allMembers |> List.map (fun m -> if m.Id = updated.Id then updated else m)
+
+          if FamilyMember.nameTaken allMembers updated then
+            do! renderError s.Errors.NameAlreadyTaken updated
+          elif not (FamilyMember.hasActiveAdmin afterEdit) then
+            do! renderError s.Errors.AtLeastOneActiveAdmin updated
+          else
+            (memberRepo ctx).Update(updated)
+            ctx.Response.Redirect Routes.members
       }
       :> Task)
 
