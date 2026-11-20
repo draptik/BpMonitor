@@ -86,7 +86,12 @@ module MedicationHandlers =
     let medications = (medicationRepo ctx).GetAll(m.Id)
 
     htmlResponse
-      (SettingsViews.settings s m.Name m.IsAdmin m.Language [] (Binding.ofGoal m.Goal) medications errors)
+      (SettingsViews.settings
+        s
+        m
+        { SettingsViews.model m.Goal medications with
+            MedicationErrors = errors
+        })
       ctx
 
   let create: HttpContext -> Task =
