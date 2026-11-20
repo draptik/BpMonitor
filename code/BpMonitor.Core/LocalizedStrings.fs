@@ -145,6 +145,7 @@ type TrendStrings =
     AvgDiastolic: string
     AvgHeartRate: string
     StatValue: int -> int -> int -> string
+    Statistics: string
     ThisWeek: string
     LastWeek: string
     CalendarWeek: int -> string
@@ -344,6 +345,7 @@ module LocalizedStrings =
           AvgDiastolic = "Avg Diastolic"
           AvgHeartRate = "Avg Heart Rate"
           StatValue = fun avg mn mx -> $"{avg} (min: {mn}, max: {mx})"
+          Statistics = "Statistics"
           ThisWeek = "This Week"
           LastWeek = "Last Week"
           CalendarWeek = fun week -> $"CW {week}"
@@ -527,6 +529,7 @@ module LocalizedStrings =
           AvgDiastolic = "Ø Diastolisch"
           AvgHeartRate = "Ø Herzfrequenz"
           StatValue = fun avg mn mx -> $"{avg} (Min: {mn}, Max: {mx})"
+          Statistics = "Statistik"
           ThisWeek = "Diese Woche"
           LastWeek = "Letzte Woche"
           CalendarWeek = fun week -> $"KW {week}"

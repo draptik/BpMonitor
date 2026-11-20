@@ -19,7 +19,7 @@ module TrendViews =
     | LastYear -> s.Trend.LastYear
     | Year year -> s.Trend.Year year
 
-  /// The swappable panel: granularity toggle + sub-period strip + stats + inline chart.
+  /// The swappable panel: granularity toggle + sub-period strip + inline chart + collapsible stats.
   /// Rendered as a fragment for htmx swaps and used directly by the full /trends page.
   let trendsPanel
     (s: LocalizedStrings)
@@ -111,7 +111,7 @@ module TrendViews =
         let statRow (label: string) (unit: string) (avg: int) (mn: int) (mx: int) =
           simpleRow $"{label} ({unit})" (s.Trend.StatValue avg mn mx)
 
-        [
+        let statsTable =
           Elem.table
             [ Attr.class' "trends-stats" ]
             [
@@ -134,7 +134,15 @@ module TrendViews =
                     summary.MaxHeartRate
                 ]
             ]
+
+        [
           Elem.div [ Attr.class' "chart" ] [ Text.raw chartHtml ]
+          Elem.details
+            [
+              Attr.class' "collapsible trends-stats-section"
+              Attr.create "data-persist-key" "trends-stats"
+            ]
+            [ Elem.summary [] [ Text.raw s.Trend.Statistics ]; statsTable ]
           ViewLayout.collapsibleReadingsTable s "trends-readings" (Routes.trendsPeriod gran summary.PeriodKey) readings
         ]
 
