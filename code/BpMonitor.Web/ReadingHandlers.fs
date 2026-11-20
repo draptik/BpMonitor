@@ -171,8 +171,7 @@ module ReadingHandlers =
   // A year balances panning range against the LOWESS trend line's O(n^2) precompute cost.
   let private recentLoadWindowDays = 365
 
-  // Shortcut buttons rendered above the chart; adding a new shortcut only means adding
-  // an entry here.
+  /// Zoom shortcut buttons above the Recent view's chart: label and days back.
   let private recentZoomShortcutDays (s: LocalizedStrings) =
     [ s.Reading.Last7Days, 7.0; s.Reading.Last30Days, float recentChartWindowDays ]
 

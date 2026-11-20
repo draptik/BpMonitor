@@ -43,12 +43,13 @@ module GoalRange =
           DiastolicMax = diaMax
         }
 
-  let classifySystolic (goal: GoalRange) (value: int) : RangePosition =
-    if value > goal.SystolicMax then Above
-    elif value < goal.SystolicMin then Below
+  let private classify (min: int) (max: int) (value: int) : RangePosition =
+    if value > max then Above
+    elif value < min then Below
     else InRange
 
-  let classifyDiastolic (goal: GoalRange) (value: int) : RangePosition =
-    if value > goal.DiastolicMax then Above
-    elif value < goal.DiastolicMin then Below
-    else InRange
+  let classifySystolic (goal: GoalRange) =
+    classify goal.SystolicMin goal.SystolicMax
+
+  let classifyDiastolic (goal: GoalRange) =
+    classify goal.DiastolicMin goal.DiastolicMax
