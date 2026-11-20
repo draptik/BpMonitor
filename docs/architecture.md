@@ -174,7 +174,7 @@ graph TD
 ### BpMonitor.Web
 
 - Falco web application on `0.0.0.0:5000`; server-rendered HTML via `Falco.Markup`, htmx for partial updates, scoped `DbContext` per request
-- **Auth:** ASP.NET Core cookie auth with per-member PBKDF2-SHA256 passwords; unclaimed members claim their account with a one-time setup code (ADR 0012). The cookie carries a credential stamp that is re-checked on every request, so deactivation, admin changes and password resets take effect immediately. `protect` / `protectAdmin` combinators guard routes
+- **Auth:** ASP.NET Core cookie auth with per-member PBKDF2-SHA256 passwords; unclaimed members claim their account with a one-time setup code (ADR 0012). The cookie carries a credential stamp that is re-checked on every request, so deactivation, admin changes and password resets take effect immediately. `protect` / `withAdmin` combinators guard routes
 - **Cookie policy:** `SameSite=Lax` (not `Strict`) so links opened from other apps keep the session. "Remember me" makes the cookie persistent for `BpMonitor:RememberMeDays`, sliding. Data Protection keys persist under `BpMonitor:DataProtectionKeyPath`, otherwise every container redeploy invalidates the cookie
 - **Isolation:** each member sees only their own readings; admins manage members via `/members` but not their readings
 - **Routes:** `/` hub, `/add`, `/readings*`, `/history`, `/recent` (+ `/recent/full`), `/trends*`, `/settings` (+ `/settings/language`), `/medications*`, `/members*`, `/export`, `/export.csv`, `/login*`, `POST /logout`, anonymous `GET /health`

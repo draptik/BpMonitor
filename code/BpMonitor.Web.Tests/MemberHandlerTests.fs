@@ -40,7 +40,7 @@ let ``createMember with IsAdmin checkbox persists an admin member`` () =
   let ctx = TestHost.context repo
 
   TestHost.setForm ctx [ FormFields.name, "Alice"; FormFields.isAdmin, "on" ]
-  TestHost.run MemberHandlers.createMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.createMember) ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
@@ -55,7 +55,7 @@ let ``createMember without IsAdmin checkbox persists a non-admin member`` () =
   let ctx = TestHost.context repo
 
   TestHost.setForm ctx [ FormFields.name, "Bob" ]
-  TestHost.run MemberHandlers.createMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.createMember) ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
 
@@ -70,7 +70,7 @@ let ``createMember rejects a blank name with 422 and adds no member`` () =
   let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Me" ]
 
   TestHost.setForm ctx [ FormFields.name, "   " ]
-  TestHost.run MemberHandlers.createMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.createMember) ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "Name cannot be empty" @>
@@ -83,7 +83,7 @@ let ``createMember rejects a name another member already has, ignoring case`` ()
   let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Bart" ]
 
   TestHost.setForm ctx [ FormFields.name, "bart" ]
-  TestHost.run MemberHandlers.createMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.createMember) ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "already" @>
@@ -95,7 +95,7 @@ let ``createMember shows the new member's setup code once, without caching`` () 
   let ctx = TestHost.context (repoWith [])
 
   TestHost.setForm ctx [ FormFields.name, "Alice" ]
-  TestHost.run MemberHandlers.createMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.createMember) ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   test <@ ctx.Response.Headers.CacheControl.ToString() = "no-store" @>
@@ -106,7 +106,7 @@ let ``createMember stores the hash of the setup code it shows`` () =
   let ctx = TestHost.context (repoWith [])
 
   TestHost.setForm ctx [ FormFields.name, "Alice" ]
-  TestHost.run MemberHandlers.createMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.createMember) ctx
 
   let code = shownSetupCode (TestHost.readBody ctx)
   let stored = storedSetupCodeHash ctx "Alice"
@@ -125,7 +125,7 @@ let ``resetPassword shows a new setup code and stores its hash`` () =
       ]
 
   TestHost.setRouteId ctx 2
-  TestHost.run MemberHandlers.resetPassword ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.resetPassword) ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   test <@ ctx.Response.Headers.CacheControl.ToString() = "no-store" @>
@@ -138,7 +138,7 @@ let ``editMember prefills the form for an existing member`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Me" ]
   TestHost.setRouteId ctx 1
-  TestHost.run MemberHandlers.editMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.editMember) ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
   test <@ (TestHost.readBody ctx).Contains "value=\"Me\"" @>
@@ -148,7 +148,7 @@ let ``editMember returns 404 for an unknown id`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ adminMember 1 "Me" ]
   TestHost.setRouteId ctx 999
-  TestHost.run MemberHandlers.editMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.editMember) ctx
 
   test <@ ctx.Response.StatusCode = 404 @>
 
@@ -166,7 +166,7 @@ let ``updateMember saves changes and redirects to /members`` () =
       FormFields.isActive, "on"
     ]
 
-  TestHost.run MemberHandlers.updateMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.updateMember) ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = Routes.members @>
@@ -193,7 +193,7 @@ let ``updateMember rejects renaming a member to another member's name`` () =
       FormFields.isActive, "on"
     ]
 
-  TestHost.run MemberHandlers.updateMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.updateMember) ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "already" @>
@@ -208,7 +208,7 @@ let ``updateMember rejects demoting the last active admin with 422`` () =
 
   // Uncheck both IsAdmin and IsActive — would leave no active admin.
   TestHost.setForm ctx [ FormFields.name, "Me" ]
-  TestHost.run MemberHandlers.updateMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.updateMember) ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "active admin" @>
@@ -220,7 +220,7 @@ let ``updateMember rejects deactivating the last active admin, even when they st
   TestHost.setRouteId ctx 1
 
   TestHost.setForm ctx [ FormFields.name, "Me"; FormFields.isAdmin, "on" ]
-  TestHost.run MemberHandlers.updateMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.updateMember) ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "active admin" @>
@@ -235,7 +235,7 @@ let ``updateMember rejects a blank name with 422 and keeps the stored name`` () 
 
   TestHost.setForm ctx [ FormFields.name, "   "; FormFields.isAdmin, "on"; FormFields.isActive, "on" ]
 
-  TestHost.run MemberHandlers.updateMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.updateMember) ctx
 
   test <@ ctx.Response.StatusCode = 422 @>
   test <@ (TestHost.readBody ctx).Contains "Name cannot be empty" @>
@@ -253,6 +253,6 @@ let ``updateMember allows demoting one admin when another active admin exists`` 
 
   // Demote member 1 to non-admin; member 2 remains active admin → invariant holds.
   TestHost.setForm ctx [ FormFields.name, "Me"; FormFields.isActive, "on" ]
-  TestHost.run MemberHandlers.updateMember ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.updateMember) ctx
 
   test <@ ctx.Response.StatusCode = 302 @>

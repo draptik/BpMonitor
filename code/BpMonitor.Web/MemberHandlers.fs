@@ -7,10 +7,10 @@ open BpMonitor.Core
 open HandlerHelpers
 open AuthHandlers
 
-/// Handlers for family-member management (admin-only pages).
+/// Handlers for family-member management (admin-only pages); each takes the signed-in admin.
 module MemberHandlers =
   /// Gives `m` a new setup code and shows it once to the admin (ADR 0012).
-  let private issueSetupCode (adminName: string) (m: FamilyMember) (ctx: HttpContext) : Task =
+  let private issueSetupCode (admin: FamilyMember) (m: FamilyMember) (ctx: HttpContext) : Task =
     let code = SetupCode.generate ()
 
     let updated =
@@ -20,45 +20,43 @@ module MemberHandlers =
 
     (memberRepo ctx).Update updated
     ctx.Response.Headers.CacheControl <- "no-store"
-    htmlResponse (MemberViews.setupCodeIssued (authenticatedStrings ctx) adminName updated code) ctx
+    htmlResponse (MemberViews.setupCodeIssued (stringsForMember admin) admin.Name updated code) ctx
 
-  let members: HttpContext -> Task =
-    withMember (fun active ctx ->
-      let allMembers = (memberRepo ctx).GetAll()
-      htmlResponse (MemberViews.members (stringsForMember active) allMembers active []) ctx)
+  let members (active: FamilyMember) (ctx: HttpContext) : Task =
+    let allMembers = (memberRepo ctx).GetAll()
+    htmlResponse (MemberViews.members (stringsForMember active) allMembers active []) ctx
 
-  let createMember: HttpContext -> Task =
-    withMember (fun active ctx ->
-      task {
-        let s = stringsForMember active
-        let! form = ctx.Request.ReadFormAsync()
-        let name = form[FormFields.name].ToString()
-        let isAdmin = form.ContainsKey(FormFields.isAdmin)
+  let createMember (active: FamilyMember) (ctx: HttpContext) : Task =
+    task {
+      let s = stringsForMember active
+      let! form = ctx.Request.ReadFormAsync()
+      let name = form[FormFields.name].ToString()
+      let isAdmin = form.ContainsKey(FormFields.isAdmin)
 
-        match FamilyMember.create name isAdmin with
-        | Error NameIsEmpty ->
-          let allMembers = (memberRepo ctx).GetAll()
-          ctx.Response.StatusCode <- 422
-          do! htmlResponse (MemberViews.members s allMembers active [ s.Errors.NameIsEmpty ]) ctx
-        | Ok m when FamilyMember.nameTaken ((memberRepo ctx).GetAll()) m ->
-          let allMembers = (memberRepo ctx).GetAll()
-          ctx.Response.StatusCode <- 422
-          do! htmlResponse (MemberViews.members s allMembers active [ s.Errors.NameAlreadyTaken ]) ctx
-        | Ok m ->
-          let added = (memberRepo ctx).Add m
-          do! issueSetupCode active.Name added ctx
-      }
-      :> Task)
+      match FamilyMember.create name isAdmin with
+      | Error NameIsEmpty ->
+        let allMembers = (memberRepo ctx).GetAll()
+        ctx.Response.StatusCode <- 422
+        do! htmlResponse (MemberViews.members s allMembers active [ s.Errors.NameIsEmpty ]) ctx
+      | Ok m when FamilyMember.nameTaken ((memberRepo ctx).GetAll()) m ->
+        let allMembers = (memberRepo ctx).GetAll()
+        ctx.Response.StatusCode <- 422
+        do! htmlResponse (MemberViews.members s allMembers active [ s.Errors.NameAlreadyTaken ]) ctx
+      | Ok m ->
+        let added = (memberRepo ctx).Add m
+        do! issueSetupCode active added ctx
+    }
+    :> Task
 
-  let editMember: HttpContext -> Task =
+  let editMember (admin: FamilyMember) : HttpContext -> Task =
     withRouteMember "editMember" (fun m ctx ->
-      let s = authenticatedStrings ctx
+      let s = stringsForMember admin
 
       htmlResponse
         (MemberViews.memberForm
           s
           Routes.members
-          (authenticatedMemberName ctx)
+          admin.Name
           true
           s.Member.EditMemberTitle
           (Routes.memberUpdate m.Id)
@@ -124,17 +122,17 @@ module MemberHandlers =
     }
     :> Task
 
-  let updateMember: HttpContext -> Task =
+  let updateMember (admin: FamilyMember) : HttpContext -> Task =
     withRouteMember "updateMember" (fun existing ctx ->
       task {
-        let s = authenticatedStrings ctx
+        let s = stringsForMember admin
         let! form = ctx.Request.ReadFormAsync()
 
         do!
           applyMemberEdit
             s
             existing.Id
-            (authenticatedMemberName ctx)
+            admin.Name
             existing
             (form[FormFields.name].ToString())
             (form.ContainsKey(FormFields.isAdmin))
@@ -144,8 +142,8 @@ module MemberHandlers =
       :> Task)
 
   /// Resets a member's password and issues a new setup code (admin-only).
-  let resetPassword: HttpContext -> Task =
+  let resetPassword (admin: FamilyMember) : HttpContext -> Task =
     withRouteMember "resetPassword" (fun m ctx ->
       let log = logger ctx
       log.LogInformation("Admin reset password for member {Name} (Id={Id})", m.Name, m.Id)
-      issueSetupCode (authenticatedMemberName ctx) m ctx)
+      issueSetupCode admin m ctx)

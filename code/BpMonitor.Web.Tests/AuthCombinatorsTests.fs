@@ -43,46 +43,46 @@ let ``protect invokes the handler for an authenticated request`` () =
   test <@ TestHost.readBody ctx = "reached" @>
 
 [<Fact>]
-let ``protectAdmin redirects an unauthenticated request to login`` () =
+let ``withAdmin redirects an unauthenticated request to login`` () =
   let ctx = TestHost.contextUnauthenticated (repoWith [])
-  TestHost.run (AuthHandlers.protectAdmin ok) ctx
+  TestHost.run (AuthHandlers.withAdmin echoMember) ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = Routes.login @>
 
 [<Fact>]
-let ``protectAdmin returns 403 for an authenticated non-admin request`` () =
+let ``withAdmin returns 403 for an authenticated non-admin request`` () =
   let ctx = TestHost.contextWithMembers (repoWith []) [ nonAdminMember ]
-  TestHost.run (AuthHandlers.protectAdmin ok) ctx
+  TestHost.run (AuthHandlers.withAdmin echoMember) ctx
 
   test <@ ctx.Response.StatusCode = 403 @>
 
 [<Fact>]
-let ``protectAdmin invokes the handler for an authenticated admin request`` () =
+let ``withAdmin passes the signed-in admin to the handler`` () =
   let ctx = TestHost.context (repoWith [])
-  TestHost.run (AuthHandlers.protectAdmin ok) ctx
+  TestHost.run (AuthHandlers.withAdmin echoMember) ctx
 
   test <@ ctx.Response.StatusCode = 200 @>
-  test <@ TestHost.readBody ctx = "reached" @>
+  test <@ TestHost.readBody ctx = sampleMember.Name @>
 
 [<Fact>]
-let ``protectAdmin returns 403 when the signed-in member is no longer an admin`` () =
+let ``withAdmin returns 403 when the signed-in member is no longer an admin`` () =
   // Cookie still carries the Admin role from before the demotion.
   let ctx =
     TestHost.contextWithMembers (repoWith []) [ { sampleMember with IsAdmin = false } ]
 
   ctx.User <- TestHost.buildPrincipal sampleMember
-  TestHost.run (AuthHandlers.protectAdmin ok) ctx
+  TestHost.run (AuthHandlers.withAdmin echoMember) ctx
 
   test <@ ctx.Response.StatusCode = 403 @>
 
 [<Fact>]
-let ``protectAdmin redirects to login when the signed-in admin was deactivated`` () =
+let ``withAdmin redirects to login when the signed-in admin was deactivated`` () =
   let ctx =
     TestHost.contextWithMembers (repoWith []) [ { sampleMember with IsActive = false } ]
 
   ctx.User <- TestHost.buildPrincipal sampleMember
-  TestHost.run (AuthHandlers.protectAdmin ok) ctx
+  TestHost.run (AuthHandlers.withAdmin echoMember) ctx
 
   test <@ ctx.Response.StatusCode = 302 @>
   test <@ ctx.Response.Headers.Location.ToString() = Routes.login @>

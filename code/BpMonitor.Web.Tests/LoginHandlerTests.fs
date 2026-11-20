@@ -403,7 +403,7 @@ let ``resetPassword sets member to unclaimed`` () =
   let repo = repoWith []
   let ctx = TestHost.contextWithMembers repo [ claimedMember hash ]
   TestHost.setRouteId ctx 1
-  TestHost.run MemberHandlers.resetPassword ctx
+  TestHost.run (AuthHandlers.withAdmin MemberHandlers.resetPassword) ctx
 
   let memberRepo = ctx.RequestServices.GetRequiredService<IFamilyMemberRepository>()
   let saved = memberRepo.GetById(1) |> Option.get
