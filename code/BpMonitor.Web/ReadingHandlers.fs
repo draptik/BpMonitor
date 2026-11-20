@@ -260,7 +260,7 @@ module ReadingHandlers =
           panel)
         ctx)
 
-  let private renderTrendsData
+  let private trendsModel
     (s: LocalizedStrings)
     (gran: Granularity)
     (period: TrendPeriod)
@@ -282,12 +282,13 @@ module ReadingHandlers =
       |> List.map _.Key
       |> Set.ofList
 
-    let tableReadings = windowed |> List.sortByDescending _.Timestamp
-
-    let chartHtml =
-      BpChart.toHtmlDashed s.Charts m.Goal gran (ReadingStats.aggregate gran windowed)
-
-    summary, periods, periodsWithData, tableReadings, chartHtml
+    {
+      TrendViews.Summary = summary
+      TrendViews.Periods = periods
+      TrendViews.PeriodsWithData = periodsWithData
+      TrendViews.Readings = windowed |> List.sortByDescending _.Timestamp
+      TrendViews.ChartHtml = BpChart.toHtmlDashed s.Charts m.Goal gran (ReadingStats.aggregate gran windowed)
+    }
 
   /// The period `key` names, or the current one when it's missing or outside the strip.
   let private periodFor (gran: Granularity) (key: string option) (now: DateTimeOffset) =
@@ -305,10 +306,7 @@ module ReadingHandlers =
       let gran, selected = trendsSelection (queryStr ctx) now
       let period = selected |> Option.defaultWith (fun () -> TrendPeriod.current gran now)
 
-      let summary, periods, periodsWithData, tableReadings, chartHtml =
-        renderTrendsData s gran period now m allReadings
-
-      htmlResponse (TrendViews.trends s m summary periods periodsWithData tableReadings chartHtml) ctx)
+      htmlResponse (TrendViews.trends s m (trendsModel s gran period now m allReadings)) ctx)
 
   let trendsPanel: HttpContext -> Task =
     withMember (fun m ctx ->
@@ -321,10 +319,7 @@ module ReadingHandlers =
 
         let period = periodFor gran (routeStr ctx "key") now
 
-        let summary, periods, periodsWithData, tableReadings, chartHtml =
-          renderTrendsData s gran period now m allReadings
-
-        htmlResponse (TrendViews.trendsPanel s summary periods periodsWithData tableReadings chartHtml) ctx)
+        htmlResponse (TrendViews.trendsPanel s (trendsModel s gran period now m allReadings)) ctx)
 
   // ── Settings: self-service goal range ──
 
@@ -333,22 +328,7 @@ module ReadingHandlers =
       let s = stringsForMember m
       let medications = (medicationRepo ctx).GetAll(m.Id)
 
-      htmlResponse
-        (SettingsViews.settings
-          s
-          m.Name
-          m.IsAdmin
-          m.Language
-          []
-          {
-            Binding.SysMin = string m.Goal.SystolicMin
-            Binding.SysMax = string m.Goal.SystolicMax
-            Binding.DiaMin = string m.Goal.DiastolicMin
-            Binding.DiaMax = string m.Goal.DiastolicMax
-          }
-          medications
-          [])
-        ctx)
+      htmlResponse (SettingsViews.settings s m.Name m.IsAdmin m.Language [] (Binding.ofGoal m.Goal) medications []) ctx)
 
   /// Persists the member's chosen UI language and refreshes the login-page cookie.
   let updateLanguage: HttpContext -> Task =

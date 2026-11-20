@@ -39,6 +39,15 @@ module Binding =
       DiaMax: string
     }
 
+  /// The goal-range form prefilled with a stored goal.
+  let ofGoal (goal: GoalRange) : GoalRangeFormModel =
+    {
+      SysMin = string goal.SystolicMin
+      SysMax = string goal.SystolicMax
+      DiaMin = string goal.DiastolicMin
+      DiaMax = string goal.DiastolicMax
+    }
+
   /// Raw (unvalidated) medication edit-form fields.
   type MedicationFormModel =
     {
