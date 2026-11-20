@@ -995,7 +995,8 @@ form.inline button:where(:not(.icon-button)),
    mechanism as the value strip above), and the plain equivalents on /history and
    /trends. Collapsed by default, remembered via wwwroot/details-memory.js.
    Header-bar styling itself is shared: see .collapsible above. */
-.readings-section {
+.readings-section,
+.trends-stats-section {
   margin-top: 1rem;
 }
 

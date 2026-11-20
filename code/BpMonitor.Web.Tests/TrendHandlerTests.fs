@@ -138,6 +138,16 @@ let ``trendsPanel with gran=weekly shows the current week's stats`` () =
   test <@ body.Contains(statCell 70 70 70) @>
 
 [<Fact>]
+let ``trendsPanel stats sit below the chart in a collapsible that persists its open state`` () =
+  let body = TestHost.readBody (weeklyPanel [ thisWeeksReading ])
+
+  let statsSection =
+    $"<details class=\"collapsible trends-stats-section\" data-persist-key=\"trends-stats\"><summary>{LocalizedStrings.en.Trend.Statistics}</summary><table class=\"trends-stats\">"
+
+  test <@ body.Contains statsSection @>
+  test <@ body.IndexOf "class=\"chart\"" < body.IndexOf statsSection @>
+
+[<Fact>]
 let ``trendsPanel edit links return to the current period`` () =
   let body = TestHost.readBody (weeklyPanel [ thisWeeksReading ])
   test <@ body.Contains(Routes.readingEdit thisWeeksReading.Id (Routes.trendsPeriod Weekly "2026-W24")) @>
