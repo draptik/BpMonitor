@@ -110,6 +110,21 @@ module AuthHandlers =
   let loginPage: HttpContext -> Task =
     fun ctx -> htmlResponse (LoginViews.loginPage (strings ctx) []) ctx
 
+  /// Signs `m` in, remembers their language for the login page, and goes home.
+  let private signIn (m: FamilyMember) (rememberMe: bool) (ctx: HttpContext) : Task =
+    task {
+      setLanguageCookie ctx m.Language
+
+      do!
+        ctx.SignInAsync(
+          CookieAuthenticationDefaults.AuthenticationScheme,
+          claimsPrincipal m,
+          AuthenticationProperties(IsPersistent = rememberMe)
+        )
+
+      ctx.Response.Redirect Routes.home
+    }
+
   /// `onFailure` lets callers choose what to render on a bad password (loginPage vs. loginMember).
   let private claimedLogin
     (m: FamilyMember)
@@ -124,16 +139,7 @@ module AuthHandlers =
 
       if PasswordHashing.verify password hash then
         log.LogInformation("Member {Name} (Id={Id}) logged in", m.Name, m.Id)
-        setLanguageCookie ctx m.Language
-
-        do!
-          ctx.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            claimsPrincipal m,
-            AuthenticationProperties(IsPersistent = rememberMe)
-          )
-
-        ctx.Response.Redirect Routes.home
+        do! signIn m rememberMe ctx
       else
         log.LogWarning("Failed login attempt for member {Name} (Id={Id})", m.Name, m.Id)
         ctx.Response.StatusCode <- 401
@@ -178,16 +184,7 @@ module AuthHandlers =
         let claimed = { m with Credential = Password hashed }
         (memberRepo ctx).Update(claimed)
         log.LogInformation("Member {Name} (Id={Id}) claimed their account", m.Name, m.Id)
-        setLanguageCookie ctx claimed.Language
-
-        do!
-          ctx.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            claimsPrincipal claimed,
-            AuthenticationProperties(IsPersistent = rememberMe)
-          )
-
-        ctx.Response.Redirect Routes.home
+        do! signIn claimed rememberMe ctx
     }
     :> Task
 
