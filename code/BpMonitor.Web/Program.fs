@@ -111,7 +111,7 @@ let main args =
     Log.Information("Applying schema migrations…")
     use scope = app.Services.CreateScope()
     let sp = scope.ServiceProvider
-    SchemaMigrations.apply (sp.GetRequiredService<BpMonitorDbContext>())
+    SchemaMigrations.apply (sp.GetRequiredService<TimeProvider>()) (sp.GetRequiredService<BpMonitorDbContext>())
 
     // Optionally seed the Simpson-family demo dataset (off by default).
     let seedDemo = builder.Configuration.GetValue<bool>("BpMonitor:SeedDemoData")

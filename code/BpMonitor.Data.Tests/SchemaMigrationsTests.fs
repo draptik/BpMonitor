@@ -2,6 +2,7 @@ module SchemaMigrationsTests
 
 open System
 open System.Data
+open Microsoft.Extensions.Time.Testing
 open Xunit
 open Swensen.Unquote
 open Microsoft.Data.Sqlite
@@ -19,7 +20,7 @@ let private scalarInt64 (conn: IDbConnection) (sql: string) : int64 =
 [<Fact>]
 let ``apply on a fresh database creates the Members table`` () =
   use ctx = createRawContext ()
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   let conn = ctx.Database.GetDbConnection()
 
@@ -31,7 +32,7 @@ let ``apply on a fresh database creates the Members table`` () =
 [<Fact>]
 let ``apply seeds a default member named Me with admin rights`` () =
   use ctx = createRawContext ()
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   let members = ctx.Members |> Seq.toList
   test <@ members.Length = 1 @>
@@ -40,17 +41,20 @@ let ``apply seeds a default member named Me with admin rights`` () =
   test <@ members[0].IsActive = true @>
 
 [<Fact>]
-let ``apply stamps the default member in the Gregorian calendar, whatever the server culture`` () =
+let ``apply stamps the default member with the current time in the Gregorian calendar, whatever the server culture``
+  ()
+  =
+  let now = DateTimeOffset(2026, 6, 14, 12, 30, 0, TimeSpan.Zero)
   use ctx = createRawContext ()
-  CultureScope.withCulture "th-TH" (fun () -> SchemaMigrations.apply ctx)
+  CultureScope.withCulture "th-TH" (fun () -> SchemaMigrations.apply (FakeTimeProvider now) ctx)
 
   let m = ctx.Members |> Seq.exactlyOne
-  test <@ m.CreatedAt.Year = DateTimeOffset.UtcNow.Year @>
+  test <@ m.CreatedAt = now && m.ModifiedAt = now @>
 
 [<Fact>]
 let ``apply seeds the default member with English as the language`` () =
   use ctx = createRawContext ()
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   let m = ctx.Members |> Seq.exactlyOne
   test <@ m.Language = "en" @>
@@ -105,7 +109,7 @@ let ``apply adds the Language column with an English default to a legacy Members
     DbContextOptionsBuilder<BpMonitorDbContext>().UseSqlite(connection).Options
 
   use ctx = new BpMonitorDbContext(options)
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   let m = ctx.Members |> Seq.exactlyOne
   test <@ m.Language = "en" @>
@@ -113,7 +117,7 @@ let ``apply adds the Language column with an English default to a legacy Members
 [<Fact>]
 let ``apply seeds the default member with the paper's preset goal range`` () =
   use ctx = createRawContext ()
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   let m = ctx.Members |> Seq.exactlyOne
   test <@ m.SystolicGoalMin = 90 @>
@@ -169,7 +173,7 @@ let ``apply adds goal-range columns with preset defaults to a legacy Members tab
     DbContextOptionsBuilder<BpMonitorDbContext>().UseSqlite(connection).Options
 
   use ctx = new BpMonitorDbContext(options)
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   let m = ctx.Members |> Seq.exactlyOne
   test <@ m.SystolicGoalMin = 90 @>
@@ -212,7 +216,7 @@ let ``apply adds an empty SetupCodeHash column to a legacy Members table`` () =
     DbContextOptionsBuilder<BpMonitorDbContext>().UseSqlite(connection).Options
 
   use ctx = new BpMonitorDbContext(options)
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   let m = ctx.Members |> Seq.exactlyOne
   test <@ m.SetupCodeHash = "" @>
@@ -220,8 +224,8 @@ let ``apply adds an empty SetupCodeHash column to a legacy Members table`` () =
 [<Fact>]
 let ``apply is idempotent - calling it twice does not create duplicate members`` () =
   use ctx = createRawContext ()
-  SchemaMigrations.apply ctx
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   let members = ctx.Members |> Seq.toList
   test <@ members.Length = 1 @>
@@ -258,7 +262,7 @@ let ``apply adds missing columns to an existing Readings table without MemberId`
     DbContextOptionsBuilder<BpMonitorDbContext>().UseSqlite(connection).Options
 
   use ctx = new BpMonitorDbContext(options)
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   // After apply the reading should have MemberId set to the default member's Id (1).
   let memberId =
@@ -269,7 +273,7 @@ let ``apply adds missing columns to an existing Readings table without MemberId`
 [<Fact>]
 let ``apply on a fresh database creates the Medications table`` () =
   use ctx = createRawContext ()
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   let conn = ctx.Database.GetDbConnection()
 
@@ -281,8 +285,8 @@ let ``apply on a fresh database creates the Medications table`` () =
 [<Fact>]
 let ``apply is idempotent when the Medications table already exists`` () =
   use ctx = createRawContext ()
-  SchemaMigrations.apply ctx
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   let conn = ctx.Database.GetDbConnection()
 
@@ -294,7 +298,7 @@ let ``apply is idempotent when the Medications table already exists`` () =
 [<Fact>]
 let ``apply promotes lowest-Id member to active admin when no active admin exists`` () =
   use ctx = createRawContext ()
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   // Demote the seeded member to non-admin via raw SQL (bypasses domain invariant).
   ctx.Database.ExecuteSqlRaw("UPDATE \"Members\" SET \"IsAdmin\" = 0") |> ignore
@@ -308,7 +312,7 @@ let ``apply promotes lowest-Id member to active admin when no active admin exist
   test <@ adminCount = 0L @>
 
   // Re-apply — ensureActiveAdmin should promote the lowest-Id member.
-  SchemaMigrations.apply ctx
+  SchemaMigrations.apply TimeProvider.System ctx
 
   let promoted = ctx.Members |> Seq.minBy _.Id
   test <@ promoted.IsAdmin = true @>

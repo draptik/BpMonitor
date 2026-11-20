@@ -72,13 +72,13 @@ module SchemaMigrations =
 
   /// Ensures a default family member exists. Returns its Id, which is used as the
   /// default value when backfilling the MemberId column on existing readings.
-  let private ensureDefaultMember (ctx: BpMonitorDbContext) : int =
+  let private ensureDefaultMember (timeProvider: TimeProvider) (ctx: BpMonitorDbContext) : int =
     let count =
       withConn ctx (fun conn -> scalarInt64 conn "SELECT COUNT(*) FROM \"Members\"")
 
     if count = 0L then
       let now =
-        DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss zzz", CultureInfo.InvariantCulture)
+        timeProvider.GetUtcNow().ToString("yyyy-MM-dd HH:mm:ss zzz", CultureInfo.InvariantCulture)
 
       let goal = GoalRange.defaults
 
@@ -128,7 +128,7 @@ module SchemaMigrations =
     )
     |> ignore
 
-  let apply (ctx: BpMonitorDbContext) =
+  let apply (timeProvider: TimeProvider) (ctx: BpMonitorDbContext) =
     ctx.Database.EnsureCreated() |> ignore
 
     // Enable WAL mode for better read/write concurrency under light multi-user load.
@@ -158,7 +158,7 @@ module SchemaMigrations =
     addColumnIfMissing ctx "Members" "DiastolicGoalMax" "INTEGER" (string goal.DiastolicMax)
 
     // Ensure at least one default member exists and get its Id.
-    let defaultMemberId = ensureDefaultMember ctx
+    let defaultMemberId = ensureDefaultMember timeProvider ctx
 
     // Backfill existing readings with the default member Id.
     addColumnIfMissing ctx "Readings" "MemberId" "INTEGER" (string defaultMemberId)
