@@ -115,24 +115,22 @@ let main args =
 
     // Optionally seed the Simpson-family demo dataset (off by default).
     let seedDemo = builder.Configuration.GetValue<bool>("BpMonitor:SeedDemoData")
+    let members = sp.GetRequiredService<IFamilyMemberRepository>()
+    let readings = sp.GetRequiredService<IReadingRepository>()
 
-    if seedDemo then
+    if seedDemo && DemoSeeder.isEmpty members readings then
       Log.Information("Seeding Simpson-family demo data…")
-      let ranges = Config.readRanges builder.Configuration
 
       DemoSeeder.seedIfEmpty
-        (sp.GetRequiredService<IFamilyMemberRepository>())
-        (sp.GetRequiredService<IReadingRepository>())
+        members
+        readings
         (sp.GetRequiredService<IMedicationRepository>())
-        ranges
+        (Config.readRanges builder.Configuration)
         (sp.GetRequiredService<TimeProvider>())
-        true
 
     // Members without a credential can't be claimed until they get a setup code (ADR 0012).
-    let memberRepo = sp.GetRequiredService<IFamilyMemberRepository>()
-
-    for m, code in SetupCode.issueMissing (memberRepo.GetAll()) do
-      memberRepo.Update m
+    for m, code in SetupCode.issueMissing (members.GetAll()) do
+      members.Update m
       Log.Information("Setup code for member {Name} (Id={Id}): {SetupCode}", m.Name, m.Id, code)
 
     // One structured log line per request (method, path, status, elapsed ms).

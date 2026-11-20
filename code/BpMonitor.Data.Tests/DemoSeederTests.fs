@@ -17,59 +17,49 @@ let private emptyStore () =
   InMemoryReadingRepository(Some []) :> IReadingRepository,
   InMemoryMedicationRepository(Some []) :> IMedicationRepository
 
-// ── disabled seeder ───────────────────────────────────────────────────────────
+// ── seeder ────────────────────────────────────────────────────────────────────
 
 [<Fact>]
-let ``disabled flag leaves the store untouched`` () =
+let ``seeder on empty store creates exactly 6 members`` () =
   let members, readings, medications = emptyStore ()
-  DemoSeeder.seedIfEmpty members readings medications ranges tp false
-  // Only the default "Me" member from InMemoryFamilyMemberRepository
-  test <@ members.GetAll().Length = 1 @>
-  test <@ (members.GetAll() |> List.head).Name = "Me" @>
-
-// ── enabled seeder ────────────────────────────────────────────────────────────
-
-[<Fact>]
-let ``enabled seeder on empty store creates exactly 6 members`` () =
-  let members, readings, medications = emptyStore ()
-  DemoSeeder.seedIfEmpty members readings medications ranges tp true
+  DemoSeeder.seedIfEmpty members readings medications ranges tp
   test <@ members.GetAll().Length = 6 @>
 
 [<Fact>]
-let ``enabled seeder renames the default Me member (no extra member)`` () =
+let ``seeder renames the default Me member (no extra member)`` () =
   let members, readings, medications = emptyStore ()
-  DemoSeeder.seedIfEmpty members readings medications ranges tp true
+  DemoSeeder.seedIfEmpty members readings medications ranges tp
   let names = members.GetAll() |> List.map _.Name
   test <@ names |> List.contains "Me" |> not @>
 
 [<Fact>]
-let ``enabled seeder: Marge Simpson is the admin`` () =
+let ``seeder: Marge Simpson is the admin`` () =
   let members, readings, medications = emptyStore ()
-  DemoSeeder.seedIfEmpty members readings medications ranges tp true
+  DemoSeeder.seedIfEmpty members readings medications ranges tp
   let admins = members.GetAll() |> List.filter _.IsAdmin
   test <@ admins.Length = 1 @>
   test <@ (admins |> List.head).Name = "Marge Simpson" @>
 
 [<Fact>]
-let ``enabled seeder: each member has readings scoped to their own Id`` () =
+let ``seeder: each member has readings scoped to their own Id`` () =
   let members, readings, medications = emptyStore ()
-  DemoSeeder.seedIfEmpty members readings medications ranges tp true
+  DemoSeeder.seedIfEmpty members readings medications ranges tp
 
   for m in members.GetAll() do
     test <@ readings.GetAll(m.Id).Length > 0 @>
 
 [<Fact>]
-let ``enabled seeder: members are seeded unclaimed (no password)`` () =
+let ``seeder: members are seeded unclaimed (no password)`` () =
   let members, readings, medications = emptyStore ()
-  DemoSeeder.seedIfEmpty members readings medications ranges tp true
+  DemoSeeder.seedIfEmpty members readings medications ranges tp
 
   for m in members.GetAll() do
     test <@ m.Credential = NoCredential @>
 
 [<Fact>]
-let ``enabled seeder: Ned Flanders has an ongoing HCTZ and a completed lisinopril course`` () =
+let ``seeder: Ned Flanders has an ongoing HCTZ and a completed lisinopril course`` () =
   let members, readings, medications = emptyStore ()
-  DemoSeeder.seedIfEmpty members readings medications ranges tp true
+  DemoSeeder.seedIfEmpty members readings medications ranges tp
 
   let ned = members.GetAll() |> List.find (fun m -> m.Name = "Ned Flanders")
   let nedMedications = medications.GetAll(ned.Id)
@@ -84,9 +74,9 @@ let ``enabled seeder: Ned Flanders has an ongoing HCTZ and a completed lisinopri
     @>
 
 [<Fact>]
-let ``enabled seeder: only Ned Flanders gets demo medications`` () =
+let ``seeder: only Ned Flanders gets demo medications`` () =
   let members, readings, medications = emptyStore ()
-  DemoSeeder.seedIfEmpty members readings medications ranges tp true
+  DemoSeeder.seedIfEmpty members readings medications ranges tp
 
   let others = members.GetAll() |> List.filter (fun m -> m.Name <> "Ned Flanders")
 
@@ -98,7 +88,7 @@ let ``enabled seeder: only Ned Flanders gets demo medications`` () =
 [<Fact>]
 let ``second call on populated store is a no-op`` () =
   let members, readings, medications = emptyStore ()
-  DemoSeeder.seedIfEmpty members readings medications ranges tp true
+  DemoSeeder.seedIfEmpty members readings medications ranges tp
   let memberCountAfterFirst = members.GetAll().Length
 
   let totalAfterFirst =
@@ -107,7 +97,7 @@ let ``second call on populated store is a no-op`` () =
   let medicationsAfterFirst =
     members.GetAll() |> List.sumBy (fun m -> medications.GetAll(m.Id).Length)
 
-  DemoSeeder.seedIfEmpty members readings medications ranges tp true
+  DemoSeeder.seedIfEmpty members readings medications ranges tp
 
   test <@ members.GetAll().Length = memberCountAfterFirst @>
 
@@ -120,3 +110,16 @@ let ``second call on populated store is a no-op`` () =
     members.GetAll() |> List.sumBy (fun m -> medications.GetAll(m.Id).Length)
 
   test <@ medicationsAfterSecond = medicationsAfterFirst @>
+
+// ── isEmpty ───────────────────────────────────────────────────────────────────
+
+[<Fact>]
+let ``isEmpty is true for a fresh store`` () =
+  let members, readings, _ = emptyStore ()
+  test <@ DemoSeeder.isEmpty members readings @>
+
+[<Fact>]
+let ``isEmpty is false once the store is seeded`` () =
+  let members, readings, medications = emptyStore ()
+  DemoSeeder.seedIfEmpty members readings medications ranges tp
+  test <@ not (DemoSeeder.isEmpty members readings) @>
