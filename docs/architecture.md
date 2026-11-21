@@ -222,7 +222,7 @@ graph TD
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md#linting-and-formatting) for the commands. CI runs the same `mise run lint:*` tasks via `jdx/mise-action`.
 
-**Image scanning:** `release.yml` builds the image into the runner's Docker daemon, runs `mise run scan:image` on it, and only then pushes to GHCR (the GitHub release job waits for it), so a release with a fixable CRITICAL/HIGH CVE never reaches `:latest`. Trivy comes from mise, not `aquasecurity/trivy-action` (its tags were hijacked in March 2026). `image-scan.yml` rescans `:latest` weekly into the Security tab, since base-image CVEs appear after a release; fixing one needs a new release.
+**Image scanning:** `release.yml` builds the image into the runner's Docker daemon, runs `mise run scan:image` on it, and only then pushes to GHCR (the GitHub release job waits for it), so a release with a fixable CRITICAL/HIGH CVE never reaches `:latest`. Trivy comes from mise, not `aquasecurity/trivy-action` (its tags were hijacked in March 2026). `image-scan.yml` rescans `:latest` weekly into the Security tab, since base-image CVEs appear after a release; fixing one needs a new release. The Containerfile pins both .NET base images by digest, so each MCR republish becomes a grouped, automerged Renovate PR; cut a patch release after it merges so the fix ships.
 
 **Link checking:** `link-check.yml` runs lychee weekly rather than per PR (external links break without a commit here) and keeps one "Broken links in docs" issue up to date.
 
