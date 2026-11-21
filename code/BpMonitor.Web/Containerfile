@@ -2,7 +2,7 @@
 # Build context must be the `code/` directory so the referenced projects
 # (Core, Data, Charts) are available:
 #   podman build -t bpmonitor-web -f BpMonitor.Web/Containerfile .
-FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0@sha256:65f3c7c6a25a239ab3e6719f2896147e7b68242ff2d8818dd70498bde6ef8bea AS build
 WORKDIR /src
 COPY . .
 # Must be valid SemVer: -p:Version also sets the NuGet package version that restore validates.
@@ -12,7 +12,7 @@ RUN dotnet publish BpMonitor.Web/BpMonitor.Web.fsproj -c Release -p:Version=$VER
 
 # Chiseled: no shell or package manager, so far fewer base-image CVEs.
 # -extra adds the ICU culture data the German UI formatting needs.
-FROM mcr.microsoft.com/dotnet/aspnet:11.0-resolute-chiseled-extra AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:11.0-resolute-chiseled-extra@sha256:cea9d5494f358fe43082300c24d1cd9f651066b6b7de1e5735bca8d3ade68649 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 
