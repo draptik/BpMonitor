@@ -7,9 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-11-21
+
 ### Changed
 
-- Trends: the summary numbers (readings count, averages, min/max) moved from above the chart into a collapsible Statistics section below it. It starts collapsed and remembers whether you left it open.
+- Trends: the summary numbers (readings count, averages, min/max) move from above the chart into a collapsible Statistics section below it. It starts collapsed and remembers whether you left it open.
+- **Deployment:** redeploy the new image to get the runtime fix. No database or configuration changes are needed.
+
+### Security
+
+- The container image now runs on the .NET 11.0 GA runtime. Earlier images shipped the release-candidate runtime, which carried three high-severity ASP.NET Core vulnerabilities (CVE-2026-114146, CVE-2026-114147, CVE-2026-114149).
+
+### Maintenance
+
 - CI pins GitHub Actions through a verified workflow lockfile (`actions.lock`) instead of inline commit SHAs, which also covers actions used by other actions. No user-facing changes.
 
 ## [1.18.1] - 2026-11-03
@@ -638,7 +648,8 @@ First stable release of the BpMonitor web app.
 
 - Initial GitHub release workflow and `install.sh` for automated deployment.
 
-[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.18.1...HEAD
+[Unreleased]: https://github.com/draptik/BpMonitor/compare/v1.19.0...HEAD
+[1.19.0]: https://github.com/draptik/BpMonitor/compare/v1.18.1...v1.19.0
 [1.18.1]: https://github.com/draptik/BpMonitor/compare/v1.18.0...v1.18.1
 [1.18.0]: https://github.com/draptik/BpMonitor/compare/v1.17.0...v1.18.0
 [1.17.0]: https://github.com/draptik/BpMonitor/compare/v1.16.1...v1.17.0
