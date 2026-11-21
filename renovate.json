@@ -33,6 +33,20 @@
       "description": "Major .NET image bumps need the TFM and global.json moved too; approve from the dashboard when upgrading."
     },
     {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["mcr.microsoft.com/dotnet/**"],
+      "pinDigests": true,
+      "description": "Floating tags like 11.0 never look outdated; a pinned digest turns each MCR republish (runtime or base-layer CVE fix) into a PR."
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["mcr.microsoft.com/dotnet/**"],
+      "matchUpdateTypes": ["pinDigest", "digest"],
+      "groupName": ".NET container images",
+      "minimumReleaseAge": "0 days",
+      "description": "Digest bumps are security rebuilds: one PR for sdk and aspnet, without the 5-day wait. Cut a patch release after merging so the fix ships."
+    },
+    {
       "matchManagers": ["github-actions"],
       "matchDepNames": ["dotnet-sdk"],
       "matchUpdateTypes": ["major"],

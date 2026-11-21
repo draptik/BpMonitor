@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Maintenance
+
+- Renovate pins the .NET base images by digest and opens a PR whenever Microsoft republishes them, so runtime security fixes no longer wait for someone to notice. No user-facing changes.
+
 ## [1.19.0] - 2026-11-21
 
 ### Changed
