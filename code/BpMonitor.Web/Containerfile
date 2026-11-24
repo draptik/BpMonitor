@@ -12,7 +12,7 @@ RUN dotnet publish BpMonitor.Web/BpMonitor.Web.fsproj -c Release -p:Version=$VER
 
 # Chiseled: no shell or package manager, so far fewer base-image CVEs.
 # -extra adds the ICU culture data the German UI formatting needs.
-FROM mcr.microsoft.com/dotnet/aspnet:11.0-resolute-chiseled-extra@sha256:cea9d5494f358fe43082300c24d1cd9f651066b6b7de1e5735bca8d3ade68649 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:11.0-resolute-chiseled-extra@sha256:4f2b9809c1974acd91dc04777bf464808fb5d22a3455c6657a97847077878936 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 
