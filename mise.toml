@@ -1,7 +1,7 @@
 [tools]
 node = "26.13.1"
 biome = "2.4.16"
-markdownlint-cli2 = "0.24.1"
+markdownlint-cli2 = "0.24.2"
 shellcheck = "0.11.0"
 actionlint = "1.7.12"
 hadolint = "2.15.1"
