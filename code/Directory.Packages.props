@@ -31,7 +31,7 @@
   <ItemGroup Label="Test - Helpers">
     <PackageVersion Include="Unquote" Version="7.0.1" />
     <PackageVersion Include="Verify.XunitV3" Version="33.7.1" />
-    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="11.0.1" />
   </ItemGroup>
   <ItemGroup Label="Test - PBT">
     <PackageVersion Include="FsCheck" Version="3.6.0" />
