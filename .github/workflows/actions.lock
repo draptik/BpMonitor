@@ -9,22 +9,22 @@ workflows:
         - 'actions/setup-dotnet@v6.1.0'
         - 'actions/upload-artifact@v7.0.2'
         - 'danielpalme/reportgenerator-github-action@v5.6.1'
-        - 'jdx/mise-action@v5.2.10'
+        - 'jdx/mise-action@v5.3.0'
         - 'marocchino/sticky-pull-request-comment@v3.0.5'
     '.github/workflows/image-scan.yml':
         - 'actions/checkout@v7.0.1'
         - 'github/codeql-action@v4.39.4'
-        - 'jdx/mise-action@v5.2.10'
+        - 'jdx/mise-action@v5.3.0'
     '.github/workflows/link-check.yml':
         - 'actions/checkout@v7.0.1'
-        - 'jdx/mise-action@v5.2.10'
+        - 'jdx/mise-action@v5.3.0'
     '.github/workflows/release.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
         - 'docker/build-push-action@v7.4.0'
         - 'docker/login-action@v4.8.0'
         - 'docker/metadata-action@v6.2.0'
-        - 'jdx/mise-action@v5.2.10'
+        - 'jdx/mise-action@v5.3.0'
         - 'softprops/action-gh-release@v3.0.4'
 dependencies:
     'actions/cache@v6.1.0':
@@ -72,9 +72,9 @@ dependencies:
         commit: 'sha1-1bd86f2fdb4b86187fa4059f16f31a3202acc9ea'
         owner_id: 9919
         repo_id: 259445878
-    'jdx/mise-action@v5.2.10':
-        ref: 'v5.2.10'
-        commit: 'sha1-90f833d396d0cc3674b631d2d225e306476c303a'
+    'jdx/mise-action@v5.3.0':
+        ref: 'v5.3.0'
+        commit: 'sha1-924e7c586e33d7d4bae9c14e26c5d22e2beb6e78'
         owner_id: 216188
         repo_id: 738284564
     'marocchino/sticky-pull-request-comment@v3.0.5':
