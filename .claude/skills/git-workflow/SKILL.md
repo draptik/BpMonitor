@@ -6,7 +6,7 @@ user-invocable: false
 
 # Git Workflow
 
-Enforce a clean, consistent git workflow. Every change is traceable, reviewable, and revertable. No shortcuts, no exceptions.
+Enforce a clean, consistent git workflow. Every change is traceable, reviewable, and revertible. No shortcuts, no exceptions.
 
 A standalone script mirroring the commit → PR → CI → merge flow lives at
 `scripts/ship-pr.sh` — use it directly (no Claude needed): stage your files

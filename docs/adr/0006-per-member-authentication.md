@@ -19,7 +19,7 @@ Add **per-member password authentication** using:
 - **Mechanism:** ASP.NET Core cookie authentication (`AddAuthentication().AddCookie()`), already
   in the `Microsoft.NET.Sdk.Web` shared framework — no new package.
 - **Hashing:** PBKDF2-SHA256 via `System.Security.Cryptography.Rfc2898DeriveBytes` (BCL) with
-  310 000 iterations and a random 32-byte salt. Encoded as `iterations.base64salt.base64hash`.
+  310,000 iterations and a random 32-byte salt. Encoded as `iterations.base64salt.base64hash`.
   Constant-time comparison via `CryptographicOperations.FixedTimeEquals`. Lives in a pure Core
   module (`PasswordHashing.fs`) with no external dependencies.
 - **Claim model:** on login, `SignInAsync` issues a cookie carrying `NameIdentifier` (member Id),
